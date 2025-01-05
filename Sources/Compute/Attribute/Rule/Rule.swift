@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public protocol Rule: _AttributeBody {
 
     associatedtype Value

@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public struct AnyOptionalAttribute {
 
     public static var current: AnyOptionalAttribute? {

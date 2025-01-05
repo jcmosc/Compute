@@ -10,7 +10,14 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Compute"
-        )
-    ]
+            name: "Compute",
+            dependencies: ["ComputeCxx"],
+            cxxSettings: [.headerSearchPath("../ComputeCxx")],
+            swiftSettings: [.interoperabilityMode(.Cxx)]
+        ),
+        .target(
+            name: "ComputeCxx"
+        ),
+    ],
+    cxxLanguageStandard: .cxx20
 )

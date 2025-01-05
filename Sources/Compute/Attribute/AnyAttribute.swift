@@ -1,4 +1,4 @@
-public struct AnyAttribute {}
+import ComputeCxx
 
 public struct InputOptions {}
 
@@ -71,7 +71,7 @@ extension AnyAttribute {
 
 }
 
-extension AnyAttribute: CustomStringConvertible {
+extension AnyAttribute: @retroactive CustomStringConvertible {
 
     public var description: String {
         fatalError("not implemented")
@@ -79,7 +79,7 @@ extension AnyAttribute: CustomStringConvertible {
 
 }
 
-extension AnyAttribute: Equatable {
+extension AnyAttribute: @retroactive Equatable {
 
     public static func == (_ lhs: AnyAttribute, _ rhs: AnyAttribute) -> Bool {
         fatalError("not implemented")
@@ -87,7 +87,7 @@ extension AnyAttribute: Equatable {
 
 }
 
-extension AnyAttribute: Hashable {
+extension AnyAttribute: @retroactive Hashable {
 
     public func hash(into hasher: inout Hasher) {
         fatalError("not implemented")

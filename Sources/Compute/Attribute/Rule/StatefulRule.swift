@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public protocol StatefulRule: _AttributeBody {
 
     associatedtype Value

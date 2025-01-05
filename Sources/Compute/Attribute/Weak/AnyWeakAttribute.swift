@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public struct AnyWeakAttribute {
 
     public init<Value>(_ attribute: WeakAttribute<Value>) {

@@ -1,4 +1,4 @@
-public struct Subgraph {}
+import ComputeCxx
 
 extension Subgraph {
 

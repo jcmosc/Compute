@@ -1,4 +1,4 @@
-public struct Graph {}
+import ComputeCxx
 
 extension Graph {
 
@@ -85,7 +85,7 @@ extension Graph {
 
 }
 
-extension Graph: Equatable {
+extension Graph: @retroactive Equatable {
 
     public static func == (_ lhs: Graph, _ rhs: Graph) -> Bool {
         fatalError("not implemented")

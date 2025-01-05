@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public struct ValueState {}
 
 public struct ValueOptions {}

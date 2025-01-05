@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public struct AnyRuleContext {
 
     public var attribute: AnyAttribute

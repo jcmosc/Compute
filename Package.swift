@@ -16,7 +16,8 @@ let package = Package(
             swiftSettings: [.interoperabilityMode(.Cxx)]
         ),
         .target(
-            name: "ComputeCxx"
+            name: "ComputeCxx",
+            cxxSettings: [.headerSearchPath("")]
         ),
     ],
     cxxLanguageStandard: .cxx20

@@ -10,10 +10,7 @@
 namespace AG {
 namespace data {
 
-zone::zone() {
-    uint32_t id = table::shared().make_zone_id();
-    _seed = id & seed_id_mask;
-}
+zone::zone() : _info(info().with_zone_id(table::shared().make_zone_id())) {}
 
 zone::~zone() { clear(); }
 

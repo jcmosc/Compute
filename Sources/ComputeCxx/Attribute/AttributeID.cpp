@@ -13,7 +13,7 @@ namespace AG {
 
 std::optional<size_t> AttributeID::size() const {
     if (is_direct()) {
-        const AttributeType &attribute_type = subgraph()->graph().type_for_attribute(to_node());
+        const AttributeType &attribute_type = subgraph()->graph().attribute_type(to_node().type_id());
         size_t size = attribute_type.value_metadata().vw_size();
         return std::optional<size_t>(size);
     }

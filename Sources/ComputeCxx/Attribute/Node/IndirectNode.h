@@ -37,6 +37,8 @@ class IndirectNode {
     };
 
     const WeakAttributeID &source() const { return _source; };
+    
+    void modify(WeakAttributeID source, size_t size);
 };
 
 class MutableIndirectNode : public IndirectNode {

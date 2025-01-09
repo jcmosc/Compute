@@ -27,7 +27,11 @@ class AttributeID {
     AttributeID(uint32_t value) : _value(value){};
 
   public:
-    enum Kind : uint32_t { Direct = 0, Indirect = 1 << 0, Nil = 1 << 1 };
+    enum Kind : uint32_t {
+        Direct = 0,
+        Indirect = 1 << 0,
+        NilAttribute = 1 << 1,
+    };
     enum TraversalOptions : uint32_t {
         None = 0,
 
@@ -52,7 +56,7 @@ class AttributeID {
 
     AttributeID(data::ptr<Node> node) : _value(node | Kind::Direct){};
     AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect){};
-    static AttributeID make_nil() { return AttributeID(Kind::Nil); };
+    static AttributeID make_nil() { return AttributeID(Kind::NilAttribute); };
 
     operator bool() const { return _value == 0; };
 
@@ -61,7 +65,7 @@ class AttributeID {
 
     bool is_direct() const { return kind() == Kind::Direct; };
     bool is_indirect() const { return kind() == Kind::Indirect; };
-    bool is_nil() const { return kind() == Kind::Nil; };
+    bool is_nil() const { return kind() == Kind::NilAttribute; };
 
     const Node &to_node() const {
         assert(is_direct());

@@ -9,4 +9,9 @@ const MutableIndirectNode &IndirectNode::to_mutable() const {
     return static_cast<const MutableIndirectNode &>(*this);
 }
 
+void IndirectNode::modify(WeakAttributeID source, size_t size) {
+    _source = source;
+    _info.size = uint32_t(size);
+}
+
 } // namespace AG

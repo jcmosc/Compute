@@ -8,6 +8,8 @@ CF_ASSUME_NONNULL_BEGIN
 namespace AG {
 namespace swift {
 
+using opaque_value = ::swift::OpaqueValue;
+
 class metadata : public ::swift::Metadata {};
 
 } // namespace swift

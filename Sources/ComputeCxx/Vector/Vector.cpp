@@ -8,22 +8,22 @@ namespace AG {
 
 namespace details {
 
-template <typename size_type, unsigned int element_size>
+template <typename size_type, unsigned int element_size_bytes>
     requires std::unsigned_integral<size_type>
 void *realloc_vector(void *buffer, void *stack_buffer, size_type stack_size, size_type *size,
                      size_type preferred_new_size) {
     // copy data from heap buffer buffer into stack buffer if possible
     if (preferred_new_size <= stack_size) {
         if (buffer) {
-            memcpy(stack_buffer, buffer, preferred_new_size * element_size);
+            memcpy(stack_buffer, buffer, preferred_new_size * element_size_bytes);
             free(buffer);
             *size = stack_size;
         }
         return nullptr;
     }
 
-    size_t new_size_bytes = malloc_good_size(preferred_new_size * element_size);
-    size_type new_size = new_size_bytes / element_size;
+    size_t new_size_bytes = malloc_good_size(preferred_new_size * element_size_bytes);
+    size_type new_size = new_size_bytes / element_size_bytes;
     if (new_size == *size) {
         // nothing to do
         return buffer;
@@ -36,7 +36,7 @@ void *realloc_vector(void *buffer, void *stack_buffer, size_type stack_size, siz
 
     // copy data from stack buffer into heap buffer
     if (!buffer) {
-        memcpy(new_buffer, stack_buffer, (*size) * element_size);
+        memcpy(new_buffer, stack_buffer, (*size) * element_size_bytes);
     }
 
     *size = new_size;

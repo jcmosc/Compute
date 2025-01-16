@@ -4,7 +4,7 @@
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
-#include "Runtime/Metadata.h"
+#include "Swift/Metadata.h"
 
 namespace AG {
 

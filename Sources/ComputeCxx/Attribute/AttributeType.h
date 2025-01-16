@@ -2,7 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Runtime/Metadata.h"
+#include "Swift/Metadata.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

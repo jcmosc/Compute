@@ -25,6 +25,7 @@ extension Target {
                     "-UIBOutlet", "-UIBAction", "-UIBInspectable",
                     "-isystem", "\(swiftProjectPath)/swift/include",
                     "-isystem", "\(swiftProjectPath)/swift/stdlib/public/SwiftShims",
+                    "-isystem", "\(swiftProjectPath)/swift/stdlib/public/runtime",
                     "-isystem", "\(swiftProjectPath)/llvm-project/llvm/include",
                     "-isystem", "\(swiftProjectPath)/llvm-project/clang/include",
                     "-isystem", "\(swiftProjectPath)/build/Default/swift/include",

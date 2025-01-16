@@ -12,8 +12,8 @@ class Heap;
 uint64_t string_hash(char const *str);
 
 class UntypedTable {
-    using key_type = void *_Nonnull;
-    using nullable_key_type = void *_Nullable;
+    using key_type = const void *_Nonnull;
+    using nullable_key_type = const void *_Nullable;
     using value_type = void *_Nonnull;
     using nullable_value_type = void *_Nullable;
     using size_type = uint64_t;
@@ -50,8 +50,8 @@ class UntypedTable {
 
   public:
     UntypedTable();
-    UntypedTable(hasher custom_hasher, key_equal custom_compare, key_callback_t did_remove_key,
-                 value_callback_t did_remove_value, Heap *_Nullable heap);
+    UntypedTable(hasher custom_hasher, key_equal custom_compare, key_callback_t _Nullable did_remove_key,
+                 value_callback_t _Nullable did_remove_value, Heap *_Nullable heap);
     ~UntypedTable();
 
     // Lookup
@@ -61,9 +61,9 @@ class UntypedTable {
     void for_each(entry_callback_t body, const void *context);
 
     // Modifiers
-    bool insert(key_type key, value_type value);
-    bool remove(key_type key);
-    bool remove_ptr(key_type key);
+    bool insert(const key_type key, const value_type value);
+    bool remove(const key_type key);
+    bool remove_ptr(const key_type key);
 };
 
 } // namespace util

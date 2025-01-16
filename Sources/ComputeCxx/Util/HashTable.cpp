@@ -174,7 +174,7 @@ UntypedTable::nullable_value_type UntypedTable::lookup(key_type key, nullable_ke
 
 #pragma mark - Modifying entries
 
-bool UntypedTable::insert(void *key, void *value) {
+bool UntypedTable::insert(key_type key, value_type value) {
     if (_buckets == nullptr) {
         this->create_buckets();
     }
@@ -257,7 +257,7 @@ bool UntypedTable::remove(key_type key) {
     return false;
 }
 
-bool UntypedTable::remove_ptr(void *key) {
+bool UntypedTable::remove_ptr(key_type key) {
     if (_count == 0) {
         return false;
     }

@@ -49,7 +49,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _stack_size, size_type>::~vector() {
     for (auto i = 0; i < _size; i++) {
-        delete this[i];
+        this[i]->~T();
     }
     if (_buffer) {
         free(_buffer);
@@ -76,7 +76,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::clear() {
     for (auto i = 0; i < _size; i++) {
-        delete this[i];
+        this[i]->~T();
     }
     _size = 0;
 }
@@ -101,7 +101,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::pop_back() {
     assert(size() > 0);
-    delete this[_size - 1];
+    this[_size - 1]->~T();
     _size -= 1;
 }
 
@@ -111,7 +111,7 @@ void vector<T, _stack_size, size_type>::resize(size_type count) {
     reserve(count);
     if (count < _size) {
         for (auto i = count; i < _size; i++) {
-            delete this[i];
+            this[i]->~T();
         }
     } else if (count > _size) {
         for (auto i = _size; i < count; i++) {
@@ -127,7 +127,7 @@ void vector<T, _stack_size, size_type>::resize(size_type count, const value_type
     reserve(count);
     if (count < _size) {
         for (auto i = count; i < _size; i++) {
-            delete this[i];
+            this[i]->~T();
         }
     } else if (count > _size) {
         for (auto i = _size; i < count; i++) {
@@ -171,7 +171,7 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::~vector() {
     for (auto i = 0; i < _size; i++) {
-        delete this[i];
+        this[i]->~T();
     }
     if (_buffer) {
         free(_buffer);
@@ -198,7 +198,7 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::clear() {
     for (auto i = 0; i < _size; i++) {
-        delete this[i];
+        this[i]->~T();
     }
     _size = 0;
 }
@@ -223,7 +223,7 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::pop_back() {
     assert(size() > 0);
-    delete this[_size - 1];
+    this[_size - 1]->~T();
     _size -= 1;
 }
 
@@ -233,7 +233,7 @@ void vector<T, 0, size_type>::resize(size_type count) {
     reserve(count);
     if (count < _size) {
         for (auto i = count; i < _size; i++) {
-            delete this[i];
+            this[i]->~T();
         }
     } else if (count > _size) {
         for (auto i = _size; i < count; i++) {
@@ -249,7 +249,7 @@ void vector<T, 0, size_type>::resize(size_type count, const value_type &value) {
     reserve(count);
     if (count < _size) {
         for (auto i = count; i < _size; i++) {
-            delete this[i];
+            this[i]->~T();
         }
     } else if (count > _size) {
         for (auto i = _size; i < count; i++) {

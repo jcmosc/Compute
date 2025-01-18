@@ -161,7 +161,7 @@ void metadata::append_description(CFMutableStringRef description) const {
                 }
                 CFStringAppendCString(description, ">", kCFStringEncodingUTF8);
             }
-            if (parent < end) {
+            if (parent + 1 < end) {
                 CFStringAppendCString(description, ".", kCFStringEncodingUTF8);
             }
         }

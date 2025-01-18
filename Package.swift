@@ -31,6 +31,7 @@ extension Target {
                     "-isystem", "\(swiftProjectPath)/build/Default/swift/include",
                     "-isystem", "\(swiftProjectPath)/build/Default/llvm/include",
                     "-isystem", "\(swiftProjectPath)/build/Default/llvm/tools/clang/include",
+                    "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING",
                 ])
             ] + cxxSettings
         )
@@ -49,6 +50,12 @@ let package = Package(
             dependencies: ["ComputeCxx"],
             cxxSettings: [.headerSearchPath("../ComputeCxx")],
             swiftSettings: [.interoperabilityMode(.Cxx)]
+        ),
+        .testTarget(
+            name: "ComputeTests",
+            dependencies: ["Compute"],
+            swiftSettings: [.interoperabilityMode(.Cxx)],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
         .swiftRuntimeTarget(
             name: "ComputeCxx",

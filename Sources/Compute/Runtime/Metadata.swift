@@ -1,15 +1,18 @@
-public struct Metadata {
-    
-    public struct ApplyOptions {
-        
-    }
+import ComputeCxx
+import Foundation
+
+extension Metadata {
 
     public init(_ type: Any.Type) {
-        fatalError("not implemented")
+        self.init(rawValue: unsafeBitCast(type, to: OpaquePointer.self))
     }
 
     public var type: Any.Type {
-        fatalError("not implemented")
+        return unsafeBitCast(rawValue, to: Any.Type.self)
+    }
+
+    public struct ApplyOptions {
+
     }
 
     public func forEachField(options: ApplyOptions, do body: @escaping (UnsafePointer<Int8>, Int, Any.Type) -> Bool)
@@ -20,18 +23,14 @@ public struct Metadata {
 
 }
 
-extension Metadata: CustomStringConvertible {
+extension Metadata: @retroactive CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return __AGTypeDescription(self) as String
     }
 
 }
 
-extension Metadata: Hashable {
+extension Metadata: @retroactive Equatable {}
 
-    public func hash(into hasher: inout Hasher) {
-        fatalError("not implemented")
-    }
-
-}
+extension Metadata: @retroactive Hashable {}

@@ -13,6 +13,7 @@ using witness_table = ::swift::WitnessTable;
 
 class metadata_visitor;
 class context_descriptor;
+class type_context_descriptor;
 
 class metadata : public ::swift::Metadata {
   private:
@@ -36,7 +37,7 @@ class metadata : public ::swift::Metadata {
     const char *name(bool qualified) const;
 
     const context_descriptor *_Nullable descriptor() const;
-    const context_descriptor *_Nullable nominal_descriptor() const;
+    const type_context_descriptor *_Nullable nominal_descriptor() const;
 
     void append_description(CFMutableStringRef description) const;
     const void *signature() const;

@@ -44,7 +44,7 @@ const context_descriptor *_Nullable metadata::descriptor() const {
     }
 }
 
-const context_descriptor *_Nullable metadata::nominal_descriptor() const {
+const type_context_descriptor *_Nullable metadata::nominal_descriptor() const {
     auto result = descriptor();
     if (!result) {
         return nullptr;
@@ -52,7 +52,7 @@ const context_descriptor *_Nullable metadata::nominal_descriptor() const {
     switch (result->getKind()) {
     case ::swift::ContextDescriptorKind::Struct:
     case ::swift::ContextDescriptorKind::Enum:
-        return result;
+        return reinterpret_cast<const type_context_descriptor *>(result);
     default:
         return nullptr;
     }
@@ -142,7 +142,7 @@ void metadata::append_description(CFMutableStringRef description) const {
             if (parent->generic_args_end != generic_args_start) {
                 CFStringAppendCString(description, "<", kCFStringEncodingUTF8);
                 for (uint64_t i = generic_args_start; i < parent->generic_args_end; i++) {
-                    if (i > 0) {
+                    if (i > generic_args_start) {
                         CFStringAppendCString(description, ", ", kCFStringEncodingUTF8);
                     }
                     context_descriptor::generic_arg arg = generic_args[i];
@@ -164,6 +164,7 @@ void metadata::append_description(CFMutableStringRef description) const {
             if (parent + 1 < end) {
                 CFStringAppendCString(description, ".", kCFStringEncodingUTF8);
             }
+            generic_args_start = parent->generic_args_end;
         }
     }
 }

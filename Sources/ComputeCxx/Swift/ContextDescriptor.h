@@ -42,6 +42,11 @@ class context_descriptor : public ::swift::ContextDescriptor {
     void push_generic_args(const metadata &metadata, vector<generic_arg, 8, uint64_t> &generic_args_vector) const;
 };
 
+class type_context_descriptor : ::swift::TypeContextDescriptor {
+  public:
+    const char *name() const { return Name.get(); }
+};
+
 class class_type_descriptor {
   private:
     ::swift::ClassDescriptor _base;

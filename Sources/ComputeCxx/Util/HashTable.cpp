@@ -41,8 +41,8 @@ UntypedTable::UntypedTable() {
     _compare_by_pointer = true;
 }
 
-UntypedTable::UntypedTable(hasher custom_hash, key_equal custom_compare, key_callback_t did_remove_key,
-                           value_callback_t did_remove_value, Heap *heap) {
+UntypedTable::UntypedTable(hasher custom_hash, key_equal custom_compare, key_callback did_remove_key,
+                           value_callback did_remove_value, Heap *heap) {
     _hash = custom_hash != nullptr ? custom_hash : pointer_hash;
     _compare = custom_compare != nullptr ? custom_compare : pointer_compare;
     _did_remove_key = did_remove_key;
@@ -142,7 +142,7 @@ void UntypedTable::grow_buckets() {
 
 #pragma mark - Lookup
 
-UntypedTable::nullable_value_type UntypedTable::lookup(key_type key, nullable_key_type *found_key_out) {
+UntypedTable::nullable_value_type UntypedTable::lookup(key_type key, nullable_key_type *found_key_out) const noexcept {
     if (_count) {
         uint64_t hash_value = _hash(key);
         HashNode *node = _buckets[_bucket_mask & hash_value];
@@ -279,9 +279,10 @@ bool UntypedTable::remove_ptr(key_type key) {
         }
         node = candidate;
     }
+    return false;
 }
 
-void UntypedTable::for_each(entry_callback_t body, const void *context) {
+void UntypedTable::for_each(entry_callback body, const void *context) const {
     if (_count) {
         for (uint32_t i = 0; !(i >> _bucket_mask_width); i++) {
             for (UntypedTable::HashNode *node = _buckets[i]; node != nullptr; node = node->next) {

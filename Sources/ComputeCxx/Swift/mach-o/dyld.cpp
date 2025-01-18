@@ -6,7 +6,7 @@
 
 #include "MachOFile.h"
 
-void dyld_get_image_uuid(const mach_header *mh, uuid_t uuid) {
+bool dyld_get_image_uuid(const mach_header *mh, uuid_t uuid) {
     const MachOFile *mf = (MachOFile *)mh;
     if (!mf->hasMachOMagic()) {
         return false;

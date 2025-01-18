@@ -16,7 +16,7 @@ bool metadata_visitor::visit_field(const metadata &type, const field_record &fie
                                    size_t field_size) const {
     const char *mangled_type_name = field.MangledTypeName ? field.MangledTypeName.get() : nullptr;
     if (mangled_type_name) {
-        metadata::ref_kind ref_kind = metadata::ref_kind::none;
+        metadata::ref_kind ref_kind = metadata::ref_kind::strong;
         const metadata *element_type = type.mangled_type_name_ref(mangled_type_name, false, &ref_kind);
         if (element_type) {
             size_t element_size = element_type->vw_size();

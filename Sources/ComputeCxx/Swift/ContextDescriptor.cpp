@@ -8,41 +8,41 @@ namespace swift {
 context_descriptor::generic_params_info::generic_params_info(const context_descriptor &context,
                                                              const metadata *_Nullable type) {
     if (context.isGeneric()) {
-        switch (context.getKind()) {
-        case ::swift::ContextDescriptorKind::Class: {
-            auto cls = reinterpret_cast<const class_type_descriptor *>(context.base());
-            generic_header = &cls->base()->getFullGenericContextHeader();
+        generic_header = &context.getGenericContext()->getGenericContextHeader();
 
-            if (type) {
+        if (type) {
+            switch (context.getKind()) {
+            case ::swift::ContextDescriptorKind::Class: {
+                auto class_descriptor = reinterpret_cast<const class_type_descriptor *>(context.base());
                 auto asWords = reinterpret_cast<const metadata *const *>(type);
-                generic_args = asWords + cls->immediate_members_offset();
+                generic_args = asWords + class_descriptor->immediate_members_offset();
+                break;
             }
-            break;
-        }
-        case ::swift::ContextDescriptorKind::Struct:
-        case ::swift::ContextDescriptorKind::Enum: {
-            auto val = reinterpret_cast<const ::swift::TypeContextDescriptor *>(context.base());
-            generic_header = &val->getFullGenericContextHeader();
-
-            if (type) {
+            case ::swift::ContextDescriptorKind::Struct: {
+                auto struct_descriptor = reinterpret_cast<const ::swift::StructDescriptor *>(context.base());
                 auto asWords = reinterpret_cast<const metadata *const *>(type);
-                generic_args = asWords + val->getGenericArgumentOffset();
+                generic_args = asWords + struct_descriptor->getGenericArgumentOffset();
+                break;
             }
-            break;
-        }
-        default:
-            return;
+            case ::swift::ContextDescriptorKind::Enum: {
+                auto enum_descriptor = reinterpret_cast<const ::swift::EnumDescriptor *>(context.base());
+                auto asWords = reinterpret_cast<const metadata *const *>(type);
+                generic_args = asWords + enum_descriptor->getGenericArgumentOffset();
+                break;
+            }
+            default:
+                return;
+            }
         }
 
-        if (generic_header->Base.NumParams > 0) {
-            // TODO: correct cast for class?
-            auto val = reinterpret_cast<const ::swift::TypeContextDescriptor *>(context.base());
-            auto generic_params = val->getGenericParams();
+        if (generic_header->NumParams > 0) {
+            auto type_descriptor = reinterpret_cast<const ::swift::TypeContextDescriptor *>(context.base());
+            auto generic_params = type_descriptor->getGenericParams();
             params = generic_params;
 
-            if (generic_header->Base.Flags.hasTypePacks()) {
-                pack_shape_header = val->getGenericContext()->getGenericPackShapeHeader();
-                pack_shape_descriptors = val->getGenericContext()->getGenericPackShapeDescriptors();
+            if (generic_header->Flags.hasTypePacks()) {
+                pack_shape_header = type_descriptor->getGenericContext()->getGenericPackShapeHeader();
+                pack_shape_descriptors = type_descriptor->getGenericContext()->getGenericPackShapeDescriptors();
             }
         }
     }
@@ -79,8 +79,7 @@ void context_descriptor::push_generic_args(const metadata &type,
     // - a sequence of pack lengths
     // - a sequence of metadata or metadata pack pointers
     // - a sequence of witness table or witness table pack pointers
-    // See
-    // https://github.com/swiftlang/swift/blob/d4756cbe7fa6058786035aa4cb9a2a83c1b839ed/include/swift/ABI/GenericContext.h
+    // See https://github.com/swiftlang/swift/blob/main/include/swift/ABI/GenericContext.h
 
     // Start from the metadata or metadata pack points
     unsigned arg_index = info.pack_shape_header.NumShapeClasses;
@@ -108,7 +107,8 @@ void context_descriptor::push_generic_args(const metadata &type,
             if (info.generic_args[arg_index] != nullptr) {
                 types = info.generic_args[arg_index];
                 // The shape class is represented as the length of the type parameter pack
-                num_types = reinterpret_cast<uint64_t>(info.generic_args[info.pack_shape_descriptors[pack_index].ShapeClass]);
+                num_types =
+                    reinterpret_cast<uint64_t>(info.generic_args[info.pack_shape_descriptors[pack_index].ShapeClass]);
             }
 
             pack_index += 1;
@@ -130,13 +130,26 @@ void context_descriptor::push_generic_args(const metadata &type,
 
 uint64_t class_type_descriptor::immediate_members_offset() const {
     if (base()->hasResilientSuperclass()) {
-        // Equivalent to ::swift::getResilientImmediateMembersOffset but without using any atomic-ordered loads,
+        // This is equivalent to ::swift::getResilientImmediateMembersOffset
+        // but without using any atomic-ordered loads,
         // as we already have the metadata pointer
         const auto &stored_bounds = base()->ResilientMetadataBounds.get();
         ptrdiff_t offset = stored_bounds->ImmediateMembersOffset.load(std::memory_order_relaxed);
         return offset / sizeof(void *);
     }
     return base()->getNonResilientImmediateMembersOffset();
+}
+
+uint64_t class_type_descriptor::field_offset_vector_offset() const {
+    // FieldOffsetVectorOffset is a private field, but we know comes directly after Numfields which is a uint32_t
+    static_assert(offsetof(::swift::ClassDescriptor, NumFields) == 9 * sizeof(uint32_t));
+    const uint32_t offset = reinterpret_cast<const uint32_t *>(this)[10];
+
+    if (base()->hasResilientSuperclass()) {
+        return immediate_members_offset() + offset;
+    } else {
+        return offset;
+    }
 }
 
 } // namespace swift

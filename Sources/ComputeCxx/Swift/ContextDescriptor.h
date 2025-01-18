@@ -16,7 +16,7 @@ namespace swift {
 class context_descriptor : public ::swift::ContextDescriptor {
   public:
     struct generic_params_info {
-        const ::swift::TypeGenericContextDescriptorHeader *generic_header = nullptr;
+        const ::swift::GenericContextDescriptorHeader *generic_header = nullptr;
         llvm::ArrayRef<::swift::GenericParamDescriptor> params = {};
         ::swift::GenericPackShapeHeader pack_shape_header = {};
         llvm::ArrayRef<::swift::GenericPackShapeDescriptor> pack_shape_descriptors = {};
@@ -52,7 +52,9 @@ class class_type_descriptor {
         return reinterpret_cast<const class_type_descriptor *>(base);
     };
 
+    // We need to reimplement these to avoid errors when linking against the Swift runtime library
     uint64_t immediate_members_offset(void) const;
+    uint64_t field_offset_vector_offset() const;
 };
 
 } // namespace swift

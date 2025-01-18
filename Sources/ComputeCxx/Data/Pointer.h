@@ -1,8 +1,12 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <cassert>
 #include <stdint.h>
 #include <type_traits>
+
+#include "Constants.h"
+#include "Table.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -25,12 +29,20 @@ template <typename T> class ptr {
     ptr(difference_type offset = 0) : _offset(offset){};
     ptr(nullptr_t){};
 
-    void assert_valid() const;
+    void assert_valid() const {
+        if (_offset >= table::shared().ptr_max_offset()) {
+            precondition_failure("invalid data offset: %u", _offset);
+        }
+    }
 
-    element_type *_Nonnull get() const noexcept;
+    element_type *_Nonnull get() const noexcept {
+        assert(_offset != 0);
+        return reinterpret_cast<element_type *>(table::shared().ptr_base() + _offset);
+    }
 
-    ptr<page> page_ptr() const noexcept;
-    difference_type page_relative_offset() const noexcept;
+    ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
+
+    difference_type page_relative_offset() const noexcept { return _offset & page_alignment_mask; }
 
     template <typename U> ptr<U> aligned(difference_type alignment_mask = sizeof(difference_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);

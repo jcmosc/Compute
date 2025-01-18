@@ -3,21 +3,13 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdint.h>
 
-#include "Pointer.h"
-
 CF_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
 
-class zone;
-
-struct page {
-    zone *zone;
-    ptr<page> previous;
-    uint32_t total;
-    uint32_t in_use;
-};
+constexpr uint32_t page_size = 0x200;
+constexpr uint32_t page_alignment_mask = page_size - 1;
 
 } // namespace data
 } // namespace AG

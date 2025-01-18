@@ -11,8 +11,11 @@ namespace AG {
 class Graph;
 
 class Subgraph : public data::zone {
+  private:
+    Graph *_graph;
+
   public:
-    Graph &graph() const;
+    Graph &graph() const { return *_graph; };
 };
 
 } // namespace AG

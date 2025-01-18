@@ -156,7 +156,7 @@ void *zone::alloc_persistent(size_t size) {
     }
 
     auto buffer = table::shared().alloc_persistent(size);
-    _malloc_buffers.push_back(buffer);
+    _malloc_buffers.push_back(std::move(buffer));
 
     return _malloc_buffers.back().get();
 }
@@ -201,15 +201,15 @@ void zone::print() {
     }
     double malloc_total_size_kb = malloc_total_size / 1024.0;
 
-    return fprintf(stdout, "%-16p %6lu %8.2f %8.2f    %6lu %6lu     %6lu %8.2f\n",
-                   this,                   // zone ptr
-                   num_pages,              // pages
-                   pages_total_kb,         // total
-                   pages_in_use_kb,        // in-use
-                   num_free_elements,      // free
-                   free_bytes,             // bytes
-                   num_persistent_buffers, // malloc
-                   malloc_total_size_kb    // total
+    fprintf(stdout, "%-16p %6lu %8.2f %8.2f    %6lu %6lu     %6lu %8.2f\n",
+            this,                   // zone ptr
+            num_pages,              // pages
+            pages_total_kb,         // total
+            pages_in_use_kb,        // in-use
+            num_free_elements,      // free
+            free_bytes,             // bytes
+            num_persistent_buffers, // malloc
+            malloc_total_size_kb    // total
     );
 }
 

@@ -27,6 +27,8 @@ table &table::ensure_shared() {
 
 table &table::shared() { return _shared_table_bytes; }
 
+malloc_zone_t *table::_malloc_zone = nullptr;
+
 std::unique_ptr<void, table::malloc_zone_deleter> table::alloc_persistent(size_t size) {
     void *buffer = malloc_zone_malloc(table::_malloc_zone, size);
     if (!buffer) {

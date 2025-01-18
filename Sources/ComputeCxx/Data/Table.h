@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <utility>
 
-#include "Pointer.h"
 #include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -17,6 +16,8 @@ namespace AG {
 namespace data {
 
 class zone;
+class page;
+template <typename T> class ptr;
 
 class table {
   public:

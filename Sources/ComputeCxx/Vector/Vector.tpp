@@ -1,5 +1,9 @@
 #include "Vector.h"
 
+#include <algorithm>
+#include <malloc/malloc.h>
+#include <memory>
+
 #include "Errors/Errors.h"
 
 namespace AG {
@@ -49,7 +53,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _stack_size, size_type>::~vector() {
     for (auto i = 0; i < _size; i++) {
-        this[i]->~T();
+        data()[i].~T();
     }
     if (_buffer) {
         free(_buffer);
@@ -59,8 +63,9 @@ vector<T, _stack_size, size_type>::~vector() {
 template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::reserve_slow(size_type new_cap) {
-    size_type effective_new_cap = max(capacity() * 1.5, new_cap);
-    _buffer = details::realloc_vector(_buffer, _stack_buffer, _stack_size, &_capacity, effective_new_cap);
+    size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
+    _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, _stack_buffer, _stack_size,
+                                                                                  &_capacity, effective_new_cap));
 }
 
 template <typename T, unsigned int _stack_size, typename size_type>
@@ -76,7 +81,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::clear() {
     for (auto i = 0; i < _size; i++) {
-        this[i]->~T();
+        data()[i].~T();
     }
     _size = 0;
 }
@@ -85,7 +90,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::push_back(const T &value) {
     reserve(_size + 1);
-    new (this[_size]) value_type(value);
+    new (&data()[_size]) value_type(value);
     _size += 1;
 }
 
@@ -93,7 +98,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::push_back(T &&value) {
     reserve(_size + 1);
-    new (this[_size]) value_type(std::move(value));
+    new (&data()[_size]) value_type(std::move(value));
     _size += 1;
 }
 
@@ -101,7 +106,7 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::pop_back() {
     assert(size() > 0);
-    this[_size - 1]->~T();
+    data()[_size - 1].~T();
     _size -= 1;
 }
 
@@ -141,7 +146,7 @@ void vector<T, _stack_size, size_type>::resize(size_type count, const value_type
 
 namespace details {
 
-template <typename size_type, unsigned int element_size>
+template <typename size_type, size_t element_size>
     requires std::unsigned_integral<size_type>
 void *realloc_vector(void *buffer, size_type *size, size_type preferred_new_size) {
     if (preferred_new_size == 0) {
@@ -151,7 +156,7 @@ void *realloc_vector(void *buffer, size_type *size, size_type preferred_new_size
     }
 
     size_t new_size_bytes = malloc_good_size(preferred_new_size * element_size);
-    size_type new_size = new_size_bytes / element_size;
+    size_type new_size = (size_type)(new_size_bytes / element_size);
     if (new_size == *size) {
         // nothing to do
         return buffer;
@@ -171,7 +176,7 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::~vector() {
     for (auto i = 0; i < _size; i++) {
-        this[i]->~T();
+        _buffer[i].~T();
     }
     if (_buffer) {
         free(_buffer);
@@ -181,8 +186,9 @@ vector<T, 0, size_type>::~vector() {
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::reserve_slow(size_type new_cap) {
-    size_type effective_new_cap = max(capacity() * 1.5, new_cap);
-    _buffer = details::realloc_vector(_buffer, &_capacity, effective_new_cap);
+    size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
+    _buffer =
+        reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, &_capacity, effective_new_cap));
 }
 
 template <typename T, typename size_type>
@@ -207,7 +213,7 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::push_back(const T &value) {
     reserve(_size + 1);
-    new (this[_size]) value_type(value);
+    new (&_buffer[_size]) value_type(value);
     _size += 1;
 }
 
@@ -215,7 +221,7 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::push_back(T &&value) {
     reserve(_size + 1);
-    new (this[_size]) value_type(std::move(value));
+    new (&_buffer[_size]) value_type(std::move(value));
     _size += 1;
 }
 
@@ -257,6 +263,27 @@ void vector<T, 0, size_type>::resize(size_type count, const value_type &value) {
         }
     }
     _size = count;
+}
+
+#pragma mark - Specialization for unique_ptr
+
+template <typename T, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<std::unique_ptr<T>, 0, size_type>::~vector() {
+    for (auto i = 0; i < _size; i++) {
+        _buffer[i].reset();
+    }
+    if (_buffer) {
+        free(_buffer);
+    }
+}
+
+template <typename T, typename size_type>
+    requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T>, 0, size_type>::push_back(std::unique_ptr<T> &&value) {
+    reserve(_size + 1);
+    new (&_buffer[_size]) value_type(std::move(value));
+    _size += 1;
 }
 
 } // namespace AG

@@ -521,6 +521,7 @@ bool metadata::visit(metadata_visitor &visitor) const {
                         if (!visitor.visit_case(*this, field, index)) {
                             return false;
                         }
+                        index += 1;
                     }
                     return true;
                 }

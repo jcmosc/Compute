@@ -29,7 +29,7 @@ bool metadata_visitor::visit_field(const metadata &type, const field_record &fie
     return unknown_result();
 }
 
-bool metadata_visitor::visit_case(const metadata &type, const field_record &field, uint32_t arg) const {
+bool metadata_visitor::visit_case(const metadata &type, const field_record &field, uint32_t index) const {
     return unknown_result();
 }
 

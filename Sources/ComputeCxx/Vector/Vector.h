@@ -116,14 +116,18 @@ class vector<T, 0, size_type> {
     // Iterators
 
     iterator begin() { return iterator(&data()[0]); };
-    const_iterator cbegin() const { return const_iterator(&data()[0]); };
     iterator end() { return iterator(&data()[_size]); };
+    const_iterator cbegin() const { return const_iterator(&data()[0]); };
     const_iterator cend() const { return const_iterator(&data()[_size]); };
+    const_iterator begin() const { return cbegin(); };
+    const_iterator end() const { return cend(); };
 
     reverse_iterator rbegin() { return std::reverse_iterator(end()); };
-    const_reverse_iterator crbegin() const { return std::reverse_iterator(cend()); };
     reverse_iterator rend() { return std::reverse_iterator(begin()); };
+    const_reverse_iterator crbegin() const { return std::reverse_iterator(cend()); };
     const_reverse_iterator crend() const { return std::reverse_iterator(cbegin()); };
+    const_reverse_iterator rbegin() const { return crbegin(); };
+    const_reverse_iterator rend() const { return crend(); };
 
     // Capacity
 
@@ -183,14 +187,18 @@ class vector<std::unique_ptr<T>, 0, size_type> {
     // Iterators
 
     iterator begin() { return iterator(&data()[0]); };
-    const_iterator cbegin() const { return const_iterator(&data()[0]); };
     iterator end() { return iterator(&data()[_size]); };
+    const_iterator cbegin() const { return const_iterator(&data()[0]); };
     const_iterator cend() const { return const_iterator(&data()[_size]); };
+    const_iterator begin() const { return cbegin(); };
+    const_iterator end() const { return cend(); };
 
     reverse_iterator rbegin() { return std::reverse_iterator(end()); };
-    const_reverse_iterator crbegin() const { return std::reverse_iterator(cend()); };
     reverse_iterator rend() { return std::reverse_iterator(begin()); };
+    const_reverse_iterator crbegin() const { return std::reverse_iterator(cend()); };
     const_reverse_iterator crend() const { return std::reverse_iterator(cbegin()); };
+    const_reverse_iterator rbegin() const { return crbegin(); };
+    const_reverse_iterator rend() const { return crend(); };
 
     // Capacity
 

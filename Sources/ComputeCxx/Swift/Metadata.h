@@ -67,6 +67,8 @@ class metadata : public ::swift::Metadata {
         heap_class = 1 << 0,
         heap_locals = 1 << 1,
         heap_generic_locals = 1 << 2,
+
+        heap_class_and_generic_locals = heap_class | heap_generic_locals,
     };
 
     bool visit(metadata_visitor &visitor) const;

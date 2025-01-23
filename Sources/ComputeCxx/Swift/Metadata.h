@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <SwiftEquatableSupport.h>
 #include <swift/Runtime/Metadata.h>
 
 CF_ASSUME_NONNULL_BEGIN
@@ -9,7 +10,7 @@ namespace AG {
 namespace swift {
 
 using opaque_value = ::swift::OpaqueValue;
-using witness_table = ::swift::WitnessTable;
+using equatable_witness_table = ::swift::equatable_support::EquatableWitnessTable;
 
 class metadata_visitor;
 class context_descriptor;
@@ -42,7 +43,7 @@ class metadata : public ::swift::Metadata {
     void append_description(CFMutableStringRef description) const;
     const void *signature() const;
 
-    const witness_table *_Nullable equatable() const;
+    const equatable_witness_table *_Nullable equatable() const;
 
     // Mutating objects
 

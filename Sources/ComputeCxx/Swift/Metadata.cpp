@@ -259,10 +259,10 @@ const void *metadata::signature() const {
     return signature;
 }
 
-const witness_table *metadata::equatable() const {
+const equatable_witness_table *metadata::equatable() const {
     switch (getKind()) {
     case ::swift::MetadataKind::Class: {
-        static const witness_table *nsobject_conformance = []() -> const witness_table * {
+        static const equatable_witness_table *nsobject_conformance = []() -> const equatable_witness_table * {
             Class nsobject = objc_getClass("NSObject");
             if (!nsobject) {
                 return nullptr;
@@ -271,11 +271,12 @@ const witness_table *metadata::equatable() const {
             if (!nsobject_metadata) {
                 return nullptr;
             }
-            return swift_conformsToProtocol(nsobject_metadata,
-                                            &::swift::equatable_support::EquatableProtocolDescriptor);
+            auto witness_table =
+                swift_conformsToProtocol(nsobject_metadata, &::swift::equatable_support::EquatableProtocolDescriptor);
+            return reinterpret_cast<const equatable_witness_table *>(witness_table);
         }();
-        const witness_table *conformance =
-            swift_conformsToProtocol(this, &::swift::equatable_support::EquatableProtocolDescriptor);
+        auto conformance = reinterpret_cast<const equatable_witness_table *>(
+            swift_conformsToProtocol(this, &::swift::equatable_support::EquatableProtocolDescriptor));
         if (conformance == nsobject_conformance) {
             return nullptr;
         }
@@ -284,8 +285,10 @@ const witness_table *metadata::equatable() const {
     case ::swift::MetadataKind::Struct:
     case ::swift::MetadataKind::Enum:
     case ::swift::MetadataKind::Optional:
-    case ::swift::MetadataKind::Tuple:
-        return swift_conformsToProtocol(this, &::swift::equatable_support::EquatableProtocolDescriptor);
+    case ::swift::MetadataKind::Tuple: {
+        auto witness_table = swift_conformsToProtocol(this, &::swift::equatable_support::EquatableProtocolDescriptor);
+        return reinterpret_cast<const equatable_witness_table *>(witness_table);
+    }
     default:
         return nullptr;
     }

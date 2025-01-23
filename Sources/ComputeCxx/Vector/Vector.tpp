@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <malloc/malloc.h>
 #include <memory>
+#include <cassert>
 
 #include "Errors/Errors.h"
 
@@ -75,6 +76,15 @@ void vector<T, _stack_size, size_type>::reserve(size_type new_cap) {
         return;
     }
     reserve_slow(new_cap);
+}
+
+template <typename T, unsigned int _stack_size, typename size_type>
+    requires std::unsigned_integral<size_type>
+void vector<T, _stack_size, size_type>::shrink_to_fit() {
+    if (capacity() > _size) {
+        _buffer = reinterpret_cast<T *>(
+            details::realloc_vector<size_type, sizeof(T)>(_buffer, _stack_buffer, _stack_size, &_capacity, _size));
+    }
 }
 
 template <typename T, unsigned int _stack_size, typename size_type>
@@ -198,6 +208,15 @@ void vector<T, 0, size_type>::reserve(size_type new_cap) {
         return;
     }
     reserve_slow(new_cap);
+}
+
+template <typename T, typename size_type>
+requires std::unsigned_integral<size_type>
+void vector<T, 0, size_type>::shrink_to_fit() {
+    if (capacity() > size()) {
+        _buffer =
+        reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, &_capacity, 0));
+    }
 }
 
 template <typename T, typename size_type>

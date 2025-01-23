@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <concepts>
 #include <iterator>
+#include <memory>
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -61,6 +62,7 @@ class vector {
     size_type size() const { return _size; };
     void reserve(size_type new_cap);
     size_type capacity() const { return _capacity; };
+    void shrink_to_fit();
 
     // Modifiers
 
@@ -135,6 +137,7 @@ class vector<T, 0, size_type> {
     size_type size() const { return _size; };
     void reserve(size_type new_cap);
     size_type capacity() const { return _capacity; };
+    void shrink_to_fit();
 
     // Modifiers
 
@@ -206,6 +209,7 @@ class vector<std::unique_ptr<T>, 0, size_type> {
     size_type size() const { return _size; };
     void reserve(size_type new_cap);
     size_type capacity() const { return _capacity; };
+    void shrink_to_fit();
 
     // Modifiers
 

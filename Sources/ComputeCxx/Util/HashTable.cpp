@@ -142,7 +142,7 @@ void UntypedTable::grow_buckets() {
 
 #pragma mark - Lookup
 
-UntypedTable::nullable_value_type UntypedTable::lookup(key_type key, nullable_key_type *found_key_out) const noexcept {
+UntypedTable::value_type UntypedTable::lookup(key_type key, nullable_key_type *found_key_out) const noexcept {
     if (_count) {
         uint64_t hash_value = _hash(key);
         HashNode *node = _buckets[_bucket_mask & hash_value];

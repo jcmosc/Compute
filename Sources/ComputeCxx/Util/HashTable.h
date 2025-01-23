@@ -15,8 +15,7 @@ class UntypedTable {
   public:
     using key_type = const void *_Nonnull;
     using nullable_key_type = const void *_Nullable;
-    using value_type = const void *_Nonnull;
-    using nullable_value_type = const void *_Nullable;
+    using value_type = const void *_Nullable;
     using size_type = uint64_t;
     using hasher = uint64_t (*)(void const *);
     using key_equal = bool (*)(void const *, void const *);
@@ -59,7 +58,7 @@ class UntypedTable {
     // Lookup
     bool empty() const noexcept;
     size_type count() const noexcept;
-    nullable_value_type lookup(key_type key, nullable_key_type *_Nullable found_key) const noexcept;
+    value_type lookup(key_type key, nullable_key_type *_Nullable found_key) const noexcept;
     void for_each(entry_callback body, const void *context) const;
 
     // Modifiers

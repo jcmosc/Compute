@@ -44,6 +44,9 @@ let package = Package(
     products: [
         .library(name: "Compute", targets: ["Compute"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0")
+    ],
     targets: [
         .target(
             name: "Compute",
@@ -53,7 +56,7 @@ let package = Package(
         ),
         .testTarget(
             name: "ComputeTests",
-            dependencies: ["Compute"],
+            dependencies: ["Compute", .product(name: "Algorithms", package: "swift-algorithms")],
             swiftSettings: [.interoperabilityMode(.Cxx)],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),

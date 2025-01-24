@@ -57,7 +57,7 @@ class UntypedTable {
 
     // Lookup
     bool empty() const noexcept;
-    size_type count() const noexcept;
+    size_type count() const noexcept { return _count; };
     value_type lookup(key_type key, nullable_key_type *_Nullable found_key) const noexcept;
     void for_each(entry_callback body, const void *context) const;
 

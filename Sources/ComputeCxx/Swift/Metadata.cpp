@@ -8,6 +8,7 @@
 #include <swift/Runtime/HeapObject.h>
 
 #include "ContextDescriptor.h"
+#include "Errors/Errors.h"
 #include "MetadataVisitor.h"
 #include "Swift/mach-o/dyld.h"
 #include "Util/HashTable.h"

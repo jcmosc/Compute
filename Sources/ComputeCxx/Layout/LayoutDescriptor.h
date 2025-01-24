@@ -28,17 +28,33 @@ enum class HeapMode : uint16_t {
 
 extern uintptr_t base_address;
 
-enum ComparisonOptions : uint32_t {
-    TraceFailures = 1ul << 31,
+enum ComparisonMode : uint16_t {
+
+};
+
+struct ComparisonOptions {
+  private:
+    enum {
+        ComparisonModeMask = 0xff,
+        CopyEnumData = 1 << 8,
+        FetchLayoutsSynchronously = 1 << 9,
+        ReportFailures = 1ul << 31, // -1 signed int
+    };
+    uint32_t _value;
+
+  public:
+    ComparisonOptions(uint32_t value = 0) : _value(value) {}
+
+    ComparisonMode comparision_mode() { return ComparisonMode(_value & ComparisonModeMask); };
+    bool copy_enum_data() { return _value & CopyEnumData; };
+    bool fetch_layouts_synchronously() { return _value & FetchLayoutsSynchronously; };
+    bool report_failures() { return _value & ReportFailures; };
+
+    ComparisonOptions without_copying_enum_data() { return ComparisonOptions(_value & ~CopyEnumData); };
+    ComparisonOptions without_reporting_failures() { return ComparisonOptions(_value & ~ReportFailures); };
 };
 
 // MARK: Managing comparison modes
-
-enum ComparisonMode : uint16_t {
-    LastValueAffectingTypeDescriptorCache = 0xff,
-};
-
-ComparisonMode ComparisonModeFromOptions(ComparisonOptions options);
 
 ComparisonMode mode_for_type(const swift::metadata *_Nullable type, ComparisonMode default_mode);
 void add_type_descriptor_override(const swift::context_descriptor *_Nullable type_descriptor,
@@ -68,7 +84,7 @@ bool compare_indirect(ValueLayout *_Nullable layout_ref, const swift::metadata &
                       const swift::metadata &rhs_type, ComparisonOptions options, const unsigned char *lhs,
                       const unsigned char *rhs);
 bool compare_existential_values(const swift::existential_type_metadata &type, const unsigned char *lhs,
-                                const unsigned char *rhs);
+                                const unsigned char *rhs, ComparisonOptions options);
 
 bool compare_partial(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset, size_t size,
                      ComparisonOptions options);

@@ -1,17 +1,11 @@
 #include "Compare.h"
 
 #include "Controls.h"
-#include "Swift/AGEquatable.h"
+#include "Swift/EquatableSupport.h"
 #include "Swift/Metadata.h"
 
 namespace AG {
 namespace LayoutDescriptor {
-
-Compare::Frame::~Frame() {
-    while (_compare->enums().size() > _start) {
-        _compare->enums().pop_back();
-    }
-}
 
 Compare::Enum::Enum(const swift::metadata *type, Mode mode, unsigned int enum_tag, size_t offset,
                     const unsigned char *lhs, const unsigned char *lhs_copy, const unsigned char *rhs,
@@ -26,24 +20,34 @@ Compare::Enum::Enum(const swift::metadata *type, Mode mode, unsigned int enum_ta
     this->rhs_copy = rhs_copy;
     this->owns_copies = owns_copies;
 
-    if (mode == Mode::InitializingCopies) {
-        type->vw_initializeWithCopy((swift::opaque_value *)lhs_copy, (swift::opaque_value *)lhs);
-        type->vw_initializeWithCopy((swift::opaque_value *)rhs_copy, (swift::opaque_value *)rhs);
+    if (type) {
+        if (mode == Mode::Managed) {
+            type->vw_initializeWithCopy((swift::opaque_value *)lhs_copy, (swift::opaque_value *)lhs);
+            type->vw_initializeWithCopy((swift::opaque_value *)rhs_copy, (swift::opaque_value *)rhs);
+        }
+        type->vw_destructiveProjectEnumData((swift::opaque_value *)lhs_copy);
+        type->vw_destructiveProjectEnumData((swift::opaque_value *)rhs_copy);
     }
-    type->vw_getEnumTag((swift::opaque_value *)lhs_copy);
-    type->vw_getEnumTag((swift::opaque_value *)rhs_copy);
 }
 
 Compare::Enum::~Enum() {
-    type->vw_destructiveProjectEnumData((swift::opaque_value *)lhs_copy);
-    type->vw_destructiveProjectEnumData((swift::opaque_value *)rhs_copy);
-    if (mode == Mode::InitializingCopies) {
-        type->vw_destroy((swift::opaque_value *)lhs_copy);
-        type->vw_destroy((swift::opaque_value *)rhs_copy);
+    if (type) {
+        type->vw_destructiveInjectEnumTag((swift::opaque_value *)lhs_copy, enum_tag);
+        type->vw_destructiveInjectEnumTag((swift::opaque_value *)rhs_copy, enum_tag);
+        if (mode == Mode::Managed) {
+            type->vw_destroy((swift::opaque_value *)lhs_copy);
+            type->vw_destroy((swift::opaque_value *)rhs_copy);
+        }
     }
     if (owns_copies) {
         free((void *)lhs_copy);
         free((void *)rhs_copy);
+    }
+}
+
+Compare::Frame::~Frame() {
+    while (_enums->size() > _start) {
+        _enums->pop_back();
     }
 }
 
@@ -105,8 +109,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
                 }
             } else {
                 auto equatable = (const swift::equatable_witness_table *)(c + 9);
-                if (!AGDispatchEquatable((const void *)(lhs + offset), (const void *)(rhs + offset), AGTypeID(type),
-                                         equatable)) {
+                if (!AGDispatchEquatable((const void *)(lhs + offset), (const void *)(rhs + offset), type, equatable)) {
                     failed(options, lhs, rhs, offset, item_size, type);
                     return false;
                 }
@@ -122,16 +125,16 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             c += Controls::IndirectItemTypePointerSize;
 
             ValueLayout layout_pointer = reinterpret_cast<ValueLayout>(c);
-            c += Controls::IndirectItemUnusedPointerSize;
+            c += Controls::IndirectItemLayoutPointerSize;
 
             size_t item_size = type->vw_size();
             size_t item_end = offset + item_size;
 
-            if (!compare_indirect(&layout_pointer, *_enums.back().type, *type, options, lhs + offset, rhs + offset)) {
+            if (!compare_indirect(&layout_pointer, *_enums.back().type, *type, options.without_reporting_failures(),
+                                  lhs + offset, rhs + offset)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
-            // TODO: does this update layout?
 
             offset = item_end;
             continue;
@@ -146,7 +149,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + item_size;
 
             if (!compare_existential_values(*reinterpret_cast<const swift::existential_type_metadata *>(type),
-                                            lhs + offset, rhs + offset)) {
+                                            lhs + offset, rhs + offset, options.without_reporting_failures())) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -163,8 +166,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             if (lhs + offset != rhs + offset) {
                 if (!compare_heap_objects(lhs + offset, rhs + offset,
-                                          ComparisonOptions(options & ~ComparisonOptions::TraceFailures),
-                                          is_function)) {
+                                          ComparisonOptions(options.without_reporting_failures()), is_function)) {
                     failed(options, lhs, rhs, offset, 8, nullptr);
                     return false;
                 }
@@ -258,15 +260,36 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             // Push enum
 
-            Enum::Mode mode = Enum::Mode::InitializingCopies; // options & withoutCopying
-            const unsigned char *lhs_copy = nullptr;
-            const unsigned char *rhs_copy = nullptr;
-            bool owns_copies = true;
+            bool copy_enum_data = options.copy_enum_data();
+            const unsigned char *_Nonnull lhs_enum;
+            const unsigned char *_Nonnull rhs_enum;
+            bool owns_copies = false;
+            if (copy_enum_data) {
+                // Copy the enum itself so that we can project the data without destroying the original.
+                size_t enum_size = type->vw_size();
+                bool large_allocation = enum_size > 0x1000;
+                if (large_allocation) {
+                    lhs_enum = (unsigned char *)malloc(enum_size);
+                    rhs_enum = (unsigned char *)malloc(enum_size);
+                    owns_copies = true;
+                } else {
+                    lhs_enum = (unsigned char *)alloca(enum_size);
+                    rhs_enum = (unsigned char *)alloca(enum_size);
+                    bzero((void *)lhs_enum, enum_size);
+                    bzero((void *)rhs_enum, enum_size);
+                }
+            } else {
+                lhs_enum = lhs + offset;
+                rhs_enum = rhs + offset;
+            }
 
-            Enum enum_value = Enum(type, mode, lhs_tag, offset, lhs, lhs_copy, rhs, rhs_copy, owns_copies);
+            Enum enum_value = Enum(type, copy_enum_data ? Enum::Mode::Managed : Enum::Mode::Unmanaged, lhs_tag, offset,
+                                   lhs + offset, lhs_enum, rhs + offset, rhs_enum, owns_copies);
             _enums.push_back(enum_value);
 
-            if (mode) {
+            // Pretend the copies of the enum data are part the entire data
+            // until we get to the end of the enum
+            if (copy_enum_data) {
                 lhs = _enums.back().lhs_copy - offset;
                 rhs = _enums.back().rhs_copy - offset;
             }
@@ -315,8 +338,18 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             c += 1;
 
             // Pop enum
-            Enum enum_item = _enums.back();
+            Enum &enum_item = _enums.back();
+
+            // Restore actual data
+            if (enum_item.mode) {
+                lhs = enum_item.lhs - offset;
+                rhs = enum_item.rhs - offset;
+            }
+
+            offset = enum_item.offset + enum_item.type->vw_size();
+
             _enums.pop_back();
+            continue;
         }
         }
     }
@@ -324,7 +357,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
 bool Compare::failed(ComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                      size_t size, const swift::metadata *type) {
-    if (options & ComparisonOptions::TraceFailures) {
+    if (options.report_failures()) {
         // TODO: tracing
     }
 }

@@ -108,9 +108,6 @@ class Builder : public swift::metadata_visitor {
     static void lock() { os_unfair_lock_lock(&_lock); };
     static void unlock() { os_unfair_lock_unlock(&_lock); };
 
-    static bool print_layouts();
-    static void print(std::string message, const unsigned char *);
-
     ComparisonMode _current_comparison_mode;
     HeapMode _heap_mode;
     size_t _current_offset;

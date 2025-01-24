@@ -10,7 +10,7 @@ enum Controls : unsigned char {
 
     IndirectItemBegin = '\x02',
     IndirectItemTypePointerSize = 8,
-    IndirectItemUnusedPointerSize = 8,
+    IndirectItemLayoutPointerSize = 8,
 
     ExistentialItemBegin = '\x03',
     ExistentialItemTypePointerSize = 8,

@@ -34,25 +34,31 @@ enum ComparisonMode : uint16_t {
 
 struct ComparisonOptions {
   private:
-    enum {
-        ComparisonModeMask = 0xff,
-        CopyEnumData = 1 << 8,
-        FetchLayoutsSynchronously = 1 << 9,
-        ReportFailures = 1ul << 31, // -1 signed int
-    };
     uint32_t _value;
 
   public:
+    enum {
+        ComparisonModeMask = 0xff,
+        CopyOnWrite = 1 << 8,
+        FetchLayoutsSynchronously = 1 << 9,
+        ReportFailures = 1ul << 31, // -1 signed int
+    };
+
     ComparisonOptions(uint32_t value = 0) : _value(value) {}
 
+    operator uint32_t() { return _value; };
     ComparisonMode comparision_mode() { return ComparisonMode(_value & ComparisonModeMask); };
-    bool copy_enum_data() { return _value & CopyEnumData; };
+    bool copy_on_write() { return _value & CopyOnWrite; };
     bool fetch_layouts_synchronously() { return _value & FetchLayoutsSynchronously; };
     bool report_failures() { return _value & ReportFailures; };
 
-    ComparisonOptions without_copying_enum_data() { return ComparisonOptions(_value & ~CopyEnumData); };
+    ComparisonOptions without_copying_on_write() { return ComparisonOptions(_value & ~CopyOnWrite); };
     ComparisonOptions without_reporting_failures() { return ComparisonOptions(_value & ~ReportFailures); };
 };
+inline ComparisonOptions &operator|=(ComparisonOptions &lhs, ComparisonOptions rhs) {
+    lhs = ComparisonOptions(uint32_t(lhs) | uint32_t(rhs));
+    return lhs;
+}
 
 // MARK: Managing comparison modes
 

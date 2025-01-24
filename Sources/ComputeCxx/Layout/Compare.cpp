@@ -260,11 +260,11 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             // Push enum
 
-            bool copy_enum_data = options.copy_enum_data();
+            bool is_copy = options.copy_on_write();
             const unsigned char *_Nonnull lhs_enum;
             const unsigned char *_Nonnull rhs_enum;
             bool owns_copies = false;
-            if (copy_enum_data) {
+            if (is_copy) {
                 // Copy the enum itself so that we can project the data without destroying the original.
                 size_t enum_size = type->vw_size();
                 bool large_allocation = enum_size > 0x1000;
@@ -283,13 +283,13 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
                 rhs_enum = rhs + offset;
             }
 
-            Enum enum_value = Enum(type, copy_enum_data ? Enum::Mode::Managed : Enum::Mode::Unmanaged, lhs_tag, offset,
+            Enum enum_value = Enum(type, is_copy ? Enum::Mode::Managed : Enum::Mode::Unmanaged, lhs_tag, offset,
                                    lhs + offset, lhs_enum, rhs + offset, rhs_enum, owns_copies);
             _enums.push_back(enum_value);
 
             // Pretend the copies of the enum data are part the entire data
             // until we get to the end of the enum
-            if (copy_enum_data) {
+            if (is_copy) {
                 lhs = _enums.back().lhs_copy - offset;
                 rhs = _enums.back().rhs_copy - offset;
             }

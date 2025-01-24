@@ -498,7 +498,7 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, Co
     ValueLayout layout = TypeDescriptorCache::shared_cache().fetch(*lhs_type, fetch_options, heap_mode, 1);
 
     if (layout > ValueLayoutEmpty) {
-        return compare(layout, lhs, rhs, -1, options.without_copying_enum_data());
+        return compare(layout, lhs, rhs, -1, options.without_copying_on_write());
     }
 
     return false;
@@ -548,7 +548,7 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
         result = true;
     } else {
         if (*layout_ref == nullptr) {
-            *layout_ref = fetch(layout_type, options.without_copying_enum_data(), 0);
+            *layout_ref = fetch(layout_type, options.without_copying_on_write(), 0);
         }
 
         ValueLayout layout = *layout_ref == ValueLayoutEmpty ? nullptr : *layout_ref;
@@ -559,7 +559,7 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
         unsigned char *lhs_value = (unsigned char *)(*lhs_copy + offset);
         unsigned char *rhs_value = (unsigned char *)(*rhs_copy + offset);
 
-        result = compare(layout, lhs_value, rhs_value, layout_type.vw_size(), options.without_copying_enum_data());
+        result = compare(layout, lhs_value, rhs_value, layout_type.vw_size(), options.without_copying_on_write());
     }
 
     if (large_allocation) {
@@ -583,7 +583,7 @@ bool compare_existential_values(const swift::existential_type_metadata &type, co
                 }
 
                 if (lhs_value != lhs || rhs_value != rhs) {
-                    options = options.without_copying_enum_data();
+                    options = options.without_copying_on_write();
                 }
 
                 ValueLayout wrapped_layout = fetch(reinterpret_cast<const swift::metadata &>(type), options, 0);
@@ -1085,8 +1085,10 @@ void Builder::add_field(size_t field_size) {
 
 bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
     if (!no_fetch) {
-        if (auto layout =
-                LayoutDescriptor::fetch(type, ComparisonOptions(_current_comparison_mode | 0x80000200), true)) {
+        if (auto layout = fetch(type,
+                                ComparisonOptions(_current_comparison_mode) | ComparisonOptions::ReportFailures |
+                                    ComparisonOptions::FetchLayoutsSynchronously,
+                                true)) {
             if ((uintptr_t)layout == 1) {
                 add_field(type.vw_size());
             } else {
@@ -1285,7 +1287,7 @@ bool Builder::visit_existential(const swift::existential_type_metadata &type) {
 }
 
 bool Builder::visit_function(const swift::function_type_metadata &type) {
-    if (_current_comparison_mode == 0 || (int)type.getConvention() != 0) {
+    if (_current_comparison_mode == 0 || type.getConvention() != ::swift::FunctionMetadataConvention::Swift) {
         return false;
     }
 

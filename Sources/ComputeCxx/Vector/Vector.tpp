@@ -1,9 +1,9 @@
 #include "Vector.h"
 
 #include <algorithm>
+#include <cassert>
 #include <malloc/malloc.h>
 #include <memory>
-#include <cassert>
 
 #include "Errors/Errors.h"
 
@@ -94,6 +94,32 @@ void vector<T, _stack_size, size_type>::clear() {
         data()[i].~T();
     }
     _size = 0;
+}
+
+template <typename T, unsigned int _stack_size, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<T, _stack_size, size_type>::iterator vector<T, _stack_size, size_type>::erase(iterator pos) {
+    if (pos == end()) {
+        return end();
+    }
+    return erase(pos, pos + 1);
+}
+
+template <typename T, unsigned int _stack_size, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<T, _stack_size, size_type>::iterator vector<T, _stack_size, size_type>::erase(iterator first, iterator last) {
+    auto count = last - first;
+    if (count == 0) {
+        return last;
+    }
+    for (auto iter = first; iter != last; iter++) {
+        iter->~T();
+    }
+    for (auto iter = last, old_end = end(); iter != old_end; iter++) {
+        std::swap(*(iter - count), *iter);
+    }
+    _size -= count;
+    return end();
 }
 
 template <typename T, unsigned int _stack_size, typename size_type>
@@ -211,11 +237,10 @@ void vector<T, 0, size_type>::reserve(size_type new_cap) {
 }
 
 template <typename T, typename size_type>
-requires std::unsigned_integral<size_type>
+    requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::shrink_to_fit() {
     if (capacity() > size()) {
-        _buffer =
-        reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, &_capacity, 0));
+        _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, &_capacity, 0));
     }
 }
 
@@ -226,6 +251,32 @@ void vector<T, 0, size_type>::clear() {
         data()[i].~T();
     }
     _size = 0;
+}
+
+template <typename T, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<T, 0, size_type>::iterator vector<T, 0, size_type>::erase(iterator pos) {
+    if (pos == end()) {
+        return end();
+    }
+    return erase(pos, pos + 1);
+}
+
+template <typename T, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<T, 0, size_type>::iterator vector<T, 0, size_type>::erase(iterator first, iterator last) {
+    auto count = last - first;
+    if (count == 0) {
+        return last;
+    }
+    for (auto iter = first; iter != last; iter++) {
+        iter->~T();
+    }
+    for (auto iter = last, old_end = end(); iter != old_end; iter++) {
+        std::swap(*(iter - count), *iter);
+    }
+    _size -= count;
+    return end();
 }
 
 template <typename T, typename size_type>

@@ -42,7 +42,8 @@ template <typename T> class ptr {
 
     ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
 
-    difference_type page_relative_offset() const noexcept { return _offset & page_alignment_mask; }
+    difference_type offset() const noexcept { return _offset; }
+    difference_type offset_from_page() const noexcept { return _offset & page_alignment_mask; }
 
     template <typename U> ptr<U> aligned(difference_type alignment_mask = sizeof(difference_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);
@@ -52,6 +53,8 @@ template <typename T> class ptr {
     std::add_lvalue_reference_t<T> operator*() const noexcept { return *get(); };
     T *_Nonnull operator->() const noexcept { return get(); };
 
+    bool operator==(const ptr<T> &other) const noexcept { return _offset == other._offset; };
+    bool operator!=(const ptr<T> &other) const noexcept { return _offset != other._offset; };
     bool operator==(nullptr_t) const noexcept { return _offset == 0; };
     bool operator!=(nullptr_t) const noexcept { return _offset != 0; };
 

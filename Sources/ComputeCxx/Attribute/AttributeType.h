@@ -2,46 +2,84 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include "Layout/LayoutDescriptor.h"
 #include "Swift/Metadata.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
+class AttributeID;
 class AttributeType;
 
 class AttributeVTable {
   public:
-    enum Flags : uint8_t {
-        HasDestroySelf = 1 << 2,
-    };
-
     using Callback = void (*)(AttributeType *attribute_type, void *body);
+    Callback _unknown_0x00;
+    Callback _unknown_0x08;
     Callback destroy_self;
+    Callback _unknown_0x18;
+    Callback _unknown_0x20;
+    Callback _update_stack_callback; // maybe initialize value
 };
 
 class AttributeType {
+  public:
+    enum Flags : uint32_t {
+        ComparisonModeMask = 0x3,
+
+        HasDestroySelf = 1 << 2,               // 0x04
+        InitialValueOfNodeState2And3 = 1 << 3, // 0x08
+        UseGraphAsInitialValue = 1 << 4,       // 0x10
+        Unknown0x20 = 1 << 5,                  // 0x20
+    };
+
+    using UpdateFunction = void (*)(void *body, AttributeID attribute);
+
   private:
     swift::metadata *_self_metadata;
     swift::metadata *_value_metadata;
-    void *_field1;
-    void *_field2;
-    AttributeVTable *_v_table;
-    uint8_t _v_table_flags;
+    UpdateFunction _update_function;
+    void *_update_context;
+    AttributeVTable *_vtable;
+    Flags _flags;
     uint32_t _attribute_offset;
+    ValueLayout _layout;
 
   public:
+    class deleter {};
+
     const swift::metadata &self_metadata() const { return *_self_metadata; };
     const swift::metadata &value_metadata() const { return *_value_metadata; };
+
+    uint8_t node_initial_state() const {
+        uint8_t flag = _flags >> 3 & 1;
+        return flag << 3 | flag << 2;
+    };
+    bool use_graph_as_initial_value() const { return _flags & Flags::UseGraphAsInitialValue; };
+    bool unknown_0x20() const { return _flags & Flags::Unknown0x20; };
 
     /// Returns the offset in bytes from a Node to the attribute body,
     /// aligned to the body's alignment.
     uint32_t attribute_offset() const { return _attribute_offset; };
+    void update_attribute_offset();
+
+    ValueLayout layout() const { return _layout; };
+    void set_layout(ValueLayout layout) { _layout = layout; };
+    LayoutDescriptor::ComparisonMode comparison_mode() const {
+        return LayoutDescriptor::ComparisonMode(_flags & Flags::ComparisonModeMask);
+    };
+    void update_layout() {
+        if (!_layout) {
+            auto comparison_mode = LayoutDescriptor::ComparisonMode(_flags & Flags::ComparisonModeMask);
+            _layout = LayoutDescriptor::fetch(value_metadata(), comparison_mode, 1);
+        }
+    };
 
     // V table methods
-    void v_destroy_self(void *body) {
-        if (_v_table_flags & AttributeVTable::Flags::HasDestroySelf) {
-            _v_table->destroy_self(this, body);
+    void vt_destroy_self(void *body) {
+        if (_flags & Flags::HasDestroySelf) {
+            _vtable->destroy_self(this, body);
         }
     }
 };

@@ -8,7 +8,6 @@
 #include "Data/Page.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
-#include "Subgraph/Subgraph.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -18,13 +17,13 @@ class Subgraph;
 class Node;
 class IndirectNode;
 class OffsetAttributeID;
+class RelativeAttributeID;
 
 class AttributeID {
   private:
     static constexpr uint32_t KindMask = 0x3;
 
     uint32_t _value;
-    AttributeID(uint32_t value) : _value(value){};
 
   public:
     enum Kind : uint32_t {
@@ -54,30 +53,43 @@ class AttributeID {
         EvaluateWeakReferences = 1 << 4,
     };
 
+    explicit AttributeID(uint32_t value) : _value(value){};
     AttributeID(data::ptr<Node> node) : _value(node | Kind::Direct){};
     AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect){};
     static AttributeID make_nil() { return AttributeID(Kind::NilAttribute); };
 
     operator bool() const { return _value == 0; };
 
+    uint32_t value() { return _value; };
+
     Kind kind() const { return Kind(_value & KindMask); };
     AttributeID with_kind(Kind kind) const { return AttributeID((_value & ~KindMask) | kind); };
+    AttributeID without_kind() const { return AttributeID((_value & ~KindMask)); };
 
     bool is_direct() const { return kind() == Kind::Direct; };
     bool is_indirect() const { return kind() == Kind::Indirect; };
     bool is_nil() const { return kind() == Kind::NilAttribute; };
 
-    const Node &to_node() const {
+    // TODO: make these data::ptr<>
+    Node &to_node() const {
         assert(is_direct());
         return *data::ptr<Node>(_value & ~KindMask);
     };
+    data::ptr<Node> to_node_ptr() const {
+        assert(is_direct());
+        return data::ptr<Node>(_value & ~KindMask);
+    };
 
-    const IndirectNode &to_indirect_node() const {
+    IndirectNode &to_indirect_node() const {
         assert(is_indirect());
         return *data::ptr<IndirectNode>(_value & ~KindMask);
     };
+    data::ptr<IndirectNode> to_indirect_node_ptr() const {
+        assert(is_indirect());
+        return data::ptr<IndirectNode>(_value & ~KindMask);
+    };
 
-    Subgraph *_Nullable subgraph() const { return static_cast<Subgraph *_Nullable>(page_ptr()->zone); }
+    Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone); }
 
     data::ptr<data::page> page_ptr() const { return data::ptr<void>(_value).page_ptr(); };
 
@@ -88,6 +100,11 @@ class AttributeID {
     bool traverses(AttributeID other, TraversalOptions options) const;
     OffsetAttributeID resolve(TraversalOptions options) const;
     OffsetAttributeID resolve_slow(TraversalOptions options) const;
+};
+
+class RelativeAttributeID {
+  private:
+    uint16_t _value;
 };
 
 } // namespace AG

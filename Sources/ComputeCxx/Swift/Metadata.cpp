@@ -305,7 +305,7 @@ void metadata::copy_on_write_heap_object(void **object_ref) const {
     assert(::swift::isHeapMetadataKind(getKind()));
     auto heap_metadata = reinterpret_cast<const ::swift::HeapMetadata *>(this);
 
-    ::swift::HeapObject *copy = ::swift::swift_allocObject(heap_metadata, vw_size(), vw_alignment());
+    ::swift::HeapObject *copy = ::swift::swift_allocObject(heap_metadata, vw_size(), getValueWitnesses()->getAlignmentMask());
     vw_initializeWithCopy(reinterpret_cast<opaque_value *>(copy), reinterpret_cast<opaque_value *>(*object_ref));
     ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(*object_ref));
     *object_ref = copy;

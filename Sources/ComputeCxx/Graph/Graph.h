@@ -82,8 +82,11 @@ class Graph {
     Graph *_prev;
     Graph *_next;
     util::Heap _heap;
+
     util::UntypedTable _type_ids_by_metadata;
     vector<AttributeType *, 0, uint32_t> _types;
+
+    util::Table<uint64_t, Context *> _contexts_by_id;
 
     vector<Trace *, 0, uint32_t> _traces;
 
@@ -109,6 +112,8 @@ class Graph {
     bool _needs_update; // 0x199
 
     pthread_t _current_update_thread;
+
+    uint64_t _deadline;
 
     uint64_t _counter_0x1b8;
     uint64_t _update_attribute_count;
@@ -159,7 +164,7 @@ class Graph {
     void call_update();
     void reset_update(data::ptr<Node> node);
 
-    void collect_stack(vector<data::ptr<Node>, 0, uint64_t> &stack);
+    void collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes);
 
     void with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body);
 

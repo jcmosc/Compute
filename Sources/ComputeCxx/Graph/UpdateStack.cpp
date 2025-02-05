@@ -5,6 +5,44 @@
 
 namespace AG {
 
+Graph::UpdateStack::UpdateStack(Graph *graph, uint8_t options) {
+    _graph = graph;
+    _thread = pthread_self();
+    _previous = current_update();
+    _previous_thread = graph->_current_update_thread;
+
+    _options = options;
+    if (_previous != nullptr) {
+        _options = _options | (_previous.get()->_options & 4);
+    }
+
+    graph->_current_update_thread = _thread;
+
+    if (graph->_deferring_invalidation == false) {
+        graph->_deferring_invalidation = true;
+        _options &= Option::WasNotDeferringInvalidation;
+    }
+
+    Graph::set_current_update(TaggedPointer<UpdateStack>(this, options >> 3 & 1));
+}
+
+Graph::UpdateStack::~UpdateStack() {
+    for (auto frame : _frames) {
+        frame.attribute->set_state(frame.attribute->state().with_in_update_stack(false));
+    }
+
+    if (_thread != _graph->_current_update_thread) {
+        non_fatal_precondition_failure("invalid graph update (access from multiple threads?)");
+    }
+
+    _graph->_current_update_thread = _previous_thread;
+    Graph::set_current_update(_previous);
+
+    if (_options & Option::WasNotDeferringInvalidation) {
+        _graph->_deferring_invalidation = false;
+    }
+}
+
 Graph::UpdateStack::Frame *Graph::UpdateStack::global_top() {
     for (TaggedPointer<Graph::UpdateStack> update_stack = this; update_stack != nullptr;
          update_stack = update_stack.get()->previous()) {

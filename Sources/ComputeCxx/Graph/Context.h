@@ -14,6 +14,8 @@ class Graph::Context {
     Graph &graph() const { return *_graph; };
     
     uint64_t unique_id();
+    
+    void call_update();
 };
 
 } // namespace AG

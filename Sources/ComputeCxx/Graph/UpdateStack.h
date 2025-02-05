@@ -12,10 +12,10 @@ class Graph::UpdateStack {
   public:
     struct Frame {
         data::ptr<Node> attribute;
-        uint32_t flags;
+        uint32_t flags; // first four bits are base
     };
     enum Option : uint8_t {
-        WasDeferringInvalidation = 1 << 4,
+        WasNotDeferringInvalidation = 1 << 4,
     };
 
   private:
@@ -27,20 +27,11 @@ class Graph::UpdateStack {
     uint8_t _options;
 
   public:
-    UpdateStack(Graph *graph, pthread_t thread, TaggedPointer<UpdateStack> previous, pthread_t previous_thread);
+    UpdateStack(Graph *graph, uint8_t options);
+    ~UpdateStack();
 
-    pthread_t thread() { return _thread; };
-
-    uint8_t options() { return _options; };
-    void set_options(uint8_t options) { _options = options; };
-
-    void set_was_deferring_invalidation(bool value) {
-        _options = (_options & ~Option::WasDeferringInvalidation) | (value ? Option::WasDeferringInvalidation : 0);
-    };
-    bool was_deferring_invalidation() { return _options & Option::WasDeferringInvalidation; };
-
+    Graph *graph() { return _graph; };
     TaggedPointer<UpdateStack> previous() { return _previous; };
-    pthread_t previous_thread() { return _previous_thread; };
 
     vector<Frame, 8, uint64_t> &frames() { return _frames; };
 

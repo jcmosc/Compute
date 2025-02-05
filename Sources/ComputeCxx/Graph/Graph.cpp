@@ -1,5 +1,6 @@
 #include "Graph.h"
 
+#include <mach/mach_time.h>
 #include <os/log.h>
 
 #include "Attribute/AttributeType.h"
@@ -7,6 +8,7 @@
 #include "Attribute/Node/Node.h"
 #include "Attribute/OffsetAttributeID.h"
 #include "Attribute/WeakAttributeID.h"
+#include "Context.h"
 #include "Errors/Errors.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
@@ -95,6 +97,60 @@ void Graph::set_current_update(TaggedPointer<UpdateStack> current_update) {
     pthread_setspecific(_current_update_key, (void *)current_update.value());
 }
 
+bool Graph::thread_is_updating() {
+    for (auto update_stack = current_update(); update_stack != nullptr; update_stack = update_stack.get()->previous()) {
+        if (update_stack.get()->graph() == this) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Graph::call_update() {
+    while (_needs_update) {
+        _needs_update = false;
+        _contexts_by_id.for_each([](uint64_t context_id, Context *graph_context,
+                                    const void *closure_context) { graph_context->call_update(); },
+                                 nullptr);
+    }
+}
+
+void Graph::reset_update(data::ptr<Node> node) {
+    for (auto update_stack = current_update(); update_stack != nullptr; update_stack = update_stack.get()->previous()) {
+        for (auto frame : update_stack.get()->frames()) {
+            if (frame.attribute == node) {
+                frame.flags &= 0xf;
+            }
+        }
+    }
+}
+
+void Graph::collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes) {
+    for (auto update_stack = current_update(); update_stack != nullptr; update_stack = update_stack.get()->previous()) {
+        auto frames = update_stack.get()->frames();
+        for (auto iter = frames.rbegin(), end = frames.rend(); iter != end; ++iter) {
+            nodes.push_back(iter->attribute);
+        }
+    }
+}
+
+void Graph::with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body) {
+    class scoped_update {
+      private:
+        UpdateStack _base;
+
+      public:
+        scoped_update(UpdateStack base, data::ptr<AG::Node> node) : _base(base) {
+            _base.frames().push_back({node, node->state().is_pending()});
+        };
+        ~scoped_update() { _base.frames().pop_back(); }
+    };
+
+    scoped_update update = scoped_update(UpdateStack(this, 0), node);
+    body();
+    // ~scoped_update called
+}
+
 void Graph::call_main_handler(void *context, void (*body)(void *)) {
     assert(_main_handler);
 
@@ -126,7 +182,28 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
     _current_update_thread = current_update_thread;
 }
 
-void Graph::with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body) {}
+bool Graph::passed_deadline() {
+    if (_deadline == -1) {
+        return false;
+    }
+    return passed_deadline_slow();
+}
+
+bool Graph::passed_deadline_slow() {
+    if (_deadline == 0) {
+        return true;
+    }
+
+    uint64_t time = mach_absolute_time();
+    if (time < _deadline) {
+        return false;
+    }
+
+    foreach_trace([](Trace &trace) { trace.passed_deadline(); });
+    _deadline = 0;
+
+    return true;
+}
 
 #pragma mark - Attributes
 
@@ -254,21 +331,7 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
         _update_attribute_on_main_count += 1;
     }
 
-    pthread_t thread = pthread_self();
-    UpdateStack update_stack = UpdateStack(this, thread, current_update(), _current_update_thread);
-    update_stack.set_options(options);
-    if (update_stack.previous() != nullptr) {
-        update_stack.set_options((update_stack.previous().get()->options() & 4) | options);
-    }
-
-    _current_update_thread = thread;
-
-    if (_deferring_invalidation == false) {
-        _deferring_invalidation = true;
-        update_stack.set_was_deferring_invalidation(true);
-    }
-
-    set_current_update(TaggedPointer<UpdateStack>(&update_stack, options >> 3 & 1));
+    UpdateStack update_stack = UpdateStack(this, options);
 
     foreach_trace([&update_stack, &attribute, &options](Trace &trace) {
         trace.begin_update(update_stack, attribute.to_node_ptr(), options);
@@ -296,20 +359,7 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
         trace.end_update(update_stack, attribute.to_node_ptr(), status);
     });
 
-    for (auto frame : update_stack.frames()) {
-        frame.attribute->set_state(frame.attribute->state().with_in_update_stack(false));
-    }
-
-    if (update_stack.thread() != _current_update_thread) {
-        non_fatal_precondition_failure("invalid graph update (access from multiple threads?)");
-    }
-
-    _current_update_thread = update_stack.previous_thread();
-    set_current_update(update_stack.previous());
-
-    if (update_stack.was_deferring_invalidation()) {
-        _deferring_invalidation = false;
-    }
+    // ~UpdateStatus called
 }
 
 #pragma mark - Indirect attributes

@@ -4,6 +4,7 @@
 
 #include "Data/Pointer.h"
 #include "InputEdge.h"
+#include "OutputEdge.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -131,21 +132,21 @@ class Node {
     };
     static_assert(sizeof(Info) == 4);
 
-    struct TreeInfo {
+    struct EdgeInfo {
         unsigned int flags : 5;
-        unsigned int num_input_edges : 11;
+        unsigned int num_edges : 11;
         unsigned int other_flag : 16;
     };
-    static_assert(sizeof(TreeInfo) == 4);
+    static_assert(sizeof(EdgeInfo) == 4);
 
     Info _info;
     NodeFlags _flags;
     data::ptr<void> _value;
 
-    TreeInfo _tree_info;               // 0x0c - 5 bits of flags than count of parents??
-    data::ptr<InputEdge> _input_edges; // 0x10
-    uint32_t _field0x14;               // 0x14 - TODO: verify
-    data::ptr<Node> _next_child;       // 0x18 - TODO: verify
+    EdgeInfo _inputs_info;
+    data::ptr<InputEdge> _inputs;
+    EdgeInfo _outputs_info;
+    data::ptr<OutputEdge> _outputs;
 
   public:
     Node(State state, uint32_t type_id, uint8_t flags4);
@@ -155,7 +156,6 @@ class Node {
     uint32_t type_id() const { return uint32_t(_info.type_id); };
 
     NodeFlags &flags() { return _flags; };
-    uint32_t field0x14() { return _field0x14; };
 
     void *get_self(const AttributeType &type); // TODO: inline
     void update_self(const Graph &graph, void *new_self);
@@ -167,12 +167,23 @@ class Node {
 
     void destroy(Graph &graph);
 
-    uint32_t num_input_edges() { return _tree_info.num_input_edges; };
+    uint32_t num_input_edges() { return _inputs_info.num_edges; };
+    uint32_t num_output_edges() { return _outputs_info.num_edges; };
+
     template <typename T>
         requires std::invocable<T, InputEdge &>
     void foreach_input_edge(T body) {
-        InputEdge *array = _input_edges.get();
+        InputEdge *array = _inputs.get();
         for (uint32_t i = 0, end = num_input_edges(); i != end; ++i) {
+            body(array[i]);
+        }
+    }
+
+    template <typename T>
+        requires std::invocable<T, OutputEdge &>
+    void foreach_output_edge(T body) {
+        OutputEdge *array = _outputs.get();
+        for (uint32_t i = 0, end = num_output_edges(); i != end; ++i) {
             body(array[i]);
         }
     }

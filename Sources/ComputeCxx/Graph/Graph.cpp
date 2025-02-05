@@ -362,6 +362,22 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
     // ~UpdateStatus called
 }
 
+void Graph::remove_node(data::ptr<Node> node) {
+    if (node->state().is_evaluating()) {
+        precondition_failure("deleting updating attribute: %u\n", node);
+    }
+
+    node->foreach_input_edge(
+        [this, &node](InputEdge &input_edge) { this->remove_removed_input(node, input_edge.value); });
+
+    node->foreach_output_edge(
+        [this, &node](OutputEdge &output_edge) { this->remove_removed_output(node, output_edge.value, false); });
+
+    // if (_profile_data != nullptr) {
+    //   TODO: _profile_data->remove_node();
+    // }
+}
+
 #pragma mark - Indirect attributes
 
 void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,

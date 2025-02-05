@@ -8,6 +8,7 @@
 
 #include "Attribute/AttributeID.h"
 #include "Attribute/Node/InputEdge.h"
+#include "Attribute/Node/OutputEdge.h"
 #include "Closure/ClosureFunction.h"
 #include "Util/HashTable.h"
 #include "Util/Heap.h"

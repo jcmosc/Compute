@@ -4,7 +4,7 @@ namespace AG {
 
 class OutputEdge {
 public:
-    data::ptr<Node> node_ptr;
+    data::ptr<Node> value;
 };
 
 } // namespace AG

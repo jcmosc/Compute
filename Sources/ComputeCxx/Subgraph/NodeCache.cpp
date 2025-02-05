@@ -21,10 +21,7 @@ Subgraph::NodeCache::NodeCache() noexcept
                   if (a->node) {
                       data::ptr<Node> a_node = a->node;
                       auto a_type = AttributeID(a->node).subgraph()->graph()->attribute_type(a_node->type_id());
-                      a_body = (uint8_t *)a_node.get() + a_type.attribute_offset();
-                      if (a_node->flags().has_indirect_self()) {
-                          a_body = *(void **)a_body;
-                      }
+                      a_body = a_node->get_self(a_type);
                   } else {
                       a_body = a->body; // next or body?
                   }
@@ -33,10 +30,7 @@ Subgraph::NodeCache::NodeCache() noexcept
                   if (b->node) {
                       data::ptr<Node> b_node = b->node;
                       auto b_type = AttributeID(b->node).subgraph()->graph()->attribute_type(b_node->type_id());
-                      b_body = (uint8_t *)b_node.get() + b_type.attribute_offset();
-                      if (b_node->flags().has_indirect_self()) {
-                          b_body = *(void **)b_body;
-                      }
+                      b_body = b_node->get_self(b_type);
                   } else {
                       b_body = b->body; // next or body?
                   }

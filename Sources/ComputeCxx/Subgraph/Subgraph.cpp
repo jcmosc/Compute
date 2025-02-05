@@ -306,8 +306,7 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
 void Subgraph::invalidate_now(Graph &graph) {
     // TODO: double check graph param vs _graph instance var
 
-    // maybe this is a lock on subgraphs
-    graph.set_validating_0x198(true); // TODO: check member var against other usages of set_validating()
+    graph.set_deferring_invalidation(true);
 
     auto removed_subgraphs = vector<Subgraph *, 16, uint64_t>();
     auto stack = std::stack<Subgraph *, vector<Subgraph *, 16, uint64_t>>();
@@ -442,7 +441,7 @@ void Subgraph::invalidate_now(Graph &graph) {
         free(removed_subgraph); // or delete?
     }
 
-    graph.set_validating_0x198(false); // TODO: check instance var
+    graph.set_deferring_invalidation(false);
 }
 
 void Subgraph::invalidate_and_delete_(bool flag) {
@@ -457,7 +456,8 @@ void Subgraph::invalidate_and_delete_(bool flag) {
         }
         _parents.clear();
 
-        if (!_graph->is_validating_0x198() && _graph->field_0xf0() == 0) {
+        // Check Graph::invalidate_subgraphs
+        if (_graph->deferring_invalidation() == false && _graph->main_handler() == nullptr) {
             invalidate_now(*_graph);
             _graph->invalidate_subgraphs();
             return;
@@ -608,8 +608,8 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
         return;
     }
 
-    bool was_validating = graph()->is_validating_0x198();
-    graph()->set_validating_0x198(true);
+    // Defer invalidation until the end of this method's scope
+    auto without_invalidating = Graph::without_invalidating(graph());
 
     _last_traversal_seed += 1; // TODO: check atomics
 
@@ -670,10 +670,7 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
         }
     }
 
-    if (graph() != nullptr && !was_validating) {
-        graph()->set_validating_0x198(false);
-        graph()->invalidate_subgraphs();
-    }
+    // ~without_invalidating();
 }
 
 // MARK: - Tree
@@ -1018,17 +1015,17 @@ void Subgraph::cache_insert(data::ptr<Node> node) {
             type->first_item = item;
         }
 
-        if ((_other_state & OtherState::Option1) == 0) {
-            if ((_other_state & OtherState::Option2) == 0) {
+        if ((_other_state & CacheState::Option1) == 0) {
+            if ((_other_state & CacheState::Option2) == 0) {
                 _graph->add_subgraphs_with_cached_node(this);
             }
-            _other_state |= OtherState::Option1;
+            _other_state |= CacheState::Option1;
         }
     }
 }
 
 void Subgraph::cache_collect() {
-    _other_state &= ~OtherState::Option1; // turn off 0x1 bit
+    _other_state &= ~CacheState::Option1; // turn off 0x1 bit
 
     std::pair<Subgraph *, NodeCache *> context = {this, _cache.get()};
     if (_cache != nullptr && !_invalidated) {
@@ -1051,7 +1048,7 @@ void Subgraph::cache_collect() {
                         node->destroy_value(*subgraph->_graph);
                         subgraph->_graph->remove_all_inputs(node);
                     } else {
-                        subgraph->_other_state |= OtherState::Option1;
+                        subgraph->_other_state |= CacheState::Option1;
                     }
                     item = item->prev;
                 }

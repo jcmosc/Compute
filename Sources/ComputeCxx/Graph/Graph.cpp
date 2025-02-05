@@ -13,19 +13,129 @@
 #include "Subgraph/Subgraph.h"
 #include "Swift/Metadata.h"
 #include "Trace.h"
+#include "UpdateStack.h"
 
 namespace AG {
 
+#pragma mark - Invalidating
+
+Graph::without_invalidating::without_invalidating(Graph *graph) {
+    _graph = graph;
+    _graph_was_deferring_invalidation = graph->_deferring_invalidation;
+    graph->_deferring_invalidation = true;
+}
+
+Graph::without_invalidating::~without_invalidating() {
+    if (_graph && _graph_was_deferring_invalidation == false) {
+        _graph->_deferring_invalidation = false;
+        _graph->invalidate_subgraphs();
+    }
+}
+
+#pragma mark - Context
+
+#pragma mark - Subgraphs
+
+void Graph::remove_subgraph(Subgraph &subgraph) {
+    auto iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
+    _subgraphs.erase(iter);
+
+    if (auto map = _tree_data_elements_by_subgraph.get()) {
+        auto iter = map->find(&subgraph);
+        if (iter != map->end()) {
+            map->erase(iter);
+        }
+    }
+
+    if (subgraph.other_state() & Subgraph::CacheState::Option1) {
+        subgraph.set_other_state(subgraph.other_state() & ~Subgraph::CacheState::Option1); // added to graph
+
+        auto iter = std::remove(_subgraphs_with_cached_nodes.begin(), _subgraphs_with_cached_nodes.end(), &subgraph);
+        _subgraphs_with_cached_nodes.erase(iter);
+    }
+
+    _num_subgraphs -= 1;
+}
+
+void Graph::invalidate_subgraphs() {
+    if (_deferring_invalidation) {
+        return;
+    }
+
+    if (_main_handler == nullptr) {
+        auto iter = _subgraphs_with_cached_nodes.begin(), end = _subgraphs_with_cached_nodes.end();
+        while (iter != end) {
+            auto subgraph = *iter;
+            subgraph->set_other_state(subgraph->other_state() | Subgraph::CacheState::Option2);
+            subgraph->cache_collect();
+            uint8_t cache_state = subgraph->other_state();
+            subgraph->set_other_state(subgraph->other_state() & ~Subgraph::CacheState::Option2);
+
+            if ((cache_state & Subgraph::CacheState::Option1) == 0) {
+                end = _subgraphs_with_cached_nodes.erase(iter);
+            } else {
+                ++iter;
+            }
+        }
+        while (!_invalidated_subgraphs.empty()) {
+            auto subgraph = _invalidated_subgraphs.back();
+            subgraph->invalidate_now(*this);
+            _invalidated_subgraphs.pop_back();
+        }
+    }
+}
+
+#pragma mark - Updates
+
+TaggedPointer<Graph::UpdateStack> Graph::current_update() {
+    return TaggedPointer<UpdateStack>((UpdateStack *)pthread_getspecific(_current_update_key));
+}
+
+void Graph::set_current_update(TaggedPointer<UpdateStack> current_update) {
+    pthread_setspecific(_current_update_key, (void *)current_update.value());
+}
+
+void Graph::call_main_handler(void *context, void (*body)(void *)) {
+    assert(_main_handler);
+
+    struct MainTrampoline {
+        Graph *graph;
+        pthread_t thread;
+        void *context;
+        void (*handler)(void *);
+
+        static void thunk(void *arg) {
+            auto trampoline = reinterpret_cast<MainTrampoline *>(arg);
+            trampoline->handler(trampoline->context);
+        };
+    };
+
+    auto current_update_thread = _current_update_thread;
+    auto main_handler = _main_handler;
+    auto main_handler_context = _main_handler_context;
+
+    _current_update_thread = 0;
+    _main_handler = nullptr;
+    _main_handler_context = nullptr;
+
+    MainTrampoline trampoline = {this, current_update_thread, context, body};
+    main_handler(MainTrampoline::thunk, &trampoline);
+
+    _main_handler = main_handler;
+    _main_handler_context = main_handler_context;
+    _current_update_thread = current_update_thread;
+}
+
+void Graph::with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body) {}
+
+#pragma mark - Attributes
+
 const AttributeType &Graph::attribute_type(uint32_t type_id) const { return *_types[type_id]; }
 
-const AttributeType &Graph::attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable ref_out) const {
+const AttributeType &Graph::attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable self_out) const {
     auto &type = attribute_type(node->type_id());
-    if (ref_out) {
-        void *self = ((char *)node.get() + type.attribute_offset());
-        if (node->flags().has_indirect_self()) {
-            self = *(void **)self;
-        }
-        *ref_out = self;
+    if (self_out) {
+        *self_out = node->get_self(type);
     }
     return type;
 }
@@ -43,10 +153,7 @@ void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metada
 
     foreach_trace([&node](Trace &trace) { trace.begin_modify(node); });
 
-    void *body = (uint8_t *)node.get() + type.attribute_offset();
-    if (node->flags().has_indirect_self()) {
-        body = *(void **)body;
-    }
+    void *body = node->get_self(type);
     modify(body);
 
     foreach_trace([&node](Trace &trace) { trace.end_modify(node); });
@@ -56,8 +163,6 @@ void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metada
         mark_pending(node, node.get());
     }
 }
-
-// MARK: Attributes
 
 data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void *body, void *value) {
     const AttributeType &type = attribute_type(type_id);
@@ -132,8 +237,79 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void 
     return node;
 }
 
-void Graph::update_attribute(AttributeID attribute, bool option) {
-    // TODO: Not implemented
+Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t options) {
+    if (!(options & 1) && _needs_update) {
+        if (!thread_is_updating()) {
+            call_update();
+        }
+    }
+
+    Node &node = attribute.to_node();
+    if (node.state().is_value_initialized() && !node.state().is_dirty()) {
+        return UpdateStatus::Option0;
+    }
+
+    _update_attribute_count += 1;
+    if (node.state().updates_on_main()) {
+        _update_attribute_on_main_count += 1;
+    }
+
+    pthread_t thread = pthread_self();
+    UpdateStack update_stack = UpdateStack(this, thread, current_update(), _current_update_thread);
+    update_stack.set_options(options);
+    if (update_stack.previous() != nullptr) {
+        update_stack.set_options((update_stack.previous().get()->options() & 4) | options);
+    }
+
+    _current_update_thread = thread;
+
+    if (_deferring_invalidation == false) {
+        _deferring_invalidation = true;
+        update_stack.set_was_deferring_invalidation(true);
+    }
+
+    set_current_update(TaggedPointer<UpdateStack>(&update_stack, options >> 3 & 1));
+
+    foreach_trace([&update_stack, &attribute, &options](Trace &trace) {
+        trace.begin_update(update_stack, attribute.to_node_ptr(), options);
+    });
+
+    UpdateStatus status = UpdateStatus::Option1;
+    if (update_stack.push(attribute.to_node_ptr(), node, false, (options & 1) == 0)) {
+
+        status = update_stack.update();
+        if (status == UpdateStatus::NeedsCallMainHandler) {
+            std::pair<UpdateStack *, UpdateStatus> context = {&update_stack, UpdateStatus::NeedsCallMainHandler};
+            call_main_handler(&context, [](void *void_context) {
+                auto inner_context = reinterpret_cast<std::pair<UpdateStack *, uint32_t> *>(void_context);
+                TaggedPointer<UpdateStack> previous = Graph::current_update();
+                inner_context->second = inner_context->first->update();
+                Graph::set_current_update(previous);
+            });
+            status = context.second;
+
+            _update_attribute_on_main_count += 1;
+        }
+    }
+
+    foreach_trace([&update_stack, &attribute, &status](Trace &trace) {
+        trace.end_update(update_stack, attribute.to_node_ptr(), status);
+    });
+
+    for (auto frame : update_stack.frames()) {
+        frame.attribute->set_state(frame.attribute->state().with_in_update_stack(false));
+    }
+
+    if (update_stack.thread() != _current_update_thread) {
+        non_fatal_precondition_failure("invalid graph update (access from multiple threads?)");
+    }
+
+    _current_update_thread = update_stack.previous_thread();
+    set_current_update(update_stack.previous());
+
+    if (update_stack.was_deferring_invalidation()) {
+        _deferring_invalidation = false;
+    }
 }
 
 #pragma mark - Indirect attributes
@@ -260,7 +436,7 @@ AGValueState Graph::value_state(AttributeID attribute) {
     auto node = attribute.to_node();
     return (node.state().is_dirty() ? 1 : 0) << 0 | (node.state().is_pending() ? 1 : 0) << 1 |
            (node.state().is_evaluating() ? 1 : 0) << 2 | (node.state().is_value_initialized() ? 1 : 0) << 3 |
-           (node.state().is_unknown2() ? 1 : 0) << 4 | (node.flags().value4_unknown0x20() ? 1 : 0) << 5 |
+           (node.state().updates_on_main() ? 1 : 0) << 4 | (node.flags().value4_unknown0x20() ? 1 : 0) << 5 |
            (node.state().is_unknown3() ? 1 : 0) << 6 | (node.flags().value4_unknown0x40() ? 1 : 0) << 7;
 }
 
@@ -371,9 +547,6 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
     if (node.state().is_value_initialized()) {
         // already initialized
         void *value_dest = node.get_value();
-        if (node.flags().has_indirect_value()) {
-            value_dest = *(void **)value_dest;
-        }
 
         LayoutDescriptor::ComparisonOptions comparison_options =
             LayoutDescriptor::ComparisonOptions(type.comparison_mode()) |
@@ -405,9 +578,6 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         mark_changed(node_ptr, nullptr, nullptr, nullptr);
 
         void *value_dest = node.get_value();
-        if (node.flags().has_indirect_value()) {
-            value_dest = *(void **)value_dest;
-        }
         value_type.vw_initializeWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value);
     }
 }

@@ -1,10 +1,13 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <span>
 #include <stdint.h>
 #include <unordered_map>
 
 #include "Attribute/AttributeID.h"
+#include "Attribute/Node/InputEdge.h"
 #include "Closure/ClosureFunction.h"
 #include "Util/HashTable.h"
 #include "Util/Heap.h"
@@ -14,6 +17,25 @@ CF_ASSUME_NONNULL_BEGIN
 typedef uint8_t AGValueState; // TODO: move
 
 namespace AG {
+
+// TODO: move somewhere else
+template <typename T> class TaggedPointer {
+  private:
+    uintptr_t _value;
+
+  public:
+    TaggedPointer() : _value(0){};
+    TaggedPointer(T *_Nullable value) : _value((uintptr_t)value){};
+    TaggedPointer(T *_Nullable value, bool tag) : _value(((uintptr_t)value & ~0x1) | (tag ? 1 : 0)){};
+
+    uintptr_t value() { return _value; };
+    bool tag() { return static_cast<bool>(_value & 0x1); };
+
+    T *_Nullable get() { return reinterpret_cast<T *>(_value & ~0x1); };
+
+    bool operator==(nullptr_t) const noexcept { return _value == 0; };
+    bool operator!=(nullptr_t) const noexcept { return _value != 0; };
+};
 
 namespace swift {
 class metadata;
@@ -28,7 +50,14 @@ class Graph {
     class Context;
     class KeyTable;
     class UpdateStack;
-    enum class UpdateStatus;
+    class UpdateStackRef;
+
+    enum UpdateStatus : uint32_t {
+        Option0 = 0,
+        Option1 = 1,
+        Option2 = 2,
+        NeedsCallMainHandler = 3,
+    };
 
     struct TreeElement;
     struct TreeValue;
@@ -45,7 +74,11 @@ class Graph {
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
 
+    using MainHandler = void (*)(void (*thunk)(void *), void *thunk_context); // needs AG_SWIFT_CC(swift) ?
+
   private:
+    static pthread_key_t _current_update_key;
+
     Graph *_prev;
     Graph *_next;
     util::Heap _heap;
@@ -53,7 +86,9 @@ class Graph {
     vector<AttributeType *, 0, uint32_t> _types;
 
     vector<Trace *, 0, uint32_t> _traces;
-    uint64_t _field_0xf0;
+
+    MainHandler _Nullable _main_handler;
+    void *_Nullable _main_handler_context;
 
     size_t _allocated_node_values_size = 0;
 
@@ -64,57 +99,97 @@ class Graph {
     vector<Subgraph *, 0, uint32_t> _subgraphs;
     vector<Subgraph *, 0, uint32_t> _subgraphs_with_cached_nodes;
     vector<Subgraph *, 2, uint32_t> _invalidated_subgraphs; // TODO: check is 2 stack length
+    bool _deferring_invalidation;                           // used to batch invalidate subgraphs
 
     // TODO: check field offets
     uint64_t _num_nodes;       // probably this, not sure
     uint64_t _num_node_values; // probably this, not sure
+    uint64_t _num_subgraphs;
 
     bool _needs_update; // 0x199
 
+    pthread_t _current_update_thread;
+
     uint64_t _counter_0x1b8;
+    uint64_t _update_attribute_count;
+    uint64_t _update_attribute_on_main_count;
 
   public:
-    bool needs_update() { return _needs_update; };
-    void call_update();
+    // MARK: Context
 
-    bool thread_is_updating();
-
-    void increment_counter_0x1b8() { _counter_0x1b8 += 1; };
+    bool is_context_updating(uint64_t context_id);
+    void main_context();
 
     // MARK: Subgraphs
 
-    bool is_validating_0x198();
-    void set_validating_0x198(bool value);
+    class without_invalidating {
+      private:
+        Graph *_graph;
+        bool _graph_was_deferring_invalidation;
 
-    bool field_0xf0();
-
-    void invalidate_subgraphs();
-    void will_invalidate_subgraph(Subgraph &subgraph) { _invalidated_subgraphs.push_back(&subgraph); };
+      public:
+        without_invalidating(Graph *graph);
+        ~without_invalidating();
+    };
 
     vector<Subgraph *, 0, uint32_t> &subgraphs();
-    void remove_subgraph(const Subgraph &subgraph);
-    
-    void add_subgraphs_with_cached_node(Subgraph *subgraph) {
-        _subgraphs_with_cached_nodes.push_back(subgraph);
-    }
+
+    void add_subgraph(Subgraph &subgraph); // called from constructor of Subgraph
+    void remove_subgraph(Subgraph &subgraph);
+
+    void will_invalidate_subgraph(Subgraph &subgraph) { _invalidated_subgraphs.push_back(&subgraph); };
+
+    void invalidate_subgraphs();
+    bool deferring_invalidation() { return _deferring_invalidation; };
+    void set_deferring_invalidation(bool value) { _deferring_invalidation = value; };
+
+    void remove_subgraphs_with_cached_node(Subgraph *subgraph); // overload with iter?
+    void add_subgraphs_with_cached_node(Subgraph *subgraph) { _subgraphs_with_cached_nodes.push_back(subgraph); }
+
+    void increment_counter_0x1b8() { _counter_0x1b8 += 1; };
+
+    // MARK: Updates
+
+    static TaggedPointer<UpdateStack> current_update();
+    static void set_current_update(TaggedPointer<UpdateStack> current_update);
+
+    bool thread_is_updating();
+
+    bool needs_update() { return _needs_update; };
+    void call_update();
+    void reset_update(data::ptr<Node> node);
+
+    void collect_stack(vector<data::ptr<Node>, 0, uint64_t> &stack);
+
+    void with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body);
+
+    MainHandler _Nullable main_handler() { return _main_handler; };
+    void call_main_handler(void *context, void (*body)(void *context));
+
+    bool passed_deadline();
+    bool passed_deadline_slow();
 
     // MARK: Attributes
 
     const AttributeType &attribute_type(uint32_t type_id) const;
-    const AttributeType &attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable ref_out) const;
+    const AttributeType &attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable self_out) const;
 
     void attribute_modify(data::ptr<Node> node, const swift::metadata &type, ClosureFunctionPV<void, void *> closure,
                           bool flag);
 
     data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, void *body, void *_Nullable value);
-    void remove_node(data::ptr<Node> node);
 
-    void update_attribute(AttributeID attribute, bool option);
+    UpdateStatus update_attribute(AttributeID attribute, uint8_t options);
+    void update_main_refs(AttributeID attribute);
+
+    void remove_node(data::ptr<Node> node);
 
     void did_allocate_node_value(size_t size) { _allocated_node_values_size += size; };
     void did_destroy_node_value(size_t size) { _allocated_node_values_size -= size; };
 
     void did_destroy_node(); // decrement counter 0x100
+
+    void breadth_first_search(AttributeID attribute, uint32_t arg, ClosureFunctionAB<bool, uint32_t> predicate) const;
 
     // MARK: Indirect attributes
 
@@ -128,19 +203,12 @@ class Graph {
     const AttributeID &indirect_attribute_dependency(data::ptr<IndirectNode> indirect_node);
     void indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency);
 
-    // MARK: Edges
-
-    void add_input(data::ptr<Node> node, AttributeID attribute, bool flag, uint32_t option);
-    void add_input_dependencies(AttributeID attribute, AttributeID source);
-    void remove_all_inputs(data::ptr<Node> node);
-
-    void any_inputs_changed(data::ptr<Node> node, const uint32_t *arg1, uint64_t arg2);
-    void all_inputs_removed(data::ptr<Node> node);
-
-    template <typename T> void add_output_edge(data::ptr<T> node, AttributeID attribute);
-    template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
-
     // MARK: Values
+
+    void *value_ref(AttributeID attribute, const swift::metadata &value_type, const void *value);
+
+    bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
+    bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &type);
 
     bool value_exists(data::ptr<Node> node);
     AGValueState value_state(AttributeID attribute);
@@ -148,10 +216,44 @@ class Graph {
     void value_mark(data::ptr<Node> node);
     void value_mark_all();
 
-    bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
-    bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &type);
-
     void propagate_dirty(AttributeID attribute);
+
+    // MARK: Inputs
+
+    void input_value_ref(data::ptr<AG::Node> node, AttributeID attribute, uint32_t arg3, uint32_t arg4,
+                         const swift::metadata *type, char *arg5, uint64_t arg6);
+    void input_value_ref_slow(data::ptr<AG::Node> node, AttributeID attribute, uint32_t arg3, uint32_t arg4,
+                              const swift::metadata *type, char *arg5, uint64_t arg6);
+
+    void add_input(data::ptr<Node> node, AttributeID attribute, bool flag, uint32_t option);
+    void remove_input(data::ptr<Node> node, uint64_t arg);
+    void remove_all_inputs(data::ptr<Node> node);
+
+    bool compare_edge_values(InputEdge input_edge, const AttributeType &type, void const *lhs, void const *rhs);
+
+    void input_value_add(data::ptr<Node> node, AttributeID attribute, uint32_t arg);
+
+    void any_inputs_changed(data::ptr<Node> node, const uint32_t *arg1, uint64_t arg2);
+    void all_inputs_removed(data::ptr<Node> node);
+
+    void add_input_dependencies(AttributeID attribute, AttributeID source);
+    void remove_input_dependencies(AttributeID attribute, AttributeID source);
+
+    void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t arg);
+
+    void remove_removed_input(AttributeID attribute, AttributeID source);
+
+    uint32_t index_of_input(data::ptr<Node> node, InputEdge::Comparator comparator);
+    uint32_t index_of_input_slow(data::ptr<Node> node, InputEdge::Comparator comparator);
+
+    // MARK: Outputs
+
+    void output_value_ref(data::ptr<Node> node, const swift::metadata &type);
+
+    template <typename T> void add_output_edge(data::ptr<T> node, AttributeID attribute);
+    template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
+
+    void remove_removed_output(AttributeID attribute, AttributeID source, bool flag);
 
     // MARK: Marks
 
@@ -182,8 +284,15 @@ class Graph {
 
     // MARK: Tracing
 
+    void prepare_trace(Trace &trace);
+
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
+
+    void start_tracing(uint32_t arg, std::span<const char *, ULLONG_MAX> span);
+    void stop_tracing();
+    void sync_tracing();
+    void copy_trace_path();
 
     template <typename T>
         requires std::invocable<T, Trace &>
@@ -193,7 +302,29 @@ class Graph {
         }
     };
 
+    static void all_start_tracing();
+    static void all_stop_tracing();
+    static void all_sync_tracing();
+    static void all_copy_trace_path();
+
     static void trace_assertion_failure(bool all_stop_tracing, const char *format, ...);
+
+    // MARK: Profile
+
+    void begin_profile_event(data::ptr<Node> node, const char *event_name);
+    void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t arg1, bool arg2);
+
+    void add_profile_update(data::ptr<Node> node, uint64_t arg2, bool arg3);
+
+    void start_profiling(uint32_t arg);
+    void stop_profiling();
+    void mark_profile(uint32_t arg1, uint64_t arg2);
+    void reset_profile();
+
+    static void all_start_profiling(uint32_t arg);
+    static void all_stop_profiling();
+    static void all_mark_profile(const char *event_name);
+    static void all_reset_profile();
 
     // MARK: Encoding
 
@@ -202,9 +333,29 @@ class Graph {
 
     void encode_tree(Encoder &encoder, data::ptr<TreeElement> tree);
 
+    // MARK: Description
+
+    void description(CFDictionaryRef options);
+    void description(data::ptr<Node> node);
+
+    char *description_graph_dot(CFDictionaryRef options);
+    char *description_stack(CFDictionaryRef options);
+    char *description_stack_frame(CFDictionaryRef options);
+    char *description_stack_nodes(CFDictionaryRef options);
+
+    vector<char *, 0, uint64_t> description_graph(CFDictionaryRef options);
+
+    void write_to_file(const char *filename, uint32_t arg);
+
     // MARK: Printing
 
+    void print();
+
+    void print_attribute(data::ptr<Node> node);
+    void print_cycle(data::ptr<Node> node);
+
     void print_data();
+    void print_stack();
 };
 
 } // namespace AG

@@ -57,9 +57,9 @@ class Subgraph : public data::zone {
 
     struct Observer {};
 
-    enum OtherState : uint8_t {
-        Option1 = 1 << 0,
-        Option2 = 1 << 1,
+    enum CacheState : uint8_t {
+        Option1 = 1 << 0,  // added to graph._subgraphs_with_cached_nodes, or needs collect?
+        Option2 = 1 << 1, // Is calling cache collect
     };
 
   private:
@@ -105,6 +105,9 @@ class Subgraph : public data::zone {
     uint64_t graph_context_id() { return _graph_context_id; };
 
     void graph_destroyed();
+
+    uint8_t other_state() { return _other_state; };
+    void set_other_state(uint8_t other_state) { _other_state = other_state; };
 
     // MARK: Managing children
 

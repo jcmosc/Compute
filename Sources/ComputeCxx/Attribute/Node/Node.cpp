@@ -8,12 +8,17 @@
 
 namespace AG {
 
-void Node::update_self(const Graph &graph, void *new_self) {
-    auto type = graph.attribute_type(_info.type_id);
+void *Node::get_self(const AttributeType &type) {
     void *self = ((char *)this + type.attribute_offset());
     if (_flags.has_indirect_self()) {
         self = *(void **)self;
     }
+    return self;
+}
+
+void Node::update_self(const Graph &graph, void *new_self) {
+    auto type = graph.attribute_type(_info.type_id);
+    void *self = get_self(type);
 
     if (!state().is_self_initialized()) {
         set_state(state().with_self_initialized(true));
@@ -32,13 +37,18 @@ void Node::destroy_self(const Graph &graph) {
     set_state(state().with_self_initialized(false));
 
     auto type = graph.attribute_type(_info.type_id);
-    void *self = ((char *)this + type.attribute_offset());
-    if (_flags.has_indirect_self()) {
-        self = *(void **)self;
-    }
+    void *self = get_self(type);
 
     type.vt_destroy_self(self);
     type.self_metadata().vw_destroy(static_cast<swift::opaque_value *>(self));
+}
+
+void *Node::get_value() {
+    void *value = _value.get();
+    if (_flags.has_indirect_value()) {
+        value = *(void **)value;
+    }
+    return value;
 }
 
 void Node::allocate_value(Graph &graph, data::zone &zone) {
@@ -72,10 +82,7 @@ void Node::destroy_value(Graph &graph) {
     set_state(state().with_value_initialized(false));
 
     auto type = graph.attribute_type(_info.type_id);
-    void *value = _value.get();
-    if (_flags.has_indirect_value()) {
-        value = *(void **)value;
-    }
+    void *value = get_value();
 
     type.value_metadata().vw_destroy(static_cast<swift::opaque_value *>(value));
 }
@@ -84,10 +91,7 @@ void Node::destroy(Graph &graph) {
     auto type = graph.attribute_type(_info.type_id);
 
     if (state().is_value_initialized()) {
-        void *value = _value.get();
-        if (_flags.has_indirect_value()) {
-            value = *(void **)value;
-        }
+        void *value = get_value();
         type.value_metadata().vw_destroy(static_cast<swift::opaque_value *>(value));
     }
     if (_value) {
@@ -95,10 +99,7 @@ void Node::destroy(Graph &graph) {
     }
 
     if (state().is_self_initialized()) {
-        void *self = ((char *)this + type.attribute_offset());
-        if (_flags.has_indirect_self()) {
-            self = *(void **)self;
-        }
+        void *self = get_self(type);
 
         type.vt_destroy_self(self);
         type.self_metadata().vw_destroy(static_cast<swift::opaque_value *>(self));

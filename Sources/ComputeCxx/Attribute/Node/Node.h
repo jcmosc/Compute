@@ -77,10 +77,10 @@ class Node {
     class State {
       public:
         enum : uint8_t {
-            Dirty = 1 << 0,    // 0x01 // Unknown0 = 1 << 0,
-            Pending = 1 << 1,  // 0x02 // Unknown1 = 1 << 1,
-            Unknown2 = 1 << 2, // 0x04 set from attribute type flags & 8
-            Unknown3 = 1 << 3, // 0x08 set from attribute type flags & 8
+            Dirty = 1 << 0,         // 0x01 // Unknown0 = 1 << 0,
+            Pending = 1 << 1,       // 0x02 // Unknown1 = 1 << 1,
+            UpdatesOnMain = 1 << 2, // 0x04 set from attribute type flags & 8
+            Unknown3 = 1 << 3,      // 0x08 set from attribute type flags & 8
 
             ValueInitialized = 1 << 4, // 0x10
             SelfInitialized = 1 << 5,  // 0x20
@@ -103,7 +103,7 @@ class Node {
         bool is_pending() { return _data & Pending; }
         State with_pending(bool value) const { return State((_data & ~Pending) | (value ? Pending : 0)); };
 
-        bool is_unknown2() { return _data & Unknown2; }
+        bool updates_on_main() { return _data & UpdatesOnMain; }
         bool is_unknown3() { return _data & Unknown3; }
         State with_unknown3(bool value) const { return State((_data & ~Unknown3) | (value ? Unknown3 : 0)); };
 
@@ -115,6 +115,10 @@ class Node {
         bool is_self_initialized() { return _data & SelfInitialized; };
         State with_self_initialized(bool value) const {
             return State((_data & ~SelfInitialized) | (value ? SelfInitialized : 0));
+        };
+
+        State with_in_update_stack(bool value) const {
+            return State((_data & ~InUpdateStack) | (value ? InUpdateStack : 0));
         };
 
         bool is_evaluating() { return _data & InUpdateStack || _data & Unknown7; }
@@ -140,7 +144,7 @@ class Node {
 
     TreeInfo _tree_info;               // 0x0c - 5 bits of flags than count of parents??
     data::ptr<InputEdge> _input_edges; // 0x10
-    uint32_t _field0x14;            // 0x14 - TODO: verify
+    uint32_t _field0x14;               // 0x14 - TODO: verify
     data::ptr<Node> _next_child;       // 0x18 - TODO: verify
 
   public:
@@ -153,10 +157,11 @@ class Node {
     NodeFlags &flags() { return _flags; };
     uint32_t field0x14() { return _field0x14; };
 
+    void *get_self(const AttributeType &type); // TODO: inline
     void update_self(const Graph &graph, void *new_self);
     void destroy_self(const Graph &graph);
 
-    void *get_value() { return _value.get(); };
+    void *get_value();
     void allocate_value(Graph &graph, data::zone &zone);
     void destroy_value(Graph &graph);
 

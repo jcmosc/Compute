@@ -14,7 +14,7 @@ class AttributeType;
 
 class AttributeVTable {
   public:
-    using Callback = void (*)(AttributeType *attribute_type, void *body);
+    using Callback = void (*)(const AttributeType *attribute_type, void *body);
     Callback _unknown_0x00;
     Callback _unknown_0x08;
     Callback destroy_self;
@@ -81,6 +81,10 @@ class AttributeType {
         if (_flags & Flags::HasDestroySelf) {
             _vtable->destroy_self(this, body);
         }
+    }
+    
+    AttributeVTable::Callback vt_get_update_stack_callback() const {
+        return _vtable->_update_stack_callback;
     }
 };
 

@@ -35,6 +35,7 @@ class IndirectNode {
     bool is_mutable() const { return _info.is_mutable; };
     MutableIndirectNode &to_mutable();
 
+    void set_traverses_graph_contexts(bool value) { _info.traverses_graph_contexts = value; };
     bool traverses_graph_contexts() const { return _info.traverses_graph_contexts; };
 
     uint32_t offset() const { return _info.offset; };
@@ -71,6 +72,9 @@ class MutableIndirectNode : public IndirectNode {
 
     const AttributeID &dependency() const { return _dependency; };
     void set_dependency(const AttributeID &dependency) { _dependency = dependency; };
+
+    WeakAttributeID initial_source() { return _initial_source; };
+    uint32_t initial_offset() { return _initial_offset; };
 
     ConstOutputEdgeArrayRef outputs() {
         return {

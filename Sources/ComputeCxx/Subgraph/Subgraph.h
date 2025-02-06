@@ -58,8 +58,15 @@ class Subgraph : public data::zone {
     struct Observer {};
 
     enum CacheState : uint8_t {
-        Option1 = 1 << 0,  // added to graph._subgraphs_with_cached_nodes, or needs collect?
+        Option1 = 1 << 0, // added to graph._subgraphs_with_cached_nodes, or needs collect?
         Option2 = 1 << 1, // Is calling cache collect
+    };
+
+    enum ValidationState : uint8_t {
+        Valid = 0,
+        InvalidationScheduled = 1,
+        Invalidated = 2,
+        GraphDestroyed = 3,
     };
 
   private:
@@ -82,7 +89,7 @@ class Subgraph : public data::zone {
     data::ptr<Graph::TreeElement> _tree_root;
 
     Flags _flags;
-    bool _invalidated;
+    ValidationState _validation_state;
     uint8_t _other_state;
 
   public:
@@ -104,10 +111,15 @@ class Subgraph : public data::zone {
     Graph *_Nullable graph() const { return _graph; };
     uint64_t graph_context_id() { return _graph_context_id; };
 
-    void graph_destroyed();
+    bool is_valid() { return _validation_state == ValidationState::Valid; };
+    ValidationState validation_state() { return _validation_state; };
 
     uint8_t other_state() { return _other_state; };
     void set_other_state(uint8_t other_state) { _other_state = other_state; };
+
+    void invalidate_and_delete_(bool delete_subgraph);
+    void invalidate_now(Graph &graph);
+    void graph_destroyed();
 
     // MARK: Managing children
 
@@ -128,9 +140,6 @@ class Subgraph : public data::zone {
     void insert_attribute(AttributeID attribute, bool dirty);
 
     void unlink_attribute(AttributeID attribute);
-
-    void invalidate_now(Graph &graph);
-    void invalidate_and_delete_(bool flag);
 
     void update(uint8_t flags);
 

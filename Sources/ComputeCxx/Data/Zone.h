@@ -18,7 +18,7 @@ class zone {
       private:
         enum {
             zone_id_mask = 0x7fffffff,
-            invalidated = 0x80000000,
+            deleted = 0x80000000,
         };
         uint32_t _value;
         info(uint32_t value) : _value(value){};
@@ -27,7 +27,7 @@ class zone {
         uint32_t zone_id() { return _value & zone_id_mask; };
         info with_zone_id(uint32_t zone_id) const { return info((_value & ~zone_id_mask) | (zone_id & zone_id_mask)); };
 
-        info with_invalidated() const { return info(_value | invalidated); };
+        info with_deleted() const { return info(_value | deleted); };
 
         uint32_t to_raw_value() { return _value; };
         static info from_raw_value(uint32_t value) { return info(value); };
@@ -49,7 +49,7 @@ class zone {
     ~zone();
 
     info info() { return _info; };
-    void set_invalidated_flag() { _info = _info.with_invalidated(); };
+    void mark_deleted() { _info = _info.with_deleted(); };
 
     ptr<page> last_page() { return _last_page; };
 

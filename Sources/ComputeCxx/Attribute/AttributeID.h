@@ -19,6 +19,8 @@ class IndirectNode;
 class OffsetAttributeID;
 class RelativeAttributeID;
 
+
+
 class AttributeID {
   private:
     static constexpr uint32_t KindMask = 0x3;
@@ -106,6 +108,8 @@ class RelativeAttributeID {
   private:
     uint16_t _value;
 };
+
+extern AttributeID AttributeIDNil;
 
 } // namespace AG
 

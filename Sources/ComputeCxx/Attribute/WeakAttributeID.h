@@ -19,6 +19,9 @@ class WeakAttributeID {
 
     bool expired() const;
     const AttributeID &attribute() const;
+    
+    /// Returns the attribute it is has not expired, otherwise returns the nil attribute.
+    const AttributeID &evaluate() const;
 };
 
 } // namespace AG

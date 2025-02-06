@@ -35,7 +35,7 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
     _graph = &graph;
     _graph_context_id = context.unique_id();
 
-    _invalidated = false;
+    _validation_state = ValidationState::Valid;
 
     begin_tree(owner, nullptr, 0);
 
@@ -73,11 +73,182 @@ void Subgraph::clear_object() {
 
 #pragma mark - Graph
 
-void Subgraph::graph_destroyed() {
-    bool old_invalidated = _invalidated;
-    _invalidated = true;
+void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
+    if (delete_subgraph) {
+        mark_deleted();
+    }
 
-    if (!old_invalidated) {
+    // TODO: does this rely on underflow to catch 0?
+    if (ValidationState::Invalidated < _validation_state - 1) {
+        for (auto parent : _parents) {
+            parent->remove_child(*this, true);
+        }
+        _parents.clear();
+
+        // Check Graph::invalidate_subgraphs
+        if (_graph->deferring_invalidation() == false && _graph->main_handler() == nullptr) {
+            invalidate_now(*_graph);
+            _graph->invalidate_subgraphs();
+            return;
+        }
+
+        bool was_valid = is_valid();
+        if (_validation_state != ValidationState::InvalidationScheduled) {
+            _graph->will_invalidate_subgraph(*this);
+            _validation_state = ValidationState::InvalidationScheduled;
+            if (was_valid) {
+                _graph->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
+            }
+        }
+    }
+}
+
+void Subgraph::invalidate_now(Graph &graph) {
+    // TODO: double check graph param vs _graph instance var
+
+    graph.set_deferring_invalidation(true);
+
+    auto removed_subgraphs = vector<Subgraph *, 16, uint64_t>();
+    auto stack = std::stack<Subgraph *, vector<Subgraph *, 16, uint64_t>>();
+
+    bool was_valid = is_valid();
+    if (_validation_state != ValidationState::Invalidated) {
+        _validation_state = ValidationState::Invalidated;
+        if (was_valid) {
+            _graph->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
+        }
+        clear_object();
+        stack.push(this);
+
+        while (!stack.empty()) {
+            Subgraph *subgraph = stack.top();
+            stack.pop();
+
+            _graph->foreach_trace([subgraph](Trace &trace) { trace.destroy(*subgraph); });
+
+            notify_observers();
+            _graph->remove_subgraph(*subgraph);
+
+            subgraph->mark_deleted();
+            removed_subgraphs.push_back(subgraph);
+
+            for (auto child : subgraph->_children) {
+                Subgraph *child_subgraph = child.subgraph();
+                if (child_subgraph->_graph_context_id == _graph_context_id) {
+
+                    // for each other parent of the child, remove the child from that parent
+                    for (auto parent : child_subgraph->_parents) {
+                        if (parent != subgraph) {
+                            auto r = std::remove_if(parent->_children.begin(), parent->_children.end(),
+                                                    [child_subgraph](auto other_child) {
+                                                        return other_child.subgraph() == child_subgraph;
+                                                    });
+                            parent->_children.erase(r);
+
+                            //                            for (auto other_child : parent->_children) {
+                            //                                if (other_child.subgraph() == child) {
+                            //                                    parent->_children[i] =
+                            //                                    parent->_children[parent->_children.size() - 1];
+                            //                                    parent->_children.pop_back();
+                            //                                }
+                            //                            }
+                        }
+                    }
+
+                    child_subgraph->_parents.clear();
+
+                    bool child_was_valid = child_subgraph->is_valid();
+                    if (child_subgraph->_validation_state != ValidationState::Invalidated) {
+                        child_subgraph->_validation_state = ValidationState::Invalidated;
+                        if (child_was_valid) {
+                            _graph->foreach_trace(
+                                [child_subgraph](Trace &trace) { trace.invalidate(*child_subgraph); });
+                        }
+                        child_subgraph->clear_object();
+                        stack.push(child_subgraph);
+                    }
+                } else {
+                    // remove the subgraph from the parents vector of each child
+                    auto r = std::remove(child_subgraph->_parents.begin(), child_subgraph->_parents.end(), subgraph);
+                    child_subgraph->_parents.erase(r);
+
+                    //                    for (auto parent : child_subgraph->_parents) {
+                    //                        if (parent == subgraph) {
+                    //                            child._parents[i] = child._parents[child._parents.size() - 1];
+                    //                            child._parents.resize(child._parents.size() - 1);
+                    //                            break;
+                    //                        }
+                    //                    }
+                }
+            }
+        }
+    }
+
+    for (auto removed_subgraph : removed_subgraphs) {
+        for (data::ptr<data::page> page = removed_subgraph->last_page(); page != nullptr; page = page->previous) {
+            bool found_nil_attribute = false;
+
+            uint16_t relative_offset = page->relative_offset_1;
+            while (relative_offset) {
+                AttributeID attribute = AttributeID(page + relative_offset);
+                if (attribute.is_direct()) {
+                    relative_offset = attribute.to_node().flags().relative_offset();
+                    graph.remove_node(attribute.to_node_ptr());
+                } else if (attribute.is_indirect()) {
+                    relative_offset = attribute.to_indirect_node().relative_offset();
+                    graph.remove_indirect_node(attribute.to_indirect_node_ptr());
+                } else if (attribute.is_nil()) {
+                    found_nil_attribute = true;
+                }
+            }
+            if (found_nil_attribute) {
+                break;
+            }
+        }
+    }
+
+    for (auto removed_subgraph : removed_subgraphs) {
+        for (data::ptr<data::page> page = removed_subgraph->last_page(); page != nullptr; page = page->previous) {
+            bool found_nil_attribute = false;
+
+            uint16_t relative_offset = page->relative_offset_1;
+            while (relative_offset) {
+                AttributeID attribute = AttributeID(page + relative_offset);
+
+                if (attribute.is_direct()) {
+                    relative_offset = attribute.to_node().flags().relative_offset();
+                } else if (attribute.is_indirect()) {
+                    relative_offset = attribute.to_indirect_node().relative_offset();
+                } else if (attribute.is_nil()) {
+                    found_nil_attribute = true;
+                }
+
+                if (attribute.is_direct()) {
+                    attribute.to_node().destroy(*_graph);
+
+                    _graph->did_destroy_node(); // decrement counter
+                }
+            }
+            if (found_nil_attribute) {
+                break;
+            }
+        }
+    }
+
+    // TODO: does this execute anyway...
+    for (auto removed_subgraph : removed_subgraphs) {
+        removed_subgraph->~Subgraph();
+        free(removed_subgraph); // or delete?
+    }
+
+    graph.set_deferring_invalidation(false);
+}
+
+void Subgraph::graph_destroyed() {
+    bool was_valid = is_valid();
+    _validation_state = ValidationState::GraphDestroyed;
+
+    if (was_valid) {
         graph()->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
     }
     notify_observers();
@@ -303,185 +474,16 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
     }
 }
 
-void Subgraph::invalidate_now(Graph &graph) {
-    // TODO: double check graph param vs _graph instance var
-
-    graph.set_deferring_invalidation(true);
-
-    auto removed_subgraphs = vector<Subgraph *, 16, uint64_t>();
-    auto stack = std::stack<Subgraph *, vector<Subgraph *, 16, uint64_t>>();
-
-    bool was_invalidated = _invalidated;
-    if (!_invalidated) {
-        _invalidated = true;
-        if (!was_invalidated) {
-            _graph->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
-        }
-        clear_object();
-        stack.push(this);
-
-        while (!stack.empty()) {
-            Subgraph *subgraph = stack.top();
-            stack.pop();
-
-            _graph->foreach_trace([subgraph](Trace &trace) { trace.destroy(*subgraph); });
-
-            notify_observers();
-            _graph->remove_subgraph(*subgraph);
-
-            subgraph->set_invalidated_flag();
-            removed_subgraphs.push_back(subgraph);
-
-            for (auto child : subgraph->_children) {
-                Subgraph *child_subgraph = child.subgraph();
-                if (child_subgraph->_graph_context_id == _graph_context_id) {
-
-                    // for each other parent of the child, remove the child from that parent
-                    for (auto parent : child_subgraph->_parents) {
-                        if (parent != subgraph) {
-                            auto r = std::remove_if(parent->_children.begin(), parent->_children.end(),
-                                                    [child_subgraph](auto other_child) {
-                                                        return other_child.subgraph() == child_subgraph;
-                                                    });
-                            parent->_children.erase(r);
-
-                            //                            for (auto other_child : parent->_children) {
-                            //                                if (other_child.subgraph() == child) {
-                            //                                    parent->_children[i] =
-                            //                                    parent->_children[parent->_children.size() - 1];
-                            //                                    parent->_children.pop_back();
-                            //                                }
-                            //                            }
-                        }
-                    }
-
-                    child_subgraph->_parents.clear();
-
-                    bool child_was_invalidated = child_subgraph->_invalidated;
-                    if (!child_was_invalidated) {
-                        child_subgraph->_invalidated = true;
-                        if (!child_was_invalidated) {
-                            _graph->foreach_trace(
-                                [child_subgraph](Trace &trace) { trace.invalidate(*child_subgraph); });
-                        }
-                        child_subgraph->clear_object();
-                        stack.push(child_subgraph);
-                    }
-                } else {
-                    // remove the subgraph from the parents vector of each child
-                    auto r = std::remove(child_subgraph->_parents.begin(), child_subgraph->_parents.end(), subgraph);
-                    child_subgraph->_parents.erase(r);
-
-                    //                    for (auto parent : child_subgraph->_parents) {
-                    //                        if (parent == subgraph) {
-                    //                            child._parents[i] = child._parents[child._parents.size() - 1];
-                    //                            child._parents.resize(child._parents.size() - 1);
-                    //                            break;
-                    //                        }
-                    //                    }
-                }
-            }
-        }
-    }
-
-    for (auto removed_subgraph : removed_subgraphs) {
-        for (data::ptr<data::page> page = removed_subgraph->last_page(); page != nullptr; page = page->previous) {
-            bool found_nil_attribute = false;
-
-            uint16_t relative_offset = page->relative_offset_1;
-            while (relative_offset) {
-                AttributeID attribute = AttributeID(page + relative_offset);
-                if (attribute.is_direct()) {
-                    relative_offset = attribute.to_node().flags().relative_offset();
-                    graph.remove_node(attribute.to_node_ptr());
-                } else if (attribute.is_indirect()) {
-                    relative_offset = attribute.to_indirect_node().relative_offset();
-                    graph.remove_indirect_node(attribute.to_indirect_node_ptr());
-                } else if (attribute.is_nil()) {
-                    found_nil_attribute = true;
-                }
-            }
-            if (found_nil_attribute) {
-                break;
-            }
-        }
-    }
-
-    for (auto removed_subgraph : removed_subgraphs) {
-        for (data::ptr<data::page> page = removed_subgraph->last_page(); page != nullptr; page = page->previous) {
-            bool found_nil_attribute = false;
-
-            uint16_t relative_offset = page->relative_offset_1;
-            while (relative_offset) {
-                AttributeID attribute = AttributeID(page + relative_offset);
-
-                if (attribute.is_direct()) {
-                    relative_offset = attribute.to_node().flags().relative_offset();
-                } else if (attribute.is_indirect()) {
-                    relative_offset = attribute.to_indirect_node().relative_offset();
-                } else if (attribute.is_nil()) {
-                    found_nil_attribute = true;
-                }
-
-                if (attribute.is_direct()) {
-                    attribute.to_node().destroy(*_graph);
-
-                    _graph->did_destroy_node(); // decrement counter
-                }
-            }
-            if (found_nil_attribute) {
-                break;
-            }
-        }
-    }
-
-    // TODO: does this execute anyway...
-    for (auto removed_subgraph : removed_subgraphs) {
-        removed_subgraph->~Subgraph();
-        free(removed_subgraph); // or delete?
-    }
-
-    graph.set_deferring_invalidation(false);
-}
-
-void Subgraph::invalidate_and_delete_(bool flag) {
-    if (flag) {
-        set_invalidated_flag();
-    }
-
-    // comparison is actually (2 < (dword)(this->invalidated - 1), is this a flag?
-    if (!_invalidated) {
-        for (auto parent : _parents) {
-            parent->remove_child(*this, true);
-        }
-        _parents.clear();
-
-        // Check Graph::invalidate_subgraphs
-        if (_graph->deferring_invalidation() == false && _graph->main_handler() == nullptr) {
-            invalidate_now(*_graph);
-            _graph->invalidate_subgraphs();
-            return;
-        }
-
-        bool was_invalidated = _invalidated;
-        if (!was_invalidated) {
-            _graph->will_invalidate_subgraph(*this);
-            _invalidated = true;
-            if (!was_invalidated) {
-                _graph->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
-            }
-        }
-    }
-}
-
 void Subgraph::update(uint8_t flags) {
+    // TODO: redo this method
+
     if (_graph->needs_update()) {
         if (!_graph->thread_is_updating()) {
             _graph->call_update();
         }
     }
 
-    if (!_invalidated) {
+    if (is_valid()) {
         if ((flags & (_flags.value1 | _flags.value2))) {
 
             _graph->foreach_trace([*this, &flags](Trace &trace) { trace.begin_update(*this, flags); });
@@ -504,7 +506,7 @@ void Subgraph::update(uint8_t flags) {
                 Subgraph *subgraph = Subgraph::from_cf(object);
                 if (subgraph) {
 
-                    while (!subgraph->_invalidated) {
+                    while (subgraph->is_valid()) {
                         if ((flags & subgraph->_flags.value3) == 0) {
                             // LABEL: LAB_1afe6ac70
 
@@ -560,7 +562,7 @@ void Subgraph::update(uint8_t flags) {
                         }
 
                         if (nodes_to_update.size() == 0) {
-                            if (subgraph->_invalidated == false) {
+                            if (subgraph->is_valid()) {
                                 // goto LAB_1afe6ac70
                             }
                             break;
@@ -574,7 +576,7 @@ void Subgraph::update(uint8_t flags) {
                                 }
                                 _graph->update_attribute(node, true);
 
-                                if (subgraph->_invalidated) {
+                                if (!subgraph->is_valid()) {
                                     break;
                                 }
                             }
@@ -601,7 +603,7 @@ std::atomic<uint32_t> Subgraph::_last_traversal_seed = {};
 
 void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
     // Status: Verified, needs checks for atomics
-    if (_invalidated) {
+    if (!is_valid()) {
         return;
     }
     if ((flags.value1 & (_flags.value1 | _flags.value2)) == 0) {
@@ -622,7 +624,8 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
         auto subgraph = stack.top();
         stack.pop();
 
-        if (subgraph->_invalidated) {
+        // TODO: check
+        if (!subgraph->is_valid()) {
             continue;
         }
 
@@ -775,7 +778,7 @@ uint32_t Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_elemen
     auto subgraph_vector = vector<Subgraph *, 32, uint64_t>();
 
     for (auto subgraph : _graph->subgraphs()) {
-        if (subgraph->_invalidated) {
+        if (!subgraph->is_valid()) {
             continue;
         }
         if (subgraph->_tree_root == nullptr) {
@@ -992,7 +995,7 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
 }
 
 void Subgraph::cache_insert(data::ptr<Node> node) {
-    if (_invalidated) {
+    if (!is_valid()) {
         return;
     }
 
@@ -1028,7 +1031,7 @@ void Subgraph::cache_collect() {
     _other_state &= ~CacheState::Option1; // turn off 0x1 bit
 
     std::pair<Subgraph *, NodeCache *> context = {this, _cache.get()};
-    if (_cache != nullptr && !_invalidated) {
+    if (_cache != nullptr && is_valid()) {
         _cache->types().for_each(
             [](const swift::metadata *metadata, const data::ptr<NodeCache::Type> type, const void *context) {
                 Subgraph *subgraph = reinterpret_cast<const std::pair<Subgraph *, NodeCache *> *>(context)->first;
@@ -1088,7 +1091,7 @@ void Subgraph::encode(Encoder &encoder) {
         }
     }
 
-    if (_invalidated) {
+    if (!is_valid()) {
         encoder.encode_varint(0x28);
         encoder.encode_varint(true);
     }

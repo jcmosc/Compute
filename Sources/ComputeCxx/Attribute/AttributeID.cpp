@@ -11,6 +11,8 @@
 
 namespace AG {
 
+AttributeID AttributeIDNil = AttributeID::make_nil();
+
 std::optional<size_t> AttributeID::size() const {
     if (is_direct()) {
         const AttributeType &attribute_type = subgraph()->graph()->attribute_type(to_node().type_id());
@@ -27,7 +29,7 @@ bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
     if (!is_indirect()) {
         return *this == other;
     }
-    
+
     if (with_kind(Kind::Indirect) == other) {
         return true;
     }

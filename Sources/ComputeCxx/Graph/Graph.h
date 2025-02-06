@@ -211,7 +211,7 @@ class Graph {
     void remove_indirect_node(data::ptr<IndirectNode> node);
 
     void indirect_attribute_set(data::ptr<IndirectNode>, AttributeID source);
-    void indirect_attribute_reset(data::ptr<IndirectNode>, bool flag);
+    bool indirect_attribute_reset(data::ptr<IndirectNode>, bool non_nil);
 
     const AttributeID &indirect_attribute_dependency(data::ptr<IndirectNode> indirect_node);
     void indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency);
@@ -266,13 +266,13 @@ class Graph {
     template <typename T> void add_output_edge(data::ptr<T> node, AttributeID attribute);
     template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
 
-    void remove_removed_output(AttributeID attribute, AttributeID source, bool flag);
+    bool remove_removed_output(AttributeID attribute, AttributeID source, bool flag);
 
     // MARK: Marks
 
     void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value);
-    void mark_changed(AttributeID attribute, AttributeType &type, const void *_Nullable destination_value,
+    void mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value, uint64_t option);
 
     void mark_pending(data::ptr<Node> node_ptr, Node *node);

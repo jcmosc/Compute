@@ -17,8 +17,10 @@ bool WeakAttributeID::expired() const {
     return true;
 }
 
-const AttributeID &WeakAttributeID::attribute() const {
-    return _attribute;
+const AttributeID &WeakAttributeID::attribute() const { return _attribute; };
+
+const AttributeID &WeakAttributeID::evaluate() const {
+    return _attribute.without_kind() != 0 && !expired() ? _attribute : AttributeIDNil;
 };
 
 } // namespace AG

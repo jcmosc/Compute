@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Data/Pointer.h"
+#include "Array/ArrayRef.h"
+#include "Attribute/AttributeID.h"
 
 namespace AG {
 
@@ -9,8 +10,10 @@ class Node;
 struct InputEdge {
     struct Comparator {};
 
-    data::ptr<Node> value;
+    AttributeID value;
     uint8_t flags;
 };
+
+using ConstInputEdgeArrayRef = const ArrayRef<InputEdge>;
 
 } // namespace AG

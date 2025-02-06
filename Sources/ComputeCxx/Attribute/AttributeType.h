@@ -31,7 +31,7 @@ class AttributeType {
         HasDestroySelf = 1 << 2,               // 0x04
         InitialValueOfNodeState2And3 = 1 << 3, // 0x08
         UseGraphAsInitialValue = 1 << 4,       // 0x10
-        Unknown0x20 = 1 << 5,                  // 0x20
+        Unknown0x20 = 1 << 5,                  // 0x20 // used in update_main_refs
     };
 
     using UpdateFunction = void (*)(void *body, AttributeID attribute);

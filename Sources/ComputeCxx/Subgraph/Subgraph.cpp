@@ -996,7 +996,7 @@ void Subgraph::cache_insert(data::ptr<Node> node) {
         return;
     }
 
-    if (node->flags().value4_unknown0x10() && !node->state().is_evaluating() && node->num_output_edges() == 0) {
+    if (node->flags().value4_unknown0x10() && !node->state().is_evaluating() && node->outputs().empty()) {
         // TODO: one of these flags must indicate it is cached
 
         const AttributeType &attribute_type = _graph->attribute_type(node->type_id());

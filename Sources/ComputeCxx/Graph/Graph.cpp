@@ -2,6 +2,7 @@
 
 #include <mach/mach_time.h>
 #include <os/log.h>
+#include <set>
 
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
@@ -362,20 +363,161 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
     // ~UpdateStatus called
 }
 
+void Graph::update_main_refs(AttributeID attribute) {
+    if (attribute.is_nil()) {
+        return;
+    }
+
+    auto output_edge_arrays = vector<ConstOutputEdgeArrayRef, 64, uint64_t>();
+    auto update_unknown0x20 = [this, &output_edge_arrays](const AttributeID &attribute) {
+        if (attribute.is_nil()) {
+            return;
+        }
+
+        if (attribute.is_direct()) {
+            Node &node = attribute.to_node();
+            const AttributeType &type = this->attribute_type(node.type_id());
+
+            bool new_unknown0x20 = false;
+            if (type.value_metadata().getValueWitnesses()->isPOD() || type.unknown_0x20()) {
+                new_unknown0x20 = false;
+            } else {
+                if (node.state().is_unknown3()) {
+                    new_unknown0x20 = true;
+                } else {
+                    new_unknown0x20 =
+                        std::any_of(node.inputs().begin(), node.inputs().end(), [](auto input_edge) -> bool {
+                            auto resolved =
+                                input_edge.value.resolve(AttributeID::TraversalOptions::EvaluateWeakReferences);
+                            if (resolved.attribute().is_direct() &&
+                                resolved.attribute().to_node().flags().value4_unknown0x20()) {
+                                return true;
+                            }
+                        });
+                }
+            }
+            if (node.flags().value4_unknown0x20() != new_unknown0x20) {
+                node.flags().set_value4_unknown0x20(new_unknown0x20);
+                output_edge_arrays.push_back(node.outputs());
+            }
+        } else if (attribute.is_indirect() && attribute.to_indirect_node().is_mutable()) {
+            MutableIndirectNode &node = attribute.to_indirect_node().to_mutable();
+            output_edge_arrays.push_back(node.outputs());
+        }
+    };
+
+    update_unknown0x20(attribute);
+
+    while (!output_edge_arrays.empty()) {
+        ConstOutputEdgeArrayRef array = output_edge_arrays.back();
+        output_edge_arrays.pop_back();
+
+        for (auto output_edge = array.rbegin(), output_edge_end = array.rend(); output_edge != output_edge_end;
+             ++output_edge) {
+            update_unknown0x20(output_edge->value);
+        }
+    }
+}
+
 void Graph::remove_node(data::ptr<Node> node) {
     if (node->state().is_evaluating()) {
         precondition_failure("deleting updating attribute: %u\n", node);
     }
 
-    node->foreach_input_edge(
-        [this, &node](InputEdge &input_edge) { this->remove_removed_input(node, input_edge.value); });
-
-    node->foreach_output_edge(
-        [this, &node](OutputEdge &output_edge) { this->remove_removed_output(node, output_edge.value, false); });
+    for (auto input_edge : node->inputs()) {
+        this->remove_removed_input(node, input_edge.value);
+    }
+    for (auto output_edge : node->outputs()) {
+        this->remove_removed_output(node, output_edge.value, false);
+    }
 
     // if (_profile_data != nullptr) {
     //   TODO: _profile_data->remove_node();
     // }
+}
+
+bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
+                                 ClosureFunctionAB<bool, uint32_t> predicate) const {
+    auto resolved = attribute.resolve(AttributeID::TraversalOptions::SkipMutableReference);
+    if (resolved.attribute().without_kind() == 0) {
+        return false;
+    }
+
+    auto seen = std::set<AttributeID>();
+
+    auto queue = std::deque<AttributeID>();
+    queue.push_back(resolved.attribute());
+
+    while (!queue.empty()) {
+        AttributeID candidate = queue.front();
+        queue.pop_front();
+
+        if (candidate.is_nil()) {
+            continue;
+        }
+
+        if (candidate.is_direct() && predicate(candidate)) {
+            return true;
+        }
+
+        if (options & SearchOptions::SearchInputs) {
+            if (candidate.is_direct()) {
+                for (auto input_edge : candidate.to_node().inputs()) {
+                    auto input =
+                        input_edge.value.resolve(AttributeID::TraversalOptions::SkipMutableReference).attribute();
+
+                    if (seen.contains(input)) {
+                        continue;
+                    }
+                    if (options & SearchOptions::TraverseGraphContexts ||
+                        candidate.subgraph()->graph_context_id() == input.subgraph()->graph_context_id()) {
+                        seen.insert(input);
+                        queue.push_back(input);
+                    }
+                }
+            } else if (candidate.is_indirect()) {
+                // TODO: inputs view on IndirectNode with source?
+                AttributeID source = candidate.to_indirect_node().source().attribute();
+                source = source.resolve(AttributeID::TraversalOptions::SkipMutableReference).attribute();
+
+                if (!seen.contains(source)) {
+                    if (options & SearchOptions::TraverseGraphContexts ||
+                        candidate.subgraph()->graph_context_id() == source.subgraph()->graph_context_id()) {
+                        seen.insert(source);
+                        queue.push_back(source);
+                    }
+                }
+            }
+        }
+        if (options & SearchOptions::SearchOutputs) {
+            if (candidate.is_direct()) {
+                for (auto output_edge : candidate.to_node().outputs()) {
+                    if (seen.contains(output_edge.value)) {
+                        continue;
+                    }
+                    if (options & SearchOptions::TraverseGraphContexts ||
+                        candidate.subgraph()->graph_context_id() == output_edge.value.subgraph()->graph_context_id()) {
+                        seen.insert(output_edge.value);
+                        queue.push_back(output_edge.value);
+                    }
+                }
+            } else if (candidate.is_indirect()) {
+                // TODO: how to know it is mutable?
+                for (auto output_edge : candidate.to_indirect_node().to_mutable().outputs()) {
+                    if (seen.contains(output_edge.value)) {
+                        continue;
+                    }
+                    if (options & SearchOptions::TraverseGraphContexts ||
+                        candidate.subgraph()->graph_context_id() == output_edge.value.subgraph()->graph_context_id()) {
+                        seen.insert(output_edge.value);
+                        queue.push_back(output_edge.value);
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 #pragma mark - Indirect attributes
@@ -407,9 +549,9 @@ void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, ui
 
         uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
-        bool traversers_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
+        bool traverses_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
         uint16_t node_size = size.has_value() && size.value() <= 0xfffe ? uint16_t(size.value()) : 0xffff;
-        *indirect_node = MutableIndirectNode(source, traversers_graph_contexts, offset, node_size, source, offset);
+        *indirect_node = MutableIndirectNode(source, traverses_graph_contexts, offset, node_size, source, offset);
 
         add_input_dependencies(AttributeID(indirect_node).with_kind(AttributeID::Kind::Indirect), attribute);
         subgraph.add_indirect((data::ptr<IndirectNode>)indirect_node, true);
@@ -418,9 +560,9 @@ void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, ui
 
         uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
-        bool traversers_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
+        bool traverses_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
         uint16_t node_size = size.has_value() && size.value() <= 0xfffe ? uint16_t(size.value()) : 0xffff;
-        *indirect_node = IndirectNode(source, traversers_graph_contexts, offset, node_size);
+        *indirect_node = IndirectNode(source, traverses_graph_contexts, offset, node_size);
 
         subgraph.add_indirect(indirect_node, &subgraph != attribute.subgraph());
     }
@@ -571,7 +713,9 @@ void Graph::value_mark_all() {
                         node.set_state(node.state().with_unknown3(true));
                         subgraph->add_dirty_flags(node.flags().value3());
                     }
-                    node.foreach_input_edge([](InputEdge &edge) { edge.flags |= 8; });
+                    for (auto input_edge : node.inputs()) {
+                        input_edge.flags |= 8;
+                    }
                 }
             }
         }
@@ -579,7 +723,7 @@ void Graph::value_mark_all() {
 }
 
 bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value) {
-    if (node->num_input_edges() > 0 && node->state().is_value_initialized()) {
+    if (!node->inputs().empty() && node->state().is_value_initialized()) {
         precondition_failure("can only set initial value of computed attributes: %u", node);
     }
 

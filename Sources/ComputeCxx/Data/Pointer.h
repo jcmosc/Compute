@@ -35,8 +35,10 @@ template <typename T> class ptr {
         }
     }
 
-    element_type *_Nonnull get() const noexcept {
-        assert(_offset != 0);
+    element_type *_Nullable get() const noexcept {
+        if (_offset == 0) {
+            return nullptr;
+        }
         return reinterpret_cast<element_type *>(table::shared().ptr_base() + _offset);
     }
 

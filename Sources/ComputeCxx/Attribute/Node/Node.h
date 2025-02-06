@@ -167,26 +167,19 @@ class Node {
 
     void destroy(Graph &graph);
 
-    uint32_t num_input_edges() { return _inputs_info.num_edges; };
-    uint32_t num_output_edges() { return _outputs_info.num_edges; };
+    ConstInputEdgeArrayRef inputs() {
+        return {
+            _inputs.get(),
+            _inputs_info.num_edges,
+        };
+    };
 
-    template <typename T>
-        requires std::invocable<T, InputEdge &>
-    void foreach_input_edge(T body) {
-        InputEdge *array = _inputs.get();
-        for (uint32_t i = 0, end = num_input_edges(); i != end; ++i) {
-            body(array[i]);
-        }
-    }
-
-    template <typename T>
-        requires std::invocable<T, OutputEdge &>
-    void foreach_output_edge(T body) {
-        OutputEdge *array = _outputs.get();
-        for (uint32_t i = 0, end = num_output_edges(); i != end; ++i) {
-            body(array[i]);
-        }
-    }
+    ConstOutputEdgeArrayRef outputs() {
+        return {
+            _outputs.get(),
+            _outputs_info.num_edges,
+        };
+    };
 };
 
 static_assert(sizeof(Node) == 0x1c);

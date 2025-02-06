@@ -53,6 +53,12 @@ class Graph {
     class UpdateStack;
     class UpdateStackRef;
 
+    enum SearchOptions : uint32_t {
+        SearchInputs = 1 << 0,
+        SearchOutputs = 1 << 1,
+        TraverseGraphContexts = 1 << 2,
+    };
+
     enum UpdateStatus : uint32_t {
         Option0 = 0,
         Option1 = 1,
@@ -195,7 +201,8 @@ class Graph {
 
     void did_destroy_node(); // decrement counter 0x100
 
-    void breadth_first_search(AttributeID attribute, uint32_t arg, ClosureFunctionAB<bool, uint32_t> predicate) const;
+    bool breadth_first_search(AttributeID attribute, SearchOptions options,
+                              ClosureFunctionAB<bool, uint32_t> predicate) const;
 
     // MARK: Indirect attributes
 

@@ -68,7 +68,7 @@ class AttributeID {
 
     bool is_direct() const { return kind() == Kind::Direct; };
     bool is_indirect() const { return kind() == Kind::Indirect; };
-    bool is_nil() const { return kind() == Kind::NilAttribute; };
+    bool is_nil() const { return kind() == Kind::NilAttribute; }; // TODO: return true if whole thing is zero?
 
     // TODO: make these data::ptr<>
     Node &to_node() const {

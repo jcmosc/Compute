@@ -4,6 +4,7 @@
 #include <cassert>
 #include <malloc/malloc.h>
 #include <memory>
+#include <new>
 
 #include "Errors/Errors.h"
 
@@ -57,7 +58,7 @@ vector<T, _stack_size, size_type>::~vector() {
         data()[i].~T();
     }
     if (_buffer) {
-        free(_buffer);
+        free((void *)_buffer);
     }
 }
 
@@ -65,8 +66,8 @@ template <typename T, unsigned int _stack_size, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _stack_size, size_type>::reserve_slow(size_type new_cap) {
     size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
-    _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, _stack_buffer, _stack_size,
-                                                                                  &_capacity, effective_new_cap));
+    _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
+        (void *)_buffer, (void *)_stack_buffer, _stack_size, &_capacity, effective_new_cap));
 }
 
 template <typename T, unsigned int _stack_size, typename size_type>

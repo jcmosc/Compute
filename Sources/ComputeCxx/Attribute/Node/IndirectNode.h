@@ -52,9 +52,16 @@ static_assert(sizeof(IndirectNode) == 0x10);
 
 class MutableIndirectNode : public IndirectNode {
   private:
+    struct EdgeInfo {
+        unsigned int flags : 5;
+        unsigned int num_edges : 11;
+        unsigned int other_flag : 16;
+    };
+    static_assert(sizeof(EdgeInfo) == 4);
+
     AttributeID _dependency;
-    data::ptr<OutputEdge> _output;
-    uint32_t something;
+    EdgeInfo _outputs_info;
+    data::ptr<OutputEdge> _outputs;
     WeakAttributeID _initial_source;
     uint32_t _initial_offset;
 
@@ -64,6 +71,13 @@ class MutableIndirectNode : public IndirectNode {
 
     const AttributeID &dependency() const { return _dependency; };
     void set_dependency(const AttributeID &dependency) { _dependency = dependency; };
+
+    ConstOutputEdgeArrayRef outputs() {
+        return {
+            _outputs.get(),
+            _outputs_info.num_edges,
+        };
+    };
 };
 
 static_assert(sizeof(MutableIndirectNode) == 0x28);

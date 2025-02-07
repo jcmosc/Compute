@@ -788,7 +788,7 @@ uint32_t Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_elemen
         if (owner.without_kind() == 0) {
             continue;
         }
-        OffsetAttributeID resolved = owner.resolve(AttributeID::TraversalOptions::None);
+        OffsetAttributeID resolved = owner.resolve(TraversalOptions::None);
         owner = resolved.attribute();
         if (owner.is_direct()) {
             for (auto node_iter = iter; node_iter != nodes.end(); ++node_iter) {

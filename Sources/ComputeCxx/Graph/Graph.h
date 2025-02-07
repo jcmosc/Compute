@@ -125,6 +125,7 @@ class Graph {
     uint64_t _counter_0x1b8;
     uint64_t _update_attribute_count;
     uint64_t _update_attribute_on_main_count;
+    uint64_t _counter_0x1d8;
 
   public:
     // MARK: Context
@@ -218,7 +219,8 @@ class Graph {
 
     // MARK: Values
 
-    void *value_ref(AttributeID attribute, const swift::metadata &value_type, const void *value);
+    void *value_ref(AttributeID attribute, bool evaluate_weak_references, const swift::metadata &value_type,
+                    bool *_Nonnull did_update_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &type);

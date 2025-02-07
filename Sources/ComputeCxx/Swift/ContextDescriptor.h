@@ -5,8 +5,8 @@
 #include <stdint.h>
 #include <swift/Runtime/Metadata.h>
 
+#include "Containers/Vector.h"
 #include "Metadata.h"
-#include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

@@ -59,6 +59,10 @@ class NodeFlags {
     void set_has_indirect_value(bool value) {
         _value4 = (_value4 & ~Flags4::HasIndirectValue) | (value ? Flags4::HasIndirectValue : 0);
     };
+    bool value4_unknown0x04() { return _value4 & Flags4::Unknown0x04; };
+    void set_value4_unknown0x04(bool value) {
+        _value4 = (_value4 & ~Flags4::Unknown0x04) | (value ? Flags4::Unknown0x04 : 0);
+    };
     bool value4_unknown0x10() { return _value4 & Flags4::Unknown0x10; };
     void set_value4_unknown0x10(bool value) {
         _value4 = (_value4 & ~Flags4::Unknown0x10) | (value ? Flags4::Unknown0x10 : 0);
@@ -105,6 +109,8 @@ class Node {
         State with_pending(bool value) const { return State((_data & ~Pending) | (value ? Pending : 0)); };
 
         bool updates_on_main() { return _data & UpdatesOnMain; }
+        State with_updates_on_main(bool value) const { return State((_data & ~UpdatesOnMain) | (value ? UpdatesOnMain : 0)); };
+        
         bool is_unknown3() { return _data & Unknown3; }
         State with_unknown3(bool value) const { return State((_data & ~Unknown3) | (value ? Unknown3 : 0)); };
 

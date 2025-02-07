@@ -19,7 +19,31 @@ class IndirectNode;
 class OffsetAttributeID;
 class RelativeAttributeID;
 
+enum TraversalOptions : uint32_t {
+    None = 0,
 
+    /// Updates indirect node dependencies prior to traversing.
+    UpdateDependencies = 1 << 0,
+
+    /// Guarantees the resolved attribute is not nil, otherwise traps.
+    AssertNotNil = 1 << 1,
+
+    /// When set, only statically evaluable references are traversed.
+    /// The returned attribute may be a mutable indirect node.
+    SkipMutableReference = 1 << 2,
+
+    /// When set, the returned offset will be 0 if no indirection was traversed,
+    /// otherwise it will be the the actual offset + 1.
+    ReportIndirectionInOffset = 1 << 3,
+
+    /// When set and `AssertNotNil` is not also set, returns the nil attribute
+    /// if any weak references evaluate to nil.
+    EvaluateWeakReferences = 1 << 4,
+};
+
+inline TraversalOptions operator|(TraversalOptions lhs, TraversalOptions rhs) {
+    return static_cast<TraversalOptions>(lhs | rhs);
+}
 
 class AttributeID {
   private:
@@ -32,27 +56,6 @@ class AttributeID {
         Direct = 0,
         Indirect = 1 << 0,
         NilAttribute = 1 << 1,
-    };
-    enum TraversalOptions : uint32_t {
-        None = 0,
-
-        /// Updates indirect node dependencies prior to traversing.
-        UpdateDependencies = 1 << 0,
-
-        /// Guarantees the resolved attribute is not nil, otherwise traps.
-        AssertNotNil = 1 << 1,
-
-        /// When set, only statically evaluable references are traversed.
-        /// The returned attribute may be a mutable indirect node.
-        SkipMutableReference = 1 << 2,
-
-        /// When set, the returned offset will be 0 if no indirection was traversed,
-        /// otherwise it will be the the actual offset + 1.
-        ReportIndirectionInOffset = 1 << 3,
-
-        /// When set and `AssertNotNil` is not also set, returns the nil attribute
-        /// if any weak references evaluate to nil.
-        EvaluateWeakReferences = 1 << 4,
     };
 
     explicit AttributeID(uint32_t value) : _value(value){};

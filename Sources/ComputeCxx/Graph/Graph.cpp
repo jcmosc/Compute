@@ -9,6 +9,7 @@
 #include "Attribute/Node/Node.h"
 #include "Attribute/OffsetAttributeID.h"
 #include "Attribute/WeakAttributeID.h"
+#include "Containers/ForwardList.h"
 #include "Context.h"
 #include "Errors/Errors.h"
 #include "KeyTable.h"
@@ -245,12 +246,12 @@ void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metada
 data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void *body, void *value) {
     const AttributeType &type = attribute_type(type_id);
 
-    void *effective_value = nullptr;
+    void *value_source = nullptr;
     if (type.use_graph_as_initial_value()) {
-        effective_value = this;
+        value_source = this;
     }
     if (value != nullptr || type.value_metadata().vw_size() != 0) {
-        effective_value = value;
+        value_source = value;
     }
 
     void *buffer = nullptr;
@@ -304,8 +305,8 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void 
         type.self_metadata().vw_initializeWithCopy((swift::opaque_value *)self_dest, (swift::opaque_value *)body);
     }
 
-    if (effective_value != nullptr) {
-        value_set_internal(node, *node.get(), effective_value, type.value_metadata());
+    if (value_source != nullptr) {
+        value_set_internal(node, *node.get(), value_source, type.value_metadata());
     } else {
         node->set_state(node->state().with_dirty(true).with_pending(true));
         subgraph.add_dirty_flags(node->flags().value3());
@@ -387,8 +388,7 @@ void Graph::update_main_refs(AttributeID attribute) {
                 } else {
                     new_unknown0x20 =
                         std::any_of(node.inputs().begin(), node.inputs().end(), [](auto input_edge) -> bool {
-                            auto resolved =
-                                input_edge.value.resolve(AttributeID::TraversalOptions::EvaluateWeakReferences);
+                            auto resolved = input_edge.value.resolve(TraversalOptions::EvaluateWeakReferences);
                             if (resolved.attribute().is_direct() &&
                                 resolved.attribute().to_node().flags().value4_unknown0x20()) {
                                 return true;
@@ -438,7 +438,7 @@ void Graph::remove_node(data::ptr<Node> node) {
 
 bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
                                  ClosureFunctionAB<bool, uint32_t> predicate) const {
-    auto resolved = attribute.resolve(AttributeID::TraversalOptions::SkipMutableReference);
+    auto resolved = attribute.resolve(TraversalOptions::SkipMutableReference);
     if (resolved.attribute().without_kind() == 0) {
         return false;
     }
@@ -463,8 +463,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
         if (options & SearchOptions::SearchInputs) {
             if (candidate.is_direct()) {
                 for (auto input_edge : candidate.to_node().inputs()) {
-                    auto input =
-                        input_edge.value.resolve(AttributeID::TraversalOptions::SkipMutableReference).attribute();
+                    auto input = input_edge.value.resolve(TraversalOptions::SkipMutableReference).attribute();
 
                     if (seen.contains(input)) {
                         continue;
@@ -478,7 +477,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
             } else if (candidate.is_indirect()) {
                 // TODO: inputs view on IndirectNode with source?
                 AttributeID source = candidate.to_indirect_node().source().attribute();
-                source = source.resolve(AttributeID::TraversalOptions::SkipMutableReference).attribute();
+                source = source.resolve(TraversalOptions::SkipMutableReference).attribute();
 
                 if (!seen.contains(source)) {
                     if (options & SearchOptions::TraverseGraphContexts ||
@@ -528,7 +527,7 @@ void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, ui
         precondition_failure("attribute references can't cross graph namespaces");
     }
 
-    auto offset_attribute = attribute.resolve(AttributeID::TraversalOptions::SkipMutableReference);
+    auto offset_attribute = attribute.resolve(TraversalOptions::SkipMutableReference);
     attribute = offset_attribute.attribute();
     if (__builtin_add_overflow(offset, offset_attribute.offset(), &offset) ||
         offset + offset_attribute.offset() > 0x3ffffffe) {
@@ -547,6 +546,8 @@ void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, ui
     if (is_mutable) {
         auto indirect_node = (data::ptr<MutableIndirectNode>)subgraph.alloc_bytes(sizeof(MutableIndirectNode), 3);
 
+        // TODO: check accessing zone_id directly or through raw_page_seed
+        // check references of raw_page_seed in ghidra
         uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
         bool traverses_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
@@ -638,7 +639,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> attribute, AttributeI
 
     foreach_trace([&attribute, &source](Trace &trace) { trace.set_source(attribute, source); });
 
-    OffsetAttributeID resolved_source = source.resolve(AttributeID::TraversalOptions::SkipMutableReference);
+    OffsetAttributeID resolved_source = source.resolve(TraversalOptions::SkipMutableReference);
     source = resolved_source.attribute();
     uint32_t offset = resolved_source.offset();
 
@@ -752,6 +753,70 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute,
 
 #pragma mark - Values
 
+void *Graph::value_ref(AttributeID attribute, bool evaluate_weak_references, const swift::metadata &value_type,
+                       bool *did_update_out) {
+
+    _counter_0x1d8 += 1;
+
+    OffsetAttributeID resolved = attribute.resolve(
+        TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
+        (evaluate_weak_references ? TraversalOptions::EvaluateWeakReferences : TraversalOptions::AssertNotNil));
+
+    if (evaluate_weak_references && (resolved.attribute().without_kind() == 0 || !resolved.attribute().is_direct())) {
+        return nullptr;
+    }
+
+    Node &node = resolved.attribute().to_node();
+    const AttributeType &type = attribute_type(node.type_id());
+
+    if (!type.use_graph_as_initial_value()) {
+
+        bool graph_is_updating = false;
+        for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
+            if (update.get()->graph() == this) {
+                graph_is_updating = true;
+            }
+        }
+        if (!graph_is_updating) {
+            _counter_0x1b8 += 1;
+        }
+
+        uint64_t old_page_seed = 0;
+        if (evaluate_weak_references) {
+            old_page_seed = data::table::shared().raw_page_seed(resolved.attribute().page_ptr());
+        }
+
+        UpdateStatus status = update_attribute(resolved.attribute(), 0);
+        if (status != UpdateStatus::Option0) {
+            *did_update_out = true;
+        }
+
+        // check new page seed is same as old and zone is not deleted
+        if ((old_page_seed >> 0x20) & 0xff) {
+            uint64_t new_page_seed = data::table::shared().raw_page_seed(resolved.attribute().page_ptr());
+            if ((new_page_seed >> 0x20) & 0xff) {
+                if ((old_page_seed & 0x7fffffff) != (new_page_seed & 0xffffffff)) {
+                    return nullptr;
+                }
+            }
+        }
+    }
+
+    if (resolved.offset() == 0 && (&type.value_metadata() != &value_type)) {
+        precondition_failure("invalid value type for attribute: %u (saw %s, expected %s)", resolved.attribute(),
+                             type.value_metadata().name(false), value_type.name(false));
+    }
+    if (!node.state().is_value_initialized()) {
+        precondition_failure("attribute being read has no value: %u", resolved.attribute());
+    }
+
+    void *value = node.get_value();
+    if (resolved.offset() != 0) {
+        value = (uint8_t *)value + (resolved.offset() - 1);
+    }
+    return value;
+}
+
 bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value) {
     if (!node->inputs().empty() && node->state().is_value_initialized()) {
         precondition_failure("can only set initial value of computed attributes: %u", node);
@@ -770,9 +835,9 @@ bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, c
     return changed;
 }
 
-bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value,
+bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value_source,
                                const swift::metadata &value_type) {
-    foreach_trace([&node_ptr, &value](Trace &trace) { trace.set_value(node_ptr, value); });
+    foreach_trace([&node_ptr, &value_source](Trace &trace) { trace.set_value(node_ptr, value_source); });
 
     AttributeType &type = *_types[node.type_id()];
     if (&type.value_metadata() != &value_type) {
@@ -793,7 +858,7 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         ValueLayout layout = type.layout() == ValueLayoutEmpty ? nullptr : type.layout();
 
         // TODO: make void * and rename to dest and source
-        if (LayoutDescriptor::compare(layout, (const unsigned char *)value_dest, (const unsigned char *)value,
+        if (LayoutDescriptor::compare(layout, (const unsigned char *)value_dest, (const unsigned char *)value_source,
                                       value_type.vw_size(), comparison_options)) {
             return false;
         }
@@ -801,10 +866,10 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         if (_traces.empty()) {
             // TODO: finish
         } else {
-            mark_changed(AttributeID(node_ptr), &type, value_dest, value, 0);
+            mark_changed(AttributeID(node_ptr), &type, value_dest, value_source, 0);
         }
 
-        value_type.vw_assignWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value);
+        value_type.vw_assignWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value_source);
     } else {
         // not initialized yet
         node.allocate_value(*this, *AttributeID(node_ptr).subgraph());
@@ -814,7 +879,7 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         mark_changed(node_ptr, nullptr, nullptr, nullptr);
 
         void *value_dest = node.get_value();
-        value_type.vw_initializeWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value);
+        value_type.vw_initializeWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value_source);
     }
 }
 
@@ -823,7 +888,7 @@ bool Graph::value_exists(data::ptr<Node> node) { return node->state().is_value_i
 
 AGValueState Graph::value_state(AttributeID attribute) {
     if (!attribute.is_direct()) {
-        auto resolved_attribute = attribute.resolve(AttributeID::TraversalOptions::AssertNotNil);
+        auto resolved_attribute = attribute.resolve(TraversalOptions::AssertNotNil);
         attribute = resolved_attribute.attribute();
     }
     if (!attribute.is_direct()) {
@@ -902,6 +967,128 @@ void Graph::value_mark_all() {
                     }
                 }
             }
+        }
+    }
+}
+
+void Graph::propagate_dirty(AttributeID attribute) {
+    if (attribute.is_nil()) {
+        return;
+    }
+
+    struct Frame {
+        ConstOutputEdgeArrayRef outputs;
+        Node::State state;
+    };
+
+    char stack_buffer[0x2000] = {};
+    auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
+    auto frames = ForwardList<Frame>(&heap);
+
+    ConstOutputEdgeArrayRef initial_outputs = {};
+    Node::State initial_state = Node::State(0);
+    if (attribute.is_direct()) {
+        initial_outputs = attribute.to_node().outputs();
+        initial_state = attribute.to_node().state();
+    } else if (attribute.is_indirect()) {
+        // TODO: how to make sure indirect is mutable?
+        initial_outputs = attribute.to_indirect_node().to_mutable().outputs();
+
+        OffsetAttributeID source = attribute.to_indirect_node().source().attribute().resolve(TraversalOptions::None);
+        if (source.attribute().is_direct()) {
+            initial_state = source.attribute().to_node().state();
+        }
+    }
+    frames.emplace_front(initial_outputs, initial_state);
+
+    while (!frames.empty()) {
+        auto outputs = frames.front().outputs;
+        auto state = frames.front().state;
+        frames.pop_front();
+
+        for (auto output_edge = outputs.rbegin(), end = outputs.rend(); output_edge != end; ++output_edge) {
+            AttributeID output = output_edge->value;
+
+            ConstOutputEdgeArrayRef dirty_outputs = {};
+            Node::State next_state = state;
+
+            if (output.is_direct()) {
+                Node &output_node = output.to_node();
+
+                ArrayRef<const OutputEdge> more_outputs = {nullptr, 0};
+                if (state.updates_on_main() && !output_node.state().updates_on_main()) {
+                    output_node.set_state(output_node.state().with_updates_on_main(true));
+                    dirty_outputs = output_node.outputs();
+                }
+
+                next_state = Node::State(output_node.state().data() | state.data());
+
+                if (!output_node.state().is_dirty()) {
+                    foreach_trace([&output](Trace &trace) { trace.set_dirty(output.to_node_ptr(), true); });
+
+                    output_node.set_state(output_node.state().with_dirty(true));
+                    if (auto subgraph = output.subgraph()) {
+                        subgraph->add_dirty_flags(output_node.flags().value3());
+                    }
+
+                    dirty_outputs = output_node.outputs();
+
+                    // value4_unknown0x04 could be traverses graph contexts for symmetry with IndirectNode
+                    if (output_node.flags().value4_unknown0x04() && !output_node.outputs().empty()) {
+                        if (auto output_subgraph = output.subgraph()) {
+                            auto context_id = output_subgraph->graph_context_id();
+                            if (context_id && (attribute.subgraph() == nullptr ||
+                                               context_id != attribute.subgraph()->graph_context_id())) {
+                                if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
+                                    if (context->value_ref_counter() != context->graph()._counter_0x1d8) {
+                                        context->call_invalidation(attribute);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            } else if (output.is_indirect()) {
+                IndirectNode &output_node = output.to_indirect_node();
+
+                if (output_node.is_mutable()) {
+                    dirty_outputs = output_node.to_mutable().outputs();
+
+                    if (output_node.traverses_graph_contexts() && !output_node.to_mutable().outputs().empty()) {
+                        if (auto output_subgraph = output.subgraph()) {
+                            auto context_id = output_subgraph->graph_context_id();
+                            if (context_id && (attribute.subgraph() == nullptr ||
+                                               context_id != attribute.subgraph()->graph_context_id())) {
+                                if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
+                                    if (context->value_ref_counter() != context->graph()._counter_0x1d8) {
+                                        context->call_invalidation(attribute);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!dirty_outputs.empty()) {
+                frames.emplace_front(dirty_outputs, next_state);
+            }
+        }
+    }
+
+    for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
+        bool stop = false;
+        auto frames = update.get()->frames();
+        for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
+            if (frame->attribute->state().updates_on_main()) {
+                stop = true;
+                break;
+            }
+            frame->attribute->set_state(frame->attribute->state().with_updates_on_main(true));
+        }
+        if (stop) {
+            break;
         }
     }
 }

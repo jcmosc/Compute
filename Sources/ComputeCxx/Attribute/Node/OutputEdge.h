@@ -2,8 +2,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Array/ArrayRef.h"
 #include "Attribute/AttributeID.h"
+#include "Containers/ArrayRef.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -14,7 +14,7 @@ class OutputEdge {
     AttributeID value;
 };
 
-using ConstOutputEdgeArrayRef = const ArrayRef<OutputEdge>;
+using ConstOutputEdgeArrayRef = ArrayRef<const OutputEdge>;
 
 } // namespace AG
 

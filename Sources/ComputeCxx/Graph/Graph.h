@@ -116,6 +116,7 @@ class Graph {
     uint64_t _num_nodes;       // probably this, not sure
     uint64_t _num_node_values; // probably this, not sure
     uint64_t _num_subgraphs;
+    uint64_t _num_subgraphs_created;
 
     bool _needs_update; // 0x199
 

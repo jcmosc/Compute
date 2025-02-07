@@ -55,8 +55,6 @@ class Subgraph : public data::zone {
         bool is_null() const { return value1 == 0 && value2 == 0 and value3 == 0 && value4 == 0; };
     };
 
-    struct Observer {};
-
     enum CacheState : uint8_t {
         Option1 = 1 << 0, // added to graph._subgraphs_with_cached_nodes, or needs collect?
         Option2 = 1 << 1, // Is calling cache collect
@@ -80,7 +78,7 @@ class Subgraph : public data::zone {
     vector<SubgraphChild, 0, uint32_t> _children;
 
     using observers_vector = vector<std::pair<ClosureFunctionVV<void>, uint64_t>, 0, uint64_t>;
-    data::ptr<observers_vector> _observers;
+    data::ptr<observers_vector *> _observers;
     uint32_t _traversal_seed;
 
     uint32_t _index; // TODO: get and set
@@ -177,6 +175,7 @@ class Subgraph : public data::zone {
 
     // MARK: Managing observers
 
+    observers_vector *_Nullable observers();
     uint64_t add_observer(ClosureFunctionVV<void> observer);
     void remove_observer(uint64_t observer_id);
     void notify_observers();

@@ -40,6 +40,13 @@ Graph::without_invalidating::~without_invalidating() {
 
 #pragma mark - Subgraphs
 
+void Graph::add_subgraph(Subgraph &subgraph) {
+    _subgraphs.push_back(&subgraph);
+
+    _num_subgraphs += 1;
+    _num_subgraphs_created += 1;
+}
+
 void Graph::remove_subgraph(Subgraph &subgraph) {
     auto iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
     _subgraphs.erase(iter);

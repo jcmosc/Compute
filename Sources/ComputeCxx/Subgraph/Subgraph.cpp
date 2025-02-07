@@ -2,6 +2,7 @@
 
 #include <stack>
 
+#include "AGSubgraph.h"
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
 #include "Attribute/Node/Node.h"
@@ -12,6 +13,7 @@
 #include "Graph/Graph.h"
 #include "Graph/Trace.h"
 #include "Graph/Tree/TreeElement.h"
+#include "Graph/UpdateStack.h"
 #include "NodeCache.h"
 #include "UniqueID/AGUniqueID.h"
 #include "Util/CFPointer.h"
@@ -31,25 +33,41 @@ void Subgraph::set_current_subgraph(Subgraph *subgraph) {
 Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID owner) {
     _object = object;
 
-    Graph &graph = context.graph();
-    _graph = &graph;
+    Graph *graph = &context.graph();
+    _graph = graph;
     _graph_context_id = context.unique_id();
 
-    _validation_state = ValidationState::Valid;
+    // what is this check doing?
+    if ((uintptr_t)this == 1) {
+        print(0);
+        graph = _graph;
+    }
 
-    begin_tree(owner, nullptr, 0);
+    graph->add_subgraph(*this);
 
-    graph.foreach_trace([*this](Trace &trace) { trace.created(*this); });
+    if (AGSubgraphShouldRecordTree()) {
+        if (owner.without_kind() == 0) {
+            auto update = Graph::current_update();
+            if (update.tag() == 0 && update.get() != nullptr) {
+                if (auto top = update.get()->global_top()) {
+                    owner = top->attribute;
+                }
+            }
+        }
+        begin_tree(owner, nullptr, 0);
+    }
+
+    context.graph().foreach_trace([*this](Trace &trace) { trace.created(*this); });
 }
 
 Subgraph::~Subgraph() {
-    if (_observers) {
+    if (observers_vector *vector = observers()) {
         notify_observers();
-        // delete *_observers
+        delete vector;
     }
-    //    if (_node_cache) {
-    //        _node_cache::~NodeCache();
-    //    }
+    if (_cache) {
+        _cache->~NodeCache();
+    }
 }
 
 #pragma mark - CoreFoundation
@@ -874,14 +892,16 @@ void Subgraph::propagate_dirty_flags() {
 
 // MARK: - Observers
 
+Subgraph::observers_vector *Subgraph::observers() { return *_observers.get(); }
+
 uint64_t Subgraph::add_observer(ClosureFunctionVV<void> observer) {
     if (!_observers) {
-        _observers = (data::ptr<observers_vector>)alloc_bytes(sizeof(observers_vector), 7);
-        *_observers = observers_vector();
+        _observers = (data::ptr<observers_vector *>)alloc_bytes(sizeof(observers_vector *), 7);
+        *_observers = new observers_vector();
     }
 
     auto observer_id = AGMakeUniqueID();
-    _observers->push_back({
+    observers()->push_back({
         observer,
         observer_id,
     });
@@ -889,24 +909,26 @@ uint64_t Subgraph::add_observer(ClosureFunctionVV<void> observer) {
 }
 
 void Subgraph::remove_observer(uint64_t observer_id) {
-    if (_observers) {
-        auto iter = std::remove_if(_observers->begin(), _observers->end(), [&observer_id](auto pair) -> bool {
+    if (auto vector = observers()) {
+        auto iter = std::remove_if(vector->begin(), vector->end(), [&observer_id](auto pair) -> bool {
             if (pair.second == observer_id) {
                 pair.first.release_context(); // TODO: where is retain?
                 return true;
             }
             return false;
         });
-        _observers->erase(iter, _observers->end());
+        vector->erase(iter, vector->end());
     }
 }
 
 void Subgraph::notify_observers() {
-    while (!_observers->empty()) {
-        auto observer = _observers->back();
-        observer.first();
-        observer.first.release_context(); // TODO: where is retain?
-        _observers->pop_back();
+    if (auto vector = observers()) {
+        while (!vector->empty()) {
+            auto observer = vector->back();
+            observer.first();
+            observer.first.release_context(); // TODO: where is retain?
+            vector->pop_back();
+        }
     }
 }
 
@@ -916,6 +938,7 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
                                       ClosureFunctionCI<unsigned long, Graph *> closure) {
     if (_cache == nullptr) {
         _cache = (data::ptr<NodeCache>)alloc_bytes(sizeof(NodeCache), 7);
+        new (&_cache) NodeCache();
     }
 
     auto type = _cache->types().lookup(&metadata, nullptr);

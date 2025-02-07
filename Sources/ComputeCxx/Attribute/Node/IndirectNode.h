@@ -4,6 +4,7 @@
 
 #include "Attribute/AttributeID.h"
 #include "Attribute/WeakAttributeID.h"
+#include "Data/Vector.h"
 #include "OutputEdge.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -53,16 +54,8 @@ static_assert(sizeof(IndirectNode) == 0x10);
 
 class MutableIndirectNode : public IndirectNode {
   private:
-    struct EdgeInfo {
-        unsigned int flags : 5;
-        unsigned int num_edges : 11;
-        unsigned int other_flag : 16;
-    };
-    static_assert(sizeof(EdgeInfo) == 4);
-
     AttributeID _dependency;
-    EdgeInfo _outputs_info;
-    data::ptr<OutputEdge> _outputs;
+    data::vector<OutputEdge> _outputs;
     WeakAttributeID _initial_source;
     uint32_t _initial_offset;
 
@@ -76,12 +69,7 @@ class MutableIndirectNode : public IndirectNode {
     WeakAttributeID initial_source() { return _initial_source; };
     uint32_t initial_offset() { return _initial_offset; };
 
-    ConstOutputEdgeArrayRef outputs() {
-        return {
-            _outputs.get(),
-            _outputs_info.num_edges,
-        };
-    };
+    data::vector<OutputEdge> outputs() { return _outputs; };
 };
 
 static_assert(sizeof(MutableIndirectNode) == 0x28);

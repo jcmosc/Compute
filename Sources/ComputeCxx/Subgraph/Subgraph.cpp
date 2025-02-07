@@ -947,7 +947,7 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
 
             item = new NodeCache::Item(item_lookup_key.field_0x00, item_lookup_key.equals_item, node, nullptr, nullptr);
 
-            node->flags().set_value4_unknown0x10(true);
+            node->flags().set_cacheable(true);
 
             _cache->items().insert(node, item);
         } else {
@@ -999,7 +999,7 @@ void Subgraph::cache_insert(data::ptr<Node> node) {
         return;
     }
 
-    if (node->flags().value4_unknown0x10() && !node->state().is_evaluating() && node->outputs().empty()) {
+    if (node->outputs().empty() && node->flags().cacheable() && !node->state().is_evaluating()) {
         // TODO: one of these flags must indicate it is cached
 
         const AttributeType &attribute_type = _graph->attribute_type(node->type_id());

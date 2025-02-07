@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 
 #include "Data/Pointer.h"
+#include "Data/Vector.h"
 #include "InputEdge.h"
 #include "OutputEdge.h"
 
@@ -31,7 +32,7 @@ class NodeFlags {
 
         Unknown0x04 = 1 << 2, // 0x04
         Unknown0x08 = 1 << 3, // 0x08
-        Unknown0x10 = 1 << 4, // 0x10
+        Cacheable = 1 << 4, // 0x10
 
         Unknown0x20 = 1 << 5, // 0x20 - initial  value
         Unknown0x40 = 1 << 6, // 0x40 - didn't call mark_changed
@@ -63,9 +64,9 @@ class NodeFlags {
     void set_value4_unknown0x04(bool value) {
         _value4 = (_value4 & ~Flags4::Unknown0x04) | (value ? Flags4::Unknown0x04 : 0);
     };
-    bool value4_unknown0x10() { return _value4 & Flags4::Unknown0x10; };
-    void set_value4_unknown0x10(bool value) {
-        _value4 = (_value4 & ~Flags4::Unknown0x10) | (value ? Flags4::Unknown0x10 : 0);
+    bool cacheable() { return _value4 & Flags4::Cacheable; };
+    void set_cacheable(bool value) {
+        _value4 = (_value4 & ~Flags4::Cacheable) | (value ? Flags4::Cacheable : 0);
     };
     bool value4_unknown0x20() { return _value4 & Flags4::Unknown0x20; };
     void set_value4_unknown0x20(bool value) {
@@ -109,8 +110,10 @@ class Node {
         State with_pending(bool value) const { return State((_data & ~Pending) | (value ? Pending : 0)); };
 
         bool updates_on_main() { return _data & UpdatesOnMain; }
-        State with_updates_on_main(bool value) const { return State((_data & ~UpdatesOnMain) | (value ? UpdatesOnMain : 0)); };
-        
+        State with_updates_on_main(bool value) const {
+            return State((_data & ~UpdatesOnMain) | (value ? UpdatesOnMain : 0));
+        };
+
         bool is_unknown3() { return _data & Unknown3; }
         State with_unknown3(bool value) const { return State((_data & ~Unknown3) | (value ? Unknown3 : 0)); };
 
@@ -138,21 +141,12 @@ class Node {
     };
     static_assert(sizeof(Info) == 4);
 
-    struct EdgeInfo {
-        unsigned int flags : 5;
-        unsigned int num_edges : 11;
-        unsigned int other_flag : 16;
-    };
-    static_assert(sizeof(EdgeInfo) == 4);
-
     Info _info;
     NodeFlags _flags;
     data::ptr<void> _value;
 
-    EdgeInfo _inputs_info;
-    data::ptr<InputEdge> _inputs;
-    EdgeInfo _outputs_info;
-    data::ptr<OutputEdge> _outputs;
+    data::vector<InputEdge> _inputs;
+    data::vector<OutputEdge> _outputs;
 
   public:
     Node(State state, uint32_t type_id, uint8_t flags4);
@@ -173,19 +167,8 @@ class Node {
 
     void destroy(Graph &graph);
 
-    ConstInputEdgeArrayRef inputs() {
-        return {
-            _inputs.get(),
-            _inputs_info.num_edges,
-        };
-    };
-
-    ConstOutputEdgeArrayRef outputs() {
-        return {
-            _outputs.get(),
-            _outputs_info.num_edges,
-        };
-    };
+    data::vector<InputEdge> inputs() { return _inputs; };
+    data::vector<OutputEdge> outputs() { return _outputs; };
 };
 
 static_assert(sizeof(Node) == 0x1c);

@@ -45,6 +45,7 @@ class AttributeType;
 class Subgraph;
 class Encoder;
 class Trace;
+class MutableIndirectNode;
 
 class Graph {
   public:
@@ -263,10 +264,14 @@ class Graph {
 
     // MARK: Outputs
 
-    void output_value_ref(data::ptr<Node> node, const swift::metadata &type);
+    void *output_value_ref(data::ptr<Node> node, const swift::metadata &type);
 
-    template <typename T> void add_output_edge(data::ptr<T> node, AttributeID attribute);
+    template <typename T> void add_output_edge(data::ptr<T> node, AttributeID output);
+    template <> void add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
+
     template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
+    template <> void remove_output_edge<Node>(data::ptr<Node> node, AttributeID attribute);
+    template <> void remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID attribute);
 
     bool remove_removed_output(AttributeID attribute, AttributeID source, bool flag);
 

@@ -398,11 +398,17 @@ void Graph::update_main_refs(AttributeID attribute) {
             }
             if (node.flags().value4_unknown0x20() != new_unknown0x20) {
                 node.flags().set_value4_unknown0x20(new_unknown0x20);
-                output_edge_arrays.push_back(node.outputs());
+                output_edge_arrays.push_back({
+                    &node.outputs().front(),
+                    node.outputs().size(),
+                });
             }
         } else if (attribute.is_indirect() && attribute.to_indirect_node().is_mutable()) {
             MutableIndirectNode &node = attribute.to_indirect_node().to_mutable();
-            output_edge_arrays.push_back(node.outputs());
+            output_edge_arrays.push_back({
+                &node.outputs().front(),
+                node.outputs().size(),
+            });
         }
     };
 
@@ -977,7 +983,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
     }
 
     struct Frame {
-        ConstOutputEdgeArrayRef outputs;
+        data::vector<OutputEdge> outputs;
         Node::State state;
     };
 
@@ -985,7 +991,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
     auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
     auto frames = ForwardList<Frame>(&heap);
 
-    ConstOutputEdgeArrayRef initial_outputs = {};
+    data::vector<OutputEdge> initial_outputs = {};
     Node::State initial_state = Node::State(0);
     if (attribute.is_direct()) {
         initial_outputs = attribute.to_node().outputs();
@@ -1009,7 +1015,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
         for (auto output_edge = outputs.rbegin(), end = outputs.rend(); output_edge != end; ++output_edge) {
             AttributeID output = output_edge->value;
 
-            ConstOutputEdgeArrayRef dirty_outputs = {};
+            data::vector<OutputEdge> dirty_outputs = {};
             Node::State next_state = state;
 
             if (output.is_direct()) {
@@ -1093,7 +1099,114 @@ void Graph::propagate_dirty(AttributeID attribute) {
     }
 }
 
-// MARK: Marks
+#pragma mark - Outputs
+
+void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) {
+    // Status: Verified
+    if (!node->state().is_evaluating()) {
+        precondition_failure("attribute is not evaluating: %u", node);
+    }
+
+    if (!node->state().is_value_initialized()) {
+        return nullptr;
+    }
+
+    const AttributeType &type = attribute_type(node->type_id());
+    if (&type.value_metadata() != &value_type) {
+        precondition_failure("invalid value type for attribute: %u (saw %s, expected %s)", node,
+                             type.value_metadata().name(false), value_type.name(false));
+    }
+
+    return node->get_value();
+}
+
+template <> void Graph::add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
+    node->outputs().push_back(node.page_ptr()->zone, OutputEdge(output));
+}
+
+template <> void Graph::remove_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
+    for (auto iter = node->outputs().begin(), end = node->outputs().end(); iter != end; ++iter) {
+        if (iter->value == output) {
+            node->outputs().erase(iter);
+            break;
+        }
+    }
+
+    if (node->outputs().empty() && node->flags().cacheable()) {
+        AttributeID(node).subgraph()->cache_insert(node);
+    }
+}
+
+template <>
+void Graph::remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
+    for (auto iter = node->outputs().begin(), end = node->outputs().end(); iter != end; ++iter) {
+        if (iter->value == output) {
+            node->outputs().erase(iter);
+            break;
+        }
+    }
+}
+
+bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, bool flag) {
+    if (output.subgraph()->validation_state() == Subgraph::ValidationState::Invalidated) {
+        return false;
+    }
+
+    if (output.is_direct()) {
+        auto output_node_ptr = output.to_node_ptr();
+
+        uint32_t index = 0;
+        for (auto input : output_node_ptr->inputs()) {
+            if (input.value.traverses(attribute, TraversalOptions::SkipMutableReference)) {
+                remove_input_edge(output_node_ptr, *output_node_ptr.get(), index);
+                return true;
+            }
+            index += 1;
+        }
+        return false;
+    }
+
+    if (!output.is_indirect()) {
+        return false;
+    }
+
+    auto indirect_node = output.to_indirect_node_ptr();
+
+    if (indirect_node->source().attribute() != attribute) {
+
+        // clear dependency
+        auto dependency = indirect_node->to_mutable().dependency();
+        if (dependency && dependency == attribute) {
+            foreach_trace(
+                [&indirect_node](Trace &trace) { trace.set_dependency(indirect_node, AttributeID::make_nil()); });
+            indirect_node->to_mutable().set_dependency(AttributeID(0)); // TODO: 0 or nullptr
+            return true;
+        }
+
+        return false;
+    }
+
+    // reset source
+    auto initial_source = indirect_node->to_mutable().initial_source();
+    WeakAttributeID new_source = {AttributeID::make_nil(), 0};
+    uint32_t new_offset = 0;
+    if (initial_source.attribute().without_kind() != 0 && !initial_source.expired()) {
+        new_source = initial_source;
+        new_offset = indirect_node->to_mutable().initial_offset();
+    }
+
+    foreach_trace(
+        [&indirect_node, &new_source](Trace &trace) { trace.set_source(indirect_node, new_source.attribute()); });
+    indirect_node->modify(new_source, new_offset);
+
+    if (new_source.attribute().without_kind() != 0 && !new_source.expired()) {
+        add_input_dependencies(output, new_source.attribute());
+    }
+
+    return true;
+}
+
+#pragma mark - Marks
 
 void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
     if (!node->state().is_pending()) {

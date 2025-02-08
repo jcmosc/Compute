@@ -55,6 +55,9 @@ template <typename T> class vector {
     }
 
     // Element access
+    
+    reference operator[](size_type pos) { return _data.get()[pos]; };
+    const_reference operator[](size_type pos) const { return _data.get()[pos]; };
 
     reference front() { return *_data.get(); };
     const_reference front() const { return _data.get(); };
@@ -93,6 +96,8 @@ template <typename T> class vector {
     };
 
     // Modifiers
+    
+    // TODO: check order needs to be preserverd here, UpdateStack manages index...
 
     iterator erase(iterator pos) {
         if (pos == end()) {

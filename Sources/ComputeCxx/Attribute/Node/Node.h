@@ -4,8 +4,7 @@
 
 #include "Data/Pointer.h"
 #include "Data/Vector.h"
-#include "InputEdge.h"
-#include "OutputEdge.h"
+#include "Edge.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -32,7 +31,7 @@ class NodeFlags {
 
         Unknown0x04 = 1 << 2, // 0x04
         Unknown0x08 = 1 << 3, // 0x08
-        Cacheable = 1 << 4, // 0x10
+        Cacheable = 1 << 4,   // 0x10
 
         Unknown0x20 = 1 << 5, // 0x20 - initial  value
         Unknown0x40 = 1 << 6, // 0x40 - didn't call mark_changed
@@ -65,9 +64,7 @@ class NodeFlags {
         _value4 = (_value4 & ~Flags4::Unknown0x04) | (value ? Flags4::Unknown0x04 : 0);
     };
     bool cacheable() { return _value4 & Flags4::Cacheable; };
-    void set_cacheable(bool value) {
-        _value4 = (_value4 & ~Flags4::Cacheable) | (value ? Flags4::Cacheable : 0);
-    };
+    void set_cacheable(bool value) { _value4 = (_value4 & ~Flags4::Cacheable) | (value ? Flags4::Cacheable : 0); };
     bool value4_unknown0x20() { return _value4 & Flags4::Unknown0x20; };
     void set_value4_unknown0x20(bool value) {
         _value4 = (_value4 & ~Flags4::Unknown0x20) | (value ? Flags4::Unknown0x20 : 0);
@@ -83,24 +80,23 @@ class Node {
     class State {
       public:
         enum : uint8_t {
-            Dirty = 1 << 0,         // 0x01 // Unknown0 = 1 << 0,
-            Pending = 1 << 1,       // 0x02 // Unknown1 = 1 << 1,
-            UpdatesOnMain = 1 << 2, // 0x04 set from attribute type flags & 8
-            Unknown3 = 1 << 3,      // 0x08 set from attribute type flags & 8
+            Dirty = 1 << 0,          // 0x01 // Unknown0 = 1 << 0,
+            Pending = 1 << 1,        // 0x02 // Unknown1 = 1 << 1,
+            MainThread = 1 << 2,     // 0x04 set from attribute type flags & 8
+            MainThreadOnly = 1 << 3, // 0x08 set from attribute type flags & 8
 
             ValueInitialized = 1 << 4, // 0x10
             SelfInitialized = 1 << 5,  // 0x20
-            InUpdateStack = 1 << 6,    // 0x40
-            Unknown7 = 1 << 7,         // 0x80
+            Updating = 1 << 6,         // 0x40
+            UpdatingCyclic = 1 << 7,   // 0x80
 
-            IsEvaluating = InUpdateStack | Unknown7,
         };
 
       private:
         uint8_t _data;
 
       public:
-        explicit constexpr State(uint8_t data) : _data(data){};
+        explicit constexpr State(uint8_t data = 0) : _data(data){};
         uint8_t data() { return _data; };
 
         bool is_dirty() { return _data & Dirty; }
@@ -109,13 +105,13 @@ class Node {
         bool is_pending() { return _data & Pending; }
         State with_pending(bool value) const { return State((_data & ~Pending) | (value ? Pending : 0)); };
 
-        bool updates_on_main() { return _data & UpdatesOnMain; }
-        State with_updates_on_main(bool value) const {
-            return State((_data & ~UpdatesOnMain) | (value ? UpdatesOnMain : 0));
-        };
+        bool is_main_thread() { return _data & MainThread; }
+        State with_main_thread(bool value) const { return State((_data & ~MainThread) | (value ? MainThread : 0)); };
 
-        bool is_unknown3() { return _data & Unknown3; }
-        State with_unknown3(bool value) const { return State((_data & ~Unknown3) | (value ? Unknown3 : 0)); };
+        bool is_main_thread_only() { return _data & MainThreadOnly; }
+        State with_main_thread_only(bool value) const {
+            return State((_data & ~MainThreadOnly) | (value ? MainThreadOnly : 0));
+        };
 
         bool is_value_initialized() { return _data & ValueInitialized; };
         State with_value_initialized(bool value) const {
@@ -127,11 +123,10 @@ class Node {
             return State((_data & ~SelfInitialized) | (value ? SelfInitialized : 0));
         };
 
-        State with_in_update_stack(bool value) const {
-            return State((_data & ~InUpdateStack) | (value ? InUpdateStack : 0));
-        };
+        State with_updating(bool value) const { return State((_data & ~Updating) | (value ? Updating : 0)); };
 
-        bool is_evaluating() { return _data & InUpdateStack || _data & Unknown7; }
+        bool is_updating() { return _data & (Updating | UpdatingCyclic); }
+        bool is_updating_cyclic() { return (_data & (Updating | UpdatingCyclic)) == (Updating | UpdatingCyclic); }
     };
 
   private:

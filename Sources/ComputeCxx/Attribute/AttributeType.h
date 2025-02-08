@@ -28,13 +28,13 @@ class AttributeType {
     enum Flags : uint32_t {
         ComparisonModeMask = 0x3,
 
-        HasDestroySelf = 1 << 2,               // 0x04
-        InitialValueOfNodeState2And3 = 1 << 3, // 0x08
-        UseGraphAsInitialValue = 1 << 4,       // 0x10
-        Unknown0x20 = 1 << 5,                  // 0x20 // used in update_main_refs
+        HasDestroySelf = 1 << 2,         // 0x04
+        MainThread = 1 << 3,             // 0x08
+        UseGraphAsInitialValue = 1 << 4, // 0x10
+        Unknown0x20 = 1 << 5,            // 0x20 // used in update_main_refs
     };
 
-    using UpdateFunction = void (*)(void *body, AttributeID attribute);
+    using UpdateFunction = void (*)(void *context, void *body);
 
   private:
     swift::metadata *_self_metadata;
@@ -52,10 +52,7 @@ class AttributeType {
     const swift::metadata &self_metadata() const { return *_self_metadata; };
     const swift::metadata &value_metadata() const { return *_value_metadata; };
 
-    uint8_t node_initial_state() const {
-        uint8_t flag = _flags >> 3 & 1;
-        return flag << 3 | flag << 2;
-    };
+    bool main_thread() const { return _flags & Flags::MainThread; };
     bool use_graph_as_initial_value() const { return _flags & Flags::UseGraphAsInitialValue; };
     bool unknown_0x20() const { return _flags & Flags::Unknown0x20; };
 
@@ -76,16 +73,16 @@ class AttributeType {
         }
     };
 
+    void perform_update(void *body) const { _update_function(_update_context, body); };
+
     // V table methods
     void vt_destroy_self(void *body) {
         if (_flags & Flags::HasDestroySelf) {
             _vtable->destroy_self(this, body);
         }
     }
-    
-    AttributeVTable::Callback vt_get_update_stack_callback() const {
-        return _vtable->_update_stack_callback;
-    }
+
+    AttributeVTable::Callback vt_get_update_stack_callback() const { return _vtable->_update_stack_callback; }
 };
 
 } // namespace AG

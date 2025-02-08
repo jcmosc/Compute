@@ -128,7 +128,7 @@ void Graph::reset_update(data::ptr<Node> node) {
     for (auto update_stack = current_update(); update_stack != nullptr; update_stack = update_stack.get()->previous()) {
         for (auto frame : update_stack.get()->frames()) {
             if (frame.attribute == node) {
-                frame.flags &= 0xf;
+                frame.num_pushed_inputs = 0;
             }
         }
     }
@@ -278,7 +278,8 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void 
     } else {
         node = (data::ptr<Node>)subgraph.alloc_bytes(uint32_t(total_size), uint32_t(alignment_mask | 3));
     }
-    *node = Node(Node::State(type.node_initial_state()), type_id, 0x20);
+    bool main_thread = type.main_thread();
+    *node = Node(Node::State().with_main_thread(main_thread).with_main_thread_only(main_thread), type_id, 0x20);
 
     if (type_id >= 0x100000) {
         precondition_failure("too many node types allocated");
@@ -287,7 +288,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void 
     void *self = (uint8_t *)node.get() + type.attribute_offset();
 
     node->set_state(node->state().with_self_initialized(true));
-    if (node->state().is_unknown3() && !type.value_metadata().getValueWitnesses()->isPOD()) {
+    if (node->state().is_main_thread_only() && !type.value_metadata().getValueWitnesses()->isPOD()) {
         node->flags().set_value4_unknown0x20(!type.unknown_0x20()); // toggle
     } else {
         node->flags().set_value4_unknown0x20(false);
@@ -332,11 +333,11 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
 
     Node &node = attribute.to_node();
     if (node.state().is_value_initialized() && !node.state().is_dirty()) {
-        return UpdateStatus::Option0;
+        return UpdateStatus::NoChange;
     }
 
     _update_attribute_count += 1;
-    if (node.state().updates_on_main()) {
+    if (node.state().is_main_thread()) {
         _update_attribute_on_main_count += 1;
     }
 
@@ -346,7 +347,7 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
         trace.begin_update(update_stack, attribute.to_node_ptr(), options);
     });
 
-    UpdateStatus status = UpdateStatus::Option1;
+    UpdateStatus status = UpdateStatus::Changed;
     if (update_stack.push(attribute.to_node_ptr(), node, false, (options & 1) == 0)) {
 
         status = update_stack.update();
@@ -390,7 +391,7 @@ void Graph::update_main_refs(AttributeID attribute) {
             if (type.value_metadata().getValueWitnesses()->isPOD() || type.unknown_0x20()) {
                 new_unknown0x20 = false;
             } else {
-                if (node.state().is_unknown3()) {
+                if (node.state().is_main_thread_only()) {
                     new_unknown0x20 = true;
                 } else {
                     new_unknown0x20 =
@@ -433,7 +434,7 @@ void Graph::update_main_refs(AttributeID attribute) {
 }
 
 void Graph::remove_node(data::ptr<Node> node) {
-    if (node->state().is_evaluating()) {
+    if (node->state().is_updating()) {
         precondition_failure("deleting updating attribute: %u\n", node);
     }
 
@@ -800,7 +801,7 @@ void *Graph::value_ref(AttributeID attribute, bool evaluate_weak_references, con
         }
 
         UpdateStatus status = update_attribute(resolved.attribute(), 0);
-        if (status != UpdateStatus::Option0) {
+        if (status != UpdateStatus::NoChange) {
             *did_update_out = true;
         }
 
@@ -837,7 +838,7 @@ bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, c
 
     auto update = current_update();
     if (update.tag() == 0 && update.get() != nullptr && update.get()->graph() == this &&
-        (!node->outputs().empty() || node->state().is_evaluating())) {
+        (!node->outputs().empty() || node->state().is_updating())) {
         precondition_failure("setting value during update: %u", node);
     }
 
@@ -910,15 +911,15 @@ AGValueState Graph::value_state(AttributeID attribute) {
 
     auto node = attribute.to_node();
     return (node.state().is_dirty() ? 1 : 0) << 0 | (node.state().is_pending() ? 1 : 0) << 1 |
-           (node.state().is_evaluating() ? 1 : 0) << 2 | (node.state().is_value_initialized() ? 1 : 0) << 3 |
-           (node.state().updates_on_main() ? 1 : 0) << 4 | (node.flags().value4_unknown0x20() ? 1 : 0) << 5 |
-           (node.state().is_unknown3() ? 1 : 0) << 6 | (node.flags().value4_unknown0x40() ? 1 : 0) << 7;
+           (node.state().is_updating() ? 1 : 0) << 2 | (node.state().is_value_initialized() ? 1 : 0) << 3 |
+           (node.state().is_main_thread() ? 1 : 0) << 4 | (node.flags().value4_unknown0x20() ? 1 : 0) << 5 |
+           (node.state().is_main_thread_only() ? 1 : 0) << 6 | (node.flags().value4_unknown0x40() ? 1 : 0) << 7;
 }
 
 void Graph::value_mark(data::ptr<Node> node) {
-    auto update = current_update();
+    auto update = current_update(); // TODO: investigate meaning of tags
     if (update.tag() == 0 && update.get() != nullptr && update.get()->graph() == this &&
-        (!node->outputs().empty() || node->state().is_evaluating())) {
+        (!node->outputs().empty() || node->state().is_updating())) {
         precondition_failure("setting value during update: %u", node);
     }
 
@@ -972,11 +973,11 @@ void Graph::value_mark_all() {
                     auto node = attribute.to_node();
                     AttributeType &type = *_types[node.type_id()];
                     if (!type.use_graph_as_initial_value()) {
-                        node.set_state(node.state().with_unknown3(true));
+                        node.set_state(node.state().with_dirty(true).with_pending(true));
                         subgraph->add_dirty_flags(node.flags().value3());
                     }
                     for (auto input_edge : node.inputs()) {
-                        input_edge.flags |= 8;
+                        input_edge.set_unknown4(true);
                     }
                 }
             }
@@ -1029,8 +1030,8 @@ void Graph::propagate_dirty(AttributeID attribute) {
                 Node &output_node = output.to_node();
 
                 ArrayRef<const OutputEdge> more_outputs = {nullptr, 0};
-                if (state.updates_on_main() && !output_node.state().updates_on_main()) {
-                    output_node.set_state(output_node.state().with_updates_on_main(true));
+                if (state.is_main_thread() && !output_node.state().is_main_thread()) {
+                    output_node.set_state(output_node.state().with_main_thread(true));
                     dirty_outputs = output_node.outputs();
                 }
 
@@ -1094,11 +1095,11 @@ void Graph::propagate_dirty(AttributeID attribute) {
         bool stop = false;
         auto frames = update.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
-            if (frame->attribute->state().updates_on_main()) {
+            if (frame->attribute->state().is_main_thread()) {
                 stop = true;
                 break;
             }
-            frame->attribute->set_state(frame->attribute->state().with_updates_on_main(true));
+            frame->attribute->set_state(frame->attribute->state().with_main_thread(true));
         }
         if (stop) {
             break;
@@ -1110,7 +1111,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
 void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) {
     // Status: Verified
-    if (!node->state().is_evaluating()) {
+    if (!node->state().is_updating()) {
         precondition_failure("attribute is not evaluating: %u", node);
     }
 

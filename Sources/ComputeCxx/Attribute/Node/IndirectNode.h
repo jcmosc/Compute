@@ -5,7 +5,7 @@
 #include "Attribute/AttributeID.h"
 #include "Attribute/WeakAttributeID.h"
 #include "Data/Vector.h"
-#include "OutputEdge.h"
+#include "Edge.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

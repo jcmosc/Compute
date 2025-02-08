@@ -7,8 +7,7 @@
 #include <unordered_map>
 
 #include "Attribute/AttributeID.h"
-#include "Attribute/Node/InputEdge.h"
-#include "Attribute/Node/OutputEdge.h"
+#include "Attribute/Node/Edge.h"
 #include "Closure/ClosureFunction.h"
 #include "Util/HashTable.h"
 #include "Util/Heap.h"
@@ -61,8 +60,8 @@ class Graph {
     };
 
     enum UpdateStatus : uint32_t {
-        Option0 = 0,
-        Option1 = 1,
+        NoChange = 0,
+        Changed = 1,
         Option2 = 2,
         NeedsCallMainHandler = 3,
     };
@@ -127,6 +126,8 @@ class Graph {
     uint64_t _counter_0x1b8;
     uint64_t _update_attribute_count;
     uint64_t _update_attribute_on_main_count;
+    uint64_t
+        _update_stack_frame_counter; // used to detect changes between calling Trace.begin_update/end_update // 0x1d0
     uint64_t _counter_0x1d8;
 
   public:
@@ -272,7 +273,8 @@ class Graph {
 
     template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
     template <> void remove_output_edge<Node>(data::ptr<Node> node, AttributeID attribute);
-    template <> void remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID attribute);
+    template <>
+    void remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID attribute);
 
     bool remove_removed_output(AttributeID attribute, AttributeID source, bool flag);
 

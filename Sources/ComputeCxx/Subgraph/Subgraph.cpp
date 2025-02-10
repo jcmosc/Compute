@@ -760,7 +760,7 @@ AttributeID Subgraph::tree_node_at_index(data::ptr<Graph::TreeElement> tree_elem
 
             uint64_t i = index;
             for (auto node = found; node != nodes.end(); ++node) {
-                if (found->first != tree_element) {
+                if (node->first != tree_element) {
                     break;
                 }
                 if (i == 0) {

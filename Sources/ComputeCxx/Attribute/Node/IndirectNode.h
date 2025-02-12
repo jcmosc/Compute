@@ -40,6 +40,7 @@ class IndirectNode {
     bool traverses_graph_contexts() const { return _info.traverses_graph_contexts; };
 
     uint32_t offset() const { return _info.offset; };
+    bool has_size() const { return _size != InvalidSize; };
     std::optional<size_t> size() const {
         return _size != InvalidSize ? std::optional(size_t(_size)) : std::optional<size_t>();
     };

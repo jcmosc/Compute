@@ -29,9 +29,9 @@ class NodeFlags {
         HasIndirectSelf = 1 << 0,  // 0x01
         HasIndirectValue = 1 << 1, // 0x02
 
-        Unknown0x04 = 1 << 2, // 0x04
-        Unknown0x08 = 1 << 3, // 0x08
-        Cacheable = 1 << 4,   // 0x10
+        InputsTraverseGraphContexts = 1 << 2, // 0x04
+        InputsUnsorted = 1 << 3,             // 0x08
+        Cacheable = 1 << 4,                   // 0x10
 
         Unknown0x20 = 1 << 5, // 0x20 - initial  value
         Unknown0x40 = 1 << 6, // 0x40 - didn't call mark_changed
@@ -59,9 +59,14 @@ class NodeFlags {
     void set_has_indirect_value(bool value) {
         _value4 = (_value4 & ~Flags4::HasIndirectValue) | (value ? Flags4::HasIndirectValue : 0);
     };
-    bool value4_unknown0x04() { return _value4 & Flags4::Unknown0x04; };
-    void set_value4_unknown0x04(bool value) {
-        _value4 = (_value4 & ~Flags4::Unknown0x04) | (value ? Flags4::Unknown0x04 : 0);
+
+    bool inputs_traverse_graph_contexts() { return _value4 & Flags4::InputsTraverseGraphContexts; };
+    void set_inputs_traverse_graph_contexts(bool value) {
+        _value4 = (_value4 & ~Flags4::InputsTraverseGraphContexts) | (value ? Flags4::InputsTraverseGraphContexts : 0);
+    };
+    bool inputs_unsorted() { return _value4 & Flags4::InputsUnsorted; };
+    void set_inputs_unsorted(bool value) {
+        _value4 = (_value4 & ~Flags4::InputsUnsorted) | (value ? Flags4::InputsUnsorted : 0);
     };
     bool cacheable() { return _value4 & Flags4::Cacheable; };
     void set_cacheable(bool value) { _value4 = (_value4 & ~Flags4::Cacheable) | (value ? Flags4::Cacheable : 0); };
@@ -151,6 +156,13 @@ class Node {
     uint32_t type_id() const { return uint32_t(_info.type_id); };
 
     NodeFlags &flags() { return _flags; };
+
+    void sort_inputs_if_needed() {
+        if (_flags.inputs_unsorted()) {
+            _flags.set_inputs_unsorted(false);
+            std::sort(_inputs.begin(), _inputs.end());
+        }
+    }
 
     void *get_self(const AttributeType &type); // TODO: inline
     void update_self(const Graph &graph, void *new_self);

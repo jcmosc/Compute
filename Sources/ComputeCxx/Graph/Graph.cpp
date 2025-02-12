@@ -3,6 +3,7 @@
 #include <mach/mach_time.h>
 #include <os/log.h>
 #include <set>
+#include <wchar.h>
 
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
@@ -977,7 +978,7 @@ void Graph::value_mark_all() {
                         subgraph->add_dirty_flags(node.flags().value3());
                     }
                     for (auto input_edge : node.inputs()) {
-                        input_edge.set_unknown4(true);
+                        input_edge.set_pending(true);
                     }
                 }
             }
@@ -1047,8 +1048,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
                     dirty_outputs = output_node.outputs();
 
-                    // value4_unknown0x04 could be traverses graph contexts for symmetry with IndirectNode
-                    if (output_node.flags().value4_unknown0x04() && !output_node.outputs().empty()) {
+                    if (output_node.flags().inputs_traverse_graph_contexts() && !output_node.outputs().empty()) {
                         if (auto output_subgraph = output.subgraph()) {
                             auto context_id = output_subgraph->graph_context_id();
                             if (context_id && (attribute.subgraph() == nullptr ||
@@ -1105,6 +1105,322 @@ void Graph::propagate_dirty(AttributeID attribute) {
             break;
         }
     }
+}
+
+#pragma mark - Inputs
+
+void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_attribute, bool evaluate_weak_references,
+                                  uint8_t input_flags, const swift::metadata &type, char *arg5, uint32_t index) {
+
+    if ((input_flags >> 1) & 1) {
+        auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
+                                                InputEdge::Flags::Unknown0 | InputEdge::Flags::Unknown2);
+        index = index_of_input(*node, comparator);
+    }
+
+    if (index < 0) {
+        node.assert_valid();
+        if (AttributeID(node).subgraph() == nullptr || AttributeID(node).subgraph()->graph() != this) {
+            precondition_failure("accessing attribute in a different namespace: %u", node);
+        }
+        if (!node->state().is_dirty()) {
+            auto resolved = input_attribute.resolve(
+                evaluate_weak_references
+                    ? TraversalOptions::UpdateDependencies | TraversalOptions::EvaluateWeakReferences
+                    : TraversalOptions::UpdateDependencies | TraversalOptions::AssertNotNil);
+
+            if (evaluate_weak_references) {
+                if (resolved.attribute().without_kind() == 0 || !resolved.attribute().is_direct()) {
+                    return 0;
+                }
+            }
+            update_attribute(resolved.attribute(), 0);
+        }
+        index = add_input(node, input_attribute, evaluate_weak_references, input_flags & 1);
+        if (index < 0) {
+            return nullptr;
+        }
+    }
+
+    InputEdge &input_edge = node->inputs()[index];
+
+    input_edge.set_unknown0(input_edge.is_unknown0() || (input_flags & 1) ? true : false);
+    input_edge.set_unknown4(true);
+
+    OffsetAttributeID resolved = input_edge.value.resolve(
+        evaluate_weak_references ? TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
+                                       TraversalOptions::EvaluateWeakReferences
+                                 : TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
+                                       TraversalOptions::AssertNotNil);
+
+    if (evaluate_weak_references) {
+        if (resolved.attribute().without_kind() == 0 || !resolved.attribute().is_direct()) {
+            return nullptr;
+        }
+    }
+
+    if (!resolved.attribute().to_node().state().is_value_initialized() ||
+        resolved.attribute().to_node().state().is_dirty()) {
+        if (evaluate_weak_references) {
+            auto zone_id_before_update = data::table::shared().raw_page_seed(resolved.attribute().page_ptr());
+
+            update_attribute(resolved.attribute(), 0);
+
+            if (zone_id_before_update & 0xff00000000) {
+                auto zone_id_after_update = data::table::shared().raw_page_seed(resolved.attribute().page_ptr());
+                if (zone_id_after_update & 0xff00000000) {
+                    if ((zone_id_before_update & 0x7fffffff) != (uint32_t)zone_id_after_update) {
+                        return nullptr;
+                    }
+                }
+            }
+        } else {
+            update_attribute(resolved.attribute(), 0);
+        }
+    }
+
+    if (resolved.attribute().to_node().state().is_pending()) {
+        *arg5 |= 1;
+    }
+    if ((input_flags >> 1) & 1 && resolved.attribute().to_node().state().is_self_initialized() &&
+        !type.getValueWitnesses()->isPOD()) {
+        resolved.attribute().to_node().set_state(
+            resolved.attribute().to_node().state().with_main_thread_only(true)); // TODO: check
+        *arg5 |= 2;
+    }
+
+    if (resolved.offset() == 0) {
+        auto input_type = attribute_type(resolved.attribute().to_node().type_id()).value_metadata();
+        if (&input_type != &type) {
+            precondition_failure("invalid value type for attribute: %u (saw %s, expected %s)", input_edge.value,
+                                 input_type.name(false), type.name(false));
+        }
+    }
+    if (!resolved.attribute().to_node().state().is_value_initialized()) {
+        precondition_failure("attribute being read has no value: %u", resolved.attribute());
+    }
+
+    void *value = resolved.attribute().to_node().get_value();
+    if (resolved.offset() != 0) {
+        value = (uint8_t *)value + resolved.offset() - 1;
+    }
+    return value;
+}
+
+void Graph::input_value_add(data::ptr<Node> node, AttributeID input_attribute, uint8_t input_flags) {
+    input_attribute.to_node_ptr().assert_valid();
+
+    auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
+                                            InputEdge::Flags::Unknown0 | InputEdge::Flags::Unknown2);
+    auto index = index_of_input(*node, comparator);
+    if (index >= 0) {
+        auto input_edge = node->inputs()[index];
+        input_edge.set_unknown4(true);
+    }
+}
+
+uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, uint8_t input_edge_flags) {
+    auto resolved = input.resolve(TraversalOptions::EvaluateWeakReferences);
+    if (resolved.attribute().without_kind() == 0) {
+        if (allow_nil) {
+            return -1;
+        }
+        precondition_failure("reading from invalid source attribute: %u", input);
+    }
+    if (resolved.attribute() == node) {
+        precondition_failure("cyclic edge: %u -> %u", resolved.attribute(), node);
+    }
+
+    foreach_trace([&node, &resolved, &input_edge_flags](Trace &trace) {
+        trace.add_edge(node, resolved.attribute(), input_edge_flags);
+    });
+
+    auto subgraph = AttributeID(node).subgraph();
+    auto graph_context_id = subgraph ? subgraph->graph_context_id() : 0;
+
+    auto input_subgraph = resolved.attribute().subgraph();
+    auto input_graph_context_id = input_subgraph ? input_subgraph->graph_context_id() : 0;
+
+    if (graph_context_id != input_graph_context_id) {
+        node->flags().set_inputs_traverse_graph_contexts(true);
+    }
+
+    InputEdge new_input_edge = {
+        resolved.attribute(),
+        InputEdge::Flags(input_edge_flags & 5),
+    };
+    if (node->state().is_dirty()) {
+        new_input_edge.set_pending(true);
+    }
+
+    uint32_t index = -1;
+    if (node->flags().inputs_unsorted()) {
+        node->inputs().push_back(subgraph, new_input_edge);
+        node->flags().set_inputs_unsorted(true);
+        index = node->inputs().size() - 1;
+    } else {
+        auto pos = std::lower_bound(node->inputs().begin(), node->inputs().end(), new_input_edge);
+        node->inputs().insert(subgraph, pos, new_input_edge);
+        index = (uint32_t)(pos - node->inputs().begin());
+    }
+
+    add_input_dependencies(node, resolved.attribute());
+
+    if (node->state().is_updating()) {
+        reset_update(node);
+    }
+    if (node->state().is_dirty()) {
+        foreach_trace([&node, &index, &input_edge_flags](Trace &trace) { trace.set_edge_pending(node, index, true); });
+    }
+
+    return index;
+}
+
+void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
+    remove_input_dependencies(AttributeID(node), node->inputs()[index].value);
+    remove_input_edge(node, *node, index);
+}
+
+void Graph::remove_all_inputs(data::ptr<Node> node) {
+    for (auto index = node->inputs().size() - 1; index >= 0; --index) {
+        remove_input(node, index);
+    }
+    all_inputs_removed(node);
+}
+
+void Graph::add_input_dependencies(AttributeID attribute, AttributeID input) {
+    auto resolved = input.resolve(TraversalOptions::SkipMutableReference);
+    if (resolved.attribute().is_direct()) {
+        add_output_edge(resolved.attribute().to_node_ptr(), attribute);
+    } else if (resolved.attribute().is_indirect()) {
+        add_output_edge(resolved.attribute().to_indirect_node_ptr(), attribute);
+    }
+    update_main_refs(attribute);
+}
+
+void Graph::remove_input_dependencies(AttributeID attribute, AttributeID input) {
+    auto resolved = input.resolve(TraversalOptions::SkipMutableReference);
+    if (resolved.attribute().is_direct()) {
+        remove_output_edge(resolved.attribute().to_node_ptr(), attribute);
+    } else if (resolved.attribute().is_indirect()) {
+        remove_output_edge(resolved.attribute().to_indirect_node_ptr(), attribute);
+    }
+    update_main_refs(attribute);
+}
+
+void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index) {
+    foreach_trace([&node_ptr, &index](Trace &trace) { trace.remove_edge(node_ptr, index); });
+
+    node.inputs().erase(node.inputs().begin() + index);
+    if (node.inputs().size() == 0) {
+        all_inputs_removed(node_ptr);
+    }
+    reset_update(node_ptr);
+}
+
+void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
+    auto resolved = input.resolve(TraversalOptions::SkipMutableReference | TraversalOptions::EvaluateWeakReferences);
+    if (resolved.attribute().subgraph()->validation_state() != Subgraph::ValidationState::Invalidated) {
+        if (resolved.attribute().is_direct()) {
+            remove_output_edge(resolved.attribute().to_node_ptr(), attribute);
+        } else if (resolved.attribute().is_indirect()) {
+            // TODO: to_mutable_indirect_node_ptr
+            remove_output_edge(resolved.attribute().to_indirect_node_ptr(), attribute);
+        }
+    }
+}
+
+bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *attributes, uint64_t count) {
+    for (auto input : node->inputs()) {
+        input.set_unknown4(true);
+        if (input.is_pending()) {
+            const AttributeID *location = (const AttributeID *)wmemchr((const wchar_t *)attributes, input.value, count);
+            if (location == 0) {
+                location = attributes + sizeof(AttributeID) * count;
+            }
+            if ((location - attributes) / sizeof(AttributeID) == count) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void Graph::all_inputs_removed(data::ptr<Node> node) {
+    node->flags().set_inputs_traverse_graph_contexts(false);
+    node->flags().set_inputs_unsorted(false);
+    if (!node->state().is_main_thread_only() && !attribute_type(node->type_id()).main_thread()) {
+        node->set_state(node->state().with_main_thread_only(false));
+    }
+}
+
+uint32_t Graph::index_of_input(Node &node, InputEdge::Comparator comparator) {
+    if (node.inputs().size() > 8) {
+        return index_of_input_slow(node, comparator);
+    }
+    uint32_t index = 0;
+    for (auto input : node.inputs()) {
+        if (comparator.match(input)) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+uint32_t Graph::index_of_input_slow(Node &node, InputEdge::Comparator comparator) {
+    node.sort_inputs_if_needed();
+    InputEdge *search_start = std::find_if(node.inputs().begin(), node.inputs().end(), [&comparator](InputEdge &input) {
+        return input.value == comparator.attribute;
+    });
+    uint32_t index = uint32_t(search_start - node.inputs().begin());
+    for (auto input = search_start, end = node.inputs().end(); input != end; ++input) {
+        if (comparator.match(*input)) {
+            return index;
+        }
+        index += 1;
+    }
+    return -1;
+}
+
+bool Graph::compare_edge_values(InputEdge input_edge, const AttributeType *type, const void *destination_value,
+                                const void *source_value) {
+    if (type == nullptr) {
+        return false;
+    }
+
+    if (!input_edge.value.is_indirect()) {
+        return false;
+    }
+
+    auto indirect_node = input_edge.value.to_indirect_node();
+    if (!indirect_node.has_size()) {
+        return false;
+    }
+
+    auto size = indirect_node.size().value();
+    if (size == 0) {
+        return true;
+    }
+
+    auto resolved_offset = input_edge.value.resolve(TraversalOptions::None).offset();
+    if (resolved_offset == 0 && type->value_metadata().vw_size() == size) {
+        return false;
+    }
+
+    LayoutDescriptor::ComparisonOptions options =
+        LayoutDescriptor::ComparisonOptions(type->comparison_mode()) | LayoutDescriptor::ComparisonOptions::CopyOnWrite;
+
+    auto layout = type->layout();
+    if (layout == 0) {
+        layout = LayoutDescriptor::fetch(type->value_metadata(), options, 0);
+    }
+    if (layout == ValueLayoutEmpty) {
+        layout = 0;
+    }
+
+    return LayoutDescriptor::compare_partial(layout, (unsigned char *)destination_value + resolved_offset,
+                                             (unsigned char *)source_value + resolved_offset, resolved_offset, size,
+                                             options);
 }
 
 #pragma mark - Outputs

@@ -55,7 +55,7 @@ template <typename T> class vector {
     }
 
     // Element access
-    
+
     reference operator[](size_type pos) { return _data.get()[pos]; };
     const_reference operator[](size_type pos) const { return _data.get()[pos]; };
 
@@ -96,8 +96,26 @@ template <typename T> class vector {
     };
 
     // Modifiers
-    
+
     // TODO: check order needs to be preserverd here, UpdateStack manages index...
+
+    iterator insert(zone *zone, const_iterator pos, const T &value) {
+        reserve(zone, _metadata.size + 1);
+        iterator mutable_pos = begin() + (pos - begin());
+        std::move_backward(mutable_pos, end(), end() + 1);
+        new (mutable_pos) value_type(value);
+        _metadata.size += 1;
+        return end();
+    }
+
+    iterator insert(zone *zone, const_iterator pos, T &&value) {
+        reserve(zone, _metadata.size + 1);
+        iterator mutable_pos = begin() + (pos - begin());
+        std::move_backward(mutable_pos, end(), end() + 1);
+        new (pos) value_type(std::move(value));
+        _metadata.size += 1;
+        return end();
+    }
 
     iterator erase(iterator pos) {
         if (pos == end()) {
@@ -123,7 +141,7 @@ template <typename T> class vector {
 
     void push_back(zone *zone, const T &value) {
         reserve(zone, _metadata.size + 1);
-        new (_data.get()[_metadata.size]) value_type(value);
+        new (&_data.get()[_metadata.size]) value_type(value);
         _metadata.size += 1;
     }
 

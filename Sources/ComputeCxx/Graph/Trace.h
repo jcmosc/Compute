@@ -58,9 +58,9 @@ class Trace {
 
     virtual void added(data::ptr<Node> node);
 
-    virtual void add_edge(data::ptr<Node> node, AttributeID attribute, uint32_t options);
+    virtual void add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags);
     virtual void remove_edge(data::ptr<Node> node, uint32_t options);
-    virtual void set_edge_pending(data::ptr<Node> node, AttributeID attribute, bool flag);
+    virtual void set_edge_pending(data::ptr<Node> node, uint32_t index, bool flag);
 
     virtual void set_dirty(data::ptr<Node> node, bool flag);
     virtual void set_pending(data::ptr<Node> node, bool flag);

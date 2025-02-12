@@ -238,31 +238,30 @@ class Graph {
 
     // MARK: Inputs
 
-    void input_value_ref(data::ptr<AG::Node> node, AttributeID attribute, uint32_t arg3, uint32_t arg4,
-                         const swift::metadata *type, char *arg5, uint64_t arg6);
-    void input_value_ref_slow(data::ptr<AG::Node> node, AttributeID attribute, uint32_t arg3, uint32_t arg4,
-                              const swift::metadata *type, char *arg5, uint64_t arg6);
+    void *_Nullable input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, bool evaluate_weak_references,
+                                         uint8_t input_flags, const swift::metadata &type, char *arg5, uint32_t index);
 
-    void add_input(data::ptr<Node> node, AttributeID attribute, bool flag, uint32_t option);
-    void remove_input(data::ptr<Node> node, uint64_t arg);
+    void input_value_add(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags);
+
+    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, uint8_t input_edge_flags);
+    void remove_input(data::ptr<Node> node, uint32_t index);
     void remove_all_inputs(data::ptr<Node> node);
 
-    bool compare_edge_values(InputEdge input_edge, const AttributeType &type, void const *lhs, void const *rhs);
+    void add_input_dependencies(AttributeID attribute, AttributeID input);
+    void remove_input_dependencies(AttributeID attribute, AttributeID input);
 
-    void input_value_add(data::ptr<Node> node, AttributeID attribute, uint32_t arg);
+    void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index);
 
-    void any_inputs_changed(data::ptr<Node> node, const uint32_t *arg1, uint64_t arg2);
+    void remove_removed_input(AttributeID attribute, AttributeID input);
+
+    bool any_inputs_changed(data::ptr<Node> node, const AttributeID *attributes, uint64_t count);
     void all_inputs_removed(data::ptr<Node> node);
 
-    void add_input_dependencies(AttributeID attribute, AttributeID source);
-    void remove_input_dependencies(AttributeID attribute, AttributeID source);
+    uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
+    uint32_t index_of_input_slow(Node &node, InputEdge::Comparator comparator);
 
-    void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t arg);
-
-    void remove_removed_input(AttributeID attribute, AttributeID source);
-
-    uint32_t index_of_input(data::ptr<Node> node, InputEdge::Comparator comparator);
-    uint32_t index_of_input_slow(data::ptr<Node> node, InputEdge::Comparator comparator);
+    bool compare_edge_values(InputEdge input_edge, const AttributeType *_Nullable type, const void *destination_value,
+                             const void *source_value);
 
     // MARK: Outputs
 

@@ -9,8 +9,8 @@
 #include "Attribute/AttributeID.h"
 #include "Attribute/Node/Edge.h"
 #include "Closure/ClosureFunction.h"
-#include "Util/HashTable.h"
-#include "Util/Heap.h"
+#include "Utilities/HashTable.h"
+#include "Utilities/Heap.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

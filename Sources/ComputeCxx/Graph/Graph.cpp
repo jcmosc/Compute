@@ -10,7 +10,6 @@
 #include "Attribute/Node/Node.h"
 #include "Attribute/OffsetAttributeID.h"
 #include "Attribute/WeakAttributeID.h"
-#include "Containers/ForwardList.h"
 #include "Context.h"
 #include "Errors/Errors.h"
 #include "KeyTable.h"
@@ -19,6 +18,7 @@
 #include "Swift/Metadata.h"
 #include "Trace.h"
 #include "UpdateStack.h"
+#include "Utilities/List.h"
 
 namespace AG {
 
@@ -992,7 +992,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
     char stack_buffer[0x2000] = {};
     auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
-    auto frames = ForwardList<Frame>(&heap);
+    auto frames = util::ForwardList<Frame>(&heap);
 
     data::vector<OutputEdge> initial_outputs = {};
     Node::State initial_state = Node::State(0);
@@ -1579,7 +1579,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
 
     char stack_buffer[0x2000] = {};
     auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
-    auto frames = ForwardList<Frame>(&heap);
+    auto frames = util::ForwardList<Frame>(&heap);
 
     data::vector<OutputEdge> initial_outputs = {};
     if (attribute.is_direct()) {

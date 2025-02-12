@@ -16,7 +16,7 @@
 #include "Graph/UpdateStack.h"
 #include "NodeCache.h"
 #include "UniqueID/AGUniqueID.h"
-#include "Util/CFPointer.h"
+#include "Utilities/CFPointer.h"
 
 namespace AG {
 

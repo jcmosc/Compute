@@ -22,7 +22,74 @@
 
 namespace AG {
 
+Graph *Graph::_all_graphs = nullptr;
+os_unfair_lock Graph::_all_graphs_lock = OS_UNFAIR_LOCK_INIT;
+
 pthread_key_t Graph::_current_update_key = 0;
+
+Graph::Graph()
+    : _heap(nullptr, 0, 0), _type_ids_by_metadata(nullptr, nullptr, nullptr, nullptr, &_heap),
+      _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _num_contexts(1) {
+
+    data::table::ensure_shared();
+
+    // what is this check doing?
+    if ((uintptr_t)this == 1) {
+        print();
+        print_attribute(nullptr);
+        print_stack();
+        print_data();
+        write_to_file(nullptr, 0);
+    }
+
+    static dispatch_once_t make_keys;
+    dispatch_once_f(&make_keys, nullptr, [](void *context) {
+        pthread_key_create(&Graph::_current_update_key, 0);
+        Subgraph::make_current_subgraph_key();
+    });
+
+    _types.push_back(nullptr); // AGAttributeNullType
+
+    // TODO: debug server, trace, profile
+
+    all_lock();
+    _next = _all_graphs;
+    _previous = nullptr;
+    _all_graphs = this;
+    if (_next) {
+        _next->_previous = this;
+    }
+    all_unlock();
+}
+
+Graph::~Graph() {
+    foreach_trace([this](Trace &trace) {
+        trace.end_trace(*this);
+        trace.~Trace();
+    });
+
+    all_lock();
+    if (_previous) {
+        _previous->_next = _next;
+        if (_next) {
+            _next->_previous = _previous;
+        }
+    } else {
+        _all_graphs = _next;
+        if (_next) {
+            _next->_previous = nullptr;
+        }
+    }
+    all_unlock();
+
+    for (auto subgraph : _subgraphs) {
+        subgraph->graph_destroyed();
+    }
+
+    if (_keys) {
+        delete _keys;
+    }
+}
 
 #pragma mark - Invalidating
 

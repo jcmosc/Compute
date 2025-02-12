@@ -16,6 +16,8 @@ class Trace {
   public:
     uint64_t trace_id() { return _trace_id; }
 
+    virtual ~Trace();
+
     // Trace
     virtual void begin_trace(const Graph &graph);
     virtual void end_trace(const Graph &graph);

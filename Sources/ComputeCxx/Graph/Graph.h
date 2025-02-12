@@ -84,12 +84,17 @@ class Graph {
     using MainHandler = void (*)(void (*thunk)(void *), void *thunk_context); // needs AG_SWIFT_CC(swift) ?
 
   private:
+    static Graph *_all_graphs;
+    static os_unfair_lock _all_graphs_lock;
     static pthread_key_t _current_update_key;
 
     // Graph
-    Graph *_previous;
     Graph *_next;
+    Graph *_previous;
     util::Heap _heap;
+
+    static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
+    static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
 
     // Attribute types
     util::UntypedTable _type_ids_by_metadata;
@@ -106,10 +111,10 @@ class Graph {
     void *_Nullable _main_handler_context;
 
     // Metrics
-    uint64_t _num_nodes;
-    uint64_t _num_nodes_created;
-    uint64_t _num_subgraphs;
-    uint64_t _num_subgraphs_created;
+    uint64_t _num_nodes = 0;
+    uint64_t _num_nodes_created = 0;
+    uint64_t _num_subgraphs = 0;
+    uint64_t _num_subgraphs_created = 0;
     size_t _num_node_value_bytes = 0;
 
     // Profile
@@ -126,22 +131,23 @@ class Graph {
     vector<Subgraph *, 2, uint32_t> _invalidated_subgraphs;
     bool _batch_invalidate_subgraphs;
 
-    // Context
-    bool _needs_update;
-    uint32_t num_contexts;
-
     // Updates
-    pthread_t _current_update_thread;
-    uint64_t _deadline;
+    bool _needs_update;
+    uint32_t _num_contexts;
+    pthread_t _current_update_thread = 0;
+    uint64_t _deadline = UINT64_MAX;
 
     // Counters
-    uint64_t _update_count; // number of times this graph started updating
-    uint64_t _update_attribute_count;
-    uint64_t _update_attribute_on_main_count;
-    uint64_t _mark_changed_count;
-    uint64_t _version;
+    uint64_t _update_count = 0; // number of times this graph started updating
+    uint64_t _update_attribute_count = 0;
+    uint64_t _update_attribute_on_main_count = 0;
+    uint64_t _mark_changed_count = 0;
+    uint64_t _version = 0;
 
   public:
+    Graph();
+    ~Graph();
+
     // MARK: Context
 
     bool is_context_updating(uint64_t context_id);
@@ -383,7 +389,7 @@ class Graph {
 
     vector<char *, 0, uint64_t> description_graph(CFDictionaryRef options);
 
-    void write_to_file(const char *filename, uint32_t arg);
+    void write_to_file(const char *_Nullable filename, uint32_t arg);
 
     // MARK: Printing
 
@@ -393,7 +399,7 @@ class Graph {
     void print_cycle(data::ptr<Node> node);
 
     void print_data();
-    void print_stack();
+    static void print_stack();
 };
 
 } // namespace AG

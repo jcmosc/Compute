@@ -314,7 +314,7 @@ void vector<T, 0, size_type>::resize(size_type count) {
         }
     } else if (count > _size) {
         for (auto i = _size; i < count; i++) {
-            new (this[i]) value_type();
+            new (&this[i]) value_type();
         }
     }
     _size = count;
@@ -330,7 +330,7 @@ void vector<T, 0, size_type>::resize(size_type count, const value_type &value) {
         }
     } else if (count > _size) {
         for (auto i = _size; i < count; i++) {
-            new (this[i]) value_type(value);
+            new (&this[i]) value_type(value);
         }
     }
     _size = count;

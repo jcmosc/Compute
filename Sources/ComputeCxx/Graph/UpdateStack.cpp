@@ -23,9 +23,9 @@ Graph::UpdateStack::UpdateStack(Graph *graph, uint8_t options) {
 
     graph->_current_update_thread = _thread;
 
-    if (graph->_deferring_invalidation == false) {
-        graph->_deferring_invalidation = true;
-        _options &= Option::WasNotDeferringInvalidation;
+    if (graph->_batch_invalidate_subgraphs == false) {
+        graph->_batch_invalidate_subgraphs = true;
+        _options &= Option::InvalidateSubgraphs;
     }
 
     Graph::set_current_update(TaggedPointer<UpdateStack>(this, options >> 3 & 1));
@@ -43,8 +43,8 @@ Graph::UpdateStack::~UpdateStack() {
     _graph->_current_update_thread = _previous_thread;
     Graph::set_current_update(_previous);
 
-    if (_options & Option::WasNotDeferringInvalidation) {
-        _graph->_deferring_invalidation = false;
+    if (_options & Option::InvalidateSubgraphs) {
+        _graph->_batch_invalidate_subgraphs = false;
     }
 }
 
@@ -259,7 +259,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             }
 
             _graph->foreach_trace([&frame](Trace &trace) { trace.begin_update(frame.attribute); });
-            uint64_t update_counter = _graph->_update_stack_frame_counter;
+            uint64_t mark_changed_count = _graph->_mark_changed_count;
 
             const AttributeType &type = _graph->attribute_type(node->type_id());
             void *self = node->get_self(type);
@@ -277,7 +277,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                 AGGraphSetOutputValue(&value, AGTypeID(&type.value_metadata()));
             }
 
-            changed = _graph->_update_stack_frame_counter != update_counter;
+            changed = _graph->_mark_changed_count != mark_changed_count;
             _graph->foreach_trace([&frame, &changed](Trace &trace) { trace.end_update(frame.attribute, changed); });
         }
 

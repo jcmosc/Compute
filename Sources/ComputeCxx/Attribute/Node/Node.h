@@ -18,19 +18,13 @@ class Graph;
 
 class NodeFlags {
   public:
-    enum Flags1 : uint8_t {
-        // TODO: check these
-        IndirectAttribute = 1 << 0, // 0x1
-        NilAttribute = 1 << 1,      // 0x2
-    };
-    enum Flags2 : uint8_t {};
     enum Flags3 : uint8_t {};
     enum Flags4 : uint8_t {
         HasIndirectSelf = 1 << 0,  // 0x01
         HasIndirectValue = 1 << 1, // 0x02
 
         InputsTraverseGraphContexts = 1 << 2, // 0x04
-        InputsUnsorted = 1 << 3,             // 0x08
+        InputsUnsorted = 1 << 3,              // 0x08
         Cacheable = 1 << 4,                   // 0x10
 
         Unknown0x20 = 1 << 5, // 0x20 - initial  value
@@ -43,6 +37,8 @@ class NodeFlags {
     uint8_t _value4;
 
   public:
+    NodeFlags(uint8_t value4 = 0) : _value4(value4){};
+
     uint16_t relative_offset() const { return _relative_offset; };
     void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
 
@@ -149,7 +145,11 @@ class Node {
     data::vector<OutputEdge> _outputs;
 
   public:
-    Node(State state, uint32_t type_id, uint8_t flags4);
+    Node(State state, uint32_t type_id, uint8_t flags4) {
+        _info.state = state.data();
+        _info.type_id = type_id;
+        _flags = NodeFlags(flags4);
+    };
 
     State state() { return State(_info.state); };
     void set_state(State state) { _info.state = state.data(); };

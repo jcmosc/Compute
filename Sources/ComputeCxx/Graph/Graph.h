@@ -86,49 +86,60 @@ class Graph {
   private:
     static pthread_key_t _current_update_key;
 
-    Graph *_prev;
+    // Graph
+    Graph *_previous;
     Graph *_next;
     util::Heap _heap;
 
+    // Attribute types
     util::UntypedTable _type_ids_by_metadata;
     vector<AttributeType *, 0, uint32_t> _types;
 
+    // Contexts
     util::Table<uint64_t, Context *> _contexts_by_id;
 
+    // Traces
     vector<Trace *, 0, uint32_t> _traces;
 
+    // Main thread handler
     MainHandler _Nullable _main_handler;
     void *_Nullable _main_handler_context;
 
-    size_t _allocated_node_values_size = 0;
+    // Metrics
+    uint64_t _num_nodes;
+    uint64_t _num_nodes_created;
+    uint64_t _num_subgraphs;
+    uint64_t _num_subgraphs_created;
+    size_t _num_node_value_bytes = 0;
 
+    // Profile
+
+    // Trace
+
+    // Tree
     std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph;
     KeyTable *_Nullable _keys;
 
-    // TODO: check field offets
+    // Subgraphs
     vector<Subgraph *, 0, uint32_t> _subgraphs;
     vector<Subgraph *, 0, uint32_t> _subgraphs_with_cached_nodes;
-    vector<Subgraph *, 2, uint32_t> _invalidated_subgraphs; // TODO: check is 2 stack length
-    bool _deferring_invalidation;                           // used to batch invalidate subgraphs
+    vector<Subgraph *, 2, uint32_t> _invalidated_subgraphs;
+    bool _batch_invalidate_subgraphs;
 
-    // TODO: check field offets
-    uint64_t _num_nodes;       // probably this, not sure
-    uint64_t _num_node_values; // probably this, not sure
-    uint64_t _num_subgraphs;
-    uint64_t _num_subgraphs_created;
+    // Context
+    bool _needs_update;
+    uint32_t num_contexts;
 
-    bool _needs_update; // 0x199
-
+    // Updates
     pthread_t _current_update_thread;
-
     uint64_t _deadline;
 
-    uint64_t _counter_0x1b8;
+    // Counters
+    uint64_t _update_count; // number of times this graph started updating
     uint64_t _update_attribute_count;
     uint64_t _update_attribute_on_main_count;
-    uint64_t
-        _update_stack_frame_counter; // used to detect changes between calling Trace.begin_update/end_update // 0x1d0
-    uint64_t _counter_0x1d8;
+    uint64_t _mark_changed_count;
+    uint64_t _version;
 
   public:
     // MARK: Context
@@ -141,14 +152,14 @@ class Graph {
     class without_invalidating {
       private:
         Graph *_graph;
-        bool _graph_was_deferring_invalidation;
+        bool _graph_old_batch_invalidate_subgraphs;
 
       public:
         without_invalidating(Graph *graph);
         ~without_invalidating();
     };
 
-    vector<Subgraph *, 0, uint32_t> &subgraphs();
+    vector<Subgraph *, 0, uint32_t> &subgraphs() { return _subgraphs; };
 
     void add_subgraph(Subgraph &subgraph); // called from constructor of Subgraph
     void remove_subgraph(Subgraph &subgraph);
@@ -156,13 +167,11 @@ class Graph {
     void will_invalidate_subgraph(Subgraph &subgraph) { _invalidated_subgraphs.push_back(&subgraph); };
 
     void invalidate_subgraphs();
-    bool deferring_invalidation() { return _deferring_invalidation; };
-    void set_deferring_invalidation(bool value) { _deferring_invalidation = value; };
+    bool batch_invalidate_subgraphs() { return _batch_invalidate_subgraphs; };
+    void set_batch_invalidate_subgraphs(bool value) { _batch_invalidate_subgraphs = value; };
 
     void remove_subgraphs_with_cached_node(Subgraph *subgraph); // overload with iter?
     void add_subgraphs_with_cached_node(Subgraph *subgraph) { _subgraphs_with_cached_nodes.push_back(subgraph); }
-
-    void increment_counter_0x1b8() { _counter_0x1b8 += 1; };
 
     // MARK: Updates
 
@@ -185,6 +194,12 @@ class Graph {
     bool passed_deadline();
     bool passed_deadline_slow();
 
+    void increment_update_count_if_needed() {
+        if (!thread_is_updating()) {
+            _update_count += 1;
+        }
+    };
+
     // MARK: Attributes
 
     const AttributeType &attribute_type(uint32_t type_id) const;
@@ -200,13 +215,13 @@ class Graph {
 
     void remove_node(data::ptr<Node> node);
 
-    void did_allocate_node_value(size_t size) { _allocated_node_values_size += size; };
-    void did_destroy_node_value(size_t size) { _allocated_node_values_size -= size; };
-
-    void did_destroy_node(); // decrement counter 0x100
-
     bool breadth_first_search(AttributeID attribute, SearchOptions options,
                               ClosureFunctionAB<bool, uint32_t> predicate) const;
+
+    void did_allocate_node_value(size_t size) { _num_node_value_bytes += size; };
+    void did_destroy_node_value(size_t size) { _num_node_value_bytes -= size; };
+
+    void did_destroy_node() { _num_nodes -= 1; };
 
     // MARK: Indirect attributes
 
@@ -268,6 +283,7 @@ class Graph {
     void *output_value_ref(data::ptr<Node> node, const swift::metadata &type);
 
     template <typename T> void add_output_edge(data::ptr<T> node, AttributeID output);
+    template <> void add_output_edge<Node>(data::ptr<Node> node, AttributeID output);
     template <> void add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
 
     template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
@@ -303,6 +319,13 @@ class Graph {
     const char *key_name(uint32_t key_id);
 
     uint32_t intern_type(swift::metadata *metadata, ClosureFunctionVP<void *> make_type);
+
+    // MARK: Encoding
+
+    void encode_node(Encoder &encoder, const Node &node, bool flag);
+    void encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node);
+
+    void encode_tree(Encoder &encoder, data::ptr<TreeElement> tree);
 
     // MARK: Tracing
 
@@ -347,13 +370,6 @@ class Graph {
     static void all_stop_profiling();
     static void all_mark_profile(const char *event_name);
     static void all_reset_profile();
-
-    // MARK: Encoding
-
-    void encode_node(Encoder &encoder, const Node &node, bool flag);
-    void encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node);
-
-    void encode_tree(Encoder &encoder, data::ptr<TreeElement> tree);
 
     // MARK: Description
 

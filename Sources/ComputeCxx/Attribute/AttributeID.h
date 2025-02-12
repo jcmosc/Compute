@@ -16,6 +16,7 @@ namespace AG {
 class Subgraph;
 class Node;
 class IndirectNode;
+class MutableIndirectNode;
 class OffsetAttributeID;
 class RelativeAttributeID;
 
@@ -92,6 +93,10 @@ class AttributeID {
     data::ptr<IndirectNode> to_indirect_node_ptr() const {
         assert(is_indirect());
         return data::ptr<IndirectNode>(_value & ~KindMask);
+    };
+    data::ptr<MutableIndirectNode> to_mutable_indirect_node_ptr() const {
+        assert(is_indirect()); // XXX: no assertion that it is mutable
+        return data::ptr<MutableIndirectNode>(_value & ~KindMask);
     };
 
     Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone); }

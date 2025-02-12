@@ -37,7 +37,7 @@ class table {
     uint32_t _ptr_max_offset;
 
     uint32_t _num_used_pages = 0;
-    uint32_t _num_reusable_pages = 0;
+    uint32_t _num_reusable_bytes = 0;
     uint32_t _map_search_start = 0;
 
     uint32_t _num_zones = 0;

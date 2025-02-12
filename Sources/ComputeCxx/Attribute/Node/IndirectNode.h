@@ -29,7 +29,14 @@ class IndirectNode {
     uint16_t _relative_offset; // could be relative offset, see Subgraph::insert_attribute
 
   public:
-    IndirectNode(WeakAttributeID source, bool traverses_graph_contexts, uint32_t offset, uint16_t size);
+    IndirectNode(WeakAttributeID source, bool traverses_graph_contexts, uint32_t offset, uint16_t size)
+        : _source(source) {
+        _info.is_mutable = false;
+        _info.traverses_graph_contexts = traverses_graph_contexts;
+        _info.offset = offset;
+        _size = size;
+        _relative_offset = 0;
+    }
 
     const WeakAttributeID &source() const { return _source; };
 
@@ -62,7 +69,11 @@ class MutableIndirectNode : public IndirectNode {
 
   public:
     MutableIndirectNode(WeakAttributeID source, bool traverses_graph_contexts, uint32_t offset, uint16_t size,
-                        WeakAttributeID initial_source, uint32_t initial_offset);
+                        WeakAttributeID initial_source, uint32_t initial_offset)
+        : IndirectNode(source, traverses_graph_contexts, offset, size), _dependency(0), _initial_source(initial_source),
+          _initial_offset(initial_offset){
+
+          };
 
     const AttributeID &dependency() const { return _dependency; };
     void set_dependency(const AttributeID &dependency) { _dependency = dependency; };

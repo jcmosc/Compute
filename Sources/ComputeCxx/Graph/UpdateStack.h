@@ -11,7 +11,7 @@ namespace AG {
 class Graph::UpdateStack {
   public:
     enum Option : uint8_t {
-        WasNotDeferringInvalidation = 1 << 4,
+        InvalidateSubgraphs = 1 << 4,
     };
 
   private:

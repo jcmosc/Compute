@@ -22,17 +22,19 @@
 
 namespace AG {
 
+pthread_key_t Graph::_current_update_key = 0;
+
 #pragma mark - Invalidating
 
 Graph::without_invalidating::without_invalidating(Graph *graph) {
     _graph = graph;
-    _graph_was_deferring_invalidation = graph->_deferring_invalidation;
-    graph->_deferring_invalidation = true;
+    _graph_old_batch_invalidate_subgraphs = graph->_batch_invalidate_subgraphs;
+    graph->_batch_invalidate_subgraphs = true;
 }
 
 Graph::without_invalidating::~without_invalidating() {
-    if (_graph && _graph_was_deferring_invalidation == false) {
-        _graph->_deferring_invalidation = false;
+    if (_graph && _graph_old_batch_invalidate_subgraphs == false) {
+        _graph->_batch_invalidate_subgraphs = false;
         _graph->invalidate_subgraphs();
     }
 }
@@ -70,7 +72,7 @@ void Graph::remove_subgraph(Subgraph &subgraph) {
 }
 
 void Graph::invalidate_subgraphs() {
-    if (_deferring_invalidation) {
+    if (_batch_invalidate_subgraphs) {
         return;
     }
 
@@ -304,7 +306,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void 
     }
 
     _num_nodes += 1;
-    _num_node_values += 1;
+    _num_nodes_created += 1;
 
     if (type.self_metadata().vw_size() != 0) {
         void *self_dest = self;
@@ -754,11 +756,11 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute,
     if (old_dependency != dependency) {
         AttributeID indirect_attribute = AttributeID(attribute).with_kind(AttributeID::Kind::Indirect);
         if (old_dependency) {
-            remove_output_edge((data::ptr<Node>)old_dependency, indirect_attribute);
+            remove_output_edge(old_dependency.to_node_ptr(), indirect_attribute);
         }
         attribute->to_mutable().set_dependency(dependency);
         if (dependency) {
-            add_output_edge((data::ptr<MutableIndirectNode>)dependency, indirect_attribute);
+            add_output_edge(dependency.to_node_ptr(), indirect_attribute);
             if (dependency.to_node().state().is_dirty()) {
                 propagate_dirty(indirect_attribute);
             }
@@ -771,7 +773,7 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute,
 void *Graph::value_ref(AttributeID attribute, bool evaluate_weak_references, const swift::metadata &value_type,
                        bool *did_update_out) {
 
-    _counter_0x1d8 += 1;
+    _version += 1;
 
     OffsetAttributeID resolved = attribute.resolve(
         TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
@@ -786,15 +788,7 @@ void *Graph::value_ref(AttributeID attribute, bool evaluate_weak_references, con
 
     if (!type.use_graph_as_initial_value()) {
 
-        bool graph_is_updating = false;
-        for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
-            if (update.get()->graph() == this) {
-                graph_is_updating = true;
-            }
-        }
-        if (!graph_is_updating) {
-            _counter_0x1b8 += 1;
-        }
+        increment_update_count_if_needed();
 
         uint64_t old_page_seed = 0;
         if (evaluate_weak_references) {
@@ -1054,7 +1048,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
                             if (context_id && (attribute.subgraph() == nullptr ||
                                                context_id != attribute.subgraph()->graph_context_id())) {
                                 if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
-                                    if (context->value_ref_counter() != context->graph()._counter_0x1d8) {
+                                    if (context->graph_version() != context->graph()._version) {
                                         context->call_invalidation(attribute);
                                     }
                                 }
@@ -1075,7 +1069,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
                             if (context_id && (attribute.subgraph() == nullptr ||
                                                context_id != attribute.subgraph()->graph_context_id())) {
                                 if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
-                                    if (context->value_ref_counter() != context->graph()._counter_0x1d8) {
+                                    if (context->graph_version() != context->graph()._version) {
                                         context->call_invalidation(attribute);
                                     }
                                 }
@@ -1293,7 +1287,8 @@ void Graph::add_input_dependencies(AttributeID attribute, AttributeID input) {
     if (resolved.attribute().is_direct()) {
         add_output_edge(resolved.attribute().to_node_ptr(), attribute);
     } else if (resolved.attribute().is_indirect()) {
-        add_output_edge(resolved.attribute().to_indirect_node_ptr(), attribute);
+        assert(resolved.attribute().to_indirect_node().is_mutable());
+        add_output_edge(resolved.attribute().to_mutable_indirect_node_ptr(), attribute);
     }
     update_main_refs(attribute);
 }
@@ -1303,7 +1298,8 @@ void Graph::remove_input_dependencies(AttributeID attribute, AttributeID input) 
     if (resolved.attribute().is_direct()) {
         remove_output_edge(resolved.attribute().to_node_ptr(), attribute);
     } else if (resolved.attribute().is_indirect()) {
-        remove_output_edge(resolved.attribute().to_indirect_node_ptr(), attribute);
+        assert(resolved.attribute().to_indirect_node().is_mutable());
+        remove_output_edge(resolved.attribute().to_mutable_indirect_node_ptr(), attribute);
     }
     update_main_refs(attribute);
 }
@@ -1324,8 +1320,8 @@ void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
         if (resolved.attribute().is_direct()) {
             remove_output_edge(resolved.attribute().to_node_ptr(), attribute);
         } else if (resolved.attribute().is_indirect()) {
-            // TODO: to_mutable_indirect_node_ptr
-            remove_output_edge(resolved.attribute().to_indirect_node_ptr(), attribute);
+            assert(resolved.attribute().to_indirect_node().is_mutable());
+            remove_output_edge(resolved.attribute().to_mutable_indirect_node_ptr(), attribute);
         }
     }
 }
@@ -1442,6 +1438,10 @@ void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value
     }
 
     return node->get_value();
+}
+
+template <> void Graph::add_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
+    node->outputs().push_back(node.page_ptr()->zone, OutputEdge(output));
 }
 
 template <> void Graph::add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
@@ -1562,7 +1562,7 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
         output_index += 1;
     }
 
-    _update_stack_frame_counter += 1;
+    _mark_changed_count += 1;
 }
 
 void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *destination_value,
@@ -1632,8 +1632,8 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
 
         start_output_index = 0;
     }
-    
-    _update_stack_frame_counter += 1;
+
+    _mark_changed_count += 1;
 }
 
 void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
@@ -1718,6 +1718,20 @@ uint32_t Graph::intern_type(swift::metadata *metadata, ClosureFunctionVP<void *>
     return type_id;
 }
 
+#pragma mark - Encoding
+
+void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
+    // TODO: not implemented
+}
+
+void Graph::encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node) {
+    // TODO: not implemented
+}
+
+void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
+    // TODO: not implemented
+}
+
 #pragma mark - Tracing
 
 void Graph::add_trace(Trace *_Nullable trace) {
@@ -1743,12 +1757,28 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
 
 #pragma mark - Printing
 
+void Graph::print() {
+    // TODO: not implemented
+}
+
+void Graph::print_attribute(data::ptr<Node> node) {
+    // TODO: not implemented
+}
+
+void Graph::print_cycle(data::ptr<Node> node) {
+    // TODO: not implemented
+}
+
 void Graph::print_data() {
     data::table::shared().print();
     data::zone::print_header();
     for (auto subgraph : _subgraphs) {
         subgraph->data::zone::print(); // TODO: make first field..
     }
+}
+
+void Graph::print_stack() {
+    // TODO: not implemented
 }
 
 } // namespace AG

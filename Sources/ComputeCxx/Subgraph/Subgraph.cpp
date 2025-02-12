@@ -104,7 +104,7 @@ void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
         _parents.clear();
 
         // Check Graph::invalidate_subgraphs
-        if (_graph->deferring_invalidation() == false && _graph->main_handler() == nullptr) {
+        if (_graph->batch_invalidate_subgraphs() == false && _graph->main_handler() == nullptr) {
             invalidate_now(*_graph);
             _graph->invalidate_subgraphs();
             return;
@@ -124,7 +124,7 @@ void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
 void Subgraph::invalidate_now(Graph &graph) {
     // TODO: double check graph param vs _graph instance var
 
-    graph.set_deferring_invalidation(true);
+    graph.set_batch_invalidate_subgraphs(true);
 
     auto removed_subgraphs = vector<Subgraph *, 16, uint64_t>();
     auto stack = std::stack<Subgraph *, vector<Subgraph *, 16, uint64_t>>();
@@ -259,7 +259,7 @@ void Subgraph::invalidate_now(Graph &graph) {
         free(removed_subgraph); // or delete?
     }
 
-    graph.set_deferring_invalidation(false);
+    graph.set_batch_invalidate_subgraphs(false);
 }
 
 void Subgraph::graph_destroyed() {
@@ -322,7 +322,7 @@ void Subgraph::add_child(Subgraph &child, SubgraphChild::Flags flags) {
         propagate_dirty_flags();
     }
 
-    child._parents.push_back(*this);
+    child._parents.push_back(this);
 }
 
 void Subgraph::remove_child(Subgraph &child, bool without_trace) {
@@ -354,7 +354,7 @@ bool Subgraph::ancestor_of(const Subgraph &other) {
             return true;
         }
 
-        candidate = candidate->_parents.empty() ? nullptr : &candidate->_parents.front();
+        candidate = candidate->_parents.empty() ? nullptr : candidate->_parents.front();
         for (auto iter = other._parents.begin() + 1, end = other._parents.end(); iter != end; ++iter) {
             auto parent = *iter;
             other_parents.push(parent);
@@ -588,10 +588,7 @@ void Subgraph::update(uint8_t flags) {
 
                         for (auto node : nodes_to_update) {
                             if (!thread_is_updating) {
-                                thread_is_updating = _graph->thread_is_updating();
-                                if (!thread_is_updating) {
-                                    _graph->increment_counter_0x1b8();
-                                }
+                                _graph->increment_update_count_if_needed();
                                 _graph->update_attribute(node, true);
 
                                 if (!subgraph->is_valid()) {
@@ -730,12 +727,12 @@ void Subgraph::set_tree_owner(AttributeID owner) {
     _tree_root->owner = owner;
 }
 
-void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type, const char *key, uint32_t flags) {
+void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type, const char *value, uint32_t flags) {
     if (!_tree_root) {
         return;
     }
 
-    auto key_id = graph()->intern_key(key);
+    auto key_id = graph()->intern_key(value);
 
     data::ptr<Graph::TreeValue> tree_value = (data::ptr<Graph::TreeValue>)alloc_bytes(sizeof(Graph::TreeValue), 7);
     tree_value->type = type;

@@ -1532,6 +1532,110 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
 
 #pragma mark - Marks
 
+void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *destination_value,
+                         const void *source_value) {
+    if (!_traces.empty()) {
+        mark_changed(AttributeID(node), type, destination_value, source_value, 0);
+        return;
+    }
+
+    uint32_t output_index = 0;
+    for (auto output : node->outputs()) {
+        if (!output.value.is_direct()) {
+            mark_changed(AttributeID(node), type, destination_value, source_value, output_index);
+            return;
+        }
+        for (auto input : output.value.to_node().inputs()) {
+            if (input.value.resolve(TraversalOptions::None).attribute() != node) {
+                continue;
+            }
+            if (input.is_pending()) {
+                continue;
+            }
+            if (!input.value.is_direct()) {
+                if (compare_edge_values(input, type, destination_value, source_value)) {
+                    continue;
+                }
+            }
+            input.set_pending(true);
+        }
+        output_index += 1;
+    }
+
+    _update_stack_frame_counter += 1;
+}
+
+void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *destination_value,
+                         const void *source_value, uint32_t start_output_index) {
+    if (attribute.is_nil()) {
+        return;
+    }
+
+    // TODO: combine logic with propagate_dirty
+    struct Frame {
+        ConstOutputEdgeArrayRef outputs;
+        AttributeID attribute;
+    };
+
+    char stack_buffer[0x2000] = {};
+    auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
+    auto frames = ForwardList<Frame>(&heap);
+
+    data::vector<OutputEdge> initial_outputs = {};
+    if (attribute.is_direct()) {
+        initial_outputs = attribute.to_node().outputs();
+    } else if (attribute.is_indirect()) {
+        // TODO: how to make sure indirect is mutable?
+        initial_outputs = attribute.to_indirect_node().to_mutable().outputs();
+    } else {
+        return;
+    }
+    frames.emplace_front(ConstOutputEdgeArrayRef(&initial_outputs.front(), initial_outputs.size()), attribute);
+
+    while (!frames.empty()) {
+        auto outputs = frames.front().outputs;
+        auto attribute = frames.front().attribute;
+        frames.pop_front();
+
+        for (auto output_edge = outputs.begin() + start_output_index, end = outputs.end(); output_edge != end;
+             ++output_edge) {
+
+            if (output_edge->value.is_direct()) {
+                auto inputs = output_edge->value.to_node().inputs();
+                for (uint32_t input_index = 0, num_inputs = inputs.size(); input_index < num_inputs; ++input_index) {
+                    auto input_edge = inputs[input_index];
+                    if (input_edge.value.resolve(TraversalOptions::SkipMutableReference).attribute() != attribute) {
+                        continue;
+                    }
+                    if (input_edge.is_pending()) {
+                        continue;
+                    }
+                    if (!input_edge.value.is_direct()) {
+                        if (compare_edge_values(input_edge, type, destination_value, source_value)) {
+                            continue;
+                        }
+                    }
+                    foreach_trace([&output_edge, &input_index](Trace &trace) {
+                        trace.set_edge_pending(output_edge->value.to_node_ptr(), input_index, true);
+                    });
+                    input_edge.set_pending(true);
+                }
+            } else if (output_edge->value.is_indirect()) {
+                if (output_edge->value.to_indirect_node().to_mutable().dependency() != attribute) {
+                    auto mutable_node = output_edge->value.to_indirect_node().to_mutable();
+                    frames.emplace_front(
+                        ConstOutputEdgeArrayRef(&mutable_node.outputs().front(), mutable_node.outputs().size()),
+                        output_edge->value);
+                }
+            }
+        }
+
+        start_output_index = 0;
+    }
+    
+    _update_stack_frame_counter += 1;
+}
+
 void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
     if (!node->state().is_pending()) {
         foreach_trace([&node_ptr](Trace &trace) { trace.set_pending(node_ptr, true); });

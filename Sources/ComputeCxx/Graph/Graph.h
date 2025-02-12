@@ -282,7 +282,7 @@ class Graph {
     void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value);
     void mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
-                      const void *_Nullable source_value, uint64_t option);
+                      const void *_Nullable source_value, uint32_t start_output_index);
 
     void mark_pending(data::ptr<Node> node_ptr, Node *node);
 

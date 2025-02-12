@@ -91,6 +91,38 @@ Graph::~Graph() {
     }
 }
 
+#pragma mark - Context
+
+bool Graph::is_context_updating(uint64_t context_id) {
+    for (auto update_stack = current_update(); update_stack != nullptr; update_stack = update_stack.get()->previous()) {
+        for (auto frame = update_stack.get()->frames().rbegin(), end = update_stack.get()->frames().rend();
+             frame != end; ++frame) {
+            auto subgraph = AttributeID(frame->attribute).subgraph();
+            if (subgraph && subgraph->graph_context_id() == context_id) {
+                return true;
+            }
+        }
+    }
+}
+
+Graph::Context *Graph::main_context() {
+    struct Info {
+        Context *context;
+        uint64_t context_id;
+    };
+    Info info = {nullptr, UINT64_MAX};
+    _contexts_by_id.for_each(
+        [](const uint64_t context_id, Context *const context, void *info_ref) {
+            auto typed_info_ref = (std::pair<Context *, uint64_t> *)info_ref;
+            if (context_id < ((Info *)info_ref)->context_id) {
+                ((Info *)info_ref)->context = context;
+                ((Info *)info_ref)->context_id = context_id;
+            }
+        },
+        &info);
+    return info.context;
+}
+
 #pragma mark - Invalidating
 
 Graph::without_invalidating::without_invalidating(Graph *graph) {

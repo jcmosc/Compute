@@ -152,7 +152,7 @@ class Graph {
     // MARK: Context
 
     bool is_context_updating(uint64_t context_id);
-    void main_context();
+    Context *_Nullable main_context();
 
     // MARK: Subgraphs
 

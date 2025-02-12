@@ -188,9 +188,9 @@ bool Graph::thread_is_updating() {
 void Graph::call_update() {
     while (_needs_update) {
         _needs_update = false;
-        _contexts_by_id.for_each([](uint64_t context_id, Context *graph_context,
-                                    const void *closure_context) { graph_context->call_update(); },
-                                 nullptr);
+        _contexts_by_id.for_each(
+            [](uint64_t context_id, Context *graph_context, void *closure_context) { graph_context->call_update(); },
+            nullptr);
     }
 }
 

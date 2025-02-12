@@ -42,7 +42,7 @@ Subgraph::NodeCache::NodeCache() noexcept
 
 Subgraph::NodeCache::~NodeCache() noexcept {
     _items.for_each(
-        [](data::ptr<Node> node, NodeCache::Item *item, const void *context) {
+        [](data::ptr<Node> node, NodeCache::Item *item, void *context) {
             if (item) {
                 delete item;
             }

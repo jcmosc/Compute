@@ -11,6 +11,7 @@ namespace AG {
 class Graph::UpdateStack {
   public:
     enum Option : uint8_t {
+        SetTag = 1 << 3,
         InvalidateSubgraphs = 1 << 4,
     };
 

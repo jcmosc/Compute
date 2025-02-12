@@ -38,8 +38,8 @@ class Trace {
     virtual void begin_update(const Graph::Context &context);
     virtual void end_update(const Graph::Context &context);
 
-    virtual void begin_invalidation(const Graph::Context &context, data::ptr<Node> node);
-    virtual void end_invalidation(const Graph::Context &context, data::ptr<Node> node);
+    virtual void begin_invalidation(const Graph::Context &context, AttributeID attribute);
+    virtual void end_invalidation(const Graph::Context &context, AttributeID attribute);
 
     virtual void begin_modify(data::ptr<Node> node);
     virtual void end_modify(data::ptr<Node> node);

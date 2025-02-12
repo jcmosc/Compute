@@ -17,7 +17,10 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
     Context _context;
 
   public:
+    operator bool() { return _function != nullptr; }
+    
     const ReturnType operator()(Args... args) const noexcept {
+        // TODO: check _context is first or last parameter
         return _function(std::forward<Args>(args)..., _context);
     }
 

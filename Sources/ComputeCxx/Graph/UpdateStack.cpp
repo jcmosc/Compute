@@ -28,7 +28,7 @@ Graph::UpdateStack::UpdateStack(Graph *graph, uint8_t options) {
         _options &= Option::InvalidateSubgraphs;
     }
 
-    Graph::set_current_update(TaggedPointer<UpdateStack>(this, options >> 3 & 1));
+    Graph::set_current_update(TaggedPointer<UpdateStack>(this, options & Option::SetTag ? 1 : 0));
 }
 
 Graph::UpdateStack::~UpdateStack() {

@@ -1053,7 +1053,7 @@ void Subgraph::cache_collect() {
     std::pair<Subgraph *, NodeCache *> context = {this, _cache.get()};
     if (_cache != nullptr && is_valid()) {
         _cache->types().for_each(
-            [](const swift::metadata *metadata, const data::ptr<NodeCache::Type> type, const void *context) {
+            [](const swift::metadata *metadata, const data::ptr<NodeCache::Type> type, void *context) {
                 Subgraph *subgraph = reinterpret_cast<const std::pair<Subgraph *, NodeCache *> *>(context)->first;
                 NodeCache *cache = reinterpret_cast<const std::pair<Subgraph *, NodeCache *> *>(context)->second;
 

@@ -30,6 +30,7 @@ template <typename T> class TaggedPointer {
 
     uintptr_t value() { return _value; };
     bool tag() { return static_cast<bool>(_value & 0x1); };
+    TaggedPointer<T> with_tag(bool tag) { return TaggedPointer(get(), tag); };
 
     T *_Nullable get() { return reinterpret_cast<T *>(_value & ~0x1); };
 
@@ -187,6 +188,8 @@ class Graph {
     bool thread_is_updating();
 
     bool needs_update() { return _needs_update; };
+    void set_needs_update(bool needs_update) { _needs_update = needs_update; };
+
     void call_update();
     void reset_update(data::ptr<Node> node);
 
@@ -197,6 +200,7 @@ class Graph {
     MainHandler _Nullable main_handler() { return _main_handler; };
     void call_main_handler(void *context, void (*body)(void *context));
 
+    void set_deadline(uint64_t deadline) { _deadline = deadline; };
     bool passed_deadline();
     bool passed_deadline_slow();
 

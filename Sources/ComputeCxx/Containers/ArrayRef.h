@@ -28,9 +28,6 @@ template <typename T> class ArrayRef {
     ArrayRef() = default;
     ArrayRef(T *_Nullable data, size_t size) : _data(data), _size(size){};
 
-    // TODO: see if this is really needed, or disable operator new in data::table managed objects...
-    inline void *operator new(std::size_t n, const ArrayRef<T> *_Nonnull ptr) { return (void *)ptr; };
-
     // Element access
 
     const T &operator[](size_t pos) const {

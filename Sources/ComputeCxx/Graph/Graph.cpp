@@ -1957,8 +1957,16 @@ void Graph::remove_trace(uint64_t trace_id) {
     _traces.erase(iter);
 }
 
-void Graph::start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span) {
-    // TODO: not implemented
+void Graph::start_tracing(uint8_t options, std::span<const char *> subsystems) {
+    if (options & TraceRecorder::Options::CreateIfNeeded && _trace_recorder == nullptr) {
+        _trace_recorder = new TraceRecorder(this, options, subsystems);
+        if (options & TraceRecorder::Options::PrepareTrace) {
+            prepare_trace(*_trace_recorder);
+        }
+        add_trace(_trace_recorder);
+        
+        // TODO: cleanup block
+    }
 }
 
 void Graph::stop_tracing() {

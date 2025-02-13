@@ -347,7 +347,7 @@ class Graph {
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    void start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span);
+    void start_tracing(uint8_t options, std::span<const char *> subsystems);
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();

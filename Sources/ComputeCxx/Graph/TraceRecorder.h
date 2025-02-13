@@ -14,8 +14,10 @@ namespace AG {
 class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
   public:
     enum Options : uint8_t {
+        CreateIfNeeded = 1 << 0,
         RecordInvalidations = 1 << 1,
         RecordBacktrace = 1 << 2,
+        PrepareTrace = 1 << 3,
         SkipUpdates = 1 << 4,
         Subsystem = 1 << 5,
     };

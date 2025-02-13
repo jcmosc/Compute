@@ -1063,6 +1063,8 @@ void Graph::value_mark_all() {
                     relative_offset = attribute.to_node().flags().relative_offset();
                 } else if (attribute.is_indirect()) {
                     relative_offset = attribute.to_indirect_node().relative_offset();
+                } else {
+                    relative_offset = 0;
                 }
 
                 if (attribute.is_direct()) {
@@ -1836,7 +1838,106 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
 #pragma mark - Tracing
 
 void Graph::prepare_trace(Trace &trace) {
-    // TODO: not implemented
+    _contexts_by_id.for_each([](const uint64_t context_id, Context *const context,
+                                void *trace_ref) { ((Trace *)trace_ref)->created(*context); },
+                             &trace);
+
+    for (auto subgraph : _subgraphs) {
+        trace.created(*subgraph);
+    }
+    for (auto subgraph : _subgraphs) {
+        for (auto child : subgraph->children()) {
+            trace.add_child(*subgraph, *child.subgraph());
+        }
+    }
+    for (auto subgraph : _subgraphs) {
+        for (uint32_t iteration = 0; iteration < 2; ++iteration) {
+            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+                bool should_break = false;
+                uint16_t relative_offset = iteration == 0 ? page->relative_offset_2 : page->relative_offset_1;
+                while (relative_offset) {
+                    AttributeID attribute = AttributeID(page + relative_offset);
+
+                    if (attribute.is_direct()) {
+                        relative_offset = attribute.to_node().flags().relative_offset();
+                    } else if (attribute.is_indirect()) {
+                        relative_offset = attribute.to_indirect_node().relative_offset();
+                    } else if (attribute.is_nil()) {
+                        relative_offset = 0;
+                        should_break = true;
+                        break;
+                    } else {
+                        relative_offset = 0;
+                    }
+
+                    if (attribute.is_direct()) {
+                        auto node = attribute.to_node_ptr();
+                        trace.added(node);
+                        if (node->state().is_dirty()) {
+                            trace.set_dirty(node, true);
+                        }
+                        if (node->state().is_pending()) {
+                            trace.set_pending(node, true);
+                        }
+                        if (node->state().is_value_initialized()) {
+                            void *value = node->get_value();
+                            trace.set_value(node, value);
+                        }
+                    } else if (attribute.is_indirect()) {
+                        auto indirect_node = attribute.to_indirect_node_ptr();
+                        trace.added(indirect_node);
+                    }
+                }
+                if (should_break) {
+                    break;
+                }
+            }
+        }
+    }
+    for (auto subgraph : _subgraphs) {
+        for (uint32_t iteration = 0; iteration < 2; ++iteration) {
+            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+                bool should_break = false;
+                uint16_t relative_offset = iteration == 0 ? page->relative_offset_2 : page->relative_offset_1;
+                while (relative_offset) {
+                    AttributeID attribute = AttributeID(page + relative_offset);
+
+                    if (attribute.is_direct()) {
+                        relative_offset = attribute.to_node().flags().relative_offset();
+                    } else if (attribute.is_indirect()) {
+                        relative_offset = attribute.to_indirect_node().relative_offset();
+                    } else if (attribute.is_nil()) {
+                        relative_offset = 0;
+                        should_break = true;
+                        break;
+                    } else {
+                        relative_offset = 0;
+                    }
+
+                    if (attribute.is_direct()) {
+                        auto node = attribute.to_node_ptr();
+                        uint32_t edge_index = 0;
+                        for (auto input_edge : node->inputs()) {
+                            trace.add_edge(node, input_edge.value, input_edge.is_unknown2());
+                            if (input_edge.is_pending()) {
+                                trace.set_edge_pending(node, edge_index, true);
+                            }
+                            edge_index += 1;
+                        }
+                    } else if (attribute.is_indirect()) {
+                        auto indirect_node = attribute.to_indirect_node_ptr();
+                        trace.set_source(indirect_node, indirect_node->source().attribute());
+                        if (indirect_node->is_mutable() && indirect_node->to_mutable().dependency() != 0) {
+                            trace.set_dependency(indirect_node, indirect_node->to_mutable().dependency());
+                        }
+                    }
+                }
+                if (should_break) {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void Graph::add_trace(Trace *_Nullable trace) {

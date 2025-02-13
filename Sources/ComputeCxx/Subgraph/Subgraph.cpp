@@ -216,7 +216,10 @@ void Subgraph::invalidate_now(Graph &graph) {
                     relative_offset = attribute.to_indirect_node().relative_offset();
                     graph.remove_indirect_node(attribute.to_indirect_node_ptr());
                 } else if (attribute.is_nil()) {
+                    relative_offset = 0;
                     found_nil_attribute = true;
+                } else {
+                    relative_offset = 0;
                 }
             }
             if (found_nil_attribute) {
@@ -238,7 +241,10 @@ void Subgraph::invalidate_now(Graph &graph) {
                 } else if (attribute.is_indirect()) {
                     relative_offset = attribute.to_indirect_node().relative_offset();
                 } else if (attribute.is_nil()) {
+                    relative_offset = 0;
                     found_nil_attribute = true;
+                } else {
+                    relative_offset = 0;
                 }
 
                 if (attribute.is_direct()) {
@@ -283,6 +289,8 @@ void Subgraph::graph_destroyed() {
                 relative_offset = attribute.to_node().flags().relative_offset();
             } else if (attribute.is_indirect()) {
                 relative_offset = attribute.to_indirect_node().relative_offset();
+            } else {
+                relative_offset = 0;
             }
 
             if (attribute.is_direct()) {
@@ -415,6 +423,8 @@ void Subgraph::insert_attribute(AttributeID attribute, bool flag) {
                     if (relative_offset == 0) {
                         break;
                     }
+                } else {
+                    relative_offset = 0; // TODO: check this line is here
                 }
             }
         }
@@ -471,6 +481,8 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
         } else if (next_attribute.is_indirect()) {
             relative_offset = next_attribute.to_indirect_node().relative_offset();
             before_attribute = next_attribute;
+        } else {
+            relative_offset = 0;
         }
     }
 
@@ -574,6 +586,8 @@ void Subgraph::update(uint8_t flags) {
                                         if (flags) {
                                             break;
                                         }
+                                    } else {
+                                        relative_offset = 0;
                                     }
                                 }
                             }
@@ -672,6 +686,8 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
                             if (!flags.is_null()) {
                                 break;
                             }
+                        } else {
+                            relative_offset = 0;
                         }
                     }
                 }
@@ -1128,6 +1144,7 @@ void Subgraph::encode(Encoder &encoder) const {
                 } else if (attribute.is_nil() || relative_offset == 0) {
                     break;
                 } else {
+                    relative_offset = 0;
                     continue;
                 }
 
@@ -1192,6 +1209,8 @@ void Subgraph::print(uint32_t indent_level) {
                 relative_offset = attribute.to_node().flags().relative_offset();
             } else if (attribute.is_indirect()) {
                 relative_offset = attribute.to_indirect_node().relative_offset();
+            } else {
+                relative_offset = 0;
             }
 
             if (attribute.is_direct()) {

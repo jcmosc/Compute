@@ -123,6 +123,7 @@ class Subgraph : public data::zone {
 
     void add_child(Subgraph &child, SubgraphChild::Flags flags);
     void remove_child(Subgraph &child, bool flag);
+    vector<SubgraphChild, 0, uint32_t> children() { return _children; };
 
     bool ancestor_of(const Subgraph &other);
 

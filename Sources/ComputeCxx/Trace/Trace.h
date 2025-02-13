@@ -2,7 +2,7 @@
 
 #include <CoreFoundation/CFData.h>
 
-#include "Graph.h"
+#include "Graph/Graph.h"
 
 namespace AG {
 
@@ -61,11 +61,11 @@ class Trace {
     virtual void added(data::ptr<Node> node);
 
     virtual void add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags);
-    virtual void remove_edge(data::ptr<Node> node, uint32_t options);
+    virtual void remove_edge(data::ptr<Node> node, uint32_t input_index);
     virtual void set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending);
 
-    virtual void set_dirty(data::ptr<Node> node, bool flag);
-    virtual void set_pending(data::ptr<Node> node, bool flag);
+    virtual void set_dirty(data::ptr<Node> node, bool dirty);
+    virtual void set_pending(data::ptr<Node> node, bool pending);
 
     virtual void set_value(data::ptr<Node> node, const void *value);
     virtual void mark_value(data::ptr<Node> node);
@@ -82,9 +82,9 @@ class Trace {
 
     virtual void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                               const swift::metadata &type);
-    virtual bool named_event(const Graph::Context &context, uint32_t arg2, uint64_t arg3, const uint32_t *arg4,
-                             CFDataRef arg5, uint32_t arg6);
-    virtual bool named_event_enabled(uint32_t options);
+    virtual bool named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args,
+                             const uint64_t *event_args, CFDataRef data, uint32_t arg6);
+    virtual bool named_event_enabled(uint32_t event_id);
 
     virtual void compare_failed(data::ptr<Node> node, const void *lhs, const void *rhs, size_t lhs_offset,
                                 size_t rhs_offset, const swift::metadata &type);

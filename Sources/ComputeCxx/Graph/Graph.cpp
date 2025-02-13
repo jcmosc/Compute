@@ -1,5 +1,6 @@
 #include "Graph.h"
 
+#include <CoreFoundation/CFString.h>
 #include <mach/mach_time.h>
 #include <os/log.h>
 #include <set>
@@ -16,7 +17,8 @@
 #include "Log/Log.h"
 #include "Subgraph/Subgraph.h"
 #include "Swift/Metadata.h"
-#include "Trace.h"
+#include "Trace/Trace.h"
+#include "TraceRecorder.h"
 #include "UpdateStack.h"
 #include "Utilities/List.h"
 
@@ -1833,6 +1835,10 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
 
 #pragma mark - Tracing
 
+void Graph::prepare_trace(Trace &trace) {
+    // TODO: not implemented
+}
+
 void Graph::add_trace(Trace *_Nullable trace) {
     if (trace == nullptr) {
         return;
@@ -1850,8 +1856,81 @@ void Graph::remove_trace(uint64_t trace_id) {
     _traces.erase(iter);
 }
 
+void Graph::start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span) {
+    // TODO: not implemented
+}
+
+void Graph::stop_tracing() {
+    if (_trace_recorder) {
+        remove_trace(_trace_recorder->unique_id());
+        _trace_recorder = nullptr;
+    }
+}
+
+void Graph::sync_tracing() {
+    foreach_trace([](Trace &trace) { trace.sync_trace(); });
+}
+
+CFStringRef Graph::copy_trace_path() {
+    if (_trace_recorder && _trace_recorder->trace_path()) {
+        return CFStringCreateWithCString(0, _trace_recorder->trace_path(), kCFStringEncodingUTF8);
+    } else {
+        return nullptr;
+    }
+}
+
+void Graph::all_start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span) {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->start_tracing(arg, span);
+    }
+    all_unlock();
+}
+
+void Graph::all_stop_tracing() {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->stop_tracing();
+    }
+    all_unlock();
+}
+
+void Graph::all_sync_tracing() {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->sync_tracing();
+    }
+    all_unlock();
+}
+
+CFStringRef Graph::all_copy_trace_path() {
+    CFStringRef result = nullptr;
+    all_lock();
+    if (_all_graphs) {
+        result = _all_graphs->copy_trace_path();
+    }
+    all_unlock();
+    return result;
+}
+
 void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, ...) {
-    // TODO: Not implemented
+    char *message = nullptr;
+
+    va_list args;
+    va_start(args, format);
+
+    bool locked = all_try_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->foreach_trace([&format, &args](Trace &trace) { trace.log_message_v(format, args); });
+        if (all_stop_tracing) {
+            graph->stop_tracing();
+        }
+    }
+    if (locked) {
+        all_unlock();
+    }
+
+    va_end(args);
 }
 
 #pragma mark - Printing

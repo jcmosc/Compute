@@ -10,9 +10,8 @@ namespace AG {
 
 class Encoder {
   public:
-    class Delegate {
-      public:
-        virtual void flush(Encoder &encoder);
+    struct Delegate {
+        virtual int flush_encoder(Encoder &encoder);
     };
 
   private:
@@ -24,6 +23,8 @@ class Encoder {
 
   public:
     Encoder(Delegate *_Nullable delegate, uint64_t flush_interval);
+
+    const vector<char, 0, uint64_t> &buffer() const { return _buffer; };
 
     void encode_varint(uint64_t value);
     void encode_fixed64(uint64_t value);

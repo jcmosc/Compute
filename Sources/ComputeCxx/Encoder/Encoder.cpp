@@ -86,7 +86,7 @@ void Encoder::end_length_delimited() {
 
 void Encoder::flush() {
     if (!_buffer.empty() && _delegate) {
-        _delegate->flush(*this);
+        _delegate->flush_encoder(*this);
         _buffer.resize(0);
     }
 }

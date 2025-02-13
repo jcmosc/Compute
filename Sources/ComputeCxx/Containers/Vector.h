@@ -74,6 +74,9 @@ class vector {
 
     void clear();
 
+    iterator insert(const_iterator pos, const T &value);
+    iterator insert(const_iterator pos, T &&value);
+
     iterator erase(iterator pos);
     iterator erase(iterator first, iterator last);
 
@@ -153,6 +156,9 @@ class vector<T, 0, _size_type> {
     // Modifiers
 
     void clear();
+    
+    iterator insert(const_iterator pos, const T &value);
+    iterator insert(const_iterator pos, T &&value);
 
     iterator erase(iterator pos);
     iterator erase(iterator first, iterator last);
@@ -230,6 +236,9 @@ class vector<std::unique_ptr<T>, 0, _size_type> {
     // Modifiers
 
     void clear();
+    
+    iterator insert(const_iterator pos, const T &value);
+    iterator insert(const_iterator pos, T &&value);
 
     void push_back(const std::unique_ptr<T> &value) = delete;
     void push_back(std::unique_ptr<T> &&value);

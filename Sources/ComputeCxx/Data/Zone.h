@@ -48,10 +48,10 @@ class zone {
     zone();
     ~zone();
 
-    info info() { return _info; };
+    info info() const { return _info; };
     void mark_deleted() { _info = _info.with_deleted(); };
 
-    ptr<page> last_page() { return _last_page; };
+    ptr<page> last_page() const { return _last_page; };
 
     void clear();
     void realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask);

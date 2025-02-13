@@ -107,9 +107,9 @@ class Subgraph : public data::zone {
     // MARK: Graph
 
     Graph *_Nullable graph() const { return _graph; };
-    uint64_t graph_context_id() { return _graph_context_id; };
+    uint64_t graph_context_id() const { return _graph_context_id; };
 
-    bool is_valid() { return _validation_state == ValidationState::Valid; };
+    bool is_valid() const { return _validation_state == ValidationState::Valid; };
     ValidationState validation_state() { return _validation_state; };
 
     uint8_t other_state() { return _other_state; };
@@ -189,7 +189,7 @@ class Subgraph : public data::zone {
 
     // MARK: Encoding
 
-    void encode(Encoder &encoder);
+    void encode(Encoder &encoder) const;
 
     // MARK: Printing
 

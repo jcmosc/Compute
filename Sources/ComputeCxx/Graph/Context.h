@@ -34,8 +34,8 @@ class Graph::Context {
     static Context *from_cf(AGGraphStorage *storage);
 
     Graph &graph() const { return *_graph; };
-    uint64_t unique_id() { return _unique_id; };
-    uint64_t graph_version() { return _graph_version; };
+    uint64_t unique_id() const { return _unique_id; };
+    uint64_t graph_version() const { return _graph_version; };
 
     void set_deadline(uint64_t deadline);
     void set_needs_update();

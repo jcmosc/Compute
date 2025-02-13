@@ -2,7 +2,7 @@
 
 #include "Attribute/AttributeID.h"
 #include "Subgraph/Subgraph.h"
-#include "Trace.h"
+#include "Trace/Trace.h"
 #include "UniqueID/AGUniqueID.h"
 #include "UpdateStack.h"
 

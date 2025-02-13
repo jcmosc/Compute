@@ -51,6 +51,7 @@ class Graph {
   public:
     class Context;
     class KeyTable;
+    class TraceRecorder;
     class UpdateStack;
     class UpdateStackRef;
 
@@ -95,6 +96,7 @@ class Graph {
     util::Heap _heap;
 
     static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
+    static bool all_try_lock() { return os_unfair_lock_trylock(&_all_graphs_lock); };
     static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
 
     // Attribute types
@@ -121,6 +123,7 @@ class Graph {
     // Profile
 
     // Trace
+    TraceRecorder *_trace_recorder;
 
     // Tree
     std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph;
@@ -344,10 +347,10 @@ class Graph {
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    void start_tracing(uint32_t arg, std::span<const char *, ULLONG_MAX> span);
+    void start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span);
     void stop_tracing();
     void sync_tracing();
-    void copy_trace_path();
+    CFStringRef copy_trace_path();
 
     template <typename T>
         requires std::invocable<T, Trace &>
@@ -357,10 +360,10 @@ class Graph {
         }
     };
 
-    static void all_start_tracing();
+    static void all_start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span);
     static void all_stop_tracing();
     static void all_sync_tracing();
-    static void all_copy_trace_path();
+    static CFStringRef all_copy_trace_path();
 
     static void trace_assertion_failure(bool all_stop_tracing, const char *format, ...);
 

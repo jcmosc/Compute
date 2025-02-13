@@ -52,6 +52,8 @@ class AttributeType {
     const swift::metadata &self_metadata() const { return *_self_metadata; };
     const swift::metadata &value_metadata() const { return *_value_metadata; };
 
+    Flags flags() const { return _flags; };
+
     bool main_thread() const { return _flags & Flags::MainThread; };
     bool use_graph_as_initial_value() const { return _flags & Flags::UseGraphAsInitialValue; };
     bool unknown_0x20() const { return _flags & Flags::Unknown0x20; };

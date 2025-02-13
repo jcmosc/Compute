@@ -17,9 +17,11 @@ class WeakAttributeID {
   public:
     WeakAttributeID(AttributeID attribute, uint32_t zone_id) : _attribute(attribute), _zone_id(zone_id){};
 
+    const AttributeID &attribute() const { return _attribute; };
+    uint32_t zone_id() const { return _zone_id; };
+
     bool expired() const;
-    const AttributeID &attribute() const;
-    
+
     /// Returns the attribute it is has not expired, otherwise returns the nil attribute.
     const AttributeID &evaluate() const;
 };

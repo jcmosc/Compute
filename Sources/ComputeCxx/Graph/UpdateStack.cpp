@@ -5,8 +5,8 @@
 #include "Attribute/Node/IndirectNode.h"
 #include "Attribute/Node/Node.h"
 #include "Attribute/OffsetAttributeID.h"
-#include "Graph/Trace.h"
 #include "Subgraph/Subgraph.h"
+#include "Trace/Trace.h"
 
 namespace AG {
 
@@ -287,16 +287,16 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
         for (uint32_t input_index = node->inputs().size() - 1; input_index >= 0; --input_index) {
             InputEdge &input = node->inputs()[input_index];
             AttributeID input_attribute = input.value;
-            
+
             bool reset_input_flags = true;
             if (frame.flag3 || frame.cancelled) {
                 input_attribute = input_attribute.resolve(TraversalOptions::None).attribute();
                 if (!input_attribute.is_direct() || input_attribute.to_node().state().is_dirty()) {
                     reset_input_flags = false;
-                    reset_node_flags  = false;
+                    reset_node_flags = false;
                 }
             }
-            
+
             if (reset_input_flags) {
                 if (frame.needs_update && !frame.cancelled) {
                     if (input.is_pending()) {
@@ -307,7 +307,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                     }
                 }
             }
-            
+
             if (frame.needs_update && !frame.cancelled) {
                 bool was_unknown4 = input.is_unknown4();
                 input.set_unknown4(false);

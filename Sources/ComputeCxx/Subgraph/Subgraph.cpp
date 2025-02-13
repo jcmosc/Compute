@@ -11,10 +11,10 @@
 #include "Errors/Errors.h"
 #include "Graph/Context.h"
 #include "Graph/Graph.h"
-#include "Graph/Trace.h"
 #include "Graph/Tree/TreeElement.h"
 #include "Graph/UpdateStack.h"
 #include "NodeCache.h"
+#include "Trace/Trace.h"
 #include "UniqueID/AGUniqueID.h"
 #include "Utilities/CFPointer.h"
 
@@ -1082,8 +1082,7 @@ void Subgraph::cache_collect() {
 
 #pragma mark - Encoding
 
-void Subgraph::encode(Encoder &encoder) {
-
+void Subgraph::encode(Encoder &encoder) const {
     auto zone_id = info().zone_id();
     if (zone_id != 0) {
         encoder.encode_varint(8);
@@ -1113,47 +1112,32 @@ void Subgraph::encode(Encoder &encoder) {
 
     if (!is_valid()) {
         encoder.encode_varint(0x28);
-        encoder.encode_varint(true);
-    }
-
-    if (last_page() == nullptr) {
-        if (_tree_root) {
-            encoder.encode_varint(0x3a);
-            encoder.begin_length_delimited();
-            _graph->encode_tree(encoder, _tree_root);
-            encoder.end_length_delimited();
-        }
-        return;
+        encoder.encode_varint(1);
     }
 
     for (data::ptr<data::page> page = last_page(); page != nullptr; page = page->previous) {
-        bool bVar4 = true;
-        bool bVar3 = true;
-        do {
-            bVar3 = bVar4;
-
-            uint16_t relative_offset = bVar3 ? page->relative_offset_1 : page->relative_offset_2;
+        for (uint32_t iteration = 0; iteration < 2; ++iteration) {
+            uint16_t relative_offset = iteration == 0 ? page->relative_offset_1 : page->relative_offset_2;
             while (relative_offset) {
                 AttributeID attribute = AttributeID(page + relative_offset);
 
                 if (attribute.is_direct()) {
-                    attribute.to_node().flags().relative_offset();
+                    relative_offset = attribute.to_node().flags().relative_offset();
                 } else if (attribute.is_indirect()) {
-                    attribute.to_indirect_node().relative_offset();
+                    relative_offset = attribute.to_indirect_node().relative_offset();
+                } else if (attribute.is_nil() || relative_offset == 0) {
+                    break;
                 } else {
-                    if (attribute.is_nil() || relative_offset == 0) {
-                        break;
-                    }
                     continue;
                 }
 
                 encoder.encode_varint(0x32);
                 encoder.begin_length_delimited();
 
-                if (attribute.to_node_ptr() == nullptr) {
+                if (attribute == 0) {
                     encoder.encode_varint(0x12);
                     encoder.begin_length_delimited();
-                    _graph->encode_node(encoder, attribute.to_node(), false);
+                    _graph->encode_node(encoder, attribute.to_node(), false); // TODO: check can handle null attribute
                     encoder.end_length_delimited();
                 } else {
                     encoder.encode_varint(8);
@@ -1174,8 +1158,14 @@ void Subgraph::encode(Encoder &encoder) {
 
                 encoder.end_length_delimited();
             }
-            bVar4 = false;
-        } while (bVar3);
+        }
+    }
+
+    if (_tree_root) {
+        encoder.encode_varint(0x3a);
+        encoder.begin_length_delimited();
+        _graph->encode_tree(encoder, _tree_root);
+        encoder.end_length_delimited();
     }
 }
 

@@ -779,7 +779,7 @@ AttributeID Subgraph::tree_node_at_index(data::ptr<Graph::TreeElement> tree_elem
                 if (i == 0) {
                     return AttributeID(node->second);
                 }
-                --index;
+                --i;
             }
         }
     }

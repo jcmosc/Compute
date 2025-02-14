@@ -19,6 +19,7 @@
 #include "Swift/Metadata.h"
 #include "Trace/Trace.h"
 #include "TraceRecorder.h"
+#include "Tree/TreeElement.h"
 #include "UpdateStack.h"
 #include "Utilities/List.h"
 
@@ -1824,15 +1825,197 @@ uint32_t Graph::intern_type(swift::metadata *metadata, ClosureFunctionVP<void *>
 #pragma mark - Encoding
 
 void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
-    // TODO: not implemented
+    if (node.type_id()) {
+        encoder.encode_varint(8);
+        encoder.encode_varint(node.type_id());
+    }
+    if (flag) {
+        auto type = attribute_type(node.type_id());
+        if (auto callback = type.vt_get_encode_node_callback()) {
+            void *value = node.get_value();
+            CFStringRef str = callback();
+            if (str) {
+                uint64_t length = CFStringGetLength(str);
+                CFRange range = CFRangeMake(0, length);
+                uint8_t buffer[1024];
+                CFIndex used_buffer_length = 0;
+                CFStringGetBytes(str, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024, &used_buffer_length);
+                if (used_buffer_length > 0) {
+                    encoder.encode_varint(0x12);
+                    encoder.encode_data(buffer, used_buffer_length);
+                }
+            }
+        }
+    }
+    for (auto input_edge : node.inputs()) {
+        encoder.encode_varint(0x1a);
+        encoder.begin_length_delimited();
+        if (input_edge.value) {
+            encoder.encode_varint(8);
+            encoder.encode_varint(input_edge.value);
+        }
+        if (input_edge.is_unknown0()) {
+            encoder.encode_varint(0x10);
+            encoder.encode_varint(input_edge.is_unknown0());
+        }
+        if (input_edge.is_unknown2()) {
+            encoder.encode_varint(0x18);
+            encoder.encode_varint(input_edge.is_unknown2());
+        }
+        if (input_edge.is_pending()) {
+            encoder.encode_varint(0x20);
+            encoder.encode_varint(input_edge.is_pending());
+        }
+        if (input_edge.is_unknown4()) {
+            encoder.encode_varint(0x30);
+            encoder.encode_varint(input_edge.is_unknown4());
+        }
+        encoder.end_length_delimited();
+    }
+    for (auto output_edge : node.outputs()) {
+        encoder.encode_varint(0x22);
+        encoder.begin_length_delimited();
+        if (output_edge.value) {
+            encoder.encode_varint(8);
+            encoder.encode_varint(output_edge.value);
+        }
+        encoder.end_length_delimited();
+    }
+    if (node.state().is_dirty()) {
+        encoder.encode_varint(0x28);
+        encoder.encode_varint(true);
+    }
+    if (node.state().is_pending()) {
+        encoder.encode_varint(0x30);
+        encoder.encode_varint(true);
+    }
+    if (node.state().is_updating()) {
+        encoder.encode_varint(0x38);
+        encoder.encode_varint(true);
+    }
+    if (node.flags().value3()) {
+        encoder.encode_varint(0x40);
+        encoder.encode_varint(node.flags().value3());
+    }
+    if (node.state().is_main_thread()) {
+        encoder.encode_varint(0x48);
+        encoder.encode_varint(true);
+    }
+    if (node.state().is_main_thread_only()) {
+        encoder.encode_varint(0x50);
+        encoder.encode_varint(true);
+    }
+    if (node.flags().value4_unknown0x20()) {
+        encoder.encode_varint(0x58);
+        encoder.encode_varint(node.flags().value4_unknown0x20());
+    }
+    if (node.state().is_value_initialized()) {
+        encoder.encode_varint(0x60);
+        encoder.encode_varint(true);
+    }
+    if (node.state().is_self_initialized()) {
+        encoder.encode_varint(0x68);
+        encoder.encode_varint(true);
+    }
+    if (node.flags().cacheable()) {
+        encoder.encode_varint(0x70);
+        encoder.encode_varint(true);
+    }
+    if (node.flags().value4_unknown0x40()) {
+        encoder.encode_varint(0x78);
+        encoder.encode_varint(true);
+    }
 }
 
 void Graph::encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node) {
-    // TODO: not implemented
+    if (indirect_node.source().attribute()) {
+        encoder.encode_varint(8);
+        encoder.encode_varint(indirect_node.source().attribute());
+    }
+    if (indirect_node.source().zone_id()) {
+        encoder.encode_varint(0x10);
+        encoder.encode_varint(indirect_node.source().zone_id());
+    }
+    if (indirect_node.offset()) {
+        encoder.encode_varint(0x18);
+        encoder.encode_varint(indirect_node.offset());
+    }
+    auto size = indirect_node.size();
+    if (size.has_value() && size.value() != 0) {
+        encoder.encode_varint(0x20);
+        encoder.encode_varint(size.value());
+    }
+    if (indirect_node.is_mutable()) {
+        if (indirect_node.to_mutable().dependency()) {
+            encoder.encode_varint(0x28);
+            encoder.encode_varint(indirect_node.to_mutable().dependency());
+        }
+        for (auto output_edge : indirect_node.to_mutable().outputs()) {
+            encoder.encode_varint(0x32);
+            encoder.begin_length_delimited();
+            if (output_edge.value) {
+                encoder.encode_varint(8);
+                encoder.encode_varint(output_edge.value);
+            }
+            encoder.end_length_delimited();
+        }
+    }
 }
 
 void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
-    // TODO: not implemented
+    if (tree->owner.without_kind()) {
+        encoder.encode_varint(0x10);
+        encoder.encode_varint(tree->owner);
+    }
+    if (tree->flags) {
+        encoder.encode_varint(0x18);
+        encoder.encode_varint(tree->flags);
+    }
+    if (tree->next) {
+        encoder.encode_varint(0x22);
+        encoder.begin_length_delimited();
+        encode_tree(encoder, tree->next->old_parent);
+        encoder.end_length_delimited();
+    }
+    for (auto value = tree->last_value; value != nullptr; value = value->previous_sibling) {
+        encoder.encode_varint(0x2a);
+        encoder.begin_length_delimited();
+        if (value->value) {
+            encoder.encode_varint(0x10);
+            encoder.encode_varint(value->value);
+        }
+        if (value->key_id) {
+            encoder.encode_varint(0x18);
+            encoder.encode_varint(value->key_id);
+        }
+        if (value->flags) {
+            encoder.encode_varint(0x20);
+            encoder.encode_varint(value->flags);
+        }
+        encoder.end_length_delimited();
+    }
+
+    Subgraph *subgraph = reinterpret_cast<Subgraph *>(tree.page_ptr()->zone);
+    if (auto map = tree_data_elements()) {
+        auto tree_data_element = map->find(subgraph);
+        if (tree_data_element != map->end()) {
+            tree_data_element->second.sort_nodes();
+
+            auto nodes = tree_data_element->second.nodes();
+            std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found = std::find_if(
+                nodes.begin(), nodes.end(), [&tree](auto node) { return node.first == tree; });
+
+            for (auto node = found; node != nodes.end(); ++node) {
+                if (node->first != tree) {
+                    break;
+                }
+                if (node->second) {
+                    encoder.encode_varint(0x30);
+                    encoder.encode_varint(node->second);
+                }
+            }
+        }
+    }
 }
 
 #pragma mark - Tracing
@@ -1964,7 +2147,7 @@ void Graph::start_tracing(uint8_t options, std::span<const char *> subsystems) {
             prepare_trace(*_trace_recorder);
         }
         add_trace(_trace_recorder);
-        
+
         // TODO: cleanup block
     }
 }

@@ -8,7 +8,7 @@
 
 namespace AG {
 
-void *Node::get_self(const AttributeType &type) {
+void *Node::get_self(const AttributeType &type) const {
     void *self = ((char *)this + type.attribute_offset());
     if (_flags.has_indirect_self()) {
         self = *(void **)self;
@@ -43,7 +43,7 @@ void Node::destroy_self(const Graph &graph) {
     type.self_metadata().vw_destroy(static_cast<swift::opaque_value *>(self));
 }
 
-void *Node::get_value() {
+void *Node::get_value() const {
     void *value = _value.get();
     if (_flags.has_indirect_value()) {
         value = *(void **)value;

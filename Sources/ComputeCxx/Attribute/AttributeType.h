@@ -15,11 +15,12 @@ class AttributeType;
 class AttributeVTable {
   public:
     using Callback = void (*)(const AttributeType *attribute_type, void *body);
+    using Callback2 = CFStringRef _Nonnull (*)();
     Callback _unknown_0x00;
     Callback _unknown_0x08;
     Callback destroy_self;
     Callback _unknown_0x18;
-    Callback _unknown_0x20;
+    Callback2 _encode_node_callback;
     Callback _update_stack_callback; // maybe initialize value
 };
 
@@ -83,6 +84,8 @@ class AttributeType {
             _vtable->destroy_self(this, body);
         }
     }
+
+    AttributeVTable::Callback2 vt_get_encode_node_callback() const { return _vtable->_encode_node_callback; }
 
     AttributeVTable::Callback vt_get_update_stack_callback() const { return _vtable->_update_stack_callback; }
 };

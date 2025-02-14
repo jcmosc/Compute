@@ -9,6 +9,11 @@ MutableIndirectNode &IndirectNode::to_mutable() {
     return static_cast<MutableIndirectNode &>(*this);
 }
 
+const MutableIndirectNode &IndirectNode::to_mutable() const {
+    assert(is_mutable());
+    return static_cast<const MutableIndirectNode &>(*this);
+}
+
 void IndirectNode::modify(WeakAttributeID source, uint32_t offset) {
     _source = source;
     _info.offset = offset;

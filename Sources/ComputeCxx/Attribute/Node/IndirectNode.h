@@ -42,6 +42,7 @@ class IndirectNode {
 
     bool is_mutable() const { return _info.is_mutable; };
     MutableIndirectNode &to_mutable();
+    const MutableIndirectNode &to_mutable() const;
 
     void set_traverses_graph_contexts(bool value) { _info.traverses_graph_contexts = value; };
     bool traverses_graph_contexts() const { return _info.traverses_graph_contexts; };
@@ -81,7 +82,7 @@ class MutableIndirectNode : public IndirectNode {
     WeakAttributeID initial_source() { return _initial_source; };
     uint32_t initial_offset() { return _initial_offset; };
 
-    data::vector<OutputEdge> outputs() { return _outputs; };
+    data::vector<OutputEdge> outputs() const { return _outputs; };
 };
 
 static_assert(sizeof(MutableIndirectNode) == 0x28);

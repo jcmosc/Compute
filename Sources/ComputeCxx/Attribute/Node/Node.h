@@ -43,7 +43,7 @@ class NodeFlags {
     void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
 
     // Flags 3
-    uint8_t value3() { return _value3; };
+    uint8_t value3() const { return _value3; };
     void set_value3(uint8_t value3) { _value3 = value3; };
 
     // Flags 4
@@ -64,13 +64,13 @@ class NodeFlags {
     void set_inputs_unsorted(bool value) {
         _value4 = (_value4 & ~Flags4::InputsUnsorted) | (value ? Flags4::InputsUnsorted : 0);
     };
-    bool cacheable() { return _value4 & Flags4::Cacheable; };
+    bool cacheable() const { return _value4 & Flags4::Cacheable; };
     void set_cacheable(bool value) { _value4 = (_value4 & ~Flags4::Cacheable) | (value ? Flags4::Cacheable : 0); };
-    bool value4_unknown0x20() { return _value4 & Flags4::Unknown0x20; };
+    bool value4_unknown0x20() const { return _value4 & Flags4::Unknown0x20; };
     void set_value4_unknown0x20(bool value) {
         _value4 = (_value4 & ~Flags4::Unknown0x20) | (value ? Flags4::Unknown0x20 : 0);
     };
-    bool value4_unknown0x40() { return _value4 & Flags4::Unknown0x40; };
+    bool value4_unknown0x40() const { return _value4 & Flags4::Unknown0x40; };
     void set_value4_unknown0x40(bool value) {
         _value4 = (_value4 & ~Flags4::Unknown0x40) | (value ? Flags4::Unknown0x40 : 0);
     };
@@ -151,11 +151,12 @@ class Node {
         _flags = NodeFlags(flags4);
     };
 
-    State state() { return State(_info.state); };
+    State state() const { return State(_info.state); };
     void set_state(State state) { _info.state = state.data(); };
     uint32_t type_id() const { return uint32_t(_info.type_id); };
 
     NodeFlags &flags() { return _flags; };
+    const NodeFlags &flags() const { return _flags; };
 
     void sort_inputs_if_needed() {
         if (_flags.inputs_unsorted()) {
@@ -164,18 +165,18 @@ class Node {
         }
     }
 
-    void *get_self(const AttributeType &type); // TODO: inline
+    void *get_self(const AttributeType &type) const; // TODO: inline
     void update_self(const Graph &graph, void *new_self);
     void destroy_self(const Graph &graph);
 
-    void *get_value();
+    void *get_value() const;
     void allocate_value(Graph &graph, data::zone &zone);
     void destroy_value(Graph &graph);
 
     void destroy(Graph &graph);
 
-    data::vector<InputEdge> inputs() { return _inputs; };
-    data::vector<OutputEdge> outputs() { return _outputs; };
+    data::vector<InputEdge> inputs() const { return _inputs; };
+    data::vector<OutputEdge> outputs() const { return _outputs; };
 };
 
 static_assert(sizeof(Node) == 0x1c);

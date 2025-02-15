@@ -54,6 +54,8 @@ class Graph {
     class TraceRecorder;
     class UpdateStack;
     class UpdateStackRef;
+    class ProfileData;
+    class ProfileTrace;
 
     enum SearchOptions : uint32_t {
         SearchInputs = 1 << 0,
@@ -121,6 +123,9 @@ class Graph {
     size_t _num_node_value_bytes = 0;
 
     // Profile
+    bool _is_profiling;
+    std::unique_ptr<ProfileData> _profile_data;
+    ProfileTrace *_Nullable _profile_trace;
 
     // Trace
     TraceRecorder *_trace_recorder;
@@ -329,7 +334,7 @@ class Graph {
     // MARK: Intern
 
     uint32_t intern_key(const char *key);
-    const char *key_name(uint32_t key_id);
+    const char *key_name(uint32_t key_id) const;
 
     uint32_t intern_type(swift::metadata *metadata, ClosureFunctionVP<void *> make_type);
 
@@ -342,12 +347,21 @@ class Graph {
 
     // MARK: Tracing
 
+    enum TraceFlags: uint32_t {
+        Enabled = 1 << 0,
+        Full = 1 << 1,
+        Backtrace = 1 << 2,
+        Prepare = 1 << 3,
+        Custom = 1 << 4, // skip updates
+        All = 1 << 5,
+    };
+
     void prepare_trace(Trace &trace);
 
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    void start_tracing(uint8_t options, std::span<const char *> subsystems);
+    void start_tracing(uint32_t flags, std::span<const char *> subsystems);
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();
@@ -369,17 +383,19 @@ class Graph {
 
     // MARK: Profile
 
-    void begin_profile_event(data::ptr<Node> node, const char *event_name);
+    bool is_profiling() const { return _is_profiling; };
+
+    uint64_t begin_profile_event(data::ptr<Node> node, const char *event_name);
     void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t arg1, bool arg2);
 
     void add_profile_update(data::ptr<Node> node, uint64_t arg2, bool arg3);
 
-    void start_profiling(uint32_t arg);
+    void start_profiling(uint32_t options);
     void stop_profiling();
-    void mark_profile(uint32_t arg1, uint64_t arg2);
+    void mark_profile(uint32_t event_id, uint64_t time);
     void reset_profile();
 
-    static void all_start_profiling(uint32_t arg);
+    static void all_start_profiling(uint32_t options);
     static void all_stop_profiling();
     static void all_mark_profile(const char *event_name);
     static void all_reset_profile();

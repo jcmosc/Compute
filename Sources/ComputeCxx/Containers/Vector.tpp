@@ -383,9 +383,9 @@ void vector<T, 0, size_type>::resize(size_type count, const value_type &value) {
 
 #pragma mark - Specialization for unique_ptr
 
-template <typename T, typename size_type>
+template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
-vector<std::unique_ptr<T>, 0, size_type>::~vector() {
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::~vector() {
     for (auto i = 0; i < _size; i++) {
         _buffer[i].reset();
     }
@@ -394,9 +394,9 @@ vector<std::unique_ptr<T>, 0, size_type>::~vector() {
     }
 }
 
-template <typename T, typename size_type>
+template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
-void vector<std::unique_ptr<T>, 0, size_type>::push_back(std::unique_ptr<T> &&value) {
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::unique_ptr<T, deleter_type> &&value) {
     reserve(_size + 1);
     new (&_buffer[_size]) value_type(std::move(value));
     _size += 1;

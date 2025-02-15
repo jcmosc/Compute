@@ -156,7 +156,7 @@ class vector<T, 0, _size_type> {
     // Modifiers
 
     void clear();
-    
+
     iterator insert(const_iterator pos, const T &value);
     iterator insert(const_iterator pos, T &&value);
 
@@ -173,11 +173,11 @@ class vector<T, 0, _size_type> {
 
 // MARK: Specialization for unique_ptr
 
-template <typename T, typename _size_type>
+template <typename T, typename deleter_type, typename _size_type>
     requires std::unsigned_integral<_size_type>
-class vector<std::unique_ptr<T>, 0, _size_type> {
+class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
   public:
-    using value_type = std::unique_ptr<T>;
+    using value_type = std::unique_ptr<T, deleter_type>;
     using reference = value_type &;
     using const_reference = const value_type &;
     using iterator = value_type *_Nonnull;
@@ -187,7 +187,7 @@ class vector<std::unique_ptr<T>, 0, _size_type> {
     using size_type = _size_type;
 
   private:
-    std::unique_ptr<T> *_Nullable _buffer = nullptr;
+    std::unique_ptr<T, deleter_type> *_Nonnull _buffer = nullptr;
     size_type _size = 0;
     size_type _capacity = 0;
 
@@ -206,8 +206,8 @@ class vector<std::unique_ptr<T>, 0, _size_type> {
     reference back() { return *&data()[_size - 1]; };
     const_reference back() const { return *&data()[_size - 1]; };
 
-    std::unique_ptr<T> *_Nonnull data() { return _buffer; };
-    const std::unique_ptr<T> *_Nonnull data() const { return _buffer; };
+    std::unique_ptr<T, deleter_type> *_Nonnull data() { return _buffer; };
+    const std::unique_ptr<T, deleter_type> *_Nonnull data() const { return _buffer; };
 
     // Iterators
 
@@ -236,12 +236,12 @@ class vector<std::unique_ptr<T>, 0, _size_type> {
     // Modifiers
 
     void clear();
-    
-    iterator insert(const_iterator pos, const T &value);
-    iterator insert(const_iterator pos, T &&value);
 
-    void push_back(const std::unique_ptr<T> &value) = delete;
-    void push_back(std::unique_ptr<T> &&value);
+    iterator insert(const_iterator pos, const std::unique_ptr<T, deleter_type> &value);
+    iterator insert(const_iterator pos, std::unique_ptr<T, deleter_type> &&value);
+
+    void push_back(const std::unique_ptr<T, deleter_type> &value) = delete;
+    void push_back(std::unique_ptr<T, deleter_type> &&value);
     void pop_back();
 
     void resize(size_type count);

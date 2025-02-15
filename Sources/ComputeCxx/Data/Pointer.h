@@ -76,4 +76,14 @@ template <typename T> class ptr {
 } // namespace data
 } // namespace AG
 
+namespace std {
+
+// TODO: see if there's another way to synthesize this
+template <typename T> class hash<AG::data::ptr<T>> {
+  public:
+    std::uint64_t operator()(const AG::data::ptr<T> &pointer) const { return pointer.offset(); }
+};
+
+} // namespace std
+
 CF_ASSUME_NONNULL_END

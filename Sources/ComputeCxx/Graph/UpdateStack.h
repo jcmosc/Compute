@@ -38,7 +38,7 @@ class Graph::UpdateStack {
     UpdateStack(Graph *graph, uint8_t options);
     ~UpdateStack();
 
-    Graph *graph() { return _graph; };
+    Graph *graph() const { return _graph; };
     TaggedPointer<UpdateStack> previous() { return _previous; };
 
     vector<Frame, 8, uint64_t> &frames() { return _frames; };

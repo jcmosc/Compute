@@ -1,9 +1,11 @@
 #include "Graph.h"
 
+#include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFString.h>
 #include <mach/mach_time.h>
 #include <os/log.h>
 #include <set>
+#include <tuple>
 #include <wchar.h>
 
 #include "Attribute/AttributeType.h"
@@ -12,15 +14,20 @@
 #include "Attribute/OffsetAttributeID.h"
 #include "Attribute/WeakAttributeID.h"
 #include "Context.h"
+#include "Debug/DebugServer.h"
 #include "Errors/Errors.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
+#include "Profile/AGAppObserver.h"
+#include "Profile/ProfileData.h"
+#include "Profile/ProfileTrace.h"
 #include "Subgraph/Subgraph.h"
 #include "Swift/Metadata.h"
 #include "Trace/Trace.h"
 #include "TraceRecorder.h"
 #include "Tree/TreeElement.h"
 #include "UpdateStack.h"
+#include "Utilities/FreeDeleter.h"
 #include "Utilities/List.h"
 
 namespace AG {
@@ -53,7 +60,73 @@ Graph::Graph()
 
     _types.push_back(nullptr); // AGAttributeNullType
 
-    // TODO: debug server, trace, profile
+    static auto [profiler_flags, trace_flags, trace_subsystems] =
+        []() -> std::tuple<uint32_t, uint32_t, vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>> {
+        const char *debug_server = getenv("AG_DEBUG_SERVER");
+        if (debug_server) {
+            uint32_t port = (uint32_t)strtol(debug_server, nullptr, 0);
+            DebugServer::start(port);
+        }
+
+        uint32_t profiler_flags = false;
+        const char *profile_string = getenv("AG_PROFILE");
+        if (profile_string) {
+            profiler_flags = atoi(profile_string) != 0;
+        }
+
+        vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> trace_subsystems = {};
+
+        uint32_t trace_flags = 0;
+        const char *trace_string = getenv("AG_TRACE");
+        if (trace_string) {
+            char *endptr = nullptr;
+            trace_flags = (uint32_t)strtol(trace_string, &endptr, 0);
+
+            if (endptr) {
+                const char *c = endptr + strspn(endptr, ", \t\n\f\r");
+                while (c) {
+                    size_t option_length = strcspn(c, ", \t\n\f\r");
+
+                    char *option = (char *)malloc(option_length + 1);
+                    memcpy(option, c, option_length);
+                    option[option_length] = 0;
+
+                    if (strcasecmp(option, "enabled") == 0) {
+                        trace_flags |= TraceFlags::Enabled;
+                        free(option);
+                    } else if (strcasecmp(option, "full") == 0) {
+                        trace_flags |= TraceFlags::Full;
+                        free(option);
+                    } else if (strcasecmp(option, "backtrace") == 0) {
+                        trace_flags |= TraceFlags::Backtrace;
+                        free(option);
+                    } else if (strcasecmp(option, "prepare") == 0) {
+                        trace_flags |= TraceFlags::Prepare;
+                        free(option);
+                    } else if (strcasecmp(option, "custom") == 0) {
+                        trace_flags |= TraceFlags::Custom;
+                        free(option);
+                    } else if (strcasecmp(option, "all") == 0) {
+                        trace_flags |= TraceFlags::All;
+                        free(option);
+                    } else {
+                        trace_subsystems.push_back(std::unique_ptr<const char, util::free_deleter>(option));
+                    }
+
+                    c += strspn(c + option_length, ", \t\n\f\r");
+                }
+            }
+        }
+
+        return {profiler_flags, trace_flags, trace_subsystems};
+    }();
+
+    if (trace_flags && !trace_subsystems.empty()) {
+        start_tracing(trace_flags, std::span((const char **)trace_subsystems.data(), trace_subsystems.size()));
+    }
+    if (profiler_flags) {
+        start_profiling(profiler_flags);
+    }
 
     all_lock();
     _next = _all_graphs;
@@ -550,9 +623,9 @@ void Graph::remove_node(data::ptr<Node> node) {
         this->remove_removed_output(node, output_edge.value, false);
     }
 
-    // if (_profile_data != nullptr) {
-    //   TODO: _profile_data->remove_node();
-    // }
+    if (_profile_data != nullptr) {
+        _profile_data->remove_node(node, node->type_id());
+    }
 }
 
 bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
@@ -1773,7 +1846,7 @@ uint32_t Graph::intern_key(const char *key) {
     return key_id;
 }
 
-const char *Graph::key_name(uint32_t key_id) {
+const char *Graph::key_name(uint32_t key_id) const {
     if (_keys != nullptr && key_id < _keys->size()) {
         return _keys->get(key_id);
     }
@@ -2002,8 +2075,8 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
             tree_data_element->second.sort_nodes();
 
             auto nodes = tree_data_element->second.nodes();
-            std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found = std::find_if(
-                nodes.begin(), nodes.end(), [&tree](auto node) { return node.first == tree; });
+            std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found =
+                std::find_if(nodes.begin(), nodes.end(), [&tree](auto node) { return node.first == tree; });
 
             for (auto node = found; node != nodes.end(); ++node) {
                 if (node->first != tree) {
@@ -2140,10 +2213,10 @@ void Graph::remove_trace(uint64_t trace_id) {
     _traces.erase(iter);
 }
 
-void Graph::start_tracing(uint8_t options, std::span<const char *> subsystems) {
-    if (options & TraceRecorder::Options::CreateIfNeeded && _trace_recorder == nullptr) {
-        _trace_recorder = new TraceRecorder(this, options, subsystems);
-        if (options & TraceRecorder::Options::PrepareTrace) {
+void Graph::start_tracing(uint32_t flags, std::span<const char *> subsystems) {
+    if (flags & TraceFlags::Enabled && _trace_recorder == nullptr) {
+        _trace_recorder = new TraceRecorder(this, flags, subsystems);
+        if (flags & TraceFlags::Prepare) {
             prepare_trace(*_trace_recorder);
         }
         add_trace(_trace_recorder);
@@ -2223,6 +2296,128 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
     }
 
     va_end(args);
+}
+
+#pragma mark - Profile
+
+uint64_t Graph::begin_profile_event(data::ptr<Node> node, const char *event_name) {
+    foreach_trace([this, &node, &event_name](Trace &trace) { trace.begin_event(node, intern_key(event_name)); });
+    if (_is_profiling) {
+        return mach_absolute_time();
+    }
+    return 0;
+}
+
+void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool flag) {
+    auto event_id = intern_key(event_name);
+    if (_is_profiling) {
+        if (_profile_data == nullptr) {
+            _profile_data.reset(new ProfileData(this));
+        }
+
+        auto end_time = mach_absolute_time();
+        uint64_t duration = 0;
+        if (end_time - start_time >= _profile_data->precision()) {
+            duration = end_time - start_time - _profile_data->precision();
+        }
+
+        auto category = _profile_data.get()->categories().try_emplace(event_id).first->second;
+        category.add_update(node, duration, flag);
+
+        _profile_data->set_has_unmarked_categories(true);
+    }
+    foreach_trace([&node, &event_id](Trace &trace) { trace.end_event(node, event_id); });
+}
+
+void Graph::add_profile_update(data::ptr<Node> node, uint64_t time, bool option) {
+    if (_is_profiling) {
+        if (_profile_data == nullptr) {
+            _profile_data.reset(new ProfileData(this));
+        }
+
+        uint64_t effective_time = 0;
+        if (time > _profile_data->precision()) {
+            effective_time = time - _profile_data->precision();
+        }
+        _profile_data->current_category().add_update(node, effective_time, option);
+        _profile_data->set_has_unmarked_categories(true);
+    }
+}
+
+void Graph::start_profiling(uint32_t options) {
+    _is_profiling = options & 1;
+    if ((options >> 1) & 1) {
+        AGAppObserverStartObserving();
+
+        CFRunLoopRef run_loop = CFRunLoopGetMain();
+        if (run_loop) {
+            CFRunLoopObserverRef observer = CFRunLoopObserverCreate(
+                0, kCFRunLoopBeforeWaiting | kCFRunLoopExit, true, 2500000,
+                [](CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info) {
+                    all_mark_profile("app/runloop");
+                },
+                nullptr);
+            if (observer) {
+                CFRunLoopAddObserver(run_loop, observer, kCFRunLoopCommonModes); // TODO: check mode
+            }
+        }
+    }
+    if (_is_profiling && _profile_trace == nullptr) {
+        _profile_trace = new ProfileTrace();
+        add_trace(_profile_trace);
+    }
+}
+
+void Graph::stop_profiling() {
+    if (_profile_trace) {
+        remove_trace(_profile_trace->trace_id());
+        _profile_trace = nullptr;
+    }
+    _is_profiling = false;
+}
+
+void Graph::mark_profile(uint32_t event_id, uint64_t time) {
+    foreach_trace([this, &event_id](Trace &trace) { trace.mark_profile(*this, event_id); });
+
+    if (_profile_data) {
+        _profile_data->mark(event_id, time);
+    }
+}
+
+void Graph::reset_profile() { _profile_data.reset(); }
+
+void Graph::all_start_profiling(uint32_t options) {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->start_profiling(options);
+    }
+    all_unlock();
+}
+
+void Graph::all_stop_profiling() {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->stop_profiling();
+    }
+    all_unlock();
+}
+
+void Graph::all_mark_profile(const char *event_name) {
+    uint64_t time = mach_absolute_time();
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        auto event_id = graph->intern_key(event_name);
+        graph->mark_profile(event_id, time);
+    }
+    all_unlock();
+}
+
+void Graph::all_reset_profile() {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->reset_profile();
+    }
+    all_unlock();
 }
 
 #pragma mark - Printing

@@ -171,7 +171,7 @@ void Graph::TraceRecorder::encode_stack() {
 }
 
 void Graph::TraceRecorder::encode_snapshot() {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -215,7 +215,7 @@ void Graph::TraceRecorder::field_timestamp(Encoder &encoder) {
 }
 
 void Graph::TraceRecorder::field_backtrace(Encoder &encoder, uint64_t field_number) {
-    if ((_options & Options::RecordBacktrace) == 0) {
+    if ((_options & TraceFlags::Backtrace) == 0) {
         return;
     }
 
@@ -436,7 +436,7 @@ void Graph::TraceRecorder::log_message_v(const char *format, va_list args) {
 }
 
 void Graph::TraceRecorder::begin_update(const Subgraph &subgraph, uint32_t options) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -460,7 +460,7 @@ void Graph::TraceRecorder::begin_update(const Subgraph &subgraph, uint32_t optio
 }
 
 void Graph::TraceRecorder::end_update(const Subgraph &subgraph) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -481,7 +481,7 @@ void Graph::TraceRecorder::end_update(const Subgraph &subgraph) {
 
 void Graph::TraceRecorder::begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
                                         uint32_t options) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -505,7 +505,7 @@ void Graph::TraceRecorder::begin_update(const Graph::UpdateStack &update_stack, 
 
 void Graph::TraceRecorder::end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
                                       Graph::UpdateStatus update_status) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -528,7 +528,7 @@ void Graph::TraceRecorder::end_update(const Graph::UpdateStack &update_stack, da
 }
 
 void Graph::TraceRecorder::begin_update(data::ptr<Node> node) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -547,7 +547,7 @@ void Graph::TraceRecorder::begin_update(data::ptr<Node> node) {
 }
 
 void Graph::TraceRecorder::end_update(data::ptr<Node> node, bool changed) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -570,7 +570,7 @@ void Graph::TraceRecorder::end_update(data::ptr<Node> node, bool changed) {
 }
 
 void Graph::TraceRecorder::begin_update(const Graph::Context &context) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -589,7 +589,7 @@ void Graph::TraceRecorder::begin_update(const Graph::Context &context) {
 }
 
 void Graph::TraceRecorder::end_update(const Graph::Context &context) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -608,10 +608,10 @@ void Graph::TraceRecorder::end_update(const Graph::Context &context) {
 }
 
 void Graph::TraceRecorder::begin_invalidation(const Graph::Context &context, AttributeID attribute) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -634,10 +634,10 @@ void Graph::TraceRecorder::begin_invalidation(const Graph::Context &context, Att
 }
 
 void Graph::TraceRecorder::end_invalidation(const Graph::Context &context, AttributeID attribute) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -660,10 +660,10 @@ void Graph::TraceRecorder::end_invalidation(const Graph::Context &context, Attri
 }
 
 void Graph::TraceRecorder::begin_modify(data::ptr<Node> node) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -682,10 +682,10 @@ void Graph::TraceRecorder::begin_modify(data::ptr<Node> node) {
 }
 
 void Graph::TraceRecorder::end_modify(data::ptr<Node> node) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -695,7 +695,7 @@ void Graph::TraceRecorder::end_modify(data::ptr<Node> node) {
     _encoder.encode_varint(0xe);
     field_timestamp(_encoder);
 
-    if (node || _options & Options::SkipUpdates) {
+    if (node || _options & TraceFlags::Custom) {
         _encoder.encode_varint(0x18);
         _encoder.encode_varint(1);
     }
@@ -704,7 +704,7 @@ void Graph::TraceRecorder::end_modify(data::ptr<Node> node) {
 }
 
 void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -727,7 +727,7 @@ void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event) {
 }
 
 void Graph::TraceRecorder::end_event(data::ptr<Node> node, uint32_t event) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -750,7 +750,7 @@ void Graph::TraceRecorder::end_event(data::ptr<Node> node, uint32_t event) {
 }
 
 void Graph::TraceRecorder::created(const Graph::Context &context) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -770,7 +770,7 @@ void Graph::TraceRecorder::created(const Graph::Context &context) {
 }
 
 void Graph::TraceRecorder::destroy(const Graph::Context &context) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -790,10 +790,10 @@ void Graph::TraceRecorder::destroy(const Graph::Context &context) {
 }
 
 void Graph::TraceRecorder::needs_update(const Graph::Context &context) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -811,7 +811,7 @@ void Graph::TraceRecorder::needs_update(const Graph::Context &context) {
 }
 
 void Graph::TraceRecorder::created(const Subgraph &subgraph) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -836,7 +836,7 @@ void Graph::TraceRecorder::created(const Subgraph &subgraph) {
 }
 
 void Graph::TraceRecorder::invalidate(const Subgraph &subgraph) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -862,7 +862,7 @@ void Graph::TraceRecorder::invalidate(const Subgraph &subgraph) {
 }
 
 void Graph::TraceRecorder::destroy(const Subgraph &subgraph) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -883,7 +883,7 @@ void Graph::TraceRecorder::destroy(const Subgraph &subgraph) {
 }
 
 void Graph::TraceRecorder::add_child(const Subgraph &subgraph, const Subgraph &child) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -907,7 +907,7 @@ void Graph::TraceRecorder::add_child(const Subgraph &subgraph, const Subgraph &c
 }
 
 void Graph::TraceRecorder::remove_child(const Subgraph &subgraph, const Subgraph &child) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -931,7 +931,7 @@ void Graph::TraceRecorder::remove_child(const Subgraph &subgraph, const Subgraph
 }
 
 void Graph::TraceRecorder::added(data::ptr<Node> node) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -961,7 +961,7 @@ void Graph::TraceRecorder::added(data::ptr<Node> node) {
 }
 
 void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -985,7 +985,7 @@ void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, uin
 }
 
 void Graph::TraceRecorder::remove_edge(data::ptr<Node> node, uint32_t input_index) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -1010,10 +1010,10 @@ void Graph::TraceRecorder::remove_edge(data::ptr<Node> node, uint32_t input_inde
 }
 
 void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -1040,10 +1040,10 @@ void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node, uint32_t input
 }
 
 void Graph::TraceRecorder::set_dirty(data::ptr<Node> node, bool dirty) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -1065,10 +1065,10 @@ void Graph::TraceRecorder::set_dirty(data::ptr<Node> node, bool dirty) {
 }
 
 void Graph::TraceRecorder::set_pending(data::ptr<Node> node, bool pending) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -1090,10 +1090,10 @@ void Graph::TraceRecorder::set_pending(data::ptr<Node> node, bool pending) {
 }
 
 void Graph::TraceRecorder::set_value(data::ptr<Node> node, const void *value) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -1111,10 +1111,10 @@ void Graph::TraceRecorder::set_value(data::ptr<Node> node, const void *value) {
 }
 
 void Graph::TraceRecorder::mark_value(data::ptr<Node> node) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
-    if ((_options & Options::RecordInvalidations) == 0) {
+    if ((_options & TraceFlags::Full) == 0) {
         return;
     }
 
@@ -1132,7 +1132,7 @@ void Graph::TraceRecorder::mark_value(data::ptr<Node> node) {
 }
 
 void Graph::TraceRecorder::added(data::ptr<IndirectNode> indirect_node) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -1157,7 +1157,7 @@ void Graph::TraceRecorder::added(data::ptr<IndirectNode> indirect_node) {
 }
 
 void Graph::TraceRecorder::set_source(data::ptr<IndirectNode> indirect_node, AttributeID source) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -1185,7 +1185,7 @@ void Graph::TraceRecorder::set_source(data::ptr<IndirectNode> indirect_node, Att
 }
 
 void Graph::TraceRecorder::set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -1208,7 +1208,7 @@ void Graph::TraceRecorder::set_dependency(data::ptr<IndirectNode> indirect_node,
 }
 
 void Graph::TraceRecorder::set_deadline(uint64_t deadline) {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -1234,7 +1234,7 @@ void Graph::TraceRecorder::set_deadline(uint64_t deadline) {
 }
 
 void Graph::TraceRecorder::passed_deadline() {
-    if (_options & Options::SkipUpdates) {
+    if (_options & TraceFlags::Custom) {
         return;
     }
 
@@ -1357,10 +1357,10 @@ bool Graph::TraceRecorder::named_event_enabled(uint32_t event_id) {
     const char *event_subsystem = AGGraphGetTraceEventSubsystem(event_id);
 
     bool enabled = false;
-    if (event_subsystem == nullptr || (_options & Options::Subsystem)) {
+    if (event_subsystem == nullptr || (_options & TraceFlags::All)) {
         enabled = true;
     } else {
-        enabled = (_options & Options::Subsystem) != 0;
+        enabled = (_options & TraceFlags::All) != 0;
         for (auto stored_subsystem : _named_event_subsystems) {
             if (!strcasecmp(stored_subsystem, event_subsystem)) {
                 enabled = true;

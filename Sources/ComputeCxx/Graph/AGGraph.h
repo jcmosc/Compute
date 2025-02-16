@@ -15,6 +15,8 @@ void AGGraphCreate();
 
 void AGGraphSetOutputValue(void *value, AGTypeID type);
 
+void AGGraphArchiveJSON(const char *filename);
+
 CF_EXTERN_C_END
 
 CF_ASSUME_NONNULL_END

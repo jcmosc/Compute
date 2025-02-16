@@ -2420,30 +2420,4 @@ void Graph::all_reset_profile() {
     all_unlock();
 }
 
-#pragma mark - Printing
-
-void Graph::print() {
-    // TODO: not implemented
-}
-
-void Graph::print_attribute(data::ptr<Node> node) {
-    // TODO: not implemented
-}
-
-void Graph::print_cycle(data::ptr<Node> node) {
-    // TODO: not implemented
-}
-
-void Graph::print_data() {
-    data::table::shared().print();
-    data::zone::print_header();
-    for (auto subgraph : _subgraphs) {
-        subgraph->data::zone::print(); // TODO: make first field..
-    }
-}
-
-void Graph::print_stack() {
-    // TODO: not implemented
-}
-
 } // namespace AG

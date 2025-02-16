@@ -128,6 +128,9 @@ class Node {
 
         bool is_updating() { return _data & (Updating | UpdatingCyclic); }
         bool is_updating_cyclic() { return (_data & (Updating | UpdatingCyclic)) == (Updating | UpdatingCyclic); }
+        uint8_t update_count() const {
+            return _data >> 6;
+        }
     };
 
   private:

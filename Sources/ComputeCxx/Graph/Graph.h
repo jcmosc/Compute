@@ -348,7 +348,7 @@ class Graph {
 
     // MARK: Tracing
 
-    enum TraceFlags: uint32_t {
+    enum TraceFlags : uint32_t {
         Enabled = 1 << 0,
         Full = 1 << 1,
         Backtrace = 1 << 2,
@@ -401,12 +401,23 @@ class Graph {
     static void all_mark_profile(const char *event_name);
     static void all_reset_profile();
 
+    // MARK: Printing
+
+    void print();
+    void print_attribute(data::ptr<Node> node);
+
+    void print_cycle(data::ptr<Node> node);
+
+    void print_data();
+    static void print_stack();
+
     // MARK: Description
 
-    void description(CFDictionaryRef options);
-    void description(data::ptr<Node> node);
+    CFStringRef description_graph_dot(CFDictionaryRef _Nullable dict);
+    CFStringRef description(data::ptr<Node> node);
 
-    char *description_graph_dot(CFDictionaryRef options);
+    CFStringRef description(CFDictionaryRef options);
+
     char *description_stack(CFDictionaryRef options);
     char *description_stack_frame(CFDictionaryRef options);
     char *description_stack_nodes(CFDictionaryRef options);
@@ -414,16 +425,6 @@ class Graph {
     vector<char *, 0, uint64_t> description_graph(CFDictionaryRef options);
 
     void write_to_file(const char *_Nullable filename, uint32_t arg);
-
-    // MARK: Printing
-
-    void print();
-
-    void print_attribute(data::ptr<Node> node);
-    void print_cycle(data::ptr<Node> node);
-
-    void print_data();
-    static void print_stack();
 };
 
 } // namespace AG

@@ -2329,17 +2329,17 @@ void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint
     foreach_trace([&node, &event_id](Trace &trace) { trace.end_event(node, event_id); });
 }
 
-void Graph::add_profile_update(data::ptr<Node> node, uint64_t time, bool option) {
+void Graph::add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed) {
     if (_is_profiling) {
         if (_profile_data == nullptr) {
             _profile_data.reset(new ProfileData(this));
         }
 
-        uint64_t effective_time = 0;
-        if (time > _profile_data->precision()) {
-            effective_time = time - _profile_data->precision();
+        uint64_t effective_duration = 0;
+        if (duration > _profile_data->precision()) {
+            effective_duration = duration - _profile_data->precision();
         }
-        _profile_data->current_category().add_update(node, effective_time, option);
+        _profile_data->current_category().add_update(node, effective_duration, changed);
         _profile_data->set_has_unmarked_categories(true);
     }
 }

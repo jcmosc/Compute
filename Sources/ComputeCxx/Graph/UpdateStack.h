@@ -39,7 +39,7 @@ class Graph::UpdateStack {
     ~UpdateStack();
 
     Graph *graph() const { return _graph; };
-    TaggedPointer<UpdateStack> previous() { return _previous; };
+    const TaggedPointer<UpdateStack> previous() const { return _previous; };
 
     vector<Frame, 8, uint64_t> &frames() { return _frames; };
 

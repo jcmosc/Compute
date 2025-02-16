@@ -33,6 +33,7 @@ template <typename T> class TaggedPointer {
     TaggedPointer<T> with_tag(bool tag) { return TaggedPointer(get(), tag); };
 
     T *_Nullable get() { return reinterpret_cast<T *>(_value & ~0x1); };
+    const T *_Nullable get() const { return reinterpret_cast<T *>(_value & ~0x1); };
 
     bool operator==(nullptr_t) const noexcept { return _value == 0; };
     bool operator!=(nullptr_t) const noexcept { return _value != 0; };
@@ -388,7 +389,7 @@ class Graph {
     uint64_t begin_profile_event(data::ptr<Node> node, const char *event_name);
     void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t arg1, bool arg2);
 
-    void add_profile_update(data::ptr<Node> node, uint64_t arg2, bool arg3);
+    void add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed);
 
     void start_profiling(uint32_t options);
     void stop_profiling();

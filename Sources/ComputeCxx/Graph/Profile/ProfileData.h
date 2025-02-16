@@ -13,10 +13,10 @@ namespace AG {
 class Graph::ProfileData {
   public:
     struct Data {
-        uint64_t count1;
-        uint64_t count2;
-        uint64_t time1;
-        uint64_t time2;
+        uint64_t count;
+        uint64_t changed_count;
+        uint64_t duration;
+        uint64_t changed_duration;
     };
 
     struct Mark {

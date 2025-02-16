@@ -9,20 +9,20 @@ namespace AG {
 #pragma mark - ProfileData::Item
 
 void Graph::ProfileData::Item::operator+=(const Item &other) {
-    _data.count1 += other._data.count1;
-    _data.count2 += other._data.count2;
-    _data.time1 += other._data.time1;
-    _data.time2 += other._data.time2;
+    _data.count += other._data.count;
+    _data.changed_count += other._data.changed_count;
+    _data.duration += other._data.duration;
+    _data.changed_duration += other._data.changed_duration;
     
     Mark *iter = _marks.begin();
     for (auto other_mark : other._marks) {
         bool merged = false;
         while (iter != _marks.end() && iter->time <= other_mark.time) {
             if (iter == &other_mark) {
-                iter->data.count1 += other_mark.data.count1;
-                iter->data.count2 += other_mark.data.count2;
-                iter->data.time1 += other_mark.data.time1;
-                iter->data.time2 += other_mark.data.time2;
+                iter->data.count += other_mark.data.count;
+                iter->data.changed_count += other_mark.data.changed_count;
+                iter->data.duration += other_mark.data.duration;
+                iter->data.changed_duration += other_mark.data.changed_duration;
                 merged = true;
                 break;
             }
@@ -38,7 +38,7 @@ void Graph::ProfileData::Item::operator+=(const Item &other) {
 }
 
 void Graph::ProfileData::Item::mark(uint32_t event_id, uint64_t time) {
-    if (_data.count1) {
+    if (_data.count) {
         _marks.push_back({
             event_id,
             time,
@@ -50,21 +50,21 @@ void Graph::ProfileData::Item::mark(uint32_t event_id, uint64_t time) {
 
 #pragma mark - ProfileData::Category
 
-void Graph::ProfileData::Category::add_update(data::ptr<Node> node, uint64_t time, bool flag) {
-    data().count1 += 1;
-    data().time1 += time;
-    if (flag) {
-        data().count2 += 1;
-        data().time2 += time;
+void Graph::ProfileData::Category::add_update(data::ptr<Node> node, uint64_t duration, bool changed) {
+    data().count += 1;
+    data().duration += duration;
+    if (changed) {
+        data().changed_count += 1;
+        data().changed_duration += duration;
     }
     
     Item &item = _items_by_attribute.try_emplace(node).first->second;
     
-    item.data().count1 += 1;
-    item.data().time1 += time;
-    if (flag) {
-        item.data().count2 += 1;
-        item.data().time2 += time;
+    item.data().count += 1;
+    item.data().duration += duration;
+    if (changed) {
+        item.data().changed_count += 1;
+        item.data().changed_duration += duration;
     }
 }
 

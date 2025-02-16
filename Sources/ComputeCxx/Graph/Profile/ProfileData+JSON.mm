@@ -11,29 +11,29 @@ namespace AG {
 CFDictionaryRef Graph::ProfileData::json_data(const Data &data) {
     // TODO: figure out real keys
     NSMutableDictionary *dict = nil;
-    if (data.count1) {
+    if (data.count) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"count1"] = [NSNumber numberWithUnsignedLong:data.count1];
+        dict[@"count1"] = [NSNumber numberWithUnsignedLong:data.count];
     }
-    if (data.count2) {
+    if (data.changed_count) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"count2"] = [NSNumber numberWithUnsignedLong:data.count2];
+        dict[@"count2"] = [NSNumber numberWithUnsignedLong:data.changed_count];
     }
-    if (data.time1) {
+    if (data.duration) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"time1"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.time1)];
+        dict[@"time1"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.duration)];
     }
-    if (data.time2) {
+    if (data.changed_duration) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"time2"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.time2)];
+        dict[@"time2"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.changed_duration)];
     }
     return (__bridge CFDictionaryRef)dict;
 }

@@ -14,10 +14,12 @@ namespace AG {
 class Graph::ProfileTrace : public Trace {
   private:
     struct UpdateData {
-        int x;
+        uint64_t start_time;
+        uint64_t child_update_stack_duration;
+        uint64_t update_node_start_time;
     };
 
-    std::unordered_map<Graph::UpdateStack *, UpdateData> _map;
+    std::unordered_map<const Graph::UpdateStack *, UpdateData> _map;
 
   public:
     ~ProfileTrace();

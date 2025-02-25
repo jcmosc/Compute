@@ -64,12 +64,12 @@ void Graph::print_stack() {
     auto update = current_update();
     if (update != 0) {
         uint32_t update_stack_count = 0;
-        for (TaggedPointer<Graph::UpdateStack> update_stack = update; update_stack != nullptr;
+        for (util::tagged_ptr<Graph::UpdateStack> update_stack = update; update_stack != nullptr;
              update_stack = update_stack.get()->previous()) {
             update_stack_count += 1;
         }
         uint32_t update_stack_index = update_stack_count - 1;
-        for (TaggedPointer<Graph::UpdateStack> update_stack = update; update_stack != nullptr;
+        for (util::tagged_ptr<Graph::UpdateStack> update_stack = update; update_stack != nullptr;
              update_stack = update_stack.get()->previous()) {
 
             for (auto frame_index = update_stack.get()->frames().size() - 1; frame_index >= 0; --frame_index) {

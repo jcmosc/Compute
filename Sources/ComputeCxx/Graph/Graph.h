@@ -12,33 +12,13 @@
 #include "Closure/ClosureFunction.h"
 #include "Utilities/HashTable.h"
 #include "Utilities/Heap.h"
+#include "Utilities/TaggedPointer.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
 typedef uint8_t AGValueState; // TODO: move
 
 namespace AG {
-
-// TODO: move somewhere else
-template <typename T> class TaggedPointer {
-  private:
-    uintptr_t _value;
-
-  public:
-    TaggedPointer() : _value(0){};
-    TaggedPointer(T *_Nullable value) : _value((uintptr_t)value){};
-    TaggedPointer(T *_Nullable value, bool tag) : _value(((uintptr_t)value & ~0x1) | (tag ? 1 : 0)){};
-
-    uintptr_t value() { return _value; };
-    bool tag() { return static_cast<bool>(_value & 0x1); };
-    TaggedPointer<T> with_tag(bool tag) { return TaggedPointer(get(), tag); };
-
-    T *_Nullable get() { return reinterpret_cast<T *>(_value & ~0x1); };
-    const T *_Nullable get() const { return reinterpret_cast<T *>(_value & ~0x1); };
-
-    bool operator==(nullptr_t) const noexcept { return _value == 0; };
-    bool operator!=(nullptr_t) const noexcept { return _value != 0; };
-};
 
 namespace swift {
 class metadata;
@@ -194,8 +174,8 @@ class Graph {
 
     // MARK: Updates
 
-    static TaggedPointer<UpdateStack> current_update();
-    static void set_current_update(TaggedPointer<UpdateStack> current_update);
+    static util::tagged_ptr<UpdateStack> current_update();
+    static void set_current_update(util::tagged_ptr<UpdateStack> current_update);
 
     bool thread_is_updating();
 

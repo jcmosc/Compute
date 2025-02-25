@@ -279,11 +279,11 @@ void Graph::invalidate_subgraphs() {
 
 #pragma mark - Updates
 
-TaggedPointer<Graph::UpdateStack> Graph::current_update() {
-    return TaggedPointer<UpdateStack>((UpdateStack *)pthread_getspecific(_current_update_key));
+util::tagged_ptr<Graph::UpdateStack> Graph::current_update() {
+    return util::tagged_ptr<UpdateStack>((UpdateStack *)pthread_getspecific(_current_update_key));
 }
 
-void Graph::set_current_update(TaggedPointer<UpdateStack> current_update) {
+void Graph::set_current_update(util::tagged_ptr<UpdateStack> current_update) {
     pthread_setspecific(_current_update_key, (void *)current_update.value());
 }
 
@@ -536,7 +536,7 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
             std::pair<UpdateStack *, UpdateStatus> context = {&update_stack, UpdateStatus::NeedsCallMainHandler};
             call_main_handler(&context, [](void *void_context) {
                 auto inner_context = reinterpret_cast<std::pair<UpdateStack *, uint32_t> *>(void_context);
-                TaggedPointer<UpdateStack> previous = Graph::current_update();
+                util::tagged_ptr<UpdateStack> previous = Graph::current_update();
                 inner_context->second = inner_context->first->update();
                 Graph::set_current_update(previous);
             });

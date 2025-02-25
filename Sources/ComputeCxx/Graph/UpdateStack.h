@@ -27,7 +27,7 @@ class Graph::UpdateStack {
 
     Graph *_graph;
     pthread_t _thread;
-    TaggedPointer<UpdateStack> _previous;
+    util::tagged_ptr<UpdateStack> _previous;
     pthread_t _previous_thread;
     vector<Frame, 8, uint64_t> _frames;
     uint8_t _options;
@@ -39,7 +39,7 @@ class Graph::UpdateStack {
     ~UpdateStack();
 
     Graph *graph() const { return _graph; };
-    const TaggedPointer<UpdateStack> previous() const { return _previous; };
+    const util::tagged_ptr<UpdateStack> previous() const { return _previous; };
 
     vector<Frame, 8, uint64_t> &frames() { return _frames; };
 

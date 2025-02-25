@@ -28,7 +28,7 @@ Graph::UpdateStack::UpdateStack(Graph *graph, uint8_t options) {
         _options &= Option::InvalidateSubgraphs;
     }
 
-    Graph::set_current_update(TaggedPointer<UpdateStack>(this, options & Option::SetTag ? 1 : 0));
+    Graph::set_current_update(util::tagged_ptr<UpdateStack>(this, options & Option::SetTag ? 1 : 0));
 }
 
 Graph::UpdateStack::~UpdateStack() {
@@ -49,7 +49,7 @@ Graph::UpdateStack::~UpdateStack() {
 }
 
 Graph::UpdateStack::Frame *Graph::UpdateStack::global_top() {
-    for (TaggedPointer<Graph::UpdateStack> update_stack = this; update_stack != nullptr;
+    for (util::tagged_ptr<Graph::UpdateStack> update_stack = this; update_stack != nullptr;
          update_stack = update_stack.get()->previous()) {
         if (!update_stack.get()->frames().empty()) {
             return &update_stack.get()->frames().back();
@@ -59,7 +59,7 @@ Graph::UpdateStack::Frame *Graph::UpdateStack::global_top() {
 }
 
 void Graph::UpdateStack::cancel() {
-    for (TaggedPointer<Graph::UpdateStack> update_stack = current_update(); update_stack != nullptr;
+    for (util::tagged_ptr<Graph::UpdateStack> update_stack = current_update(); update_stack != nullptr;
          update_stack = update_stack.get()->previous()) {
         auto frames = update_stack.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
@@ -75,7 +75,7 @@ void Graph::UpdateStack::cancel() {
 }
 
 bool Graph::UpdateStack::cancelled() {
-    for (TaggedPointer<Graph::UpdateStack> update_stack = this; update_stack != nullptr;
+    for (util::tagged_ptr<Graph::UpdateStack> update_stack = this; update_stack != nullptr;
          update_stack = update_stack.get()->previous()) {
         if (!update_stack.get()->frames().empty()) {
             auto last_frame = update_stack.get()->frames().back();

@@ -396,6 +396,24 @@ vector<std::unique_ptr<T, deleter_type>, 0, size_type>::~vector() {
 
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve_slow(size_type new_cap) {
+    size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
+    _buffer = reinterpret_cast<std::unique_ptr<T, deleter_type> *>(
+        details::realloc_vector<size_type, sizeof(std::unique_ptr<T, deleter_type>)>(_buffer, &_capacity,
+                                                                                     effective_new_cap));
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve(size_type new_cap) {
+    if (new_cap <= capacity()) {
+        return;
+    }
+    reserve_slow(new_cap);
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
 void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::unique_ptr<T, deleter_type> &&value) {
     reserve(_size + 1);
     new (&_buffer[_size]) value_type(std::move(value));

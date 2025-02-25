@@ -22,8 +22,6 @@ class Graph::ProfileTrace : public Trace {
     std::unordered_map<const Graph::UpdateStack *, UpdateData> _map;
 
   public:
-    ~ProfileTrace();
-
     void begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options);
     void end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, Graph::UpdateStatus update_status);
     void begin_update(data::ptr<Node> node);

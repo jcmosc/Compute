@@ -11,7 +11,7 @@ namespace AG {
 class Encoder {
   public:
     struct Delegate {
-        virtual int flush_encoder(Encoder &encoder);
+        virtual int flush_encoder(Encoder &encoder){};
     };
 
   private:

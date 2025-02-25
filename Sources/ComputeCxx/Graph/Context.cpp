@@ -39,7 +39,7 @@ Graph::Context::~Context() {
     if (_graph->_num_contexts != 1) {
         auto batch = without_invalidating(_graph);
         for (auto subgraph : _graph->subgraphs()) {
-            if (subgraph->graph_context_id() == _unique_id) {
+            if (subgraph->context_id() == _unique_id) {
                 subgraph->invalidate_and_delete_(true);
             }
         }

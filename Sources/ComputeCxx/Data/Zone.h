@@ -17,15 +17,15 @@ class zone {
     class info {
       private:
         enum {
-            zone_id_mask = 0x7fffffff,
+            id_mask = 0x7fffffff,
             deleted = 0x80000000,
         };
         uint32_t _value;
         info(uint32_t value) : _value(value){};
 
       public:
-        uint32_t zone_id() { return _value & zone_id_mask; };
-        info with_zone_id(uint32_t zone_id) const { return info((_value & ~zone_id_mask) | (zone_id & zone_id_mask)); };
+        uint32_t zone_id() const { return _value & id_mask; }; // TODO: id()
+        info with_zone_id(uint32_t zone_id) const { return info((_value & ~id_mask) | (zone_id & id_mask)); };
 
         info with_deleted() const { return info(_value | deleted); };
 

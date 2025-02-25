@@ -2,6 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include "Attribute/Node/Node.h"
 #include "Layout/LayoutDescriptor.h"
 #include "Swift/Metadata.h"
 
@@ -15,12 +16,12 @@ class AttributeType;
 class AttributeVTable {
   public:
     using Callback = void (*)(const AttributeType *attribute_type, void *body);
-    using Callback2 = CFStringRef _Nonnull (*)();
+    using DescriptionCallback = CFStringRef _Nonnull (*)(const AttributeType *attribute_type, void *body);
     Callback _unknown_0x00;
     Callback _unknown_0x08;
     Callback destroy_self;
-    Callback _unknown_0x18;
-    Callback2 _encode_node_callback;
+    DescriptionCallback _self_description;
+    DescriptionCallback _value_description;
     Callback _update_stack_callback; // maybe initialize value
 };
 
@@ -80,13 +81,31 @@ class AttributeType {
 
     // V table methods
     void vt_destroy_self(void *body) {
+        // TODO: does this check _flags or the callback itself?
         if (_flags & Flags::HasDestroySelf) {
             _vtable->destroy_self(this, body);
         }
     }
 
-    AttributeVTable::Callback2 vt_get_encode_node_callback() const { return _vtable->_encode_node_callback; }
+    CFStringRef _Nullable vt_self_description(void *self_data) const {
+        if (auto callback = _vtable->_self_description) {
+            return callback(this, self_data);
+        }
+        return nullptr;
+    }
+    CFStringRef _Nullable vt_value_description(void *value) const {
+        if (auto callback = _vtable->_value_description) {
+            return callback(this, value);
+        }
+        return nullptr;
+    }
 
+    AttributeVTable::DescriptionCallback _Nullable vt_get_self_description_callback() const {
+        return _vtable->_self_description;
+    }
+    AttributeVTable::DescriptionCallback _Nullable vt_get_value_description_callback() const {
+        return _vtable->_value_description;
+    }
     AttributeVTable::Callback vt_get_update_stack_callback() const { return _vtable->_update_stack_callback; }
 };
 

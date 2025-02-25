@@ -1,7 +1,7 @@
 #include "NodeCache.h"
 
 #include "Attribute/AttributeType.h"
-#include "Swift/EquatableSupport.h"
+#include "Swift/SwiftShims.h"
 
 namespace AG {
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <span>
@@ -145,13 +146,15 @@ class Graph {
     bool _needs_update;
     uint32_t _num_contexts;
     pthread_t _current_update_thread = 0;
+
+    uint64_t _unique_id;
     uint64_t _deadline = UINT64_MAX;
 
     // Counters
-    uint64_t _update_count = 0; // number of times this graph started updating
-    uint64_t _update_attribute_count = 0;
-    uint64_t _update_attribute_on_main_count = 0;
-    uint64_t _mark_changed_count = 0;
+    uint64_t _transaction_count = 0;
+    uint64_t _update_count = 0;
+    uint64_t _update_on_main_count = 0;
+    uint64_t _change_count = 0;
     uint64_t _version = 0;
 
   public:
@@ -213,11 +216,13 @@ class Graph {
     bool passed_deadline();
     bool passed_deadline_slow();
 
-    void increment_update_count_if_needed() {
+    void increment_transaction_count_if_needed() {
         if (!thread_is_updating()) {
-            _update_count += 1;
+            _transaction_count += 1;
         }
     };
+
+    uint64_t unique_id() const { return _unique_id; };
 
     // MARK: Attributes
 
@@ -346,6 +351,13 @@ class Graph {
 
     void encode_tree(Encoder &encoder, data::ptr<TreeElement> tree);
 
+    // MARK: Counters
+
+    // Counters
+    uint64_t transaction_count() const { return _transaction_count; };
+    uint64_t update_count() const { return _update_count; };
+    uint64_t change_count() const { return _change_count; };
+
     // MARK: Tracing
 
     enum TraceFlags : uint32_t {
@@ -413,18 +425,16 @@ class Graph {
 
     // MARK: Description
 
-    CFStringRef description_graph_dot(CFDictionaryRef _Nullable dict);
     CFStringRef description(data::ptr<Node> node);
 
-    CFStringRef description(CFDictionaryRef options);
+    static id description(Graph *_Nullable graph, CFDictionaryRef options);
+    static CFDictionaryRef description_graph(Graph *graph, CFDictionaryRef options);
+    CFStringRef description_graph_dot(CFDictionaryRef _Nullable options);
+    CFStringRef description_stack(CFDictionaryRef options);
+    CFArrayRef description_stack_nodes(CFDictionaryRef options);
+    CFDictionaryRef description_stack_frame(CFDictionaryRef options);
 
-    char *description_stack(CFDictionaryRef options);
-    char *description_stack_frame(CFDictionaryRef options);
-    char *description_stack_nodes(CFDictionaryRef options);
-
-    vector<char *, 0, uint64_t> description_graph(CFDictionaryRef options);
-
-    void write_to_file(const char *_Nullable filename, uint32_t arg);
+    static void write_to_file(Graph *_Nullable graph, const char *_Nullable filename, bool exclude_values);
 };
 
 } // namespace AG

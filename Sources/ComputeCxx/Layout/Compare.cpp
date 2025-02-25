@@ -1,8 +1,8 @@
 #include "Compare.h"
 
 #include "Controls.h"
-#include "Swift/EquatableSupport.h"
 #include "Swift/Metadata.h"
+#include "Swift/SwiftShims.h"
 
 namespace AG {
 namespace LayoutDescriptor {

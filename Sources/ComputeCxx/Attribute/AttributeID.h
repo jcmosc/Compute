@@ -66,7 +66,7 @@ class AttributeID {
 
     operator bool() const { return _value == 0; };
 
-    uint32_t value() { return _value; };
+    uint32_t value() const { return _value; };
 
     Kind kind() const { return Kind(_value & KindMask); };
     AttributeID with_kind(Kind kind) const { return AttributeID((_value & ~KindMask) | kind); };

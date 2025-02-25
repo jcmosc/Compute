@@ -825,9 +825,9 @@ void Graph::TraceRecorder::created(const Subgraph &subgraph) {
         _encoder.encode_varint(0x18);
         _encoder.encode_varint(zone_id);
     }
-    if (subgraph.graph_context_id()) {
+    if (subgraph.context_id()) {
         _encoder.encode_varint(0x28);
-        _encoder.encode_varint(subgraph.graph_context_id());
+        _encoder.encode_varint(subgraph.context_id());
     }
 
     field_backtrace(_encoder, 8);

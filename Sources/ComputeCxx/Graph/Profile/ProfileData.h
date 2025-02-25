@@ -47,6 +47,7 @@ class Graph::ProfileData {
 
       public:
         std::unordered_map<data::ptr<Node>, Item> &items_by_attribute() { return _items_by_attribute; };
+        std::unordered_map<uint32_t, Item> &removed_items_by_type_id() { return _removed_items_by_type_id; };
 
         void add_update(data::ptr<Node> node, uint64_t time, bool flag);
         void remove_node(data::ptr<Node> node, uint32_t type_id) {
@@ -63,7 +64,7 @@ class Graph::ProfileData {
 
   private:
     uint64_t _precision;
-    Category _current_category;
+    Category _current_category; // _all
 
     std::unordered_map<uint32_t, Category> _categories;
     bool _has_unmarked_categories;

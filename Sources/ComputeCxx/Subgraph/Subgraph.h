@@ -72,7 +72,7 @@ class Subgraph : public data::zone {
 
     SubgraphObject *_object;
     Graph *_Nullable _graph;
-    uint64_t _graph_context_id;
+    uint64_t _context_id;
 
     indirect_pointer_vector<Subgraph> _parents;
     vector<SubgraphChild, 0, uint32_t> _children;
@@ -98,6 +98,8 @@ class Subgraph : public data::zone {
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
 
+    uint32_t subgraph_id() const { return info().zone_id(); };
+
     // MARK: CoreFoundation
 
     static Subgraph *from_cf(SubgraphObject *object);
@@ -107,7 +109,7 @@ class Subgraph : public data::zone {
     // MARK: Graph
 
     Graph *_Nullable graph() const { return _graph; };
-    uint64_t graph_context_id() const { return _graph_context_id; };
+    uint64_t context_id() const { return _context_id; };
 
     bool is_valid() const { return _validation_state == ValidationState::Valid; };
     ValidationState validation_state() { return _validation_state; };
@@ -131,6 +133,8 @@ class Subgraph : public data::zone {
         requires std::invocable<Callable, Subgraph &> && std::same_as<std::invoke_result_t<Callable, Subgraph &>, bool>
     void foreach_ancestor(Callable body);
 
+    indirect_pointer_vector<Subgraph> parents() { return _parents; };
+
     // MARK: Attributes
 
     void add_node(data::ptr<Node> node);
@@ -149,6 +153,8 @@ class Subgraph : public data::zone {
     void apply(Flags flags, ClosureFunctionAV<void, unsigned int> body);
 
     // MARK: Tree
+
+    data::ptr<Graph::TreeElement> tree_root() { return _tree_root; };
 
     void begin_tree(AttributeID attribute, const swift::metadata *_Nullable type,
                     uint32_t flags); // TODO: check can be null from Subgraph()

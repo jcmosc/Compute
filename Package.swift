@@ -69,10 +69,10 @@ let package = Package(
         ),
         .swiftRuntimeTarget(
             name: "ComputeCxx",
-            dependencies: ["Utilities", "EquatableSupport"],
+            dependencies: ["Utilities", "ComputeCxxSwiftSupport"],
             cxxSettings: [.headerSearchPath("")]
         ),
-        .target(name: "EquatableSupport"),
+        .target(name: "ComputeCxxSwiftSupport"),
     ],
     cxxLanguageStandard: .cxx20
 )

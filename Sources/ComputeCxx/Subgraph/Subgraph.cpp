@@ -35,7 +35,7 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
 
     Graph *graph = &context.graph();
     _graph = graph;
-    _graph_context_id = context.unique_id();
+    _context_id = context.unique_id();
 
     // what is this check doing?
     if ((uintptr_t)this == 1) {
@@ -152,7 +152,7 @@ void Subgraph::invalidate_now(Graph &graph) {
 
             for (auto child : subgraph->_children) {
                 Subgraph *child_subgraph = child.subgraph();
-                if (child_subgraph->_graph_context_id == _graph_context_id) {
+                if (child_subgraph->context_id() == _context_id) {
 
                     // for each other parent of the child, remove the child from that parent
                     for (auto parent : child_subgraph->_parents) {
@@ -602,7 +602,7 @@ void Subgraph::update(uint8_t flags) {
 
                         for (auto node : nodes_to_update) {
                             if (!thread_is_updating) {
-                                _graph->increment_update_count_if_needed();
+                                _graph->increment_transaction_count_if_needed();
                                 _graph->update_attribute(node, true);
 
                                 if (!subgraph->is_valid()) {
@@ -658,7 +658,7 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
             continue;
         }
 
-        if (flags.value4 & 1 || subgraph->_graph_context_id == _graph_context_id) {
+        if (flags.value4 & 1 || subgraph->context_id() == _context_id) {
             if (flags.is_null() || (flags.value1 & subgraph->_flags.value1)) {
                 for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
                     uint16_t relative_offset = page->relative_offset_1;
@@ -734,7 +734,7 @@ void Subgraph::end_tree(AttributeID attribute) {
 }
 
 void Subgraph::set_tree_owner(AttributeID owner) {
-    if (_tree_root) {
+    if (_tree_root) { // TODO: bug?
         return;
     }
     if (_tree_root->parent) {
@@ -1105,9 +1105,9 @@ void Subgraph::encode(Encoder &encoder) const {
         encoder.encode_varint(zone_id);
     }
 
-    if (_graph_context_id != 0) {
+    if (_context_id != 0) {
         encoder.encode_varint(0x10);
-        encoder.encode_varint(_graph_context_id);
+        encoder.encode_varint(_context_id);
     }
 
     for (auto parent : _parents) {
@@ -1194,7 +1194,7 @@ void Subgraph::print(uint32_t indent_level) {
     memset(indent_string, ' ', indent_length);
     indent_string[indent_length] = '\0';
 
-    fprintf(stdout, "%s+ %p: %u in %lu [", indent_string, this, info().zone_id(), (unsigned long)_graph_context_id);
+    fprintf(stdout, "%s+ %p: %u in %lu [", indent_string, this, info().zone_id(), (unsigned long)_context_id);
 
     bool first = true;
     for (data::ptr<data::page> page = last_page(); page != nullptr; page = page->previous) {

@@ -18,14 +18,14 @@ class Graph;
 
 class NodeFlags {
   public:
-    enum Flags3 : uint8_t {};
+    enum Flags3 : uint8_t {}; // TODO: subgraph_flags
     enum Flags4 : uint8_t {
         HasIndirectSelf = 1 << 0,  // 0x01
         HasIndirectValue = 1 << 1, // 0x02
 
-        InputsTraverseGraphContexts = 1 << 2, // 0x04
-        InputsUnsorted = 1 << 3,              // 0x08
-        Cacheable = 1 << 4,                   // 0x10
+        InputsTraverseContexts = 1 << 2, // 0x04
+        InputsUnsorted = 1 << 3,         // 0x08
+        Cacheable = 1 << 4,              // 0x10
 
         Unknown0x20 = 1 << 5, // 0x20 - initial  value
         Unknown0x40 = 1 << 6, // 0x40 - didn't call mark_changed
@@ -56,9 +56,9 @@ class NodeFlags {
         _value4 = (_value4 & ~Flags4::HasIndirectValue) | (value ? Flags4::HasIndirectValue : 0);
     };
 
-    bool inputs_traverse_graph_contexts() { return _value4 & Flags4::InputsTraverseGraphContexts; };
-    void set_inputs_traverse_graph_contexts(bool value) {
-        _value4 = (_value4 & ~Flags4::InputsTraverseGraphContexts) | (value ? Flags4::InputsTraverseGraphContexts : 0);
+    bool inputs_traverse_contexts() { return _value4 & Flags4::InputsTraverseContexts; };
+    void set_inputs_traverse_contexts(bool value) {
+        _value4 = (_value4 & ~Flags4::InputsTraverseContexts) | (value ? Flags4::InputsTraverseContexts : 0);
     };
     bool inputs_unsorted() { return _value4 & Flags4::InputsUnsorted; };
     void set_inputs_unsorted(bool value) {
@@ -88,7 +88,7 @@ class Node {
 
             ValueInitialized = 1 << 4, // 0x10
             SelfInitialized = 1 << 5,  // 0x20
-            Updating = 1 << 6,         // 0x40
+            Updating = 1 << 6,         // 0x40 // TODO: make this and next bit a count 0..<4
             UpdatingCyclic = 1 << 7,   // 0x80
 
         };
@@ -128,9 +128,7 @@ class Node {
 
         bool is_updating() { return _data & (Updating | UpdatingCyclic); }
         bool is_updating_cyclic() { return (_data & (Updating | UpdatingCyclic)) == (Updating | UpdatingCyclic); }
-        uint8_t update_count() const {
-            return _data >> 6;
-        }
+        uint8_t update_count() const { return _data >> 6; }
     };
 
   private:
@@ -157,6 +155,13 @@ class Node {
     State state() const { return State(_info.state); };
     void set_state(State state) { _info.state = state.data(); };
     uint32_t type_id() const { return uint32_t(_info.type_id); };
+
+    uint8_t value_state() const {
+        return (state().is_dirty() ? 1 : 0) << 0 | (state().is_pending() ? 1 : 0) << 1 |
+               (state().is_updating() ? 1 : 0) << 2 | (state().is_value_initialized() ? 1 : 0) << 3 |
+               (state().is_main_thread() ? 1 : 0) << 4 | (flags().value4_unknown0x20() ? 1 : 0) << 5 |
+               (state().is_main_thread_only() ? 1 : 0) << 6 | (flags().value4_unknown0x40() ? 1 : 0) << 7;
+    };
 
     NodeFlags &flags() { return _flags; };
     const NodeFlags &flags() const { return _flags; };

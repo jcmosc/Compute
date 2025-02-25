@@ -195,7 +195,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
         }
 
         if (!frame.needs_update && frame.num_pushed_inputs > 0 &&
-            node->inputs()[frame.num_pushed_inputs - 1].is_pending()) {
+            node->inputs()[frame.num_pushed_inputs - 1].is_changed()) {
             frame.needs_update = true;
         }
 
@@ -228,13 +228,13 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             if (input_attribute.is_direct()) {
                 Node &input_node = input_attribute.to_node();
 
-                if (input.is_pending()) {
+                if (input.is_changed()) {
                     frame.needs_update = true;
                 }
 
                 if (input_node.state().is_dirty() || !input_node.state().is_value_initialized()) {
 
-                    if (!input.is_pending() &&
+                    if (!input.is_changed() &&
                         input_attribute.subgraph()->validation_state() == Subgraph::ValidationState::Valid) {
 
                         frame.num_pushed_inputs = input_index + 1;
@@ -259,7 +259,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             }
 
             _graph->foreach_trace([&frame](Trace &trace) { trace.begin_update(frame.attribute); });
-            uint64_t mark_changed_count = _graph->_mark_changed_count;
+            uint64_t old_change_count = _graph->_change_count;
 
             const AttributeType &type = _graph->attribute_type(node->type_id());
             void *self = node->get_self(type);
@@ -277,7 +277,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                 AGGraphSetOutputValue(&value, AGTypeID(&type.value_metadata()));
             }
 
-            changed = _graph->_mark_changed_count != mark_changed_count;
+            changed = _graph->_change_count != old_change_count;
             _graph->foreach_trace([&frame, &changed](Trace &trace) { trace.end_update(frame.attribute, changed); });
         }
 
@@ -299,11 +299,11 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
             if (reset_input_flags) {
                 if (frame.needs_update && !frame.cancelled) {
-                    if (input.is_pending()) {
+                    if (input.is_changed()) {
                         _graph->foreach_trace([&frame, &input](Trace &trace) {
                             trace.set_edge_pending(frame.attribute, input.value, false);
                         });
-                        input.set_pending(false);
+                        input.set_changed(false);
                     }
                 }
             }
@@ -311,7 +311,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             if (frame.needs_update && !frame.cancelled) {
                 bool was_unknown4 = input.is_unknown4();
                 input.set_unknown4(false);
-                if (!was_unknown4 && !input.is_unknown2()) {
+                if (!was_unknown4 && !input.is_always_enabled()) {
                     _graph->remove_input(frame.attribute, input_index);
                 }
             }

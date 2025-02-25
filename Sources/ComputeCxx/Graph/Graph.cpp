@@ -26,6 +26,7 @@
 #include "Trace/Trace.h"
 #include "TraceRecorder.h"
 #include "Tree/TreeElement.h"
+#include "UniqueID/AGUniqueID.h"
 #include "UpdateStack.h"
 #include "Utilities/FreeDeleter.h"
 #include "Utilities/List.h"
@@ -41,6 +42,8 @@ Graph::Graph()
     : _heap(nullptr, 0, 0), _type_ids_by_metadata(nullptr, nullptr, nullptr, nullptr, &_heap),
       _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _num_contexts(1) {
 
+    _unique_id = AGMakeUniqueID();
+
     data::table::ensure_shared();
 
     // what is this check doing?
@@ -49,7 +52,7 @@ Graph::Graph()
         print_attribute(nullptr);
         print_stack();
         print_data();
-        write_to_file(nullptr, 0);
+        write_to_file(this, nullptr, 0);
     }
 
     static dispatch_once_t make_keys;
@@ -174,7 +177,7 @@ bool Graph::is_context_updating(uint64_t context_id) {
         for (auto frame = update_stack.get()->frames().rbegin(), end = update_stack.get()->frames().rend();
              frame != end; ++frame) {
             auto subgraph = AttributeID(frame->attribute).subgraph();
-            if (subgraph && subgraph->graph_context_id() == context_id) {
+            if (subgraph && subgraph->context_id() == context_id) {
                 return true;
             }
         }
@@ -514,9 +517,9 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
         return UpdateStatus::NoChange;
     }
 
-    _update_attribute_count += 1;
+    _update_count += 1;
     if (node.state().is_main_thread()) {
-        _update_attribute_on_main_count += 1;
+        _update_on_main_count += 1;
     }
 
     UpdateStack update_stack = UpdateStack(this, options);
@@ -539,7 +542,7 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
             });
             status = context.second;
 
-            _update_attribute_on_main_count += 1;
+            _update_on_main_count += 1;
         }
     }
 
@@ -661,7 +664,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
                         continue;
                     }
                     if (options & SearchOptions::TraverseGraphContexts ||
-                        candidate.subgraph()->graph_context_id() == input.subgraph()->graph_context_id()) {
+                        candidate.subgraph()->context_id() == input.subgraph()->context_id()) {
                         seen.insert(input);
                         queue.push_back(input);
                     }
@@ -673,7 +676,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
 
                 if (!seen.contains(source)) {
                     if (options & SearchOptions::TraverseGraphContexts ||
-                        candidate.subgraph()->graph_context_id() == source.subgraph()->graph_context_id()) {
+                        candidate.subgraph()->context_id() == source.subgraph()->context_id()) {
                         seen.insert(source);
                         queue.push_back(source);
                     }
@@ -687,7 +690,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
                         continue;
                     }
                     if (options & SearchOptions::TraverseGraphContexts ||
-                        candidate.subgraph()->graph_context_id() == output_edge.value.subgraph()->graph_context_id()) {
+                        candidate.subgraph()->context_id() == output_edge.value.subgraph()->context_id()) {
                         seen.insert(output_edge.value);
                         queue.push_back(output_edge.value);
                     }
@@ -699,7 +702,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
                         continue;
                     }
                     if (options & SearchOptions::TraverseGraphContexts ||
-                        candidate.subgraph()->graph_context_id() == output_edge.value.subgraph()->graph_context_id()) {
+                        candidate.subgraph()->context_id() == output_edge.value.subgraph()->context_id()) {
                         seen.insert(output_edge.value);
                         queue.push_back(output_edge.value);
                     }
@@ -742,9 +745,9 @@ void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, ui
         // check references of raw_page_seed in ghidra
         uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
-        bool traverses_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
+        bool traverses_contexts = subgraph.context_id() != attribute.subgraph()->context_id();
         uint16_t node_size = size.has_value() && size.value() <= 0xfffe ? uint16_t(size.value()) : 0xffff;
-        *indirect_node = MutableIndirectNode(source, traverses_graph_contexts, offset, node_size, source, offset);
+        *indirect_node = MutableIndirectNode(source, traverses_contexts, offset, node_size, source, offset);
 
         add_input_dependencies(AttributeID(indirect_node).with_kind(AttributeID::Kind::Indirect), attribute);
         subgraph.add_indirect((data::ptr<IndirectNode>)indirect_node, true);
@@ -753,9 +756,9 @@ void Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, ui
 
         uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
-        bool traverses_graph_contexts = subgraph.graph_context_id() != attribute.subgraph()->graph_context_id();
+        bool traverses_contexts = subgraph.context_id() != attribute.subgraph()->context_id();
         uint16_t node_size = size.has_value() && size.value() <= 0xfffe ? uint16_t(size.value()) : 0xffff;
-        *indirect_node = IndirectNode(source, traverses_graph_contexts, offset, node_size);
+        *indirect_node = IndirectNode(source, traverses_contexts, offset, node_size);
 
         subgraph.add_indirect(indirect_node, &subgraph != attribute.subgraph());
     }
@@ -848,8 +851,8 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> attribute, AttributeI
 
     // TODO: check zone id
     attribute->modify(WeakAttributeID(resolved_source.attribute(), 0), resolved_source.offset());
-    attribute->set_traverses_graph_contexts(AttributeID(attribute).subgraph()->graph_context_id() !=
-                                            resolved_source.attribute().subgraph()->graph_context_id());
+    attribute->set_traverses_contexts(AttributeID(attribute).subgraph()->context_id() !=
+                                            resolved_source.attribute().subgraph()->context_id());
 
     if (resolved_source.attribute() != previous_source) {
         add_input_dependencies(AttributeID(attribute), resolved_source.attribute());
@@ -888,8 +891,8 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> attribute, bool non
     }
 
     attribute->modify(new_source, new_offset);
-    attribute->set_traverses_graph_contexts(AttributeID(attribute).subgraph()->graph_context_id() !=
-                                            new_source_or_nil.subgraph()->graph_context_id());
+    attribute->set_traverses_contexts(AttributeID(attribute).subgraph()->context_id() !=
+                                            new_source_or_nil.subgraph()->context_id());
 
     if (old_source_or_nil != new_source_or_nil) {
         add_input_dependencies(AttributeID(attribute), new_source_or_nil);
@@ -963,7 +966,7 @@ void *Graph::value_ref(AttributeID attribute, bool evaluate_weak_references, con
 
     if (!type.use_graph_as_initial_value()) {
 
-        increment_update_count_if_needed();
+        increment_transaction_count_if_needed();
 
         uint64_t old_page_seed = 0;
         if (evaluate_weak_references) {
@@ -1079,11 +1082,7 @@ AGValueState Graph::value_state(AttributeID attribute) {
         return 0;
     }
 
-    auto node = attribute.to_node();
-    return (node.state().is_dirty() ? 1 : 0) << 0 | (node.state().is_pending() ? 1 : 0) << 1 |
-           (node.state().is_updating() ? 1 : 0) << 2 | (node.state().is_value_initialized() ? 1 : 0) << 3 |
-           (node.state().is_main_thread() ? 1 : 0) << 4 | (node.flags().value4_unknown0x20() ? 1 : 0) << 5 |
-           (node.state().is_main_thread_only() ? 1 : 0) << 6 | (node.flags().value4_unknown0x40() ? 1 : 0) << 7;
+    return attribute.to_node().value_state();
 }
 
 void Graph::value_mark(data::ptr<Node> node) {
@@ -1149,7 +1148,7 @@ void Graph::value_mark_all() {
                         subgraph->add_dirty_flags(node.flags().value3());
                     }
                     for (auto input_edge : node.inputs()) {
-                        input_edge.set_pending(true);
+                        input_edge.set_changed(true);
                     }
                 }
             }
@@ -1219,11 +1218,11 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
                     dirty_outputs = output_node.outputs();
 
-                    if (output_node.flags().inputs_traverse_graph_contexts() && !output_node.outputs().empty()) {
+                    if (output_node.flags().inputs_traverse_contexts() && !output_node.outputs().empty()) {
                         if (auto output_subgraph = output.subgraph()) {
-                            auto context_id = output_subgraph->graph_context_id();
+                            auto context_id = output_subgraph->context_id();
                             if (context_id && (attribute.subgraph() == nullptr ||
-                                               context_id != attribute.subgraph()->graph_context_id())) {
+                                               context_id != attribute.subgraph()->context_id())) {
                                 if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
                                     if (context->graph_version() != context->graph()._version) {
                                         context->call_invalidation(attribute);
@@ -1240,11 +1239,11 @@ void Graph::propagate_dirty(AttributeID attribute) {
                 if (output_node.is_mutable()) {
                     dirty_outputs = output_node.to_mutable().outputs();
 
-                    if (output_node.traverses_graph_contexts() && !output_node.to_mutable().outputs().empty()) {
+                    if (output_node.traverses_contexts() && !output_node.to_mutable().outputs().empty()) {
                         if (auto output_subgraph = output.subgraph()) {
-                            auto context_id = output_subgraph->graph_context_id();
+                            auto context_id = output_subgraph->context_id();
                             if (context_id && (attribute.subgraph() == nullptr ||
-                                               context_id != attribute.subgraph()->graph_context_id())) {
+                                               context_id != attribute.subgraph()->context_id())) {
                                 if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
                                     if (context->graph_version() != context->graph()._version) {
                                         context->call_invalidation(attribute);
@@ -1285,7 +1284,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
 
     if ((input_flags >> 1) & 1) {
         auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
-                                                InputEdge::Flags::Unknown0 | InputEdge::Flags::Unknown2);
+                                                InputEdge::Flags::Unprefetched | InputEdge::Flags::AlwaysEnabled);
         index = index_of_input(*node, comparator);
     }
 
@@ -1315,7 +1314,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
 
     InputEdge &input_edge = node->inputs()[index];
 
-    input_edge.set_unknown0(input_edge.is_unknown0() || (input_flags & 1) ? true : false);
+    input_edge.set_unprefetched(input_edge.is_unprefetched() || (input_flags & 1) ? true : false);
     input_edge.set_unknown4(true);
 
     OffsetAttributeID resolved = input_edge.value.resolve(
@@ -1381,8 +1380,9 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
 void Graph::input_value_add(data::ptr<Node> node, AttributeID input_attribute, uint8_t input_flags) {
     input_attribute.to_node_ptr().assert_valid();
 
+    // TODO: check flag and mask are right way around
     auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
-                                            InputEdge::Flags::Unknown0 | InputEdge::Flags::Unknown2);
+                                            InputEdge::Flags::Unprefetched | InputEdge::Flags::AlwaysEnabled);
     auto index = index_of_input(*node, comparator);
     if (index >= 0) {
         auto input_edge = node->inputs()[index];
@@ -1407,13 +1407,13 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
     });
 
     auto subgraph = AttributeID(node).subgraph();
-    auto graph_context_id = subgraph ? subgraph->graph_context_id() : 0;
+    auto graph_context_id = subgraph ? subgraph->context_id() : 0;
 
     auto input_subgraph = resolved.attribute().subgraph();
-    auto input_graph_context_id = input_subgraph ? input_subgraph->graph_context_id() : 0;
+    auto input_graph_context_id = input_subgraph ? input_subgraph->context_id() : 0;
 
     if (graph_context_id != input_graph_context_id) {
-        node->flags().set_inputs_traverse_graph_contexts(true);
+        node->flags().set_inputs_traverse_contexts(true);
     }
 
     InputEdge new_input_edge = {
@@ -1421,7 +1421,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
         InputEdge::Flags(input_edge_flags & 5),
     };
     if (node->state().is_dirty()) {
-        new_input_edge.set_pending(true);
+        new_input_edge.set_changed(true);
     }
 
     uint32_t index = -1;
@@ -1506,7 +1506,7 @@ void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
 bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *attributes, uint64_t count) {
     for (auto input : node->inputs()) {
         input.set_unknown4(true);
-        if (input.is_pending()) {
+        if (input.is_changed()) {
             const AttributeID *location = (const AttributeID *)wmemchr((const wchar_t *)attributes, input.value, count);
             if (location == 0) {
                 location = attributes + sizeof(AttributeID) * count;
@@ -1520,7 +1520,7 @@ bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *attribut
 }
 
 void Graph::all_inputs_removed(data::ptr<Node> node) {
-    node->flags().set_inputs_traverse_graph_contexts(false);
+    node->flags().set_inputs_traverse_contexts(false);
     node->flags().set_inputs_unsorted(false);
     if (!node->state().is_main_thread_only() && !attribute_type(node->type_id()).main_thread()) {
         node->set_state(node->state().with_main_thread_only(false));
@@ -1726,7 +1726,7 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
             if (input.value.resolve(TraversalOptions::None).attribute() != node) {
                 continue;
             }
-            if (input.is_pending()) {
+            if (input.is_changed()) {
                 continue;
             }
             if (!input.value.is_direct()) {
@@ -1734,12 +1734,12 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
                     continue;
                 }
             }
-            input.set_pending(true);
+            input.set_changed(true);
         }
         output_index += 1;
     }
 
-    _mark_changed_count += 1;
+    _change_count += 1;
 }
 
 void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *destination_value,
@@ -1784,7 +1784,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                     if (input_edge.value.resolve(TraversalOptions::SkipMutableReference).attribute() != attribute) {
                         continue;
                     }
-                    if (input_edge.is_pending()) {
+                    if (input_edge.is_changed()) {
                         continue;
                     }
                     if (!input_edge.value.is_direct()) {
@@ -1795,7 +1795,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                     foreach_trace([&output_edge, &input_index](Trace &trace) {
                         trace.set_edge_pending(output_edge->value.to_node_ptr(), input_index, true);
                     });
-                    input_edge.set_pending(true);
+                    input_edge.set_changed(true);
                 }
             } else if (output_edge->value.is_indirect()) {
                 if (output_edge->value.to_indirect_node().to_mutable().dependency() != attribute) {
@@ -1810,7 +1810,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
         start_output_index = 0;
     }
 
-    _mark_changed_count += 1;
+    _change_count += 1;
 }
 
 void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
@@ -1904,15 +1904,15 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
     }
     if (flag) {
         auto type = attribute_type(node.type_id());
-        if (auto callback = type.vt_get_encode_node_callback()) {
+        if (auto callback = type.vt_get_value_description_callback()) {
             void *value = node.get_value();
-            CFStringRef str = callback();
-            if (str) {
-                uint64_t length = CFStringGetLength(str);
+            CFStringRef description = callback(&type, value);
+            if (description) {
+                uint64_t length = CFStringGetLength(description);
                 CFRange range = CFRangeMake(0, length);
                 uint8_t buffer[1024];
                 CFIndex used_buffer_length = 0;
-                CFStringGetBytes(str, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024, &used_buffer_length);
+                CFStringGetBytes(description, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024, &used_buffer_length);
                 if (used_buffer_length > 0) {
                     encoder.encode_varint(0x12);
                     encoder.encode_data(buffer, used_buffer_length);
@@ -1927,17 +1927,17 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
             encoder.encode_varint(8);
             encoder.encode_varint(input_edge.value);
         }
-        if (input_edge.is_unknown0()) {
+        if (input_edge.is_unprefetched()) {
             encoder.encode_varint(0x10);
-            encoder.encode_varint(input_edge.is_unknown0());
+            encoder.encode_varint(input_edge.is_unprefetched());
         }
-        if (input_edge.is_unknown2()) {
+        if (input_edge.is_always_enabled()) {
             encoder.encode_varint(0x18);
-            encoder.encode_varint(input_edge.is_unknown2());
+            encoder.encode_varint(input_edge.is_always_enabled());
         }
-        if (input_edge.is_pending()) {
+        if (input_edge.is_changed()) {
             encoder.encode_varint(0x20);
-            encoder.encode_varint(input_edge.is_pending());
+            encoder.encode_varint(input_edge.is_changed());
         }
         if (input_edge.is_unknown4()) {
             encoder.encode_varint(0x30);
@@ -2069,6 +2069,7 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
     }
 
     Subgraph *subgraph = reinterpret_cast<Subgraph *>(tree.page_ptr()->zone);
+    // TODO: can combine with tree_node_at_index?
     if (auto map = tree_data_elements()) {
         auto tree_data_element = map->find(subgraph);
         if (tree_data_element != map->end()) {
@@ -2174,8 +2175,8 @@ void Graph::prepare_trace(Trace &trace) {
                         auto node = attribute.to_node_ptr();
                         uint32_t edge_index = 0;
                         for (auto input_edge : node->inputs()) {
-                            trace.add_edge(node, input_edge.value, input_edge.is_unknown2());
-                            if (input_edge.is_pending()) {
+                            trace.add_edge(node, input_edge.value, input_edge.is_always_enabled()); // TODO: is last param int or bool?
+                            if (input_edge.is_changed()) {
                                 trace.set_edge_pending(node, edge_index, true);
                             }
                             edge_index += 1;

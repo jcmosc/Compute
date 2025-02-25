@@ -17,7 +17,7 @@ class IndirectNode {
   private:
     struct Info {
         unsigned int is_mutable : 1;
-        unsigned int traverses_graph_contexts : 1;
+        unsigned int traverses_contexts : 1;
         unsigned int offset : 30;
     };
     static_assert(sizeof(Info) == 4);
@@ -29,10 +29,10 @@ class IndirectNode {
     uint16_t _relative_offset; // could be relative offset, see Subgraph::insert_attribute
 
   public:
-    IndirectNode(WeakAttributeID source, bool traverses_graph_contexts, uint32_t offset, uint16_t size)
+    IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size)
         : _source(source) {
         _info.is_mutable = false;
-        _info.traverses_graph_contexts = traverses_graph_contexts;
+        _info.traverses_contexts = traverses_contexts;
         _info.offset = offset;
         _size = size;
         _relative_offset = 0;
@@ -44,8 +44,8 @@ class IndirectNode {
     MutableIndirectNode &to_mutable();
     const MutableIndirectNode &to_mutable() const;
 
-    void set_traverses_graph_contexts(bool value) { _info.traverses_graph_contexts = value; };
-    bool traverses_graph_contexts() const { return _info.traverses_graph_contexts; };
+    void set_traverses_contexts(bool value) { _info.traverses_contexts = value; };
+    bool traverses_contexts() const { return _info.traverses_contexts; };
 
     uint32_t offset() const { return _info.offset; };
     bool has_size() const { return _size != InvalidSize; };
@@ -69,9 +69,9 @@ class MutableIndirectNode : public IndirectNode {
     uint32_t _initial_offset;
 
   public:
-    MutableIndirectNode(WeakAttributeID source, bool traverses_graph_contexts, uint32_t offset, uint16_t size,
+    MutableIndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size,
                         WeakAttributeID initial_source, uint32_t initial_offset)
-        : IndirectNode(source, traverses_graph_contexts, offset, size), _dependency(0), _initial_source(initial_source),
+        : IndirectNode(source, traverses_contexts, offset, size), _dependency(0), _initial_source(initial_source),
           _initial_offset(initial_offset){
 
           };

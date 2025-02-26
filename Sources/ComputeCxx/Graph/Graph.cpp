@@ -1050,11 +1050,8 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
             return false;
         }
 
-        if (_traces.empty()) {
-            // TODO: finish
-        } else {
-            mark_changed(AttributeID(node_ptr), &type, value_dest, value_source, 0);
-        }
+        // TODO: make this inline?
+        mark_changed(node_ptr, &type, value_dest, value_source);
 
         value_type.vw_assignWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value_source);
     } else {
@@ -1734,6 +1731,7 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
                 }
             }
             input.set_changed(true);
+            break;
         }
         output_index += 1;
     }

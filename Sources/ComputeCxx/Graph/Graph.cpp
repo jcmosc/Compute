@@ -184,7 +184,7 @@ bool Graph::is_context_updating(uint64_t context_id) {
     }
 }
 
-Graph::Context *Graph::main_context() {
+Graph::Context *Graph::main_context() const {
     struct Info {
         Context *context;
         uint64_t context_id;

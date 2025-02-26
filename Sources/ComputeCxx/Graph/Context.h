@@ -30,7 +30,7 @@ class Graph::Context {
     Context(Graph *graph);
     ~Context();
 
-    AGGraphStorage *to_cf() { return reinterpret_cast<AGGraphStorage *>((char *)this - sizeof(CFRuntimeBase)); };
+    AGGraphStorage *to_cf() const { return reinterpret_cast<AGGraphStorage *>((char *)this - sizeof(CFRuntimeBase)); };
     static Context *from_cf(AGGraphStorage *storage);
 
     Graph &graph() const { return *_graph; };

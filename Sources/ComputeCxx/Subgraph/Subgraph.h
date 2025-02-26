@@ -103,7 +103,7 @@ class Subgraph : public data::zone {
     // MARK: CoreFoundation
 
     static Subgraph *from_cf(SubgraphObject *object);
-    SubgraphObject *to_cf();
+    SubgraphObject *to_cf() const;
     void clear_object();
 
     // MARK: Graph

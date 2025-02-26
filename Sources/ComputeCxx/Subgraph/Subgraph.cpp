@@ -74,7 +74,7 @@ Subgraph::~Subgraph() {
 
 Subgraph *Subgraph::from_cf(SubgraphObject *object) { return object->subgraph(); }
 
-SubgraphObject *Subgraph::to_cf() { return _object; }
+SubgraphObject *Subgraph::to_cf() const { return _object; }
 
 void Subgraph::clear_object() {
     auto object = _object;

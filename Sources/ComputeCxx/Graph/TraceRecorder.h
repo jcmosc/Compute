@@ -80,8 +80,8 @@ class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
     void begin_modify(data::ptr<Node> node);
     void end_modify(data::ptr<Node> node);
 
-    void begin_event(data::ptr<Node> node, uint32_t event);
-    void end_event(data::ptr<Node> node, uint32_t event);
+    void begin_event(data::ptr<Node> node, uint32_t event_id);
+    void end_event(data::ptr<Node> node, uint32_t event_id);
 
     void created(const Graph::Context &context);
     void destroy(const Graph::Context &context);
@@ -118,7 +118,7 @@ class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
 
     void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                       const swift::metadata &type);
-    bool named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args, const uint64_t *event_args,
+    void named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args, const uint64_t *event_args,
                      CFDataRef data, uint32_t arg6);
     bool named_event_enabled(uint32_t event_id);
 

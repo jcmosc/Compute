@@ -144,7 +144,7 @@ class Graph {
     // MARK: Context
 
     bool is_context_updating(uint64_t context_id);
-    Context *_Nullable main_context();
+    Context *_Nullable main_context() const;
 
     // MARK: Subgraphs
 

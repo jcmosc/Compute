@@ -703,7 +703,7 @@ void Graph::TraceRecorder::end_modify(data::ptr<Node> node) {
     _encoder.end_length_delimited();
 }
 
-void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event) {
+void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event_id) {
     if (_tracing_flags & TracingFlags::Custom) {
         return;
     }
@@ -718,15 +718,15 @@ void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event) {
         _encoder.encode_varint(0x18);
         _encoder.encode_varint(node);
     }
-    if (event) {
+    if (event_id) {
         _encoder.encode_varint(0x20);
-        _encoder.encode_varint(event);
+        _encoder.encode_varint(event_id);
     }
 
     _encoder.end_length_delimited();
 }
 
-void Graph::TraceRecorder::end_event(data::ptr<Node> node, uint32_t event) {
+void Graph::TraceRecorder::end_event(data::ptr<Node> node, uint32_t event_id) {
     if (_tracing_flags & TracingFlags::Custom) {
         return;
     }
@@ -741,9 +741,9 @@ void Graph::TraceRecorder::end_event(data::ptr<Node> node, uint32_t event) {
         _encoder.encode_varint(0x18);
         _encoder.encode_varint(node);
     }
-    if (event) {
+    if (event_id) {
         _encoder.encode_varint(0x20);
-        _encoder.encode_varint(event);
+        _encoder.encode_varint(event_id);
     }
 
     _encoder.end_length_delimited();
@@ -1286,7 +1286,7 @@ void Graph::TraceRecorder::custom_event(const Graph::Context &context, const cha
     _encoder.end_length_delimited();
 }
 
-bool Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args,
+void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args,
                                        const uint64_t *event_args, CFDataRef data, uint32_t arg6) {
     if (!named_event_enabled(arg2)) {
         return;

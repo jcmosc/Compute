@@ -1,15 +1,9 @@
 #include "AGComparison.h"
 
+#include "AGComparison-Private.h"
 #include "Layout/LayoutDescriptor.h"
 #include "Swift/ContextDescriptor.h"
 #include "Swift/Metadata.h"
-
-typedef struct AGComparisonStateStorage {
-    const void *destination;
-    const void *source;
-    AGFieldRange field_range;
-    AGTypeID field_type;
-} AGComparisonStateStorage;
 
 const void *AGComparisonStateGetDestination(AGComparisonState state) { return state->destination; }
 

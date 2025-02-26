@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <unordered_map>
 
+#include "AGValue.h"
 #include "Attribute/AttributeID.h"
 #include "Attribute/Node/Edge.h"
 #include "Closure/ClosureFunction.h"
@@ -15,8 +16,6 @@
 #include "Utilities/TaggedPointer.h"
 
 CF_ASSUME_NONNULL_BEGIN
-
-typedef uint8_t AGValueState; // TODO: move
 
 namespace AG {
 

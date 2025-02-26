@@ -309,9 +309,8 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
                         auto profile_data = graph->_profile_data.get();
                         if (profile_data) {
-                            auto found =
-                                profile_data->current_category().items_by_attribute().find(attribute.to_node_ptr());
-                            if (found != profile_data->current_category().items_by_attribute().end()) {
+                            auto found = profile_data->all_events().items_by_attribute().find(attribute.to_node_ptr());
+                            if (found != profile_data->all_events().items_by_attribute().end()) {
                                 CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
                                 if (item_json) {
                                     node_dict[@"profile"] = (__bridge NSDictionary *)item_json;
@@ -397,8 +396,8 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                     continue;
                 }
 
-                auto removed_item = graph->_profile_data->current_category().removed_items_by_type_id().find(type_id);
-                if (removed_item != graph->_profile_data->current_category().removed_items_by_type_id().end()) {
+                auto removed_item = graph->_profile_data->all_events().removed_items_by_type_id().find(type_id);
+                if (removed_item != graph->_profile_data->all_events().removed_items_by_type_id().end()) {
                     if (!type_indices_by_id.contains(type_id)) {
                         auto index = type_ids.size();
                         type_ids.push_back(type_id);
@@ -437,8 +436,8 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
             auto profile_data = graph->_profile_data.get();
             if (profile_data) {
-                auto found = profile_data->current_category().removed_items_by_type_id().find(type_id);
-                if (found != profile_data->current_category().removed_items_by_type_id().end()) {
+                auto found = profile_data->all_events().removed_items_by_type_id().find(type_id);
+                if (found != profile_data->all_events().removed_items_by_type_id().end()) {
                     CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
                     if (item_json) {
                         dict[@"profile"] = (__bridge NSDictionary *)item_json;
@@ -722,8 +721,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
         graph_dict[@"transaction_count"] = [NSNumber numberWithUnsignedLong:graph->transaction_count()];
         if (auto profile_data = graph->_profile_data.get()) {
-            NSDictionary *json =
-                (__bridge NSDictionary *)profile_data->json_data(profile_data->current_category(), *graph);
+            NSDictionary *json = (__bridge NSDictionary *)profile_data->json_data(profile_data->all_events(), *graph);
             if (json) {
                 [graph_dict addEntriesFromDictionary:json];
             }
@@ -826,21 +824,20 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
                         double duration_fraction = 0.0;
                         if (auto profile_data = _profile_data.get()) {
-                            auto items_by_attribute = profile_data->current_category().items_by_attribute();
+                            auto items_by_attribute = profile_data->all_events().items_by_attribute();
                             auto found_item = items_by_attribute.find(attribute.to_node_ptr());
                             if (found_item != items_by_attribute.end()) {
                                 auto item = found_item->second;
-                                if (item.data().count) {
-                                    uint64_t count = item.data().count; // count
-                                    uint64_t duration = item.data().duration;
-                                    uint64_t total_duration =
-                                        profile_data->current_category().data().duration; // total duration
+                                if (item.data().update_count) {
+                                    uint64_t update_count = item.data().update_count;
+                                    uint64_t update_total = item.data().update_total;
+                                    uint64_t all_update_total = profile_data->all_events().data().update_total;
                                     double average_update_time =
-                                        absolute_time_to_seconds((double)duration / (double)count);
+                                        absolute_time_to_seconds((double)update_total / (double)update_count);
                                     duration_fraction =
-                                        ((double)duration / (double)total_duration) * 100.0; // duration fraction
+                                        ((double)update_total / (double)all_update_total) * 100.0; // duration fraction
                                     [result appendFormat:@"\\n%.2g%%: %g × %.2fμs", duration_fraction,
-                                                         (double)item.data().count, average_update_time * 1000000.0];
+                                                         (double)update_count, average_update_time * 1000000.0];
                                 }
                             }
                         }

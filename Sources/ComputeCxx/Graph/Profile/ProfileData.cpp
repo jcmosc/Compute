@@ -9,20 +9,20 @@ namespace AG {
 #pragma mark - ProfileData::Item
 
 void Graph::ProfileData::Item::operator+=(const Item &other) {
-    _data.count += other._data.count;
-    _data.changed_count += other._data.changed_count;
-    _data.duration += other._data.duration;
-    _data.changed_duration += other._data.changed_duration;
+    _data.update_count += other._data.update_count;
+    _data.change_count += other._data.change_count;
+    _data.update_total += other._data.update_total;
+    _data.changed_total += other._data.changed_total;
     
     Mark *iter = _marks.begin();
     for (auto other_mark : other._marks) {
         bool merged = false;
-        while (iter != _marks.end() && iter->time <= other_mark.time) {
+        while (iter != _marks.end() && iter->timestamp <= other_mark.timestamp) {
             if (iter == &other_mark) {
-                iter->data.count += other_mark.data.count;
-                iter->data.changed_count += other_mark.data.changed_count;
-                iter->data.duration += other_mark.data.duration;
-                iter->data.changed_duration += other_mark.data.changed_duration;
+                iter->data.update_count += other_mark.data.update_count;
+                iter->data.change_count += other_mark.data.change_count;
+                iter->data.update_total += other_mark.data.update_total;
+                iter->data.changed_total += other_mark.data.changed_total;
                 merged = true;
                 break;
             }
@@ -38,7 +38,7 @@ void Graph::ProfileData::Item::operator+=(const Item &other) {
 }
 
 void Graph::ProfileData::Item::mark(uint32_t event_id, uint64_t time) {
-    if (_data.count) {
+    if (_data.update_count) {
         _marks.push_back({
             event_id,
             time,
@@ -51,20 +51,20 @@ void Graph::ProfileData::Item::mark(uint32_t event_id, uint64_t time) {
 #pragma mark - ProfileData::Category
 
 void Graph::ProfileData::Category::add_update(data::ptr<Node> node, uint64_t duration, bool changed) {
-    data().count += 1;
-    data().duration += duration;
+    data().update_count += 1;
+    data().update_total += duration;
     if (changed) {
-        data().changed_count += 1;
-        data().changed_duration += duration;
+        data().change_count += 1;
+        data().changed_total += duration;
     }
     
     Item &item = _items_by_attribute.try_emplace(node).first->second;
     
-    item.data().count += 1;
-    item.data().duration += duration;
+    item.data().update_count += 1;
+    item.data().update_total += duration;
     if (changed) {
-        item.data().changed_count += 1;
-        item.data().changed_duration += duration;
+        item.data().change_count += 1;
+        item.data().changed_total += duration;
     }
 }
 
@@ -93,7 +93,7 @@ Graph::ProfileData::ProfileData(Graph *graph) {
 }
 
 void Graph::ProfileData::remove_node(data::ptr<Node> node, uint32_t type_id) {
-    _current_category.remove_node(node, type_id);
+    _all_events.remove_node(node, type_id);
     for (auto &entry : _categories) {
         entry.second.remove_node(node, type_id);
     }

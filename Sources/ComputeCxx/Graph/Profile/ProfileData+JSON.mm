@@ -9,45 +9,43 @@
 namespace AG {
 
 CFDictionaryRef Graph::ProfileData::json_data(const Data &data) {
-    // TODO: figure out real keys
     NSMutableDictionary *dict = nil;
-    if (data.count) {
+    if (data.update_count) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"count1"] = [NSNumber numberWithUnsignedLong:data.count];
+        dict[@"update_count"] = [NSNumber numberWithUnsignedLong:data.update_count];
     }
-    if (data.changed_count) {
+    if (data.change_count) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"count2"] = [NSNumber numberWithUnsignedLong:data.changed_count];
+        dict[@"change_count"] = [NSNumber numberWithUnsignedLong:data.change_count];
     }
-    if (data.duration) {
+    if (data.update_total) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"time1"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.duration)];
+        dict[@"update_total"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.update_total)];
     }
-    if (data.changed_duration) {
+    if (data.changed_total) {
         if (!dict) {
             dict = [NSMutableDictionary dictionary];
         }
-        dict[@"time2"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.changed_duration)];
+        dict[@"changed_total"] = [NSNumber numberWithDouble:absolute_time_to_seconds(data.changed_total)];
     }
     return (__bridge CFDictionaryRef)dict;
 }
 
 CFDictionaryRef Graph::ProfileData::json_data(const Item &item, const Graph &graph) {
-    // TODO: figure out real keys
     NSMutableDictionary *json = (__bridge NSMutableDictionary *)json_data(item.data());
     if (!item.marks().empty()) {
         NSMutableArray *array = [NSMutableArray array];
         for (auto mark : item.marks()) {
             NSMutableDictionary *mark_json = (__bridge NSMutableDictionary *)json_data(mark.data);
             if (mark_json) {
-                mark_json[@"event"] = [NSString stringWithUTF8String:graph.key_name(mark.event_id)];
-                mark_json[@"time"] = [NSNumber numberWithDouble:absolute_time_to_seconds(mark.time)];
+                mark_json[@"name"] = [NSString stringWithUTF8String:graph.key_name(mark.event_id)];
+                mark_json[@"timestamp"] = [NSNumber numberWithDouble:absolute_time_to_seconds(mark.timestamp)];
                 [array addObject:mark_json];
             }
         }

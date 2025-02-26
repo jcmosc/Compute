@@ -13,15 +13,15 @@ namespace AG {
 class Graph::ProfileData {
   public:
     struct Data {
-        uint64_t count;
-        uint64_t changed_count;
-        uint64_t duration;
-        uint64_t changed_duration;
+        uint64_t update_count;
+        uint64_t change_count;
+        uint64_t update_total;
+        uint64_t changed_total;
     };
 
     struct Mark {
         uint32_t event_id;
-        uint64_t time;
+        uint64_t timestamp;
         Data data;
     };
 
@@ -64,7 +64,7 @@ class Graph::ProfileData {
 
   private:
     uint64_t _precision;
-    Category _current_category; // _all
+    Category _all_events;
 
     std::unordered_map<uint32_t, Category> _categories;
     bool _has_unmarked_categories;
@@ -74,7 +74,7 @@ class Graph::ProfileData {
 
     uint64_t precision() const { return _precision; };
 
-    Category &current_category() { return _current_category; };
+    Category &all_events() { return _all_events; };
     std::unordered_map<uint32_t, Category> &categories() { return _categories; };
 
     bool has_unmarked_categories() const { return _has_unmarked_categories; };
@@ -87,7 +87,7 @@ class Graph::ProfileData {
             if (time == 0) {
                 time = mach_absolute_time();
             }
-            _current_category.mark(event_id, time);
+            _all_events.mark(event_id, time);
             for (auto &entry : _categories) {
                 entry.second.mark(event_id, time); // TODO: does this modify in place or a copy?
             }

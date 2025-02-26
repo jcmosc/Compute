@@ -2340,7 +2340,7 @@ void Graph::add_profile_update(data::ptr<Node> node, uint64_t duration, bool cha
         if (duration > _profile_data->precision()) {
             effective_duration = duration - _profile_data->precision();
         }
-        _profile_data->current_category().add_update(node, effective_duration, changed);
+        _profile_data->all_events().add_update(node, effective_duration, changed);
         _profile_data->set_has_unmarked_categories(true);
     }
 }

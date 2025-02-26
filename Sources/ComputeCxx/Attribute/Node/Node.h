@@ -18,7 +18,7 @@ class Graph;
 
 class NodeFlags {
   public:
-    enum Flags3 : uint8_t {}; // TODO: subgraph_flags
+    enum SubgraphFlags : uint8_t {};
     enum Flags4 : uint8_t {
         HasIndirectSelf = 1 << 0,  // 0x01
         HasIndirectValue = 1 << 1, // 0x02
@@ -33,7 +33,7 @@ class NodeFlags {
 
   private:
     uint16_t _relative_offset;
-    uint8_t _value3;
+    uint8_t _subgraph_flags;
     uint8_t _value4;
 
   public:
@@ -43,8 +43,8 @@ class NodeFlags {
     void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
 
     // Flags 3
-    uint8_t value3() const { return _value3; };
-    void set_value3(uint8_t value3) { _value3 = value3; };
+    uint8_t subgraph_flags() const { return _subgraph_flags; };
+    void set_subgraph_flags(uint8_t subgraph_flags) { _subgraph_flags = subgraph_flags; };
 
     // Flags 4
     bool has_indirect_self() const { return _value4 & Flags4::HasIndirectSelf; }

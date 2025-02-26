@@ -385,7 +385,7 @@ void Subgraph::foreach_ancestor(Callable body) {
 #pragma mark - Attributes
 
 void Subgraph::add_node(data::ptr<Node> node) {
-    node->flags().set_value3(0);
+    node->flags().set_subgraph_flags(0);
     insert_attribute(AttributeID(node), true);
 
     if (_tree_root) {
@@ -409,13 +409,13 @@ void Subgraph::insert_attribute(AttributeID attribute, bool flag) {
     AttributeID source = AttributeID::make_nil();
 
     if (flag) {
-        if (!attribute.is_direct() || attribute.to_node().flags().value3() == 0) {
+        if (!attribute.is_direct() || attribute.to_node().flags().subgraph_flags() == 0) {
             uint16_t relative_offset = attribute.page_ptr()->relative_offset_1;
             while (relative_offset) {
                 AttributeID next_attribute = AttributeID(attribute.page_ptr().offset() + relative_offset);
                 if (next_attribute.is_direct()) {
                     auto node = next_attribute.to_node();
-                    if (node.flags().value3() == 0) {
+                    if (node.flags().subgraph_flags() == 0) {
                         break;
                     }
                     source = next_attribute;
@@ -571,10 +571,10 @@ void Subgraph::update(uint8_t flags) {
                                         relative_offset = attribute.to_node().flags().relative_offset();
                                         auto node = attribute.to_node();
                                         if (flags) {
-                                            if (node.flags().value3() == 0) {
+                                            if (node.flags().subgraph_flags() == 0) {
                                                 break;
                                             }
-                                            if ((node.flags().value3() & flags) == 0) {
+                                            if ((node.flags().subgraph_flags() & flags) == 0) {
                                                 continue;
                                             }
                                         }
@@ -672,10 +672,10 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
                             relative_offset = attribute.to_node().flags().relative_offset();
 
                             if (!flags.is_null()) {
-                                if (attribute.to_node().flags().value3() == 0) {
+                                if (attribute.to_node().flags().subgraph_flags() == 0) {
                                     break;
                                 }
-                                if (flags.value3 & (attribute.to_node().flags().value3() == 0)) {
+                                if (flags.value3 & (attribute.to_node().flags().subgraph_flags() == 0)) {
                                     continue;
                                 }
                             }
@@ -845,16 +845,16 @@ uint32_t Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_elemen
 
 // MARK: - Flags
 
-void Subgraph::set_flags(data::ptr<Node> node, NodeFlags::Flags3 flags) {
-    if (node->flags().value3() == flags) {
+void Subgraph::set_flags(data::ptr<Node> node, NodeFlags::SubgraphFlags flags) {
+    if (node->flags().subgraph_flags() == flags) {
         return;
     }
-    if (node->flags().value3() == 0 || flags == 0) {
+    if (node->flags().subgraph_flags() == 0 || flags == 0) {
         unlink_attribute(node);
-        node->flags().set_value3(flags);
+        node->flags().set_subgraph_flags(flags);
         insert_attribute(node, true);
     } else {
-        node->flags().set_value3(flags);
+        node->flags().set_subgraph_flags(flags);
     }
 
     add_flags(flags);
@@ -1215,8 +1215,8 @@ void Subgraph::print(uint32_t indent_level) {
 
             if (attribute.is_direct()) {
                 fprintf(stdout, "%s%u", first ? "" : " ", attribute.value());
-                if (attribute.to_node().flags().value3()) {
-                    fprintf(stdout, "(%u)", attribute.to_node().flags().value3());
+                if (attribute.to_node().flags().subgraph_flags()) {
+                    fprintf(stdout, "(%u)", attribute.to_node().flags().subgraph_flags());
                 }
                 first = false;
             }

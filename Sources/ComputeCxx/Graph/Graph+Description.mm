@@ -554,7 +554,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                     }
 
                     if (attribute.is_direct()) {
-                        uint8_t subgraph_flags = attribute.to_node().flags().value3();
+                        uint8_t subgraph_flags = attribute.to_node().flags().subgraph_flags();
                         auto found_node_index = node_indices_by_id.find(attribute.to_node_ptr());
                         if (found_node_index != node_indices_by_id.end()) {
                             [nodes addObject:[NSNumber numberWithUnsignedLong:found_node_index->second]];

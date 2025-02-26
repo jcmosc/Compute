@@ -6,6 +6,7 @@
 #include <dispatch/dispatch.h>
 
 #include "Containers/Vector.h"
+#include "Utilities/ObjCPointer.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -23,7 +24,7 @@ class DebugServer {
       private:
         DebugServer *_server;
         int _socket;
-        dispatch_source_t _dispatch_source;
+        util::objc_ptr<dispatch_source_t> _dispatch_source;
 
       public:
         Connection(DebugServer *server, int socket);
@@ -40,7 +41,7 @@ class DebugServer {
     uint16_t _port;
     uint16_t _padding;
     uint32_t _token;
-    dispatch_source_t _dispatch_source;
+    util::objc_ptr<dispatch_source_t> _dispatch_source;
     vector<std::unique_ptr<Connection>, 0, uint64_t> _clients;
 
     static DebugServer *_shared_server;

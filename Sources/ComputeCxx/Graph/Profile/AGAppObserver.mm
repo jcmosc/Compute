@@ -27,11 +27,11 @@ void AGAppObserverStartObserving() {
     if (NSClassFromString(@"UIApplication")) {
         [[NSNotificationCenter defaultCenter] addObserver:[AGAppObserver class]
                                                  selector:@selector(foreground:)
-                                                     name:@"UIApplicationWillEnterForeground" // TODO get real name
+                                                     name:@"UIApplicationWillEnterForegroundNotification"
                                                    object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:[AGAppObserver class]
                                                  selector:@selector(background:)
-                                                     name:@"UIApplicationDidEnterBackground" // TODO get real name
+                                                     name:@"UIApplicationDidEnterBackgroundNotification"
                                                    object:nil];
     }
 }

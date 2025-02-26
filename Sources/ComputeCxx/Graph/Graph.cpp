@@ -852,7 +852,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> attribute, AttributeI
     // TODO: check zone id
     attribute->modify(WeakAttributeID(resolved_source.attribute(), 0), resolved_source.offset());
     attribute->set_traverses_contexts(AttributeID(attribute).subgraph()->context_id() !=
-                                            resolved_source.attribute().subgraph()->context_id());
+                                      resolved_source.attribute().subgraph()->context_id());
 
     if (resolved_source.attribute() != previous_source) {
         add_input_dependencies(AttributeID(attribute), resolved_source.attribute());
@@ -892,7 +892,7 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> attribute, bool non
 
     attribute->modify(new_source, new_offset);
     attribute->set_traverses_contexts(AttributeID(attribute).subgraph()->context_id() !=
-                                            new_source_or_nil.subgraph()->context_id());
+                                      new_source_or_nil.subgraph()->context_id());
 
     if (old_source_or_nil != new_source_or_nil) {
         add_input_dependencies(AttributeID(attribute), new_source_or_nil);
@@ -1166,8 +1166,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
         Node::State state;
     };
 
-    char stack_buffer[0x2000] = {};
-    auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
+    auto heap = util::InlineHeap<0x2000>();
     auto frames = util::ForwardList<Frame>(&heap);
 
     data::vector<OutputEdge> initial_outputs = {};
@@ -1221,8 +1220,8 @@ void Graph::propagate_dirty(AttributeID attribute) {
                     if (output_node.flags().inputs_traverse_contexts() && !output_node.outputs().empty()) {
                         if (auto output_subgraph = output.subgraph()) {
                             auto context_id = output_subgraph->context_id();
-                            if (context_id && (attribute.subgraph() == nullptr ||
-                                               context_id != attribute.subgraph()->context_id())) {
+                            if (context_id &&
+                                (attribute.subgraph() == nullptr || context_id != attribute.subgraph()->context_id())) {
                                 if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
                                     if (context->graph_version() != context->graph()._version) {
                                         context->call_invalidation(attribute);
@@ -1242,8 +1241,8 @@ void Graph::propagate_dirty(AttributeID attribute) {
                     if (output_node.traverses_contexts() && !output_node.to_mutable().outputs().empty()) {
                         if (auto output_subgraph = output.subgraph()) {
                             auto context_id = output_subgraph->context_id();
-                            if (context_id && (attribute.subgraph() == nullptr ||
-                                               context_id != attribute.subgraph()->context_id())) {
+                            if (context_id &&
+                                (attribute.subgraph() == nullptr || context_id != attribute.subgraph()->context_id())) {
                                 if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
                                     if (context->graph_version() != context->graph()._version) {
                                         context->call_invalidation(attribute);
@@ -1754,8 +1753,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
         AttributeID attribute;
     };
 
-    char stack_buffer[0x2000] = {};
-    auto heap = util::Heap(stack_buffer, sizeof(stack_buffer), 0);
+    auto heap = util::InlineHeap<0x2000>();
     auto frames = util::ForwardList<Frame>(&heap);
 
     data::vector<OutputEdge> initial_outputs = {};
@@ -1912,7 +1910,8 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
                 CFRange range = CFRangeMake(0, length);
                 uint8_t buffer[1024];
                 CFIndex used_buffer_length = 0;
-                CFStringGetBytes(description, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024, &used_buffer_length);
+                CFStringGetBytes(description, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024,
+                                 &used_buffer_length);
                 if (used_buffer_length > 0) {
                     encoder.encode_varint(0x12);
                     encoder.encode_data(buffer, used_buffer_length);
@@ -2175,7 +2174,8 @@ void Graph::prepare_trace(Trace &trace) {
                         auto node = attribute.to_node_ptr();
                         uint32_t edge_index = 0;
                         for (auto input_edge : node->inputs()) {
-                            trace.add_edge(node, input_edge.value, input_edge.is_always_enabled()); // TODO: is last param int or bool?
+                            trace.add_edge(node, input_edge.value,
+                                           input_edge.is_always_enabled()); // TODO: is last param int or bool?
                             if (input_edge.is_changed()) {
                                 trace.set_edge_pending(node, edge_index, true);
                             }

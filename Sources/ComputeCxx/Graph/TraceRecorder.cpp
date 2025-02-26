@@ -28,7 +28,7 @@ bool uuid_equal(const uuid_t a, const uuid_t b) { return uuid_compare(a, b) == 0
 } // namespace
 
 Graph::TraceRecorder::TraceRecorder(Graph *graph, uint8_t tracing_flags, std::span<const char *> subsystems)
-    : _graph(graph), _tracing_flags(tracing_flags), _heap(_heap_inline_buffer, 256, 0),
+    : _graph(graph), _tracing_flags(tracing_flags), _heap(),
       _image_offset_cache(uuid_hash, uuid_equal, nullptr, nullptr, &_heap), _encoder(_delegate, 0x10000) {
     _unique_id = AGMakeUniqueID();
 

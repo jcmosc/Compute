@@ -20,8 +20,7 @@ class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
     Encoder _encoder;
     uint8_t _tracing_flags;
 
-    util::Heap _heap;
-    char _heap_inline_buffer[256];
+    util::InlineHeap<256> _heap;
 
     vector<const char *, 0, uint64_t> _named_event_subsystems;
 

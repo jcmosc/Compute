@@ -239,6 +239,9 @@ class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
 
     iterator insert(const_iterator pos, const std::unique_ptr<T, deleter_type> &value);
     iterator insert(const_iterator pos, std::unique_ptr<T, deleter_type> &&value);
+    
+    iterator erase(iterator pos);
+    iterator erase(iterator first, iterator last);
 
     void push_back(const std::unique_ptr<T, deleter_type> &value) = delete;
     void push_back(std::unique_ptr<T, deleter_type> &&value);

@@ -414,6 +414,34 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve(size_type n
 
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::iterator
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator pos) {
+    if (pos == end()) {
+        return end();
+    }
+    return erase(pos, pos + 1);
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::iterator
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator first, iterator last) {
+    auto count = last - first;
+    if (count == 0) {
+        return last;
+    }
+    for (auto iter = first; iter != last; iter++) {
+        iter->reset();
+    }
+    for (auto iter = last, old_end = end(); iter != old_end; iter++) {
+        std::swap(*(iter - count), *iter);
+    }
+    _size -= count;
+    return end();
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
 void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::unique_ptr<T, deleter_type> &&value) {
     reserve(_size + 1);
     new (&_buffer[_size]) value_type(std::move(value));

@@ -95,22 +95,22 @@ Graph::Graph()
                     option[option_length] = 0;
 
                     if (strcasecmp(option, "enabled") == 0) {
-                        trace_flags |= TraceFlags::Enabled;
+                        trace_flags |= TracingFlags::Enabled;
                         free(option);
                     } else if (strcasecmp(option, "full") == 0) {
-                        trace_flags |= TraceFlags::Full;
+                        trace_flags |= TracingFlags::Full;
                         free(option);
                     } else if (strcasecmp(option, "backtrace") == 0) {
-                        trace_flags |= TraceFlags::Backtrace;
+                        trace_flags |= TracingFlags::Backtrace;
                         free(option);
                     } else if (strcasecmp(option, "prepare") == 0) {
-                        trace_flags |= TraceFlags::Prepare;
+                        trace_flags |= TracingFlags::Prepare;
                         free(option);
                     } else if (strcasecmp(option, "custom") == 0) {
-                        trace_flags |= TraceFlags::Custom;
+                        trace_flags |= TracingFlags::Custom;
                         free(option);
                     } else if (strcasecmp(option, "all") == 0) {
-                        trace_flags |= TraceFlags::All;
+                        trace_flags |= TracingFlags::All;
                         free(option);
                     } else {
                         trace_subsystems.push_back(std::unique_ptr<const char, util::free_deleter>(option));
@@ -2214,10 +2214,10 @@ void Graph::remove_trace(uint64_t trace_id) {
     _traces.erase(iter);
 }
 
-void Graph::start_tracing(uint32_t flags, std::span<const char *> subsystems) {
-    if (flags & TraceFlags::Enabled && _trace_recorder == nullptr) {
-        _trace_recorder = new TraceRecorder(this, flags, subsystems);
-        if (flags & TraceFlags::Prepare) {
+void Graph::start_tracing(uint32_t tracing_flags, std::span<const char *> subsystems) {
+    if (tracing_flags & TracingFlags::Enabled && _trace_recorder == nullptr) {
+        _trace_recorder = new TraceRecorder(this, tracing_flags, subsystems);
+        if (tracing_flags & TracingFlags::Prepare) {
             prepare_trace(*_trace_recorder);
         }
         add_trace(_trace_recorder);
@@ -2245,10 +2245,10 @@ CFStringRef Graph::copy_trace_path() {
     }
 }
 
-void Graph::all_start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span) {
+void Graph::all_start_tracing(uint32_t tracing_flags, std::span<const char *, UINT64_MAX> span) {
     all_lock();
     for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
-        graph->start_tracing(arg, span);
+        graph->start_tracing(tracing_flags, span);
     }
     all_unlock();
 }
@@ -2345,9 +2345,9 @@ void Graph::add_profile_update(data::ptr<Node> node, uint64_t duration, bool cha
     }
 }
 
-void Graph::start_profiling(uint32_t options) {
-    _is_profiling = options & 1;
-    if ((options >> 1) & 1) {
+void Graph::start_profiling(uint32_t profiler_flags) {
+    _is_profiling = profiler_flags & 1;
+    if ((profiler_flags >> 1) & 1) {
         AGAppObserverStartObserving();
 
         CFRunLoopRef run_loop = CFRunLoopGetMain();
@@ -2387,10 +2387,10 @@ void Graph::mark_profile(uint32_t event_id, uint64_t time) {
 
 void Graph::reset_profile() { _profile_data.reset(); }
 
-void Graph::all_start_profiling(uint32_t options) {
+void Graph::all_start_profiling(uint32_t profiler_flags) {
     all_lock();
     for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
-        graph->start_profiling(options);
+        graph->start_profiling(profiler_flags);
     }
     all_unlock();
 }
@@ -2403,11 +2403,11 @@ void Graph::all_stop_profiling() {
     all_unlock();
 }
 
-void Graph::all_mark_profile(const char *event_name) {
+void Graph::all_mark_profile(const char *name) {
     uint64_t time = mach_absolute_time();
     all_lock();
     for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
-        auto event_id = graph->intern_key(event_name);
+        auto event_id = graph->intern_key(name);
         graph->mark_profile(event_id, time);
     }
     all_unlock();

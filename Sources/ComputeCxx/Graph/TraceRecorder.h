@@ -18,7 +18,7 @@ class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
     Encoder::Delegate *_Nonnull _delegate;
     Graph *_graph;
     Encoder _encoder;
-    uint8_t _options;
+    uint8_t _tracing_flags;
 
     util::Heap _heap;
     char _heap_inline_buffer[256];
@@ -41,7 +41,7 @@ class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
     vector<NamedEventInfo, 0, uint32_t> _named_event_infos;
 
   public:
-    TraceRecorder(Graph *graph, uint8_t options, std::span<const char *> subsystems);
+    TraceRecorder(Graph *graph, uint8_t tracing_flags, std::span<const char *> subsystems);
     ~TraceRecorder();
 
     uint64_t unique_id() { return _unique_id; };

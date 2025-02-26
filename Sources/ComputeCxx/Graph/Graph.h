@@ -340,7 +340,7 @@ class Graph {
 
     // MARK: Tracing
 
-    enum TraceFlags : uint32_t {
+    enum TracingFlags : uint32_t {
         Enabled = 1 << 0,
         Full = 1 << 1,
         Backtrace = 1 << 2,
@@ -354,7 +354,7 @@ class Graph {
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    void start_tracing(uint32_t flags, std::span<const char *> subsystems);
+    void start_tracing(uint32_t tracing_flags, std::span<const char *> subsystems);
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();
@@ -367,7 +367,7 @@ class Graph {
         }
     };
 
-    static void all_start_tracing(uint32_t arg, std::span<const char *, UINT64_MAX> span);
+    static void all_start_tracing(uint32_t tracing_flags, std::span<const char *, UINT64_MAX> span);
     static void all_stop_tracing();
     static void all_sync_tracing();
     static CFStringRef all_copy_trace_path();
@@ -383,14 +383,14 @@ class Graph {
 
     void add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed);
 
-    void start_profiling(uint32_t options);
+    void start_profiling(uint32_t profiler_flags);
     void stop_profiling();
     void mark_profile(uint32_t event_id, uint64_t time);
     void reset_profile();
 
-    static void all_start_profiling(uint32_t options);
+    static void all_start_profiling(uint32_t profiler_flags);
     static void all_stop_profiling();
-    static void all_mark_profile(const char *event_name);
+    static void all_mark_profile(const char *name);
     static void all_reset_profile();
 
     // MARK: Printing

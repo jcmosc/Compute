@@ -128,7 +128,7 @@ class ExternalTrace : public AG::Trace {
     void set_source(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID source);
     void set_dependency(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID dependency);
 
-    void mark_profile(const AG::Graph &graph, uint32_t event_id); // TODO: change options to event_id everywhere
+    void mark_profile(const AG::Graph &graph, uint32_t event_id);
 
     void custom_event(const AG::Graph::Context &context, const char *event_name, const void *value,
                       const AG::swift::metadata &type);

@@ -135,7 +135,7 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
         bool visit_case(const AG::swift::metadata &type, const AG::swift::field_record &field,
                         uint32_t index) const override {
             auto mangled_name = field.MangledTypeName.get();
-            auto field_type = type.mangled_type_name_ref(mangled_name, true, nullptr);
+            auto field_type = type.mangled_type_name_ref(mangled_name, true, nullptr); // TODO: _cached or not?
             if (!field_type) {
                 return unknown_result();
             }
@@ -173,4 +173,122 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
     default:
         return false;
     }
+}
+
+void AGTypeApplyEnumData(AGTypeID typeID, void *value,
+                         void (*body)(uint32_t tag, AGTypeID field_type, void *field_value)) {
+    auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
+    auto value_witness = type->getValueWitnesses();
+    if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
+        AG::precondition_failure("not an enum type: %s", type->name(false));
+    }
+
+    auto enum_value_witness = value_witness->_asEVWT();
+    uint32_t tag = enum_value_witness->getEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value), type);
+
+    if (auto descriptor = type->nominal_descriptor()) {
+        auto enum_descriptor = reinterpret_cast<const ::swift::EnumDescriptor *>(descriptor);
+        if (auto fields = enum_descriptor->Fields.get()) {
+            auto num_payload_cases = enum_descriptor->getNumPayloadCases();
+            if (tag < num_payload_cases) {
+                auto &field = fields->getFields()[tag];
+                if (auto mangled_name = field.MangledTypeName.get()) {
+                    auto field_type = type->mangled_type_name_ref_cached(mangled_name, nullptr);
+                    if (field_type) {
+                        enum_value_witness->destructiveProjectEnumData(
+                            reinterpret_cast<AG::swift::opaque_value *>(value), type);
+
+                        void *field_value = value;
+                        if (field.isIndirectCase()) {
+                            size_t alignment_mask = field_type->getValueWitnesses()->getAlignmentMask();
+                            size_t offset = (sizeof(::swift::HeapObject) + alignment_mask) & ~alignment_mask;
+                            field_value = *(char **)value + offset;
+                        }
+                        body(tag, AGTypeID(field_type), field_value);
+
+                        enum_value_witness->destructiveInjectEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value),
+                                                                     tag, type);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
+                                void (*body)(uint32_t tag, AGTypeID field_type, void *field_value)) {
+    auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
+    auto value_witness = type->getValueWitnesses();
+    if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
+        AG::precondition_failure("not an enum type: %s", type->name(false));
+    }
+
+    auto enum_value_witness = value_witness->_asEVWT();
+    uint32_t tag = enum_value_witness->getEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value), type);
+
+    if (auto descriptor = type->nominal_descriptor()) {
+        auto enum_descriptor = reinterpret_cast<const ::swift::EnumDescriptor *>(descriptor);
+        if (auto fields = enum_descriptor->Fields.get()) {
+            auto num_payload_cases = enum_descriptor->getNumPayloadCases();
+            if (tag < num_payload_cases) {
+                auto &field = fields->getFields()[tag];
+                if (auto mangled_name = field.MangledTypeName.get()) {
+                    auto field_type = type->mangled_type_name_ref_cached(mangled_name, nullptr);
+                    if (field_type) {
+                        enum_value_witness->destructiveProjectEnumData(
+                            reinterpret_cast<AG::swift::opaque_value *>(value), type);
+
+                        void *field_value = value;
+                        if (field.isIndirectCase()) {
+                            field_type->copy_on_write_heap_object((void **)value);
+                            size_t alignment_mask = field_type->getValueWitnesses()->getAlignmentMask();
+                            size_t offset = (sizeof(::swift::HeapObject) + alignment_mask) & ~alignment_mask;
+                            field_value = *(char **)value + offset;
+                        }
+                        body(tag, AGTypeID(field_type), field_value);
+
+                        enum_value_witness->destructiveInjectEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value),
+                                                                     tag, type);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+uint64_t AGTypeGetEnumTag(AGTypeID typeID, void *value) {
+    auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
+    auto value_witness = type->getValueWitnesses();
+    if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
+        AG::precondition_failure("not an enum type: %s", type->name(false));
+    }
+
+    auto enum_value_witness = value_witness->_asEVWT();
+    return enum_value_witness->getEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value), type);
+}
+
+void AGTypeProjectEnumData(AGTypeID typeID, void *value) {
+    auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
+    auto value_witness = type->getValueWitnesses();
+    if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
+        AG::precondition_failure("not an enum type: %s", type->name(false));
+    }
+
+    auto enum_value_witness = value_witness->_asEVWT();
+    enum_value_witness->destructiveProjectEnumData(reinterpret_cast<AG::swift::opaque_value *>(value), type);
+}
+
+void AGTypeInjectEnumTag(AGTypeID typeID, void *value, uint32_t tag) {
+    auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
+    auto value_witness = type->getValueWitnesses();
+    if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
+        AG::precondition_failure("not an enum type: %s", type->name(false));
+    }
+    
+    auto enum_value_witness = value_witness->_asEVWT();
+    enum_value_witness->destructiveInjectEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value), tag, type);
 }

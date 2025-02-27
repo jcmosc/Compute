@@ -1216,7 +1216,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
         add_field(sizeof(void *));
         result = true;
     } else {
-        auto mangled_name = field.FieldName.get();
+        auto mangled_name = field.FieldName.get(); // TODO: check this is FieldName of MangledTypeName
         auto field_type = mangled_name != nullptr ? type.mangled_type_name_ref(mangled_name, false, nullptr) : nullptr;
         if (field_type == nullptr) {
             // bail out if we can't get a type for the enum case payload

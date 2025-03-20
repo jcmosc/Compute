@@ -9,6 +9,7 @@
 #include "Containers/IndirectPointerVector.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
+#include "Graph/AGGraph.h"
 #include "Graph/Graph.h"
 #include "Private/CFRuntime.h"
 
@@ -202,8 +203,9 @@ class Subgraph : public data::zone {
 
     // MARK: Cache
 
+    // FIXME: not AGUnownedGraphContextRef
     data::ptr<Node> cache_fetch(uint64_t identifier, const swift::metadata &type, void *body,
-                                ClosureFunctionCI<unsigned long, Graph *> closure);
+                                ClosureFunctionCI<unsigned long, AGUnownedGraphRef> closure);
     void cache_insert(data::ptr<Node> node);
     void cache_collect();
 

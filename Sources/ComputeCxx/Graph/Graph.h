@@ -255,7 +255,7 @@ class Graph {
     // MARK: Values
 
     void *value_ref(AttributeID attribute, uint32_t zone_id, const swift::metadata &value_type,
-                    bool *_Nonnull changed_out);
+                    uint8_t *_Nonnull state_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &type);

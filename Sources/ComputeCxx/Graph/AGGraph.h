@@ -15,6 +15,7 @@ CF_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
+typedef struct AGUnownedGraph *AGUnownedGraphRef;
 typedef struct AGUnownedGraphContext *AGUnownedGraphContextRef;
 
 CF_EXPORT
@@ -160,10 +161,17 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
 // MARK: Cached attributes
 
 CF_EXPORT
-void AGGraphReadCachedAttribute();
+CF_REFINED_FOR_SWIFT
+void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
+                                 AGAttribute attribute, bool *changed_out,
+                                 unsigned long (*closure)(AGUnownedGraphContextRef graph_context,
+                                                          const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 const void *closure_context);
 
 CF_EXPORT
-void AGGraphReadCachedAttributeIfExists();
+CF_REFINED_FOR_SWIFT
+void *AGGraphReadCachedAttributeIfExists(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
+                                         AGAttribute attribute, bool *changed_out);
 
 // MARK: Current attribute
 

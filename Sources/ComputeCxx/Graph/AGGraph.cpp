@@ -294,18 +294,77 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
 
 namespace {
 
-void read_cached_attribute(unsigned long, AGSwiftMetadata const *, void const *, AGSwiftMetadata const *, unsigned int,
-                           unsigned int, unsigned char &,
-                           AG::ClosureFunctionCI<unsigned long, AGUnownedGraphContext *>) {}
+void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &metadata, void *body,
+                            const AG::swift::metadata &value_type, bool flag, AG::AttributeID attribute,
+                            uint8_t *state_out, AG::ClosureFunctionCI<unsigned long, AGUnownedGraphRef> closure) {
+
+    auto current_update = AG::Graph::current_update();
+    AG::Graph::UpdateStack *stack = current_update.tag() == 0 ? current_update.get() : nullptr;
+
+    AG::Subgraph *subgraph = nullptr;
+    if (attribute.without_kind() == 0) {
+        if (stack != nullptr) {
+            subgraph = AG::AttributeID(stack->frames().back().attribute).subgraph();
+
+        } else {
+            subgraph = AG::Subgraph::current_subgraph();
+        }
+    } else {
+        attribute.to_node_ptr().assert_valid();
+        subgraph = attribute.subgraph();
+    }
+    if (subgraph == nullptr) {
+        AG::precondition_failure("no subgraph");
+    }
+
+    AG::data::ptr<AG::Node> cached = subgraph->cache_fetch(identifier, metadata, body, closure);
+    if (cached == nullptr) {
+        return nullptr;
+    }
+
+    if (stack == nullptr) {
+        void *value = subgraph->graph()->value_ref(AG::AttributeID(cached), 0, value_type, state_out);
+        subgraph->cache_insert(cached);
+        return value;
+    }
+
+    uint8_t input_flags = flag ? 0 : 1;
+    return subgraph->graph()->input_value_ref(stack->frames().back().attribute, AG::AttributeID(cached), 0, input_flags,
+                                              value_type, state_out);
+}
 
 } // namespace
 
-void AGGraphReadCachedAttribute() {
-    // TODO: not implemented
+void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
+                                 AGAttribute attribute, bool *changed_out,
+                                 unsigned long (*closure)(AGUnownedGraphRef graph, const void *context AG_SWIFT_CONTEXT)
+                                     AG_SWIFT_CC(swift),
+                                 const void *closure_context) {
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
+
+    uint8_t state = 0;
+    void *value =
+        read_cached_attribute(identifier, *metadata, body, *value_metadata, flag, AG::AttributeID(attribute), &state,
+                              AG::ClosureFunctionCI<unsigned long, AGUnownedGraphRef>(closure, closure_context));
+    if (changed_out) {
+        *changed_out = state & 1 ? true : false;
+    }
+    return value;
 }
 
-void AGGraphReadCachedAttributeIfExists() {
-    // TODO: not implemented
+void *AGGraphReadCachedAttributeIfExists(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
+                                         AGAttribute attribute, bool *changed_out) {
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
+
+    uint8_t state = 0;
+    void *value = read_cached_attribute(identifier, *metadata, body, *value_metadata, flag, AG::AttributeID(attribute),
+                                        &state, nullptr);
+    if (changed_out) {
+        *changed_out = state & 1 ? true : false;
+    }
+    return value;
 }
 
 #pragma mark - Current attribute
@@ -665,10 +724,10 @@ AGValue get_value(AG::AttributeID attribute_id, uint32_t zone_id, AGValueOptions
         AG::precondition_failure("no graph: %u", attribute_id);
     }
 
-    bool changed = false;
-    void *value = subgraph->graph()->value_ref(attribute_id, zone_id, metadata, &changed);
+    uint8_t state = 0;
+    void *value = subgraph->graph()->value_ref(attribute_id, zone_id, metadata, &state);
 
-    return {value, changed};
+    return {value, state & 1 ? true : false};
 }
 
 } // namespace

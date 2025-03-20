@@ -975,7 +975,7 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute,
 
 #pragma mark - Values
 
-void *Graph::value_ref(AttributeID attribute, uint32_t zone_id, const swift::metadata &value_type, bool *changed_out) {
+void *Graph::value_ref(AttributeID attribute, uint32_t zone_id, const swift::metadata &value_type, uint8_t *state_out) {
 
     _version += 1;
 
@@ -1001,7 +1001,7 @@ void *Graph::value_ref(AttributeID attribute, uint32_t zone_id, const swift::met
 
         UpdateStatus status = update_attribute(resolved.attribute(), 0);
         if (status != UpdateStatus::NoChange) {
-            *changed_out = true;
+            *state_out = 1; // TODO: check not bool
         }
 
         // check new page seed is same as old and zone is not deleted

@@ -8,6 +8,10 @@
 
 CF_ASSUME_NONNULL_BEGIN
 
+struct AGUnownedGraph {
+    AG::Graph value;
+};
+
 struct AGUnownedGraphContext {
     AG::Graph::Context value;
 };

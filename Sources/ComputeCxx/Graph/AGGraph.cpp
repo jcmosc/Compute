@@ -202,27 +202,6 @@ AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
     AG::precondition_failure("no graph: %u", attribute);
 }
 
-// AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {
-//     auto subgraph = AGGraphGetAttributeSubgraph2(attribute);
-//     if (subgraph == nullptr) {
-//         AG::precondition_failure("no subgraph");
-//     }
-//
-//     return subgraph;
-// }
-//
-// AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
-//     auto attribute_id = AG::AttributeID(attribute);
-//     attribute_id.to_node_ptr().assert_valid();
-//
-//     auto subgraph = attribute_id.subgraph();
-//     if (subgraph == nullptr) {
-//         AG::precondition_failure("internal error");
-//     }
-//
-//     return subgraph->to_cf();
-// }
-
 AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id.is_direct()) {

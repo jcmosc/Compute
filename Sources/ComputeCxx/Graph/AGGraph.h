@@ -104,15 +104,8 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute);
 
-// TODO: fix circular types
 
-// CF_EXPORT
-// CF_REFINED_FOR_SWIFT
-// AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute);
 
-// CF_EXPORT
-// CF_REFINED_FOR_SWIFT
-// AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute);
 
 // TODO: need this?
 // typedef struct AGAttributeType {

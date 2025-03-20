@@ -43,6 +43,14 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGUnownedGraphContextRef AGSubgraphGetCurrentGraphContext(AGSubgraphRef subgraph);
 
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute);
+
 // MARK: Children
 
 CF_EXPORT

@@ -111,6 +111,27 @@ AGUnownedGraphContextRef AGSubgraphGetCurrentGraphContext() {
     return (AGUnownedGraphContextRef)current->graph();
 }
 
+AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {
+    auto subgraph = AGGraphGetAttributeSubgraph2(attribute);
+    if (subgraph == nullptr) {
+        AG::precondition_failure("no subgraph");
+    }
+
+    return subgraph;
+}
+
+AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.to_node_ptr().assert_valid();
+
+    auto subgraph = attribute_id.subgraph();
+    if (subgraph == nullptr) {
+        AG::precondition_failure("internal error");
+    }
+
+    return subgraph->to_cf();
+}
+
 #pragma mark - Children
 
 void AGSubgraphAddChild(AGSubgraphRef subgraph, AGSubgraphRef child) { AGSubgraphAddChild2(subgraph, child, 0); }

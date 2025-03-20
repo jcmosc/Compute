@@ -2108,21 +2108,21 @@ void Graph::encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_
 }
 
 void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
-    if (tree->owner.without_kind()) {
+    if (tree->node.without_kind()) {
         encoder.encode_varint(0x10);
-        encoder.encode_varint(tree->owner);
+        encoder.encode_varint(tree->node);
     }
     if (tree->flags) {
         encoder.encode_varint(0x18);
         encoder.encode_varint(tree->flags);
     }
-    if (tree->next) {
+    for (auto child = tree->first_child; child != nullptr; child = child->next_sibling) {
         encoder.encode_varint(0x22);
         encoder.begin_length_delimited();
-        encode_tree(encoder, tree->next->old_parent);
+        encode_tree(encoder, child);
         encoder.end_length_delimited();
     }
-    for (auto value = tree->last_value; value != nullptr; value = value->previous_sibling) {
+    for (auto value = tree->first_value; value != nullptr; value = value->next) {
         encoder.encode_varint(0x2a);
         encoder.begin_length_delimited();
         if (value->value) {

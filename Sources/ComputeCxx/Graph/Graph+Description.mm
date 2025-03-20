@@ -600,11 +600,11 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                             tree_element_indices.try_emplace(tree, index);
                             trees.push_back(tree);
 
-                            if (tree->next) {
-                                tree_stack.push(tree->next);
+                            if (tree->first_child) {
+                                tree_stack.push(tree->first_child);
                             }
-                            if (tree->old_parent) {
-                                tree_stack.push(tree->old_parent);
+                            if (tree->next_sibling) {
+                                tree_stack.push(tree->next_sibling);
                             }
                         }
                     }
@@ -620,8 +620,8 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
                     // TODO: what is creator key?
 
-                    if (tree->owner.without_kind() != 0 && tree->type != nullptr) {
-                        OffsetAttributeID resolved = tree->owner.resolve(TraversalOptions::ReportIndirectionInOffset);
+                    if (tree->node.without_kind() != 0 && tree->type != nullptr) {
+                        OffsetAttributeID resolved = tree->node.resolve(TraversalOptions::ReportIndirectionInOffset);
                         if (resolved.attribute().is_direct()) {
                             tree_dict[@"node"] = [NSNumber
                                 numberWithUnsignedLong:node_indices_by_id.find(resolved.attribute().to_node_ptr())
@@ -637,9 +637,9 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                         if (tree->parent == nullptr) {
                             tree_dict[@"root"] = @YES;
                         }
-                    } else if (tree->owner.without_kind() != 0 && tree->type == nullptr) {
+                    } else if (tree->node.without_kind() != 0 && tree->type == nullptr) {
                         tree_dict[@"node"] = [NSNumber
-                            numberWithUnsignedLong:node_indices_by_id.find(tree->owner.to_node_ptr())->second]; // 2
+                            numberWithUnsignedLong:node_indices_by_id.find(tree->node.to_node_ptr())->second]; // 2
                     } else {
                         if (tree->parent == nullptr) {
                             tree_dict[@"root"] = @YES; // 1
@@ -650,10 +650,10 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                         tree_dict[@"flags"] = [NSNumber numberWithUnsignedInt:tree->flags];
                     }
 
-                    if (tree->next) {
+                    if (tree->first_child) {
                         NSMutableArray *children = [NSMutableArray array];
-                        for (data::ptr<Graph::TreeElement> child = tree->next; child != nullptr;
-                             child = child->old_parent) {
+                        for (data::ptr<Graph::TreeElement> child = tree->first_child; child != nullptr;
+                             child = child->next_sibling) {
                             [children
                                 addObject:[NSNumber numberWithUnsignedLong:tree_element_indices.find(child)->second]];
                         }
@@ -685,8 +685,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                     }
 
                     NSMutableDictionary *values = [NSMutableDictionary dictionary];
-                    for (data::ptr<TreeValue> value = tree->last_value; value != nullptr;
-                         value = value->previous_sibling) {
+                    for (data::ptr<TreeValue> value = tree->first_value; value != nullptr; value = value->next) {
 
                         OffsetAttributeID resolved_value = value->value.resolve(TraversalOptions::None);
                         if (resolved_value.attribute().is_direct()) {

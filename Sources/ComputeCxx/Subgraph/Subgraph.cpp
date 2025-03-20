@@ -709,21 +709,21 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
 
 // MARK: - Tree
 
-void Subgraph::begin_tree(AttributeID owner, const swift::metadata *type, uint32_t flags) {
+void Subgraph::begin_tree(AttributeID attribute, const swift::metadata *type, uint32_t flags) {
 
     data::ptr<Graph::TreeElement> tree = (data::ptr<Graph::TreeElement>)alloc_bytes(sizeof(Graph::TreeElement), 7);
     tree->type = type;
-    tree->owner = owner;
+    tree->node = attribute;
     tree->flags = flags;
     tree->parent = _tree_root;
-    tree->old_parent = nullptr;
+    tree->next_sibling = nullptr;
 
     auto old_root = _tree_root;
     _tree_root = tree;
 
     if (old_root) {
-        _tree_root->old_parent = old_root->next;
-        old_root->next = _tree_root;
+        _tree_root->next_sibling = old_root->first_child;
+        old_root->first_child = _tree_root;
     }
 }
 
@@ -733,14 +733,14 @@ void Subgraph::end_tree() {
     }
 }
 
-void Subgraph::set_tree_owner(AttributeID owner) {
+void Subgraph::set_tree_owner(AttributeID attribute) {
     if (_tree_root) { // TODO: bug?
         return;
     }
     if (_tree_root->parent) {
         precondition_failure("setting owner of non-root tree");
     }
-    _tree_root->owner = owner;
+    _tree_root->node = attribute;
 }
 
 void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type, const char *key, uint32_t flags) {
@@ -755,9 +755,9 @@ void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type
     tree_value->value = attribute;
     tree_value->key_id = key_id;
     tree_value->flags = flags;
-    tree_value->previous_sibling = _tree_root->last_value;
+    tree_value->next = _tree_root->first_value;
 
-    _tree_root->last_value = tree_value;
+    _tree_root->first_value = tree_value;
 }
 
 /// Returns the node after the given tree element.
@@ -786,17 +786,17 @@ AttributeID Subgraph::tree_node_at_index(data::ptr<Graph::TreeElement> tree_elem
     return AttributeID::make_nil();
 }
 
-uint32_t Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_element) {
+data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_element) {
     auto map = _graph->tree_data_elements();
     if (!map) {
-        return 0;
+        return nullptr;
     }
     auto tree_data_element = map->find(this);
     tree_data_element->second.sort_nodes();
 
     auto nodes = tree_data_element->second.nodes();
-    if (!nodes.empty()) {
-        return;
+    if (nodes.empty()) {
+        return nullptr;
     }
 
     // TODO: verify this is lower_bound
@@ -815,15 +815,15 @@ uint32_t Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_elemen
         if (subgraph->_tree_root == nullptr) {
             continue;
         }
-        AttributeID owner = subgraph->_tree_root->owner;
-        if (owner.without_kind() == 0) {
+        AttributeID attribute = subgraph->_tree_root->node;
+        if (attribute.without_kind() == 0) {
             continue;
         }
-        OffsetAttributeID resolved = owner.resolve(TraversalOptions::None);
-        owner = resolved.attribute();
-        if (owner.is_direct()) {
+        OffsetAttributeID resolved = attribute.resolve(TraversalOptions::None);
+        attribute = resolved.attribute();
+        if (attribute.is_direct()) {
             for (auto node_iter = iter; node_iter != nodes.end(); ++node_iter) {
-                if (node_iter->first->owner == owner) {
+                if (node_iter->first->node == attribute) {
                     subgraph_vector.push_back(subgraph);
                 }
             }
@@ -837,7 +837,7 @@ uint32_t Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_elemen
     uint32_t last_old_parent = 0;
     for (auto subgraph : subgraph_vector) {
         result = subgraph->_tree_root;
-        subgraph->_tree_root->old_parent = last_old_parent;
+        subgraph->_tree_root->next_sibling = last_old_parent;
         last_old_parent = result;
     }
     return result;

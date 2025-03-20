@@ -166,11 +166,11 @@ class Subgraph : public data::zone {
                     uint32_t flags); // TODO: check can be null from Subgraph()
     void end_tree();
 
-    void set_tree_owner(AttributeID owner);
+    void set_tree_owner(AttributeID attribute);
     void add_tree_value(AttributeID attribute, const swift::metadata *type, const char *key, uint32_t flags);
 
     AttributeID tree_node_at_index(data::ptr<Graph::TreeElement> tree_element, uint64_t index);
-    uint32_t tree_subgraph_child(data::ptr<Graph::TreeElement> tree_element);
+    data::ptr<Graph::TreeElement> tree_subgraph_child(data::ptr<Graph::TreeElement> tree_element);
 
     // MARK: Managing flags
 

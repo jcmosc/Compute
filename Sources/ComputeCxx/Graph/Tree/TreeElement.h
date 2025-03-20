@@ -14,13 +14,14 @@ namespace AG {
 struct Graph::TreeElement {
     const swift::metadata *type;
 
-    AttributeID owner; // TODO: rename node
+    AttributeID node;
     uint32_t flags;
 
     data::ptr<Graph::TreeElement> parent;
-    data::ptr<Graph::TreeElement> next;       // children_front
-    data::ptr<Graph::TreeElement> old_parent; // next_child
-    data::ptr<TreeValue> last_value;
+    data::ptr<Graph::TreeElement> first_child;
+    data::ptr<Graph::TreeElement> next_sibling;
+    
+    data::ptr<TreeValue> first_value;
 };
 static_assert(sizeof(Graph::TreeElement) == 0x20);
 
@@ -31,6 +32,8 @@ class TreeElementID {
   public:
     TreeElementID(uint32_t value) : _value(value){};
 
+    data::ptr<Graph::TreeElement> to_element_ptr() const { return data::ptr<Graph::TreeElement>(_value); };
+
     Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone); }
     data::ptr<data::page> page_ptr() const { return data::ptr<void>(_value).page_ptr(); };
 };
@@ -40,7 +43,7 @@ struct Graph::TreeValue {
     AttributeID value;
     uint32_t key_id;
     uint32_t flags;
-    data::ptr<TreeValue> previous_sibling;
+    data::ptr<TreeValue> next;
 };
 static_assert(sizeof(Graph::TreeValue) == 0x18);
 

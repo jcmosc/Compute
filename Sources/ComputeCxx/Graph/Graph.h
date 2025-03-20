@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <unordered_map>
 
+#include "AGSwiftSupport.h"
 #include "AGValue.h"
 #include "Attribute/AttributeID.h"
 #include "Attribute/Node/Edge.h"
@@ -66,7 +67,7 @@ class Graph {
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
 
-    using MainHandler = void (*)(void (*thunk)(void *), void *thunk_context); // needs AG_SWIFT_CC(swift) ?
+    typedef void (*MainHandler)(void (*thunk)(void *), const void *thunk_context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
 
   private:
     static Graph *_all_graphs;
@@ -94,7 +95,7 @@ class Graph {
 
     // Main thread handler
     MainHandler _Nullable _main_handler;
-    void *_Nullable _main_handler_context;
+    const void *_Nullable _main_handler_context;
 
     // Metrics
     uint64_t _num_nodes = 0;
@@ -104,7 +105,7 @@ class Graph {
     size_t _num_node_value_bytes = 0;
 
     // Profile
-    bool _is_profiling;
+    bool _is_profiling_enabled;
     std::unique_ptr<ProfileData> _profile_data;
     ProfileTrace *_Nullable _profile_trace;
 
@@ -119,7 +120,7 @@ class Graph {
     vector<Subgraph *, 0, uint32_t> _subgraphs;
     vector<Subgraph *, 0, uint32_t> _subgraphs_with_cached_nodes;
     vector<Subgraph *, 2, uint32_t> _invalidated_subgraphs;
-    bool _batch_invalidate_subgraphs;
+    bool _deferring_subgraph_invalidation;
 
     // Updates
     bool _needs_update;
@@ -145,6 +146,16 @@ class Graph {
     bool is_context_updating(uint64_t context_id);
     Context *_Nullable main_context() const;
 
+    static void will_add_to_context(Graph *graph) { graph->_num_contexts += 1; };
+    static void did_remove_from_context(Graph *graph) {
+        graph->_num_contexts -= 1;
+        if (graph->_num_contexts == 0) {
+            delete graph;
+        }
+    };
+
+    Context *context_with_id(uint64_t context_id) const { return _contexts_by_id.lookup(context_id, nullptr); }
+
     // MARK: Subgraphs
 
     class without_invalidating {
@@ -165,8 +176,8 @@ class Graph {
     void will_invalidate_subgraph(Subgraph &subgraph) { _invalidated_subgraphs.push_back(&subgraph); };
 
     void invalidate_subgraphs();
-    bool batch_invalidate_subgraphs() { return _batch_invalidate_subgraphs; };
-    void set_batch_invalidate_subgraphs(bool value) { _batch_invalidate_subgraphs = value; };
+    bool is_deferring_subgraph_invalidation() { return _deferring_subgraph_invalidation; };
+    void set_deferring_subgraph_invalidation(bool value) { _deferring_subgraph_invalidation = value; };
 
     void remove_subgraphs_with_cached_node(Subgraph *subgraph); // overload with iter?
     void add_subgraphs_with_cached_node(Subgraph *subgraph) { _subgraphs_with_cached_nodes.push_back(subgraph); }
@@ -187,8 +198,11 @@ class Graph {
     void collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes);
 
     void with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body);
+    static void without_update(ClosureFunctionVV<void> body);
 
     MainHandler _Nullable main_handler() { return _main_handler; };
+    void with_main_handler(ClosureFunctionVV<void> body, MainHandler _Nullable main_handler,
+                           const void *_Nullable main_handler_context);
     void call_main_handler(void *context, void (*body)(void *context));
 
     void set_deadline(uint64_t deadline) { _deadline = deadline; };
@@ -206,10 +220,10 @@ class Graph {
     // MARK: Attributes
 
     const AttributeType &attribute_type(uint32_t type_id) const;
-    const AttributeType &attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable self_out) const;
+    const AttributeType *attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable self_out) const;
 
     void attribute_modify(data::ptr<Node> node, const swift::metadata &type, ClosureFunctionPV<void, void *> closure,
-                          bool flag);
+                          bool update_flags);
 
     data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, void *body, void *_Nullable value);
 
@@ -228,8 +242,8 @@ class Graph {
 
     // MARK: Indirect attributes
 
-    void add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset, std::optional<size_t> size,
-                                bool is_mutable);
+    data::ptr<IndirectNode> add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,
+                                                   std::optional<size_t> size, bool is_mutable);
     void remove_indirect_node(data::ptr<IndirectNode> node);
 
     void indirect_attribute_set(data::ptr<IndirectNode>, AttributeID source);
@@ -240,8 +254,8 @@ class Graph {
 
     // MARK: Values
 
-    void *value_ref(AttributeID attribute, bool evaluate_weak_references, const swift::metadata &value_type,
-                    bool *_Nonnull did_update_out);
+    void *value_ref(AttributeID attribute, uint32_t zone_id, const swift::metadata &value_type,
+                    bool *_Nonnull changed_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &type);
@@ -256,8 +270,12 @@ class Graph {
 
     // MARK: Inputs
 
-    void *_Nullable input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, bool evaluate_weak_references,
-                                         uint8_t input_flags, const swift::metadata &type, char *arg5, uint32_t index);
+    void *_Nullable input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32_t zone_id, uint8_t input_flags,
+                                    const swift::metadata &type, uint8_t *state_out);
+
+    void *_Nullable input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, uint32_t zone_id,
+                                         uint8_t input_flags, const swift::metadata &type, uint8_t *state_out,
+                                         uint32_t index);
 
     void input_value_add(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags);
 
@@ -272,7 +290,8 @@ class Graph {
 
     void remove_removed_input(AttributeID attribute, AttributeID input);
 
-    bool any_inputs_changed(data::ptr<Node> node, const AttributeID *attributes, uint64_t count);
+    bool any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_attributes,
+                            uint64_t exclude_attributes_count);
     void all_inputs_removed(data::ptr<Node> node);
 
     uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
@@ -321,7 +340,7 @@ class Graph {
     uint32_t intern_key(const char *key);
     const char *key_name(uint32_t key_id) const;
 
-    uint32_t intern_type(swift::metadata *metadata, ClosureFunctionVP<void *> make_type);
+    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<void *> make_type);
 
     // MARK: Encoding
 
@@ -332,9 +351,14 @@ class Graph {
 
     // MARK: Counters
 
-    // Counters
+    uint64_t num_nodes() const { return _num_nodes; };
+    uint64_t num_nodes_created() const { return _num_nodes_created; };
+    uint64_t num_subgraphs() const { return _num_subgraphs; };
+    uint64_t num_subgraphs_created() const { return _num_subgraphs_created; };
+
     uint64_t transaction_count() const { return _transaction_count; };
     uint64_t update_count() const { return _update_count; };
+    uint64_t update_on_main_count() const { return _update_on_main_count; };
     uint64_t change_count() const { return _change_count; };
 
     // MARK: Tracing
@@ -348,6 +372,8 @@ class Graph {
         All = 1 << 5,
     };
 
+    bool is_tracing_active() const { return !_traces.empty(); };
+
     void prepare_trace(Trace &trace);
 
     void add_trace(Trace *_Nullable trace);
@@ -357,6 +383,8 @@ class Graph {
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();
+
+    vector<Trace *, 0, uint32_t> traces() const { return _traces; };
 
     template <typename T>
         requires std::invocable<T, Trace &>
@@ -375,10 +403,10 @@ class Graph {
 
     // MARK: Profile
 
-    bool is_profiling() const { return _is_profiling; };
+    bool is_profiling_enabled() const { return _is_profiling_enabled; };
 
     uint64_t begin_profile_event(data::ptr<Node> node, const char *event_name);
-    void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t arg1, bool arg2);
+    void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool changed);
 
     void add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed);
 

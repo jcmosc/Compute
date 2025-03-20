@@ -1,5 +1,6 @@
 #include "Context.h"
 
+#include "AGGraph-Private.h"
 #include "Attribute/AttributeID.h"
 #include "Subgraph/Subgraph.h"
 #include "Trace/Trace.h"
@@ -10,7 +11,7 @@ namespace AG {
 
 Graph::Context::Context(Graph *graph) {
     _graph = graph;
-    _field_0x08 = 0;
+    _context_info = nullptr;
     _unique_id = AGMakeUniqueID();
     _deadline = UINT64_MAX;
 
@@ -50,16 +51,13 @@ Graph::Context::~Context() {
     if (_graph && _graph->_num_contexts == 0) {
         _graph->~Graph();
     }
-
-    _invalidation_closure.release_context();
-    _update_closure.release_context();
 }
 
 Graph::Context *Graph::Context::from_cf(AGGraphStorage *storage) {
-    if (storage->_context._invalidated) {
+    if (storage->context._invalidated) {
         precondition_failure("invalidated graph");
     }
-    return &storage->_context;
+    return &storage->context;
 }
 
 void Graph::Context::set_deadline(uint64_t deadline) {
@@ -101,14 +99,14 @@ bool Graph::Context::thread_is_updating() {
 void Graph::Context::call_invalidation(AttributeID attribute) {
     _graph_version = _graph->_version;
 
-    if (_invalidation_closure) {
+    if (_invalidation_callback) {
         auto old_update = current_update();
         if (old_update.value() != 0) {
             set_current_update(old_update.with_tag(true));
         }
 
         _graph->foreach_trace([this, &attribute](Trace &trace) { trace.begin_invalidation(*this, attribute); });
-        _invalidation_closure(attribute);
+        _invalidation_callback(attribute);
         _graph->foreach_trace([this, &attribute](Trace &trace) { trace.end_invalidation(*this, attribute); });
 
         set_current_update(old_update);
@@ -121,12 +119,12 @@ void Graph::Context::call_update() {
     }
     _needs_update = false;
 
-    if (_update_closure) {
+    if (_update_callback) {
 
         auto stack = UpdateStack(_graph, UpdateStack::Option::SetTag | UpdateStack::Option::InvalidateSubgraphs);
 
         _graph->foreach_trace([this](Trace &trace) { trace.begin_update(*this); });
-        _update_closure();
+        _update_callback();
         _graph->foreach_trace([this](Trace &trace) { trace.end_update(*this); });
 
         // ~UpdateStack() called here

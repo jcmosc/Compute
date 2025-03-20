@@ -13,7 +13,6 @@
 #include "Log/Log.h"
 #include "Subgraph/Subgraph.h"
 #include "Time/Time.h"
-#include "Trace/AGTrace.h"
 #include "UniqueID/AGUniqueID.h"
 #include "UpdateStack.h"
 
@@ -1286,9 +1285,9 @@ void Graph::TraceRecorder::custom_event(const Graph::Context &context, const cha
     _encoder.end_length_delimited();
 }
 
-void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args,
+void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t event_id, uint32_t num_event_args,
                                        const uint64_t *event_args, CFDataRef data, uint32_t arg6) {
-    if (!named_event_enabled(arg2)) {
+    if (!named_event_enabled(event_id)) {
         return;
     }
 
@@ -1297,27 +1296,26 @@ void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t a
     _encoder.encode_varint(8);
     _encoder.encode_varint(0x36);
 
-    if (arg2) {
+    if (event_id) {
         _encoder.encode_varint(0x50);
-        _encoder.encode_varint(arg2);
+        _encoder.encode_varint(event_id);
     }
 
     field_timestamp(_encoder);
 
-    if (arg6 != 0) {
-        if (arg6 & 0x80000000) {
-            arg6 &= 0x7fffffff;
-        }
-        if (arg6) {
-            _encoder.encode_varint(0x18);
-            _encoder.encode_varint(arg6);
-        }
+    if (arg6 < 0) {
+        field_backtrace(_encoder, 8);
+        arg6 &= 0x7fffffff;
+    }
+    if (arg6) {
+        _encoder.encode_varint(0x18);
+        _encoder.encode_varint(arg6);
     }
 
-    if (num_args > 3) {
-        num_args = 4;
+    if (num_event_args >= 4) {
+        num_event_args = 4;
     }
-    for (auto i = 0; i < num_args; ++i) {
+    for (auto i = 0; i < num_event_args; ++i) {
         uint64_t event_arg = event_args[i];
         if (event_arg) {
             _encoder.encode_varint(0x20 + 8 * i);

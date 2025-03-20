@@ -47,6 +47,8 @@ class DebugServer {
     static DebugServer *_shared_server;
 
   public:
+    static DebugServer *shared() { return _shared_server; }
+
     static void start(uint32_t options);
     static void stop();
 
@@ -56,7 +58,7 @@ class DebugServer {
     DebugServer(uint32_t options);
     ~DebugServer();
 
-    void run(int timeout);
+    void run(uint32_t timeout);
     void shutdown();
 
     void close_connection(Connection *connection);

@@ -14,6 +14,10 @@ namespace AG {
 class MutableIndirectNode;
 
 class IndirectNode {
+  public:
+    // TODO: is there special treatment of lowest bit?
+    static constexpr uint16_t MaximumOffset = 0x3ffffffe; // 30 bits - 1
+
   private:
     struct Info {
         unsigned int is_mutable : 1;
@@ -29,8 +33,7 @@ class IndirectNode {
     uint16_t _relative_offset; // could be relative offset, see Subgraph::insert_attribute
 
   public:
-    IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size)
-        : _source(source) {
+    IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size) : _source(source) {
         _info.is_mutable = false;
         _info.traverses_contexts = traverses_contexts;
         _info.offset = offset;

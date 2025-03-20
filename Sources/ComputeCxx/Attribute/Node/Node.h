@@ -28,7 +28,7 @@ class NodeFlags {
         Cacheable = 1 << 4,              // 0x10
 
         Unknown0x20 = 1 << 5, // 0x20 - initial  value
-        Unknown0x40 = 1 << 6, // 0x40 - didn't call mark_changed
+        SelfModified = 1 << 6, // 0x40
     };
 
   private:
@@ -70,9 +70,9 @@ class NodeFlags {
     void set_value4_unknown0x20(bool value) {
         _value4 = (_value4 & ~Flags4::Unknown0x20) | (value ? Flags4::Unknown0x20 : 0);
     };
-    bool value4_unknown0x40() const { return _value4 & Flags4::Unknown0x40; };
-    void set_value4_unknown0x40(bool value) {
-        _value4 = (_value4 & ~Flags4::Unknown0x40) | (value ? Flags4::Unknown0x40 : 0);
+    bool self_modified() const { return _value4 & Flags4::SelfModified; };
+    void set_self_modified(bool value) {
+        _value4 = (_value4 & ~Flags4::SelfModified) | (value ? Flags4::SelfModified : 0);
     };
 };
 
@@ -160,7 +160,7 @@ class Node {
         return (state().is_dirty() ? 1 : 0) << 0 | (state().is_pending() ? 1 : 0) << 1 |
                (state().is_updating() ? 1 : 0) << 2 | (state().is_value_initialized() ? 1 : 0) << 3 |
                (state().is_main_thread() ? 1 : 0) << 4 | (flags().value4_unknown0x20() ? 1 : 0) << 5 |
-               (state().is_main_thread_only() ? 1 : 0) << 6 | (flags().value4_unknown0x40() ? 1 : 0) << 7;
+               (state().is_main_thread_only() ? 1 : 0) << 6 | (flags().self_modified() ? 1 : 0) << 7;
     };
 
     NodeFlags &flags() { return _flags; };

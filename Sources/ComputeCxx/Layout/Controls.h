@@ -3,6 +3,8 @@
 namespace AG {
 namespace LayoutDescriptor {
 
+// See BytecodeLayouts.h
+
 enum Controls : unsigned char {
     EqualsItemBegin = '\x01',
     EqualsItemTypePointerSize = 8,

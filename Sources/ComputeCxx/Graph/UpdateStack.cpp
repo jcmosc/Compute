@@ -23,8 +23,8 @@ Graph::UpdateStack::UpdateStack(Graph *graph, uint8_t options) {
 
     graph->_current_update_thread = _thread;
 
-    if (graph->_batch_invalidate_subgraphs == false) {
-        graph->_batch_invalidate_subgraphs = true;
+    if (graph->_deferring_subgraph_invalidation == false) {
+        graph->_deferring_subgraph_invalidation = true;
         _options &= Option::InvalidateSubgraphs;
     }
 
@@ -44,7 +44,7 @@ Graph::UpdateStack::~UpdateStack() {
     Graph::set_current_update(_previous);
 
     if (_options & Option::InvalidateSubgraphs) {
-        _graph->_batch_invalidate_subgraphs = false;
+        _graph->_deferring_subgraph_invalidation = false;
     }
 }
 
@@ -321,8 +321,8 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
         if (reset_node_flags) {
             // only skips if frame.cancelled
-            if (node->flags().value4_unknown0x40()) {
-                node->flags().set_value4_unknown0x40(false);
+            if (node->flags().self_modified()) {
+                node->flags().set_self_modified(false);
             }
             if (node->state().is_dirty()) {
                 _graph->foreach_trace([&frame](Trace &trace) { trace.set_dirty(frame.attribute, false); });

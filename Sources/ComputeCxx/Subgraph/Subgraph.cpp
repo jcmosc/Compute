@@ -2,7 +2,7 @@
 
 #include <stack>
 
-#include "AGSubgraph.h"
+#include "AGSubgraph-Private.h"
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
 #include "Attribute/Node/Node.h"
@@ -61,9 +61,9 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
 }
 
 Subgraph::~Subgraph() {
-    if (observers_vector *vector = observers()) {
+    if (_observers) {
         notify_observers();
-        delete vector;
+        delete _observers.get(); // what pointer is deleted?
     }
     if (_cache) {
         _cache->~NodeCache();
@@ -72,9 +72,9 @@ Subgraph::~Subgraph() {
 
 #pragma mark - CoreFoundation
 
-Subgraph *Subgraph::from_cf(SubgraphObject *object) { return object->subgraph(); }
+Subgraph *Subgraph::from_cf(AGSubgraphStorage *storage) { return storage->subgraph; }
 
-SubgraphObject *Subgraph::to_cf() const { return _object; }
+AGSubgraphStorage *Subgraph::to_cf() const { return reinterpret_cast<AGSubgraphStorage *>(_object) ; }
 
 void Subgraph::clear_object() {
     auto object = _object;
@@ -104,7 +104,7 @@ void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
         _parents.clear();
 
         // Check Graph::invalidate_subgraphs
-        if (_graph->batch_invalidate_subgraphs() == false && _graph->main_handler() == nullptr) {
+        if (_graph->is_deferring_subgraph_invalidation() == false && _graph->main_handler() == nullptr) {
             invalidate_now(*_graph);
             _graph->invalidate_subgraphs();
             return;
@@ -124,7 +124,7 @@ void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
 void Subgraph::invalidate_now(Graph &graph) {
     // TODO: double check graph param vs _graph instance var
 
-    graph.set_batch_invalidate_subgraphs(true);
+    graph.set_deferring_subgraph_invalidation(true);
 
     auto removed_subgraphs = vector<Subgraph *, 16, uint64_t>();
     auto stack = std::stack<Subgraph *, vector<Subgraph *, 16, uint64_t>>();
@@ -265,7 +265,7 @@ void Subgraph::invalidate_now(Graph &graph) {
         free(removed_subgraph); // or delete?
     }
 
-    graph.set_batch_invalidate_subgraphs(false);
+    graph.set_deferring_subgraph_invalidation(false);
 }
 
 void Subgraph::graph_destroyed() {
@@ -521,7 +521,7 @@ void Subgraph::update(uint8_t flags) {
             _last_traversal_seed += 1; // TODO: check atomics
 
             auto stack =
-                std::stack<util::cf_ptr<SubgraphObject *>, AG::vector<util::cf_ptr<SubgraphObject *>, 32, uint64_t>>();
+            std::stack<util::cf_ptr<AGSubgraphStorage *>, AG::vector<util::cf_ptr<AGSubgraphStorage *>, 32, uint64_t>>();
             auto nodes_to_update = vector<data::ptr<Node>, 256, uint64_t>();
 
             stack.push(std::move(to_cf()));
@@ -530,7 +530,7 @@ void Subgraph::update(uint8_t flags) {
             bool thread_is_updating = false;
             while (!stack.empty()) {
 
-                util::cf_ptr<SubgraphObject *> object = stack.top();
+                util::cf_ptr<AGSubgraphStorage *> object = stack.top();
                 stack.pop();
 
                 Subgraph *subgraph = Subgraph::from_cf(object);
@@ -905,42 +905,39 @@ void Subgraph::propagate_dirty_flags() {
 
 // MARK: - Observers
 
-Subgraph::observers_vector *Subgraph::observers() { return *_observers.get(); }
-
-uint64_t Subgraph::add_observer(ClosureFunctionVV<void> observer) {
+uint64_t Subgraph::add_observer(ClosureFunctionVV<void> &&callback) {
     if (!_observers) {
-        _observers = (data::ptr<observers_vector *>)alloc_bytes(sizeof(observers_vector *), 7);
-        *_observers = new observers_vector();
+        _observers =
+            (data::ptr<vector<Observer, 0, uint64_t> *>)alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7);
+        *_observers = new vector<Observer, 0, uint64_t>();
     }
-
+    
     auto observer_id = AGMakeUniqueID();
-    observers()->push_back({
-        observer,
-        observer_id,
-    });
+    
+    auto observers = *_observers;
+    auto observer = Observer(callback, observer_id);
+    observers->push_back(observer);
     return observer_id;
 }
 
 void Subgraph::remove_observer(uint64_t observer_id) {
-    if (auto vector = observers()) {
-        auto iter = std::remove_if(vector->begin(), vector->end(), [&observer_id](auto pair) -> bool {
-            if (pair.second == observer_id) {
-                pair.first.release_context(); // TODO: where is retain?
+    if (auto observers = *_observers) {
+        auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
+            if (observer.observer_id == observer_id) {
                 return true;
             }
             return false;
         });
-        vector->erase(iter, vector->end());
+        observers->erase(iter);
     }
 }
 
 void Subgraph::notify_observers() {
-    if (auto vector = observers()) {
-        while (!vector->empty()) {
-            auto observer = vector->back();
-            observer.first();
-            observer.first.release_context(); // TODO: where is retain?
-            vector->pop_back();
+    if (auto observers = *_observers) {
+        while (!observers->empty()) {
+            auto &observer = observers->back();
+            observer.callback();
+            observers->pop_back();
         }
     }
 }

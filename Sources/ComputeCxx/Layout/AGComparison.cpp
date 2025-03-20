@@ -19,8 +19,8 @@ bool AGCompareValues(const void *destination, const void *source, AGTypeID type_
     if (layout == AG::ValueLayoutEmpty) {
         layout = nullptr;
     }
-    AG::LayoutDescriptor::compare(layout, (const unsigned char *)destination, (const unsigned char *)source,
-                                  type->vw_size(), options);
+    return AG::LayoutDescriptor::compare(layout, (const unsigned char *)destination, (const unsigned char *)source,
+                                         type->vw_size(), options);
 }
 
 const unsigned char *AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority) {

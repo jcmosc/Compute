@@ -7,7 +7,7 @@
 namespace AG {
 
 void Graph::ProfileTrace::begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options) {
-    if (update_stack.graph()->is_profiling()) {
+    if (update_stack.graph()->is_profiling_enabled()) {
         uint64_t time = mach_absolute_time();
         UpdateData &data = _map.try_emplace(&update_stack).first->second;
         data.start_time = time;
@@ -24,11 +24,11 @@ void Graph::ProfileTrace::end_update(const Graph::UpdateStack &update_stack, dat
         _map.erase(found);
 
         if (auto previous_update_stack = update_stack.previous().get()) {
-            if (previous_update_stack->graph()->is_profiling()) {
+            if (previous_update_stack->graph()->is_profiling_enabled()) {
                 auto found_previous = _map.find(previous_update_stack);
                 if (found_previous != _map.end()) {
                     UpdateData &previous_data = found_previous->second;
-                    uint64_t end_time = previous_update_stack->graph()->is_profiling() ? mach_absolute_time() : 0;
+                    uint64_t end_time = previous_update_stack->graph()->is_profiling_enabled() ? mach_absolute_time() : 0;
                     previous_data.child_update_stack_duration += end_time - data.start_time;
                 }
             }
@@ -43,7 +43,7 @@ void Graph::ProfileTrace::begin_update(data::ptr<Node> node) {
     auto found = _map.find(update_stack);
     if (found != _map.end()) {
         UpdateData &data = found->second;
-        data.update_node_start_time = update_stack->graph()->is_profiling() ? mach_absolute_time() : 0;
+        data.update_node_start_time = update_stack->graph()->is_profiling_enabled() ? mach_absolute_time() : 0;
     }
 }
 
@@ -55,7 +55,7 @@ void Graph::ProfileTrace::end_update(data::ptr<Node> node, bool changed) {
     if (found != _map.end()) {
         UpdateData &data = found->second;
         if (data.update_node_start_time != 0) {
-            uint64_t end_time = update_stack->graph()->is_profiling() ? mach_absolute_time() : 0;
+            uint64_t end_time = update_stack->graph()->is_profiling_enabled() ? mach_absolute_time() : 0;
             uint64_t duration = 0;
             if (end_time - data.update_node_start_time >= data.child_update_stack_duration) {
                 duration = (end_time - data.update_node_start_time) - data.child_update_stack_duration;

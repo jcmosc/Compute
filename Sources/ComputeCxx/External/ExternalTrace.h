@@ -19,8 +19,8 @@ class ExternalTrace : public AG::Trace {
         void (*_Nullable begin_trace)(void *trace, AGGraphStorage *graph);
         void (*_Nullable end_trace)(void *trace, AGGraphStorage *graph);
 
-        void (*_Nullable begin_update_subgraph)(void *trace, AG::SubgraphObject *subgraph);
-        void (*_Nullable end_update_subgraph)(void *trace, AG::SubgraphObject *subgraph);
+        void (*_Nullable begin_update_subgraph)(void *trace, AGSubgraphStorage *subgraph);
+        void (*_Nullable end_update_subgraph)(void *trace, AGSubgraphStorage *subgraph);
         void (*_Nullable begin_update_stack)(void *trace, AGAttribute attribute);
         void (*_Nullable end_update_stack)(void *trace, bool changed);
         void (*_Nullable begin_update_node)(void *trace);
@@ -41,10 +41,10 @@ class ExternalTrace : public AG::Trace {
         void (*_Nullable destroy_context)(void *trace, AGGraphStorage *graph);
         void (*_Nullable needs_update_context)(void *trace, AGGraphStorage *graph);
 
-        void (*_Nullable created_subgraph)(void *trace, AG::SubgraphObject *subgraph);
-        void (*_Nullable invalidate_subgraph)(void *trace, AG::SubgraphObject *subgraph);
-        void (*_Nullable add_child_subgraph)(void *trace, AG::SubgraphObject *subgraph, AG::SubgraphObject *child);
-        void (*_Nullable remove_child_subgraph)(void *trace, AG::SubgraphObject *subgraph, AG::SubgraphObject *child);
+        void (*_Nullable created_subgraph)(void *trace, AGSubgraphStorage *subgraph);
+        void (*_Nullable invalidate_subgraph)(void *trace, AGSubgraphStorage *subgraph);
+        void (*_Nullable add_child_subgraph)(void *trace, AGSubgraphStorage *subgraph, AGSubgraphStorage *child);
+        void (*_Nullable remove_child_subgraph)(void *trace, AGSubgraphStorage *subgraph, AGSubgraphStorage *child);
 
         void (*_Nullable added_node)(void *trace);
         void (*_Nullable add_edge)(void *trace);
@@ -64,7 +64,7 @@ class ExternalTrace : public AG::Trace {
 
         void (*_Nullable custom_event)(void *trace, AGGraphStorage *graph, const char *event_name, const void *value,
                                        AGTypeID type);
-        void (*_Nullable named_event)(void *trace, AGGraphStorage *graph, uint32_t arg2, uint32_t num_args,
+        void (*_Nullable named_event)(void *trace, AGGraphStorage *graph, uint32_t event_id, uint32_t num_event_args,
                                       const uint64_t *event_args, CFDataRef data, uint32_t arg6);
         bool (*_Nullable named_event_enabled)(void *trace);
         void (*_Nullable set_deadline)(void *trace);
@@ -74,10 +74,15 @@ class ExternalTrace : public AG::Trace {
     };
 
   private:
-    Interface _interface;
+    Interface *_interface;
     void *_trace;
 
   public:
+    ExternalTrace(Interface *interface, void *trace) : _interface(interface), _trace(trace){};
+    ExternalTrace(uint64_t trace_id, Interface *interface, void *trace) : _interface(interface), _trace(trace){
+        _trace_id = trace_id;
+    };
+
     void begin_trace(const AG::Graph &graph);
     void end_trace(const AG::Graph &graph);
 
@@ -132,8 +137,8 @@ class ExternalTrace : public AG::Trace {
 
     void custom_event(const AG::Graph::Context &context, const char *event_name, const void *value,
                       const AG::swift::metadata &type);
-    void named_event(const AG::Graph::Context &context, uint32_t arg2, uint32_t num_args, const uint64_t *event_args,
-                     CFDataRef data, uint32_t arg6); // TODO: what are these args?
+    void named_event(const AG::Graph::Context &context, uint32_t event_id, uint32_t num_event_args,
+                     const uint64_t *event_args, CFDataRef data, uint32_t arg6); // TODO: what are these args?
     bool named_event_enabled(uint32_t event_id);
 
     void set_deadline(uint64_t deadline);

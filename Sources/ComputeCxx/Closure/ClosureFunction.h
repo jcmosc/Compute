@@ -10,21 +10,25 @@ namespace AG {
 template <typename ReturnType, typename... Args> class ClosureFunction {
   public:
     using Context = const void *_Nullable;
-    using Callable = AG_SWIFT_CC(swift) const ReturnType (*_Nullable)(Args..., Context AG_SWIFT_CONTEXT);
+    using Callable = AG_SWIFT_CC(swift)  ReturnType (*_Nullable)(Args..., Context AG_SWIFT_CONTEXT);
 
   private:
     Callable _function;
     Context _context;
 
   public:
+    inline ClosureFunction(Callable function, Context context) : _function(function), _context(context) {
+        ::swift::swift_retain((::swift::HeapObject *)_context);
+    }
+    inline ClosureFunction(std::nullptr_t = nullptr) : _function(nullptr), _context(nullptr) {}
+    inline ~ClosureFunction() { ::swift::swift_release((::swift::HeapObject *)_context); }
+
     operator bool() { return _function != nullptr; }
-    
+
     const ReturnType operator()(Args... args) const noexcept {
         // TODO: check _context is first or last parameter
         return _function(std::forward<Args>(args)..., _context);
     }
-
-    void release_context() { ::swift::swift_release((::swift::HeapObject *)_context); };
 };
 
 // void *

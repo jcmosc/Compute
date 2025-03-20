@@ -14,6 +14,8 @@
 
 CF_ASSUME_NONNULL_BEGIN
 
+struct AGSubgraphStorage;
+
 namespace AG {
 
 namespace swift {
@@ -77,8 +79,11 @@ class Subgraph : public data::zone {
     indirect_pointer_vector<Subgraph> _parents;
     vector<SubgraphChild, 0, uint32_t> _children;
 
-    using observers_vector = vector<std::pair<ClosureFunctionVV<void>, uint64_t>, 0, uint64_t>;
-    data::ptr<observers_vector *> _observers;
+    struct Observer {
+        ClosureFunctionVV<void> callback;
+        uint64_t observer_id;
+    };
+    data::ptr<vector<Observer, 0, uint64_t> *> _observers;
     uint32_t _traversal_seed;
 
     uint32_t _index; // TODO: get and set
@@ -102,8 +107,8 @@ class Subgraph : public data::zone {
 
     // MARK: CoreFoundation
 
-    static Subgraph *from_cf(SubgraphObject *object);
-    SubgraphObject *to_cf() const;
+    static Subgraph *from_cf(AGSubgraphStorage *storage);
+    AGSubgraphStorage *to_cf() const;
     void clear_object();
 
     // MARK: Graph
@@ -182,8 +187,7 @@ class Subgraph : public data::zone {
 
     // MARK: Managing observers
 
-    observers_vector *_Nullable observers();
-    uint64_t add_observer(ClosureFunctionVV<void> observer);
+    uint64_t add_observer(ClosureFunctionVV<void> &&callback);
     void remove_observer(uint64_t observer_id);
     void notify_observers();
 

@@ -11,6 +11,8 @@ namespace AG {
 class Graph::UpdateStack {
   public:
     enum Option : uint8_t {
+        Unknown0x02 = 1 << 1, // TODO: set from AGGraphPrefetchValue
+        Unknown0x04 = 1 << 2, // TODO: set from AGGraphPrefetchValue
         SetTag = 1 << 3,
         InvalidateSubgraphs = 1 << 4,
     };

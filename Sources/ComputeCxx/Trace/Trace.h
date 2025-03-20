@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFData.h>
 
 #include "Graph/Graph.h"
+#include "UniqueID/AGUniqueID.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -12,12 +13,13 @@ class Node;
 class Subgraph;
 
 class Trace {
-  private:
+  protected:
     uint64_t _trace_id;
 
   public:
     uint64_t trace_id() { return _trace_id; }
 
+    Trace() : _trace_id(AGMakeUniqueID()){};
     virtual ~Trace(){};
 
     // Trace
@@ -84,7 +86,7 @@ class Trace {
 
     virtual void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                               const swift::metadata &type){};
-    virtual void named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args,
+    virtual void named_event(const Graph::Context &context, uint32_t event_id, uint32_t num_event_args,
                              const uint64_t *event_args, CFDataRef data, uint32_t arg6){};
     virtual bool named_event_enabled(uint32_t event_id) { return false; };
 

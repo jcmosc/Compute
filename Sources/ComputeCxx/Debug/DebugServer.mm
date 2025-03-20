@@ -141,7 +141,7 @@ void DebugServer::accept_handler(void *context) {
     server->_clients.push_back(std::make_unique<Connection>(server, connection_socket));
 }
 
-void DebugServer::run(int timeout) {
+void DebugServer::run(uint32_t timeout) {
     fd_set write_fds;
     struct timeval tv;
 

@@ -118,7 +118,7 @@ class Graph::TraceRecorder : public Encoder::Delegate, public Trace {
 
     void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                       const swift::metadata &type);
-    void named_event(const Graph::Context &context, uint32_t arg2, uint32_t num_args, const uint64_t *event_args,
+    void named_event(const Graph::Context &context, uint32_t event_id, uint32_t num_event_args, const uint64_t *event_args,
                      CFDataRef data, uint32_t arg6);
     bool named_event_enabled(uint32_t event_id);
 

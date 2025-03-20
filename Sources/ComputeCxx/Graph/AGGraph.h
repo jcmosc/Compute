@@ -437,13 +437,16 @@ void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t num
                                CFDataRef data, uint32_t arg6);
 
 CF_EXPORT
+CF_REFINED_FOR_SWIFT
 const char *AGGraphGetTraceEventName(uint32_t event_id);
 
 CF_EXPORT
+CF_REFINED_FOR_SWIFT
 const char *AGGraphGetTraceEventSubsystem(uint32_t event_id);
 
 CF_EXPORT
-void AGGraphRegisterNamedTraceEvent();
+CF_REFINED_FOR_SWIFT
+uint32_t AGGraphRegisterNamedTraceEvent(const char *key, const char *name);
 
 // MARK: Profiler
 

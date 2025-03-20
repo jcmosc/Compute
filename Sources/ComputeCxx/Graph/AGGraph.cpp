@@ -1,5 +1,7 @@
 #include "AGGraph-Private.h"
 
+#include <os/lock.h>
+
 #include "Attribute/AttributeID.h"
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
@@ -943,18 +945,55 @@ void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t num
     });
 }
 
+namespace NamedEvents {
+
+static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+static AG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
+
+} // namespace NamedEvents
+
 const char *AGGraphGetTraceEventName(uint32_t event_id) {
-    // TODO: not implemented
-    return nullptr;
+    const char *event_name = nullptr;
+
+    os_unfair_lock_lock(&NamedEvents::lock);
+    if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
+        event_name = (*NamedEvents::names)[event_id].second;
+    }
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_name;
 }
 
 const char *AGGraphGetTraceEventSubsystem(uint32_t event_id) {
-    // TODO: not implemented
-    return nullptr;
+    const char *event_subsystem = nullptr;
+
+    os_unfair_lock_lock(&NamedEvents::lock);
+    if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
+        event_subsystem = (*NamedEvents::names)[event_id].first;
+    }
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_subsystem;
 }
 
-void AGGraphRegisterNamedTraceEvent() {
-    // TODO: not implemented
+uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
+    os_unfair_lock_lock(&NamedEvents::lock);
+
+    if (!NamedEvents::names) {
+        NamedEvents::names = new AG::vector<std::pair<const char *, const char *>, 0, uint32_t>();
+        NamedEvents::names->push_back({0, 0}); // Disallow 0 as event ID
+    }
+
+    uint32_t event_id = NamedEvents::names->size();
+    if (event_subsystem != nullptr) {
+        event_subsystem = strdup(event_subsystem);
+    }
+    event_name = strdup(event_name);
+    NamedEvents::names->push_back({event_subsystem, event_name});
+
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_id;
 }
 
 #pragma mark - Profiler

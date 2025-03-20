@@ -53,6 +53,7 @@ Graph::Context::~Context() {
     }
 }
 
+// TODO: AGUnknownedGraphContextRef ?
 Graph::Context *Graph::Context::from_cf(AGGraphStorage *storage) {
     if (storage->context._invalidated) {
         precondition_failure("invalidated graph");

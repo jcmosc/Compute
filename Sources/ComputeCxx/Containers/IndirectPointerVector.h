@@ -49,12 +49,29 @@ class indirect_pointer_vector {
 
     // Element access
 
+    reference operator[](size_type pos) {
+        assert(pos < size());
+        if (has_vector()) {
+            return get_vector()[pos];
+        } else {
+            return reinterpret_cast<reference>(_data);
+        }
+    };
+    const_reference operator[](size_type pos) const {
+        assert(pos < size());
+        if (has_vector()) {
+            return get_vector()[pos];
+        } else {
+            return *reinterpret_cast<const value_type *>(_data);
+        }
+    };
+
     reference front() { return has_vector() ? get_vector().front() : reinterpret_cast<value_type &>(_data); };
     const_reference front() const {
         if (has_vector()) {
             return get_vector().front();
         } else {
-            return reinterpret_cast<const value_type &>(_data);
+            return *reinterpret_cast<const value_type *>(_data);
         }
     };
 

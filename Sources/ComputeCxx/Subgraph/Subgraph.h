@@ -46,6 +46,7 @@ class Subgraph : public data::zone {
         enum Flags : uint32_t {};
         SubgraphChild(Subgraph *subgraph, Flags flags) { _data = (uintptr_t)subgraph | (flags & 0x3); };
         Subgraph *subgraph() const { return reinterpret_cast<Subgraph *>(_data & ~0x3); };
+        Flags flags() const { return (Flags)(_data & 0x3); };
         bool operator==(const Subgraph *other) const { return subgraph() == other; };
     };
 
@@ -86,7 +87,7 @@ class Subgraph : public data::zone {
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
     uint32_t _traversal_seed;
 
-    uint32_t _index; // TODO: get and set
+    uint32_t _index;
 
     data::ptr<NodeCache> _cache;
     data::ptr<Graph::TreeElement> _tree_root;
@@ -163,10 +164,10 @@ class Subgraph : public data::zone {
 
     void begin_tree(AttributeID attribute, const swift::metadata *_Nullable type,
                     uint32_t flags); // TODO: check can be null from Subgraph()
-    void end_tree(AttributeID attribute);
+    void end_tree();
 
     void set_tree_owner(AttributeID owner);
-    void add_tree_value(AttributeID attribute, const swift::metadata *type, const char *value, uint32_t flags);
+    void add_tree_value(AttributeID attribute, const swift::metadata *type, const char *key, uint32_t flags);
 
     AttributeID tree_node_at_index(data::ptr<Graph::TreeElement> tree_element, uint64_t index);
     uint32_t tree_subgraph_child(data::ptr<Graph::TreeElement> tree_element);
@@ -185,11 +186,19 @@ class Subgraph : public data::zone {
     void propagate_flags();
     void propagate_dirty_flags();
 
+    bool is_dirty(uint8_t mask) const;
+    bool intersects(uint8_t mask) const;
+
     // MARK: Managing observers
 
     uint64_t add_observer(ClosureFunctionVV<void> &&callback);
     void remove_observer(uint64_t observer_id);
     void notify_observers();
+
+    // MARK: Index
+
+    uint32_t index() const { return _index; };
+    void set_index(uint32_t index) { _index = index; };
 
     // MARK: Cache
 

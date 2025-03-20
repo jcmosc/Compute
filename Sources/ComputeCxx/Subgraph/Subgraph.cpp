@@ -74,7 +74,7 @@ Subgraph::~Subgraph() {
 
 Subgraph *Subgraph::from_cf(AGSubgraphStorage *storage) { return storage->subgraph; }
 
-AGSubgraphStorage *Subgraph::to_cf() const { return reinterpret_cast<AGSubgraphStorage *>(_object) ; }
+AGSubgraphStorage *Subgraph::to_cf() const { return reinterpret_cast<AGSubgraphStorage *>(_object); }
 
 void Subgraph::clear_object() {
     auto object = _object;
@@ -520,8 +520,8 @@ void Subgraph::update(uint8_t flags) {
 
             _last_traversal_seed += 1; // TODO: check atomics
 
-            auto stack =
-            std::stack<util::cf_ptr<AGSubgraphStorage *>, AG::vector<util::cf_ptr<AGSubgraphStorage *>, 32, uint64_t>>();
+            auto stack = std::stack<util::cf_ptr<AGSubgraphStorage *>,
+                                    AG::vector<util::cf_ptr<AGSubgraphStorage *>, 32, uint64_t>>();
             auto nodes_to_update = vector<data::ptr<Node>, 256, uint64_t>();
 
             stack.push(std::move(to_cf()));
@@ -727,7 +727,7 @@ void Subgraph::begin_tree(AttributeID owner, const swift::metadata *type, uint32
     }
 }
 
-void Subgraph::end_tree(AttributeID attribute) {
+void Subgraph::end_tree() {
     if (_tree_root && _tree_root->parent) {
         _tree_root = _tree_root->parent;
     }
@@ -743,12 +743,12 @@ void Subgraph::set_tree_owner(AttributeID owner) {
     _tree_root->owner = owner;
 }
 
-void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type, const char *value, uint32_t flags) {
+void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type, const char *key, uint32_t flags) {
     if (!_tree_root) {
         return;
     }
 
-    auto key_id = graph()->intern_key(value);
+    auto key_id = graph()->intern_key(key);
 
     data::ptr<Graph::TreeValue> tree_value = (data::ptr<Graph::TreeValue>)alloc_bytes(sizeof(Graph::TreeValue), 7);
     tree_value->type = type;
@@ -903,6 +903,11 @@ void Subgraph::propagate_dirty_flags() {
     });
 }
 
+// TODO: inline
+bool Subgraph::is_dirty(uint8_t mask) const { return ((_flags.value3 | _flags.value4) & mask) != 0; }
+
+bool Subgraph::intersects(uint8_t mask) const { return ((_flags.value1 | _flags.value2) & mask) != 0; }
+
 // MARK: - Observers
 
 uint64_t Subgraph::add_observer(ClosureFunctionVV<void> &&callback) {
@@ -911,9 +916,9 @@ uint64_t Subgraph::add_observer(ClosureFunctionVV<void> &&callback) {
             (data::ptr<vector<Observer, 0, uint64_t> *>)alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7);
         *_observers = new vector<Observer, 0, uint64_t>();
     }
-    
+
     auto observer_id = AGMakeUniqueID();
-    
+
     auto observers = *_observers;
     auto observer = Observer(callback, observer_id);
     observers->push_back(observer);

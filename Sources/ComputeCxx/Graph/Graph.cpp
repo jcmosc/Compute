@@ -344,7 +344,7 @@ void Graph::with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body) 
 void Graph::without_update(ClosureFunctionVV<void> body) {
     // TODO: use RAII pattern here too?
     // TODO: is tag here update not active or is paused?
-    
+
     auto previous_update = current_update();
     AG::Graph::set_current_update(previous_update != nullptr ? previous_update.with_tag(true) : nullptr);
     body();
@@ -429,7 +429,7 @@ const AttributeType *Graph::attribute_ref(data::ptr<Node> node, const void *_Nul
     if (self_out) {
         *self_out = node->get_self(type);
     }
-    return type;
+    return &type;
 }
 
 void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metadata,
@@ -742,7 +742,7 @@ bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
 #pragma mark - Indirect attributes
 
 data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,
-                                   std::optional<size_t> size, bool is_mutable) {
+                                                      std::optional<size_t> size, bool is_mutable) {
     if (subgraph.graph() != attribute.subgraph()->graph()) {
         precondition_failure("attribute references can't cross graph namespaces");
     }
@@ -776,7 +776,7 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
 
         add_input_dependencies(AttributeID(indirect_node).with_kind(AttributeID::Kind::Indirect), attribute);
         subgraph.add_indirect((data::ptr<IndirectNode>)indirect_node, true);
-        return indirect_node;
+        return (data::ptr<IndirectNode>)indirect_node;
     } else {
         auto indirect_node = (data::ptr<IndirectNode>)subgraph.alloc_bytes_recycle(sizeof(Node), 3);
 
@@ -1315,26 +1315,26 @@ void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input_attribu
 
     if (index < 0) {
         // TODO: AVGalueOptions is same as InputEdge::Flags ?
-        return input_value_ref_slow(frame.attribute, attribute_id, zone_id, options, metadata, state_out, index);
+        return input_value_ref_slow(node, input_attribute, zone_id, input_flags, type, state_out, index);
     }
 
-    AG::OffsetAttributeID resolved =
-        attribute_id.resolve(AG::TraversalOptions::UpdateDependencies | AG::TraversalOptions::AssertNotNil);
-    if (resolved.attribute().to_node().state().is_value_initialized() &&
-        !resolved.attribute().to_node().state().is_dirty()) {
+    AG::OffsetAttributeID resolved_input =
+        input_attribute.resolve(AG::TraversalOptions::UpdateDependencies | AG::TraversalOptions::AssertNotNil);
+    if (resolved_input.attribute().to_node().state().is_value_initialized() &&
+        !resolved_input.attribute().to_node().state().is_dirty()) {
         auto input_edge = node->inputs()[index];
         bool changed = input_edge.is_changed();
         input_edge.set_unknown4(true); // TODO: does this set by reference?
-        void *value = resolved.attribute().to_node().get_value();
-        value = (uint8_t *)value + resolved.offset();
+        void *value = resolved_input.attribute().to_node().get_value();
+        value = (uint8_t *)value + resolved_input.offset();
 
-        state_out |= changed;
+        *state_out |= changed ? 1 : 0;
         return value;
     }
 
     // TODO: combine with block above, make index signed first though
     // TODO: AVGalueOptions is same as InputEdge::Flags ?
-    return graph->input_value_ref_slow(frame.attribute, attribute_id, zone_id, options, metadata, state_out, index);
+    return input_value_ref_slow(node, input_attribute, zone_id, input_flags, type, state_out, index);
 }
 
 void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_attribute, uint32_t zone_id,

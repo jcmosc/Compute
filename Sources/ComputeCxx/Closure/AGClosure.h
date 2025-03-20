@@ -8,6 +8,8 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
+// TODO: add Swift annotation for retain relase...
+
 typedef struct CF_BRIDGED_TYPE(id) AGClosureStorage *AGClosureRef AG_SWIFT_NAME(Closure);
 
 CF_EXPORT

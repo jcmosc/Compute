@@ -73,12 +73,11 @@ AGGraphRef AGGraphCreateShared(AGGraphRef original) {
     return instance;
 };
 
-AGGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) {
-    auto context = AG::Graph::Context::from_cf(graph); // TODO: inline
-    return reinterpret_cast<AGGraphContextRef>(context);
+AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) {
+    return reinterpret_cast<AGUnownedGraphContextRef>(AG::Graph::Context::from_cf(graph));
 }
 
-AGGraphRef AGGraphContextGetGraph(AGGraphContextRef context) {
+AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context) {
     return reinterpret_cast<AGGraphRef>(reinterpret_cast<uintptr_t>(context) - sizeof(CFRuntimeBase));
 }
 
@@ -201,26 +200,26 @@ AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
     AG::precondition_failure("no graph: %u", attribute);
 }
 
-AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {
-    auto subgraph = AGGraphGetAttributeSubgraph2(attribute);
-    if (subgraph == nullptr) {
-        AG::precondition_failure("no subgraph");
-    }
-
-    return subgraph;
-}
-
-AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
-    auto attribute_id = AG::AttributeID(attribute);
-    attribute_id.to_node_ptr().assert_valid();
-
-    auto subgraph = attribute_id.subgraph();
-    if (subgraph == nullptr) {
-        AG::precondition_failure("internal error");
-    }
-
-    return subgraph->to_cf();
-}
+// AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {
+//     auto subgraph = AGGraphGetAttributeSubgraph2(attribute);
+//     if (subgraph == nullptr) {
+//         AG::precondition_failure("no subgraph");
+//     }
+//
+//     return subgraph;
+// }
+//
+// AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
+//     auto attribute_id = AG::AttributeID(attribute);
+//     attribute_id.to_node_ptr().assert_valid();
+//
+//     auto subgraph = attribute_id.subgraph();
+//     if (subgraph == nullptr) {
+//         AG::precondition_failure("internal error");
+//     }
+//
+//     return subgraph->to_cf();
+// }
 
 AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);

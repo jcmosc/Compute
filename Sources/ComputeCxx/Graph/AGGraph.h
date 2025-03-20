@@ -6,7 +6,6 @@
 #include "AGSwiftSupport.h"
 #include "Attribute/AGAttribute.h"
 #include "Attribute/AGWeakAttribute.h"
-#include "Subgraph/AGSubgraph.h"
 #include "Swift/AGType.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -16,7 +15,7 @@ CF_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
-typedef struct CF_BRIDGED_TYPE(id) AGGraphContextStorage *AGGraphContextRef AG_SWIFT_NAME(GraphContext);
+typedef struct AGUnownedGraphContext *AGUnownedGraphContextRef;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -34,11 +33,11 @@ AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphContextRef AGGraphGetGraphContext(AGGraphRef graph);
+AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGGraphContextGetGraph(AGGraphContextRef context);
+AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -104,13 +103,15 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute);
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute);
+// TODO: fix circular types
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute);
+// CF_EXPORT
+// CF_REFINED_FOR_SWIFT
+// AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute);
+
+// CF_EXPORT
+// CF_REFINED_FOR_SWIFT
+// AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute);
 
 // TODO: need this?
 // typedef struct AGAttributeType {

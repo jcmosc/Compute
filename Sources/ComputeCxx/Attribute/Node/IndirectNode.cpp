@@ -4,14 +4,19 @@
 
 namespace AG {
 
+MutableIndirectNode &IndirectNode::to_mutable() {
+    assert(is_mutable());
+    return static_cast<MutableIndirectNode &>(*this);
+}
+
 const MutableIndirectNode &IndirectNode::to_mutable() const {
     assert(is_mutable());
     return static_cast<const MutableIndirectNode &>(*this);
 }
 
-void IndirectNode::modify(WeakAttributeID source, size_t size) {
+void IndirectNode::modify(WeakAttributeID source, uint32_t offset) {
     _source = source;
-    _info.size = uint32_t(size);
+    _info.offset = offset;
 }
 
 } // namespace AG

@@ -35,14 +35,17 @@ template <typename T> class ptr {
         }
     }
 
-    element_type *_Nonnull get() const noexcept {
-        assert(_offset != 0);
+    element_type *_Nullable get() const noexcept {
+        if (_offset == 0) {
+            return nullptr;
+        }
         return reinterpret_cast<element_type *>(table::shared().ptr_base() + _offset);
     }
 
     ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
 
-    difference_type page_relative_offset() const noexcept { return _offset & page_alignment_mask; }
+    difference_type offset() const noexcept { return _offset; }
+    difference_type offset_from_page() const noexcept { return _offset & page_alignment_mask; }
 
     template <typename U> ptr<U> aligned(difference_type alignment_mask = sizeof(difference_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);
@@ -52,6 +55,8 @@ template <typename T> class ptr {
     std::add_lvalue_reference_t<T> operator*() const noexcept { return *get(); };
     T *_Nonnull operator->() const noexcept { return get(); };
 
+    bool operator==(const ptr<T> &other) const noexcept { return _offset == other._offset; };
+    bool operator!=(const ptr<T> &other) const noexcept { return _offset != other._offset; };
     bool operator==(nullptr_t) const noexcept { return _offset == 0; };
     bool operator!=(nullptr_t) const noexcept { return _offset != 0; };
 
@@ -70,5 +75,15 @@ template <typename T> class ptr {
 
 } // namespace data
 } // namespace AG
+
+namespace std {
+
+// TODO: see if there's another way to synthesize this
+template <typename T> class hash<AG::data::ptr<T>> {
+  public:
+    std::uint64_t operator()(const AG::data::ptr<T> &pointer) const { return pointer.offset(); }
+};
+
+} // namespace std
 
 CF_ASSUME_NONNULL_END

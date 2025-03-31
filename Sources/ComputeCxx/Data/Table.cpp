@@ -246,7 +246,7 @@ void table::make_pages_reusable(uint32_t page_index, bool reusable) {
         mprotect(mapped_pages_address, mapped_pages_size, protection);
     }
 
-    _num_reusable_pages += reusable ? mapped_pages_size : -mapped_pages_size;
+    _num_reusable_bytes += reusable ? mapped_pages_size : -mapped_pages_size;
 }
 
 uint64_t table::raw_page_seed(ptr<page> page) {
@@ -266,6 +266,16 @@ uint64_t table::raw_page_seed(ptr<page> page) {
     unlock();
 
     return result;
+}
+
+#pragma mark - Printing
+
+void table::print() {
+    lock();
+    fprintf(stdout, "data::table %p:\n  %.2fKB allocated, %.2fKB used, %.2fKB reusable.\n", this,
+            (_ptr_max_offset - page_size) / 1024.0, (_num_used_pages * page_size) / 1024.0,
+            _num_reusable_bytes / 1024.0);
+    unlock();
 }
 
 } // namespace data

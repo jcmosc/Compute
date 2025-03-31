@@ -6,9 +6,12 @@
 #include "Builder.h"
 #include "Compare.h"
 #include "Controls.h"
+#include "Graph/Graph.h"
+#include "Graph/UpdateStack.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
-#include "Util/HashTable.h"
+#include "Trace/Trace.h"
+#include "Utilities/HashTable.h"
 
 namespace AG {
 
@@ -433,7 +436,13 @@ bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs,
     size_t failure_location = 0;
     bool result = compare_bytes(lhs, rhs, size, &failure_location);
     if (options.report_failures() && !result) {
-        // TODO: tracing
+        for (auto update = Graph::current_update(); update != nullptr; update = update.get()->previous()) {
+            auto graph = update.get()->graph();
+            auto attribute = update.get()->frames().back().attribute;
+            graph->foreach_trace([&attribute, &lhs, &rhs, &failure_location](Trace &trace) {
+                trace.compare_failed(attribute, lhs, rhs, failure_location, 1, nullptr);
+            });
+        }
     }
     return result;
 }
@@ -1207,7 +1216,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
         add_field(sizeof(void *));
         result = true;
     } else {
-        auto mangled_name = field.FieldName.get();
+        auto mangled_name = field.FieldName.get(); // TODO: check this is FieldName of MangledTypeName
         auto field_type = mangled_name != nullptr ? type.mangled_type_name_ref(mangled_name, false, nullptr) : nullptr;
         if (field_type == nullptr) {
             // bail out if we can't get a type for the enum case payload

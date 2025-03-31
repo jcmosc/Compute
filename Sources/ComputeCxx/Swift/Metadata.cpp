@@ -11,8 +11,8 @@
 #include "Errors/Errors.h"
 #include "MetadataVisitor.h"
 #include "Swift/mach-o/dyld.h"
-#include "Util/HashTable.h"
-#include "Util/Heap.h"
+#include "Utilities/HashTable.h"
+#include "Utilities/Heap.h"
 #include "_SwiftStdlibCxxOverlay.h"
 
 namespace AG {
@@ -305,7 +305,8 @@ void metadata::copy_on_write_heap_object(void **object_ref) const {
     assert(::swift::isHeapMetadataKind(getKind()));
     auto heap_metadata = reinterpret_cast<const ::swift::HeapMetadata *>(this);
 
-    ::swift::HeapObject *copy = ::swift::swift_allocObject(heap_metadata, vw_size(), vw_alignment());
+    ::swift::HeapObject *copy =
+        ::swift::swift_allocObject(heap_metadata, vw_size(), getValueWitnesses()->getAlignmentMask());
     vw_initializeWithCopy(reinterpret_cast<opaque_value *>(copy), reinterpret_cast<opaque_value *>(*object_ref));
     ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(*object_ref));
     *object_ref = copy;
@@ -433,14 +434,14 @@ class TypeCache {
     bool insert(const key_info *key, const value_info *value) { return _table.insert(key, value); };
 
     key_info *create_key(const metadata *type, const char *type_name) {
-        auto key = reinterpret_cast<TypeCache::key_info *>(_heap.alloc_(sizeof(key_info)));
+        auto key = _heap.alloc<TypeCache::key_info>();
         key->first = type;
         key->second = type_name;
         return key;
     };
 
     value_info *create_value(const metadata *type, metadata::ref_kind ref_kind) {
-        auto value = reinterpret_cast<TypeCache::value_info *>(_heap.alloc_(sizeof(value_info)));
+        auto value = _heap.alloc<TypeCache::value_info>();
         value->first = type;
         value->second = ref_kind;
         return value;

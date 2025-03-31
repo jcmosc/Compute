@@ -76,15 +76,17 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGTypeApplyEnumData(AGTypeID typeID);
+void AGTypeApplyEnumData(AGTypeID typeID, void *value,
+                         void (*body)(uint32_t tag, AGTypeID field_type, void *field_value));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGTypeApplyMutableEnumData(AGTypeID typeID);
+void AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
+                                void (*body)(uint32_t tag, AGTypeID field_type, void *field_value));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGTypeGetEnumTag(AGTypeID typeID);
+uint64_t AGTypeGetEnumTag(AGTypeID typeID, void *value);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

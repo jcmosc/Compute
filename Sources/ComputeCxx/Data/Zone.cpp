@@ -27,8 +27,8 @@ void zone::clear() {
 void zone::realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask) {
     if (new_size > size && *buffer) {
         auto page = buffer->page_ptr();
-        if ((page->in_use == buffer->page_relative_offset() + size &&
-             page->total >= buffer->page_relative_offset() + new_size)) {
+        if ((page->in_use == buffer->offset_from_page() + size &&
+             page->total >= buffer->offset_from_page() + new_size)) {
             page->in_use += new_size - size;
         } else {
             ptr<void> new_buffer = alloc_bytes_recycle(new_size, alignment_mask);

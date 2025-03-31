@@ -2,9 +2,9 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include "Containers/Vector.h"
 #include "LayoutDescriptor.h"
 #include "Swift/MetadataVisitor.h"
-#include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

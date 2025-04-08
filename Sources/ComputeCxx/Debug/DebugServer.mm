@@ -9,7 +9,7 @@
 #include <sys/socket.h>
 #include <xlocale.h>
 
-#include "Graph/Graph+Description.h"
+#include "Graph/AGDescription.h"
 #include "Graph/Graph.h"
 #include "Log/Log.h"
 #include "Utilities/FreeDeleter.h"

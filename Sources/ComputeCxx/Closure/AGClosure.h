@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <swift/bridging>
 
 #include "AGSwiftSupport.h"
 
@@ -8,17 +9,21 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-// TODO: add Swift annotation for retain relase...
+struct AGOpaqueValue;
 
-typedef struct CF_BRIDGED_TYPE(id) AGClosureStorage *AGClosureRef AG_SWIFT_NAME(Closure);
+struct AGClosureStorage {
+    const AGOpaqueValue *_Nullable function;
+    const AGOpaqueValue *_Nullable context;
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
-AGClosureRef AGRetainClosure(AGClosureRef closure);
+    AGClosureStorage() : function(nullptr), context(nullptr){};
+    AGClosureStorage(const AGOpaqueValue *fun, const AGOpaqueValue *ctx) : function(fun), context(ctx){};
+} SWIFT_SHARED_REFERENCE(AGRetainClosure, AGReleaseClosure);
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
-void AGReleaseClosure(AGClosureRef closure);
+void AGRetainClosure(AGClosureStorage *closure);
+void AGReleaseClosure(AGClosureStorage *closure);
+
+
+typedef struct AGClosureStorage *AGClosureRef AG_SWIFT_NAME(Closure);
 
 CF_EXTERN_C_END
 

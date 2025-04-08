@@ -7,8 +7,8 @@
 #include <stdint.h>
 #include <unordered_map>
 
+#include "AGGraph.h"
 #include "AGSwiftSupport.h"
-#include "AGValue.h"
 #include "Attribute/AttributeID.h"
 #include "Attribute/Node/Edge.h"
 #include "Closure/ClosureFunction.h"
@@ -67,7 +67,7 @@ class Graph {
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
 
-    typedef void (*MainHandler)(void (*thunk)(void *), const void *thunk_context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
+    typedef void (*MainHandler)(void (*thunk)(const void *), const void *thunk_context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
 
   private:
     static Graph *_all_graphs;
@@ -223,9 +223,9 @@ class Graph {
     const AttributeType *attribute_ref(data::ptr<Node> node, const void *_Nullable *_Nullable self_out) const;
 
     void attribute_modify(data::ptr<Node> node, const swift::metadata &type, ClosureFunctionPV<void, void *> closure,
-                          bool update_flags);
+                          bool invalidating);
 
-    data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, void *body, void *_Nullable value);
+    data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *_Nullable value);
 
     UpdateStatus update_attribute(AttributeID attribute, uint8_t options);
     void update_main_refs(AttributeID attribute);
@@ -279,7 +279,7 @@ class Graph {
 
     void input_value_add(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags);
 
-    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, uint8_t input_edge_flags);
+    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
     void remove_input(data::ptr<Node> node, uint32_t index);
     void remove_all_inputs(data::ptr<Node> node);
 
@@ -302,7 +302,7 @@ class Graph {
 
     // MARK: Outputs
 
-    void *output_value_ref(data::ptr<Node> node, const swift::metadata &type);
+    void *_Nullable output_value_ref(data::ptr<Node> node, const swift::metadata &type);
 
     template <typename T> void add_output_edge(data::ptr<T> node, AttributeID output);
     template <> void add_output_edge<Node>(data::ptr<Node> node, AttributeID output);
@@ -340,7 +340,7 @@ class Graph {
     uint32_t intern_key(const char *key);
     const char *key_name(uint32_t key_id) const;
 
-    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<void *> make_type);
+    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<const void *> make_type);
 
     // MARK: Encoding
 

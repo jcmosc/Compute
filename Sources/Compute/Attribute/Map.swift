@@ -16,8 +16,8 @@ extension Map: Rule {
         return body(arg.value)
     }
     
-    public static var flags: AttributeTypeFlags {
-        fatalError("not implemented")
+    public static var flags: AGAttributeTypeFlags {
+        return []
     }
     
 }
@@ -25,7 +25,7 @@ extension Map: Rule {
 extension Map: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return "• \(Metadata(Value.self).description)"
     }
 
 }

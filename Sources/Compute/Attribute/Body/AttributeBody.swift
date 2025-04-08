@@ -1,34 +1,37 @@
+import ComputeCxx
+
 public protocol _AttributeBody {
 
     static func _destroySelf(_ self: UnsafeMutableRawPointer)
+    static var _hasDestroySelf: Bool { get }
+
     static func _updateDefault(_ default: UnsafeMutableRawPointer)
 
-    static var comparisonMode: ComparisonMode { get }
-    static var _hasDestroySelf: Bool { get }
-    static var flags: AttributeTypeFlags { get }
+    static var comparisonMode: AGComparisonMode { get }
+    static var flags: AGAttributeTypeFlags { get }
 
 }
 
 extension _AttributeBody {
 
     public static func _destroySelf(_ self: UnsafeMutableRawPointer) {
-        fatalError("not implemented")
-    }
 
-    public static func _updateDefault(_ default: UnsafeMutableRawPointer) {
-        fatalError("not implemented")
-    }
-
-    public static var comparisonMode: ComparisonMode {
-        fatalError("not implemented")
     }
 
     public static var _hasDestroySelf: Bool {
-        fatalError("not implemented")
+        return false
     }
 
-    public static var flags: AttributeTypeFlags {
-        fatalError("not implemented")
+    public static func _updateDefault(_ default: UnsafeMutableRawPointer) {
+
+    }
+
+    public static var comparisonMode: AGComparisonMode {
+        return .option2
+    }
+
+    public static var flags: AGAttributeTypeFlags {
+        return .option8
     }
 
 }
@@ -36,7 +39,7 @@ extension _AttributeBody {
 extension _AttributeBody {
 
     public var updateWasCancelled: Bool {
-        fatalError("not implemented")
+        return __AGGraphUpdateWasCancelled()
     }
 
 }

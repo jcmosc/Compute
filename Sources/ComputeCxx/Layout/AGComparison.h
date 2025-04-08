@@ -43,6 +43,8 @@ typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
 
 typedef CF_OPTIONS(uint16_t, AGComparisonMode) {
     AGComparisonModeDefault = 0,
+    AGComparisonModeOption1 = 1,
+    AGComparisonModeOption2 = 2
 };
 
 CF_EXPORT

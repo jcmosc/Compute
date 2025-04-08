@@ -14,7 +14,7 @@ namespace AG {
 struct Graph::TreeElement {
     const swift::metadata *type;
 
-    AttributeID node;
+    AttributeID node; // TODO: check named value from AGSubgraphBeginTreeElement
     uint32_t flags;
 
     data::ptr<Graph::TreeElement> parent;

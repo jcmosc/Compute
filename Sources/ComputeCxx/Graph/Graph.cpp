@@ -375,8 +375,8 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
         void *context;
         void (*handler)(void *);
 
-        static void thunk(void *arg) {
-            auto trampoline = reinterpret_cast<MainTrampoline *>(arg);
+        static void thunk(const void *arg) {
+            auto trampoline = reinterpret_cast<const MainTrampoline *>(arg);
             trampoline->handler(trampoline->context);
         };
     };
@@ -389,6 +389,7 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
     _main_handler = nullptr;
     _main_handler_context = nullptr;
 
+    // TODO: is context passed in as arg, or is it _main_handler_context
     MainTrampoline trampoline = {this, current_update_thread, context, body};
     main_handler(MainTrampoline::thunk, &trampoline);
 
@@ -433,7 +434,7 @@ const AttributeType *Graph::attribute_ref(data::ptr<Node> node, const void *_Nul
 }
 
 void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metadata,
-                             ClosureFunctionPV<void, void *> modify, bool update_flags) {
+                             ClosureFunctionPV<void, void *> modify, bool invalidating) {
     if (!node->state().is_self_initialized()) {
         precondition_failure("no self data: %u", node);
     }
@@ -446,20 +447,20 @@ void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metada
     foreach_trace([&node](Trace &trace) { trace.begin_modify(node); });
 
     void *body = node->get_self(type);
-    modify(body);
+    modify(body); // TODO: make context first parameter...
 
     foreach_trace([&node](Trace &trace) { trace.end_modify(node); });
 
-    if (update_flags) {
+    if (invalidating) {
         node->flags().set_self_modified(true);
         mark_pending(node, node.get());
     }
 }
 
-data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, void *body, void *value) {
+data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *value) {
     const AttributeType &type = attribute_type(type_id);
 
-    void *value_source = nullptr;
+    const void *value_source = nullptr;
     if (type.use_graph_as_initial_value()) {
         value_source = this;
     }
@@ -1448,7 +1449,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input_attribute, u
     }
 }
 
-uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, uint8_t input_edge_flags) {
+uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options) {
     auto resolved = input.resolve(TraversalOptions::EvaluateWeakReferences);
     if (resolved.attribute().without_kind() == 0) {
         if (allow_nil) {
@@ -1460,9 +1461,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
         precondition_failure("cyclic edge: %u -> %u", resolved.attribute(), node);
     }
 
-    foreach_trace([&node, &resolved, &input_edge_flags](Trace &trace) {
-        trace.add_edge(node, resolved.attribute(), input_edge_flags);
-    });
+    foreach_trace([&node, &resolved, &options](Trace &trace) { trace.add_edge(node, resolved.attribute(), options); });
 
     auto subgraph = AttributeID(node).subgraph();
     auto graph_context_id = subgraph ? subgraph->context_id() : 0;
@@ -1476,7 +1475,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
 
     InputEdge new_input_edge = {
         resolved.attribute(),
-        InputEdge::Flags(input_edge_flags & 5),
+        InputEdge::Flags(options & 5),
     };
     if (node->state().is_dirty()) {
         new_input_edge.set_changed(true);
@@ -1499,7 +1498,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
         reset_update(node);
     }
     if (node->state().is_dirty()) {
-        foreach_trace([&node, &index, &input_edge_flags](Trace &trace) { trace.set_edge_pending(node, index, true); });
+        foreach_trace([&node, &index](Trace &trace) { trace.set_edge_pending(node, index, true); });
     }
 
     return index;
@@ -1924,7 +1923,7 @@ const char *Graph::key_name(uint32_t key_id) const {
     AG::precondition_failure("invalid string key id: %u", key_id);
 }
 
-uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<void *> make_type) {
+uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<const void *> make_type) {
     uint32_t type_id = uint32_t(reinterpret_cast<uintptr_t>(_type_ids_by_metadata.lookup(metadata, nullptr)));
     if (type_id) {
         return type_id;

@@ -152,10 +152,10 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 
 // TODO: is this AGGraphRef or AG::Graph ?
 uint32_t AGGraphInternAttributeType(AGGraphRef graph, AGTypeID type,
-                                    void *(*intern)(const void *context AG_SWIFT_CONTEXT)AG_SWIFT_CC(swift),
+                                    const void *(*intern)(const void *context AG_SWIFT_CONTEXT)AG_SWIFT_CC(swift),
                                     const void *context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    return graph->context.graph().intern_type(metadata, AG::ClosureFunctionVP<void *>(intern, context));
+    return graph->context.graph().intern_type(metadata, AG::ClosureFunctionVP<const void *>(intern, context));
 }
 
 void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) {
@@ -179,7 +179,7 @@ void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) {
 
 #pragma mark - Attributes
 
-AGAttribute AGGraphCreateAttribute(uint32_t type_id, void *body, void *value) {
+AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value) {
     auto current_subgraph = AG::Subgraph::current_subgraph();
     if (!current_subgraph) {
         AG::precondition_failure("no subgraph active while adding attribute");
@@ -215,11 +215,11 @@ AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) {
     }
 
     const void *body = nullptr;
-    auto type = subgraph->graph()->attribute_ref(attribute_id.to_node_ptr(), &body);
-    return AGAttributeInfo(type, body);
+    const AG::AttributeType *type = subgraph->graph()->attribute_ref(attribute_id.to_node_ptr(), &body);
+    return AGAttributeInfo(reinterpret_cast<const AGAttributeType *>(type), body);
 }
 
-uint8_t AGGraphGetFlags(AGAttribute attribute) {
+AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
@@ -227,7 +227,7 @@ uint8_t AGGraphGetFlags(AGAttribute attribute) {
     return attribute_id.to_node().flags().subgraph_flags();
 }
 
-void AGGraphSetFlags(AGAttribute attribute, uint8_t flags) {
+void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
@@ -235,7 +235,7 @@ void AGGraphSetFlags(AGAttribute attribute, uint8_t flags) {
     attribute_id.subgraph()->set_flags(attribute_id.to_node_ptr(), AG::NodeFlags::SubgraphFlags(flags));
 }
 
-void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool flag,
+void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
                             void (*modify)(void *body, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                             const void *context) {
     auto attribute_id = AG::AttributeID(attribute);
@@ -251,7 +251,7 @@ void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool flag,
 
     subgraph->graph()->attribute_modify(attribute_id.to_node_ptr(),
                                         *reinterpret_cast<const AG::swift::metadata *>(type),
-                                        AG::ClosureFunctionPV<void, void *>(modify, context), flag);
+                                        AG::ClosureFunctionPV<void, void *>(modify, context), invalidating);
 }
 
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
@@ -274,8 +274,9 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
 namespace {
 
 void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &metadata, void *body,
-                            const AG::swift::metadata &value_type, bool flag, AG::AttributeID attribute,
-                            uint8_t *state_out, AG::ClosureFunctionCI<unsigned long, AGUnownedGraphRef> closure) {
+                            const AG::swift::metadata &value_type, AGCachedValueOptions options,
+                            AG::AttributeID attribute, uint8_t *state_out,
+                            AG::ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure) {
 
     auto current_update = AG::Graph::current_update();
     AG::Graph::UpdateStack *stack = current_update.tag() == 0 ? current_update.get() : nullptr;
@@ -307,16 +308,16 @@ void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &meta
         return value;
     }
 
-    uint8_t input_flags = flag ? 0 : 1;
+    uint8_t input_flags = (options & 1) == 0 ? 0 : 1;
     return subgraph->graph()->input_value_ref(stack->frames().back().attribute, AG::AttributeID(cached), 0, input_flags,
                                               value_type, state_out);
 }
 
 } // namespace
 
-void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
-                                 AGAttribute attribute, bool *changed_out,
-                                 unsigned long (*closure)(AGUnownedGraphRef graph, const void *context AG_SWIFT_CONTEXT)
+void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
+                                 AGCachedValueOptions options, AGAttribute attribute, bool *changed_out,
+                                 uint32_t (*closure)(AGUnownedGraphRef graph, const void *context AG_SWIFT_CONTEXT)
                                      AG_SWIFT_CC(swift),
                                  const void *closure_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
@@ -324,22 +325,22 @@ void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body,
 
     uint8_t state = 0;
     void *value =
-        read_cached_attribute(identifier, *metadata, body, *value_metadata, flag, AG::AttributeID(attribute), &state,
-                              AG::ClosureFunctionCI<unsigned long, AGUnownedGraphRef>(closure, closure_context));
+        read_cached_attribute(identifier, *metadata, body, *value_metadata, options, AG::AttributeID(attribute), &state,
+                              AG::ClosureFunctionCI<uint32_t, AGUnownedGraphRef>(closure, closure_context));
     if (changed_out) {
         *changed_out = state & 1 ? true : false;
     }
     return value;
 }
 
-void *AGGraphReadCachedAttributeIfExists(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
-                                         AGAttribute attribute, bool *changed_out) {
+void *AGGraphReadCachedAttributeIfExists(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
+                                         AGCachedValueOptions options, AGAttribute attribute, bool *changed_out) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
 
     uint8_t state = 0;
-    void *value = read_cached_attribute(identifier, *metadata, body, *value_metadata, flag, AG::AttributeID(attribute),
-                                        &state, nullptr);
+    void *value = read_cached_attribute(identifier, *metadata, body, *value_metadata, options,
+                                        AG::AttributeID(attribute), &state, nullptr);
     if (changed_out) {
         *changed_out = state & 1 ? true : false;
     }
@@ -602,11 +603,12 @@ void AGGraphSetUpdateCallback(AGGraphRef graph,
     context->set_update_callback(AG::ClosureFunctionVV<void>(callback, callback_context));
 }
 
-void AGGraphClearUpdate() {
+const void *AGGraphClearUpdate() {
     auto current_update = AG::Graph::current_update();
     if (current_update != nullptr && current_update.tag() == 0) {
         AG::Graph::set_current_update(current_update.with_tag(true)); // TODO: tag is cleared...
     }
+    return (const void *)current_update.value();
 }
 
 uint64_t AGGraphGetDeadline(AGGraphRef graph) {
@@ -665,7 +667,7 @@ void AGGraphWithoutUpdate(void (*function)(const void *context AG_SWIFT_CONTEXT)
 void AGGraphWithMainThreadHandler(AGGraphRef graph,
                                   void (*function)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                   const void *body_context,
-                                  void (*main_thread_handler)(void (*thunk)(void *),
+                                  void (*main_thread_handler)(void (*thunk)(const void *),
                                                               const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                   const void *main_thread_handler_context) {
     auto context = AG::Graph::Context::from_cf(graph);
@@ -732,6 +734,18 @@ AGValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AGTypeID 
     return get_value(attribute_id, 0, options, *metadata);
 }
 
+AGValueState AGGraphGetValueState(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.to_node_ptr().assert_valid();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    return subgraph->graph()->value_state(attribute_id);
+}
+
 AGValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type) {
     auto weak_attribute_id = AG::WeakAttributeID(attribute);
     auto attribute_id = weak_attribute_id.evaluate();
@@ -743,7 +757,7 @@ AGValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, A
     return get_value(attribute_id, weak_attribute_id.zone_id(), options, *metadata);
 }
 
-bool AGGraphSetValue(AGAttribute attribute, void *value, AGTypeID type) {
+bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
@@ -808,7 +822,7 @@ AGValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input_attribute,
     return {value, (state & 1) == 1};
 }
 
-uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, uint8_t input_edge_flags) {
+uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
@@ -827,7 +841,7 @@ uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, uint8_t input
         AG::precondition_failure("accessing attribute in a different namespace: %u", input);
     }
 
-    return subgraph->graph()->add_input(attribute_id.to_node_ptr(), input_attribute_id, false, input_edge_flags);
+    return subgraph->graph()->add_input(attribute_id.to_node_ptr(), input_attribute_id, false, options);
 }
 
 bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, uint64_t exclude_attributes_count) {
@@ -861,7 +875,7 @@ void *AGGraphGetOutputValue(AGTypeID type) {
     return graph->output_value_ref(frame.attribute, *metadata);
 }
 
-void AGGraphSetOutputValue(void *value, AGTypeID type) {
+void AGGraphSetOutputValue(const void *value, AGTypeID type) {
     // TODO: tag must be whether frames is empty or not
     auto update_stack_ptr = AG::Graph::current_update();
     if (update_stack_ptr.tag() != 0 || update_stack_ptr.get() == nullptr) {
@@ -968,7 +982,7 @@ bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id) {
     return false;
 }
 
-void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, void *value, AGTypeID type) {
+void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, const void *value, AGTypeID type) {
     auto context = AG::Graph::Context::from_cf(graph);
     context->graph().foreach_trace([&context, &event_name, &value, &type](AG::Trace &trace) {
         trace.custom_event(*context, event_name, value, *reinterpret_cast<const AG::swift::metadata *>(type));
@@ -1092,14 +1106,14 @@ void AGGraphStopProfiling(AGGraphRef graph) {
     context->graph().stop_profiling();
 }
 
-void AGGraphMarkProfile(AGGraphRef graph, const char *name, uint64_t time) {
+void AGGraphMarkProfile(AGGraphRef graph, const char *name) {
     if (!graph) {
         AG::Graph::all_mark_profile(name);
         return;
     }
     auto context = AG::Graph::Context::from_cf(graph);
     uint32_t event_id = context->graph().intern_key(name);
-    context->graph().mark_profile(event_id, time);
+    context->graph().mark_profile(event_id, 0);
 }
 
 void AGGraphResetProfile(AGGraphRef graph) {
@@ -1113,7 +1127,7 @@ void AGGraphResetProfile(AGGraphRef graph) {
 
 #pragma mark - Description
 
-void AGGraphDescription(AGGraphRef graph, CFDictionaryRef options) {
+CFTypeRef AGGraphDescription(AGGraphRef graph, CFDictionaryRef options) {
     if (graph == nullptr) {
         return AG::Graph::description(nullptr, options);
     }

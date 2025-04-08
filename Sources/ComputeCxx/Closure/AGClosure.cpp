@@ -2,16 +2,6 @@
 
 #include <swift/Runtime/HeapObject.h>
 
-struct AGClosureStorage {
-    const void * _Nullable function;
-    const void * _Nullable context;
-};
+void AGRetainClosure(AGClosureStorage *closure) { ::swift::swift_retain((::swift::HeapObject *)closure->context); }
 
-AGClosureRef AGRetainClosure(AGClosureRef closure) {
-    ::swift::swift_retain((::swift::HeapObject *)closure->context);
-    return closure;
-}
-
-void AGReleaseClosure(AGClosureRef closure) {
-    ::swift::swift_release((::swift::HeapObject *)closure->context);
-}
+void AGReleaseClosure(AGClosureStorage *closure) { ::swift::swift_release((::swift::HeapObject *)closure->context); }

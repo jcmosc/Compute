@@ -1,65 +1,72 @@
 @propertyWrapper
 @dynamicMemberLookup
 public struct OptionalAttribute<Value> {
-    
+
     public var base: AnyOptionalAttribute
-    
+
+    public init() {
+        base = AnyOptionalAttribute()
+    }
+
     public init(base: AnyOptionalAttribute) {
         self.base = base
     }
-    
-    public init() {
-        fatalError("not implemented")
-    }
-    
-    public init(_ weakAttribute: WeakAttribute<Value>) {
-        fatalError("not implemented")
-    }
-    
+
     public init(_ attribute: Attribute<Value>) {
-        fatalError("not implemented")
-    }
-    
-    public init(_ attribute: Attribute<Value>?) {
-        fatalError("not implemented")
-    }
-    
-    public var attribute: Attribute<Value>? {
-        get {
-            fatalError("not implemented")
-        }
-        set {
-            fatalError("not implemented")
-        }
-    }
-    
-    public var value: Value? {
-        fatalError("not implemented")
+        base = AnyOptionalAttribute(attribute.identifier)
     }
 
-    public func changedValue() -> (value: Value, changed: Bool)? {
-        fatalError("not implemented")
+    public init(_ attribute: Attribute<Value>?) {
+        base = AnyOptionalAttribute(attribute?.identifier)
+    }
+
+    public init(_ weakAttribute: WeakAttribute<Value>) {
+        base = AnyOptionalAttribute(weakAttribute.base)
+    }
+
+    public var attribute: Attribute<Value>? {
+        get {
+            return base.attribute?.unsafeCast(to: Value.self)
+        }
+        set {
+            base.attribute = newValue?.identifier
+        }
+    }
+
+    public var value: Value? {
+        return attribute?.value
+    }
+
+    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool)? {
+        return attribute?.changedValue(options: options)
     }
 
     public func map<T>(_ transform: (Attribute<Value>) -> T) -> T? {
-        fatalError("not implemented")
+        if let attribute = attribute {
+            return transform(attribute)
+        } else {
+            return nil
+        }
     }
-    
+
     public var wrappedValue: Value? {
-        fatalError("not implemented")
+        return value
     }
-    
+
     public var projectedValue: Attribute<Value>? {
         get {
-            fatalError("not implemented")
+            return attribute
         }
         set {
-            fatalError("not implemented")
+            attribute = newValue
+        }
+        _modify {
+            yield &attribute
         }
     }
-    
+
     public subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Attribute<Member>? {
-        fatalError("not implemented")
+        return attribute?[dynamicMember: keyPath]
     }
 
 }
@@ -67,7 +74,7 @@ public struct OptionalAttribute<Value> {
 extension OptionalAttribute: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return attribute?.description ?? "nil"
     }
 
 }

@@ -16,12 +16,20 @@ extension Rule {
     }
 
     public static func _updateDefault(_ self: UnsafeMutableRawPointer) {
-        fatalError("not implemented")
-
+        guard let initialValue = initialValue else {
+            return
+        }
+        withUnsafePointer(to: initialValue) { initialValuePointer in
+            __AGGraphSetOutputValue(initialValuePointer, Metadata(Value.self))
+        }
     }
 
-    public static func _update(_ self: UnsafeMutableRawPointer, attribute: AnyAttribute) {
-        fatalError("not implemented")
+    public static func _update(_ pointer: UnsafeMutableRawPointer, attribute: AnyAttribute) {
+        let rule = pointer.assumingMemoryBound(to: Self.self)
+        let value = rule.pointee.value
+        withUnsafePointer(to: value) { valuePointer in
+            __AGGraphSetOutputValue(valuePointer, Metadata(Value.self))
+        }
     }
 
 }
@@ -29,36 +37,101 @@ extension Rule {
 extension Rule {
 
     public var bodyChanged: Bool {
-        fatalError("not implemented")
+        // guessing this is it
+        return __AGGraphCurrentAttributeWasModified()
     }
 
     public var attribute: Attribute<Value> {
-        fatalError("not implemented")
+        guard let attribute = AnyAttribute.current else {
+            preconditionFailure()
+        }
+        return Attribute<Value>(identifier: attribute)
     }
 
     public var context: RuleContext<Value> {
-        fatalError("not implemented")
+        return RuleContext<Value>(attribute: attribute)
     }
 
 }
 
-public struct CachedValueOptions {}
+private struct RuleCachedValueContext {}
 
-extension Rule where Value: Hashable {
+//  AutoClass1::FUN_1afe81fc
+func makeSomething(
+    graph: Graph,
+    update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void,
+    selfType: Any.Type,
+    bodyType: _AttributeBody.Type,
+    valueType: Any.Type
+) -> UInt32 {
+    return graph.internAttributeType(
+        selfType: selfType,
+        bodyType: bodyType,
+        valueType: valueType,
+        flags: [],
+        update: update
+    )
+}
 
-    public func cachedValue(options: CachedValueOptions, owner: AnyAttribute?) -> Value {
-        fatalError("not implemented")
+extension Rule where Self: Hashable {
+
+    public func cachedValue(options: AGCachedValueOptions, owner: AnyAttribute?) -> Value {
+        return withUnsafePointer(to: self) { selfPointer in
+            let result = Self._cachedValue(options: options, owner: owner, hashValue: hashValue, bodyPtr: selfPointer) {
+                return Self._update(_:attribute:)
+            }
+            return result.pointee
+        }
     }
 
-    public func cachedValueIfExists(options: CachedValueOptions, owner: AnyAttribute?) -> Value? {
-        fatalError("not implemented")
+    public func cachedValueIfExists(options: AGCachedValueOptions, owner: AnyAttribute?) -> Value? {
+        let result = withUnsafePointer(to: self) { selfPointer in
+            return __AGGraphReadCachedAttributeIfExists(
+                UInt64(hashValue),  // TODO: bitPattern?
+                Metadata(Self.self),
+                UnsafeMutablePointer(mutating: selfPointer),  // TODO: need to mutate this? make const at C and propogate...
+                Metadata(Value.self),
+                options,
+                owner ?? .nil,
+                nil
+            )
+        }
+        guard let result = result else {
+            return nil
+        }
+        return result.assumingMemoryBound(to: Value.self).pointee
     }
 
     public static func _cachedValue(
-        options: CachedValueOptions, owner: AnyAttribute?, hashValue: Int, bodyPtr: UnsafeRawPointer,
+        options: AGCachedValueOptions,
+        owner: AnyAttribute?,
+        hashValue: Int,
+        bodyPtr: UnsafeRawPointer,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafePointer<Value> {
-        fatalError("not implemented")
+        let result = withUnsafePointer(to: self) { selfPointer in
+            var context = RuleCachedValueContext()
+            return __AGGraphReadCachedAttribute(
+                UInt64(hashValue),  // TODO: bitPattern?
+                Metadata(Self.self),
+                UnsafeMutablePointer(mutating: selfPointer),
+                Metadata(Value.self),
+                options,
+                owner ?? .nil,
+                nil,
+                {
+                    graph,
+                    context in
+
+                    // TODO: fix as! Graph
+                    //                    return makeSomething(graph: graph as! Graph, update: update, selfType: Self.self, bodyType: Self.self, valueType: Value.self)
+                    return 0
+                },
+                &context
+            )
+        }
+        let pointer = result.assumingMemoryBound(to: Value.self)
+        return UnsafePointer(pointer)
     }
 
 }

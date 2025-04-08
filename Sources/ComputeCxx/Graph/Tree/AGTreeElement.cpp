@@ -9,6 +9,7 @@ AGTypeID AGTreeElementGetType(AGTreeElement tree_element) {
     return AGTypeID(type);
 }
 
+// TODO: rename to value
 AGAttribute AGTreeElementGetValue(AGTreeElement tree_element) {
     auto tree_element_id = AG::TreeElementID(tree_element);
     auto node = tree_element_id.to_element_ptr()->node;

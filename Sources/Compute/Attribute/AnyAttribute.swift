@@ -1,72 +1,124 @@
 import ComputeCxx
 
-public struct InputOptions {}
-
-public struct SearchOptions {}
-
-public struct AttributeFlags {}
-
 extension AnyAttribute {
 
     public static var current: AnyAttribute? {
-        fatalError("not implemented")
+        let attribute = __AGGraphGetCurrentAttribute()
+        return attribute == .nil ? nil : attribute
     }
 
     public init<Value>(_ attribute: Attribute<Value>) {
-        fatalError("not implemented")
+        self = attribute.identifier
     }
 
     public func unsafeOffset(at offset: Int) -> AnyAttribute {
-        fatalError("not implemented")
+        // TODO: swift Int instead of UInt32
+        return __AGGraphCreateOffsetAttribute(self, UInt32(offset))
     }
 
     public func unsafeCast<Value>(to type: Value.Type) -> Attribute<Value> {
-        fatalError("not implemented")
-    }
-
-    public var _bodyType: Any.Type {
-        fatalError("not implemented")
-    }
-
-    public var _bodyPointer: UnsafeRawPointer {
-        fatalError("not implemented")
+        return Attribute<Value>(identifier: self)
     }
 
     public func visitBody<Visitor: AttributeBodyVisitor>(_ visitor: inout Visitor) {
-        fatalError("not implemented")
+        let info = __AGGraphGetAttributeInfo(self)
+        let type = info.type.pointee.body_type_id.type as! _AttributeBody.Type
+        type._visitSelf(info.body, visitor: &visitor)
     }
+
+    private struct MutateBodyContext {
+        let mutator: (UnsafeMutableRawPointer) -> Void
+
+    }
+
+    // XXX: Swift compiler crashes when capturing a generic type
 
     public func mutateBody<Body>(as type: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
-        fatalError("not implemented")
+        withoutActuallyEscaping(mutator) { escapingMutator in
+            let context = MutateBodyContext(mutator: { bodyPointer in
+                escapingMutator(&bodyPointer.assumingMemoryBound(to: Body.self).pointee)
+            })
+            withUnsafePointer(to: context) { contextPointer in
+                __AGGraphMutateAttribute(
+                    self,
+                    Metadata(type),
+                    invalidating,
+                    { context, body in
+                        context.assumingMemoryBound(to: MutateBodyContext.self).pointee.mutator(body)
+                    },
+                    contextPointer
+                )
+            }
+        }
+
     }
 
-    public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
-        fatalError("not implemented")
+    public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
+        // TODO: @silgen?
+        struct Context {
+            let predicate: (AnyAttribute) -> Bool
+        }
+        return withoutActuallyEscaping(predicate) { escapingPredicate in
+            let context = Context(predicate: escapingPredicate)
+            return withUnsafePointer(to: context) { contextPointer in
+                return __AGGraphSearch(
+                    self,
+                    options,
+                    { attribute, context in
+                        context.assumingMemoryBound(to: Context.self).pointee.predicate(attribute)
+                    },
+                    contextPointer
+                )
+            }
+        }
     }
 
-    public var valueType: Any.Type {
-        fatalError("not implemented")
+    public var flags: AGAttributeFlags {
+        get {
+            return __AGGraphGetFlags(self)
+        }
+        set {
+            __AGGraphSetFlags(self, newValue)
+        }
     }
 
-    public func setFlags(_ newFlags: AttributeFlags, mask: AttributeFlags) {
-        fatalError("not implemented")
+    public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
+        let oldFlags = __AGGraphGetFlags(self)
+        let newFlags = oldFlags.subtracting(mask).union(newFlags.intersection(mask))
+        __AGGraphSetFlags(self, newFlags)
     }
 
-    public func addInput(_ input: AnyAttribute, options: InputOptions, token: Int) {
-        fatalError("not implemented")
+    public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {
+        __AGGraphAddInput(self, input, options)
     }
 
-    public func addInput<T>(_ input: Attribute<T>, options: InputOptions, token: Int) {
-        fatalError("not implemented")
+    public func addInput<T>(_ input: Attribute<T>, options: AGInputOptions, token: Int) {
+        addInput(input.identifier, options: options, token: token)
     }
 
     public var indirectDependency: AnyAttribute? {
         get {
-            fatalError("not implemented")
+            let indirectDependency = __AGGraphGetIndirectDependency(self)
+            return indirectDependency == .nil ? nil : indirectDependency
         }
         set {
-            fatalError("not implemented")
+            __AGGraphSetIndirectDependency(self, newValue ?? .nil)
         }
+    }
+
+    public var _bodyType: Any.Type {
+        let info = __AGGraphGetAttributeInfo(self)
+        return info.type.pointee.body_type_id.type
+    }
+
+    public var _bodyPointer: UnsafeRawPointer {
+        let info = __AGGraphGetAttributeInfo(self)
+        return info.body
+    }
+
+    public var valueType: Any.Type {
+        let info = __AGGraphGetAttributeInfo(self)
+        return info.type.pointee.value_type_id.type
     }
 
 }
@@ -74,23 +126,11 @@ extension AnyAttribute {
 extension AnyAttribute: @retroactive CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return "#\(rawValue)"
     }
 
 }
 
-extension AnyAttribute: @retroactive Equatable {
+extension AnyAttribute: @retroactive Equatable {}
 
-    public static func == (_ lhs: AnyAttribute, _ rhs: AnyAttribute) -> Bool {
-        fatalError("not implemented")
-    }
-
-}
-
-extension AnyAttribute: @retroactive Hashable {
-
-    public func hash(into hasher: inout Hasher) {
-        fatalError("not implemented")
-    }
-
-}
+extension AnyAttribute: @retroactive Hashable {}

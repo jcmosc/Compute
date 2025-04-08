@@ -2,6 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFData.h>
+#include <CoreFoundation/CFDictionary.h>
 
 #include "AGSwiftSupport.h"
 #include "Attribute/AGAttribute.h"
@@ -79,14 +80,14 @@ bool AGGraphBeginDeferringSubgraphInvalidation(AGGraphRef graph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph);
+void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferring_subgraph_invalidation);
 
 // MARK: Attribute types
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 uint32_t AGGraphInternAttributeType(AGGraphRef graph, AGTypeID type,
-                                    void *_Nonnull (*_Nonnull intern)(const void *context AG_SWIFT_CONTEXT)
+                                    const void *_Nonnull (*_Nonnull intern)(const void *context AG_SWIFT_CONTEXT)
                                         AG_SWIFT_CC(swift),
                                     const void *context);
 
@@ -98,28 +99,11 @@ void AGGraphVerifyType(AGAttribute attribute, AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGGraphCreateAttribute(uint32_t type_id, void *body, void *value);
+AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute);
-
-
-
-
-// TODO: need this?
-// typedef struct AGAttributeType {
-//    AGTypeID typeID;
-//    AGTypeID valueTypeID;
-//    AGClosureStorage update;
-//    AGAttributeVTable vTable;
-//    AGAttributeTypeFlags flags;
-//} AGAttributeType;
-
-typedef struct AGAttributeInfo {
-    const void *type;
-    const void *body;
-} AGAttributeInfo;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -127,16 +111,16 @@ AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint8_t AGGraphGetFlags(AGAttribute attribute);
+AGAttributeFlags AGGraphGetFlags(AGAttribute attribute);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphSetFlags(AGAttribute attribute, uint8_t flags);
+void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool flag,
-                            const void (*modify)(void *body, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
+                            const void (*modify)(const void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
                             const void *context);
 
 typedef CF_OPTIONS(uint32_t, AGSearchOptions) {
@@ -153,18 +137,21 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
 
 // MARK: Cached attributes
 
+typedef CF_OPTIONS(uint8_t, AGCachedValueOptions) { AGCachedValueOptionsNone = 0 };
+
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
-                                 AGAttribute attribute, bool *changed_out,
-                                 unsigned long (*closure)(AGUnownedGraphContextRef graph_context,
-                                                          const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
+                                 AGCachedValueOptions options, AGAttribute attribute, bool *_Nullable changed_out,
+                                 uint32_t (*closure)(AGUnownedGraphContextRef graph_context,
+                                                     const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                  const void *closure_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void *AGGraphReadCachedAttributeIfExists(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type, bool flag,
-                                         AGAttribute attribute, bool *changed_out);
+void *_Nullable AGGraphReadCachedAttributeIfExists(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
+                                                   AGCachedValueOptions options, AGAttribute attribute,
+                                                   bool *_Nullable changed_out);
 
 // MARK: Current attribute
 
@@ -259,7 +246,7 @@ bool AGGraphUpdateWasCancelled();
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphSetUpdate(void *update);
+void AGGraphSetUpdate(const void *update);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -269,7 +256,7 @@ void AGGraphSetUpdateCallback(AGGraphRef graph,
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphClearUpdate();
+const void *AGGraphClearUpdate();
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -302,16 +289,22 @@ CF_REFINED_FOR_SWIFT
 void AGGraphWithMainThreadHandler(AGGraphRef graph,
                                   void (*function)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                   const void *body_context,
-                                  void (*main_thread_handler)(void (*thunk)(void *),
+                                  void (*main_thread_handler)(void (*thunk)(const void *),
                                                               const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                   const void *main_thread_handler_context);
 
 // MARK: Values
 
 typedef struct AGValue {
-    void *value;
+    const void *value;
     bool changed;
 } AGValue;
+
+typedef CF_OPTIONS(uint8_t, AGChangedValueFlags) {
+    AGChangedValueFlagsChanged = 1,
+};
+
+typedef uint8_t AGValueState;
 
 typedef CF_OPTIONS(uint32_t, AGValueOptions) {
     // options & 3 == AG::InputEdge::Flags
@@ -344,11 +337,15 @@ AGValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AGTypeID 
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
+AGValueState AGGraphGetValueState(AGAttribute attribute);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
 AGValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGGraphSetValue(AGAttribute attribute, void *value, AGTypeID type);
+bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -356,13 +353,17 @@ AGGraphUpdateStatus AGGraphPrefetchValue(AGAttribute attribute);
 
 // MARK: Inputs
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
-AGValue AGGraphGetInputValue(AGAttribute attribute, AGValueOptions options, AGTypeID type);
+typedef CF_OPTIONS(uint32_t, AGInputOptions) {
+    AGInputOptionsNone = 0,
+};
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, uint8_t input_edge_flags);
+AGValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input_attribute, AGValueOptions options, AGTypeID type);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -372,11 +373,11 @@ bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, uint64_t exc
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void *AGGraphGetOutputValue(AGTypeID type);
+void *_Nullable AGGraphGetOutputValue(AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphSetOutputValue(void *value, AGTypeID type);
+void AGGraphSetOutputValue(const void *value, AGTypeID type);
 
 // MARK: Tracing
 
@@ -430,7 +431,7 @@ bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, void *value, AGTypeID type);
+void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, const void *value, AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -465,29 +466,29 @@ void AGGraphEndProfileEvent(AGAttribute attribute, const char *event_name, uint6
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphStartProfiling(AGGraphRef graph);
+void AGGraphStartProfiling(AGGraphRef _Nullable graph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphStopProfiling(AGGraphRef graph);
+void AGGraphStopProfiling(AGGraphRef _Nullable graph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphMarkProfile(AGGraphRef graph, const char *event_name, uint64_t time);
+void AGGraphMarkProfile(AGGraphRef _Nullable graph, const char *event_name);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphResetProfile(AGGraphRef graph);
+void AGGraphResetProfile(AGGraphRef _Nullable graph);
 
 // MARK: Description
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFStringRef AGGraphDescription();
+CFTypeRef AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphArchiveJSON(const char *filename);
+void AGGraphArchiveJSON(const char *_Nullable filename);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

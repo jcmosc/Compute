@@ -385,7 +385,7 @@ void Subgraph::foreach_ancestor(Callable body) {
 #pragma mark - Attributes
 
 void Subgraph::add_node(data::ptr<Node> node) {
-    node->flags().set_subgraph_flags(0);
+    node->flags().set_subgraph_flags(NodeFlags::SubgraphFlags::None);
     insert_attribute(AttributeID(node), true);
 
     if (_tree_root) {
@@ -709,11 +709,11 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
 
 // MARK: - Tree
 
-void Subgraph::begin_tree(AttributeID attribute, const swift::metadata *type, uint32_t flags) {
+void Subgraph::begin_tree(AttributeID value, const swift::metadata *type, uint32_t flags) {
 
     data::ptr<Graph::TreeElement> tree = (data::ptr<Graph::TreeElement>)alloc_bytes(sizeof(Graph::TreeElement), 7);
     tree->type = type;
-    tree->node = attribute;
+    tree->node = value;
     tree->flags = flags;
     tree->parent = _tree_root;
     tree->next_sibling = nullptr;
@@ -743,7 +743,7 @@ void Subgraph::set_tree_owner(AttributeID attribute) {
     _tree_root->node = attribute;
 }
 
-void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type, const char *key, uint32_t flags) {
+void Subgraph::add_tree_value(AttributeID value, const swift::metadata *type, const char *key, uint32_t flags) {
     if (!_tree_root) {
         return;
     }
@@ -752,7 +752,7 @@ void Subgraph::add_tree_value(AttributeID attribute, const swift::metadata *type
 
     data::ptr<Graph::TreeValue> tree_value = (data::ptr<Graph::TreeValue>)alloc_bytes(sizeof(Graph::TreeValue), 7);
     tree_value->type = type;
-    tree_value->value = attribute;
+    tree_value->value = value;
     tree_value->key_id = key_id;
     tree_value->flags = flags;
     tree_value->next = _tree_root->first_value;
@@ -950,7 +950,7 @@ void Subgraph::notify_observers() {
 #pragma mark - Cache
 
 data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata &metadata, void *body,
-                                      ClosureFunctionCI<unsigned long, AGUnownedGraphRef> closure) {
+                                      ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure) {
     if (_cache == nullptr) {
         _cache = (data::ptr<NodeCache>)alloc_bytes(sizeof(NodeCache), 7);
         new (&_cache) NodeCache();
@@ -968,7 +968,7 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
         type->equatable = equatable;
         type->last_item = nullptr;
         type->first_item = nullptr;
-        type->type_id = (uint32_t)closure(reinterpret_cast<AGUnownedGraphRef>(_graph));
+        type->type_id = closure(reinterpret_cast<AGUnownedGraphRef>(_graph));
         _cache->types().insert(&metadata, type);
     }
 

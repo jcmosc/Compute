@@ -163,7 +163,7 @@ class Subgraph : public data::zone {
 
     data::ptr<Graph::TreeElement> tree_root() { return _tree_root; };
 
-    void begin_tree(AttributeID attribute, const swift::metadata *_Nullable type,
+    void begin_tree(AttributeID value, const swift::metadata *_Nullable type,
                     uint32_t flags); // TODO: check can be null from Subgraph()
     void end_tree();
 
@@ -205,7 +205,7 @@ class Subgraph : public data::zone {
 
     // FIXME: not AGUnownedGraphContextRef
     data::ptr<Node> cache_fetch(uint64_t identifier, const swift::metadata &type, void *body,
-                                ClosureFunctionCI<unsigned long, AGUnownedGraphRef> closure);
+                                ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure);
     void cache_insert(data::ptr<Node> node);
     void cache_collect();
 

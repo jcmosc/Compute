@@ -11,7 +11,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-typedef uint32_t AGTreeElement;
+typedef uint32_t AGTreeElement AG_SWIFT_STRUCT AG_SWIFT_NAME(TreeElement);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -34,7 +34,7 @@ AGTreeElement AGTreeElementGetParent(AGTreeElement tree_element);
 typedef struct AGTreeElementValueIterator {
     AGTreeElement tree_element;
     AGTreeValue next_value;
-} AGTreeElementValueIterator;
+} AG_SWIFT_NAME(Values) AGTreeElementValueIterator;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -49,7 +49,7 @@ AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter);
 typedef struct AGTreeElementNodeIterator {
     AGTreeElement tree_element;
     uint32_t index;
-} AGTreeElementNodeIterator;
+} AG_SWIFT_NAME(Nodes) AGTreeElementNodeIterator;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -65,7 +65,7 @@ typedef struct AGTreeElementChildIterator {
     AGTreeElement tree_element;
     AGTreeElement next_child;
     bool iterated_subgraph;
-} AGTreeElementChildIterator;
+} AG_SWIFT_NAME(Children) AGTreeElementChildIterator;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

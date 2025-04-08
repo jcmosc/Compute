@@ -18,7 +18,9 @@ class Graph;
 
 class NodeFlags {
   public:
-    enum SubgraphFlags : uint8_t {};
+    enum SubgraphFlags : uint8_t {
+        None = 0
+    };
     enum Flags4 : uint8_t {
         HasIndirectSelf = 1 << 0,  // 0x01
         HasIndirectValue = 1 << 1, // 0x02
@@ -27,24 +29,24 @@ class NodeFlags {
         InputsUnsorted = 1 << 3,         // 0x08
         Cacheable = 1 << 4,              // 0x10
 
-        Unknown0x20 = 1 << 5, // 0x20 - initial  value
+        Unknown0x20 = 1 << 5,  // 0x20 - initial  value
         SelfModified = 1 << 6, // 0x40
     };
 
   private:
     uint16_t _relative_offset;
-    uint8_t _subgraph_flags;
+    SubgraphFlags _subgraph_flags;
     uint8_t _value4;
 
   public:
-    NodeFlags(uint8_t value4 = 0) : _value4(value4){};
+    NodeFlags(uint8_t value4 = 0) : _value4(value4) {};
 
     uint16_t relative_offset() const { return _relative_offset; };
     void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
 
     // Flags 3
-    uint8_t subgraph_flags() const { return _subgraph_flags; };
-    void set_subgraph_flags(uint8_t subgraph_flags) { _subgraph_flags = subgraph_flags; };
+    SubgraphFlags subgraph_flags() const { return _subgraph_flags; };
+    void set_subgraph_flags(SubgraphFlags subgraph_flags) { _subgraph_flags = subgraph_flags; };
 
     // Flags 4
     bool has_indirect_self() const { return _value4 & Flags4::HasIndirectSelf; }
@@ -97,7 +99,7 @@ class Node {
         uint8_t _data;
 
       public:
-        explicit constexpr State(uint8_t data = 0) : _data(data){};
+        explicit constexpr State(uint8_t data = 0) : _data(data) {};
         uint8_t data() { return _data; };
 
         bool is_dirty() { return _data & Dirty; }

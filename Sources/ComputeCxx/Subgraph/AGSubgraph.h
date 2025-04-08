@@ -27,17 +27,17 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphGetCurrent();
+AGSubgraphRef _Nullable AGSubgraphGetCurrent() CF_SWIFT_NAME(getter:AGSubgraphRef.current());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphSetCurrent(AGSubgraphRef _Nullable subgraph);
+void AGSubgraphSetCurrent(AGSubgraphRef _Nullable subgraph) CF_SWIFT_NAME(setter:AGSubgraphRef.current(_:));
 
 // MARK: Graph
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph);
+AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.graph(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -109,7 +109,7 @@ void AGSubgraphUpdate(AGSubgraphRef subgraph, uint8_t flags);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t flags,
+void AGSubgraphApply(AGSubgraphRef subgraph, AGAttributeFlags flags,
                      void (*function)(AGAttribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                      const void *function_context);
 
@@ -121,20 +121,19 @@ uint32_t AGSubgraphGetTreeRoot(AGSubgraphRef subgraph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphBeginTreeElement(AGSubgraphRef subgraph, AGAttribute owner, AGTypeID type, uint32_t flags);
-
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
-void AGSubgraphEndTreeElement(AGSubgraphRef subgraph);
-
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
 void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphAddTreeValue(AGSubgraphRef subgraph, AGAttribute attribute, AGTypeID type, const char *key,
-                            uint32_t flags);
+void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphEndTreeElement(AGAttribute value);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

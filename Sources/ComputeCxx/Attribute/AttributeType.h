@@ -36,7 +36,8 @@ class AttributeType {
         Unknown0x20 = 1 << 5,            // 0x20 // used in update_main_refs
     };
 
-    using UpdateFunction = void (*)(void *context, void *body);
+    // TODO: closure context here is first param, is this consistent???
+    using UpdateFunction = void (*)(const void *context, void *body, AttributeID attribute);
 
   private:
     swift::metadata *_self_metadata;
@@ -45,6 +46,8 @@ class AttributeType {
     void *_update_context;
     AttributeVTable *_vtable;
     Flags _flags;
+
+    // set after construction
     uint32_t _attribute_offset;
     ValueLayout _layout;
 
@@ -77,7 +80,9 @@ class AttributeType {
         }
     };
 
-    void perform_update(void *body) const { _update_function(_update_context, body); };
+    void perform_update(void *body, AttributeID attribute) const {
+        _update_function(_update_context, body, attribute);
+    };
 
     // V table methods
     void vt_destroy_self(void *body) {

@@ -181,7 +181,7 @@ void indirect_pointer_vector<T, size_type>::push_back(const value_type &value) {
             _data = value;
         } else {
             vector_type *vector = new vector_type();
-            vector->push_back(this->get_element());
+            vector->push_back(_data);
             vector->push_back(value);
             _data = vector | 1;
         }

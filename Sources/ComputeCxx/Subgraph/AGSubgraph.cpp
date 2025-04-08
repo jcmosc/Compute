@@ -252,14 +252,14 @@ void AGSubgraphUpdate(AGSubgraphRef subgraph, uint8_t flags) {
     subgraph->subgraph->update(flags);
 }
 
-void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t flags,
+void AGSubgraphApply(AGSubgraphRef subgraph, AGAttributeFlags flags,
                      void (*function)(AGAttribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                      const void *function_context) {
     if (subgraph->subgraph == nullptr) {
         return;
     }
 
-    subgraph->subgraph->apply(AG::Subgraph::Flags(flags),
+    subgraph->subgraph->apply(AG::Subgraph::Flags(flags), // TODO: consolidate AGAttributeFlags and AG::Subgraph::Flags
                               AG::ClosureFunctionAV<void, unsigned int>(function, function_context));
 }
 
@@ -273,25 +273,6 @@ uint32_t AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {
     return subgraph->subgraph->tree_root();
 }
 
-void AGSubgraphBeginTreeElement(AGSubgraphRef subgraph, AGAttribute owner, AGTypeID type, uint32_t flags) {
-    AG::Subgraph *current = AG::Subgraph::current_subgraph();
-    if (current == nullptr) {
-        return;
-    }
-
-    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    current->begin_tree(AG::AttributeID(owner), metadata, flags);
-}
-
-void AGSubgraphEndTreeElement(AGSubgraphRef subgraph) {
-    AG::Subgraph *current = AG::Subgraph::current_subgraph();
-    if (current == nullptr) {
-        return;
-    }
-
-    current->end_tree();
-}
-
 void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {
     if (subgraph->subgraph == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
@@ -299,15 +280,33 @@ void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {
     subgraph->subgraph->set_tree_owner(AG::AttributeID(owner));
 }
 
-void AGSubgraphAddTreeValue(AGSubgraphRef subgraph, AGAttribute attribute, AGTypeID type, const char *key,
-                            uint32_t flags) {
+void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags) {
     AG::Subgraph *current = AG::Subgraph::current_subgraph();
     if (current == nullptr) {
         return;
     }
 
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    current->add_tree_value(AG::AttributeID(attribute), metadata, key, flags);
+    current->add_tree_value(AG::AttributeID(value), metadata, key, flags);
+}
+
+void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags) {
+    AG::Subgraph *current = AG::Subgraph::current_subgraph();
+    if (current == nullptr) {
+        return;
+    }
+
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    current->begin_tree(AG::AttributeID(value), metadata, flags);
+}
+
+void AGSubgraphEndTreeElement(AGAttribute value) {
+    AG::Subgraph *current = AG::Subgraph::current_subgraph();
+    if (current == nullptr) {
+        return;
+    }
+
+    current->end_tree();
 }
 
 static dispatch_once_t should_record_tree_once = 0;

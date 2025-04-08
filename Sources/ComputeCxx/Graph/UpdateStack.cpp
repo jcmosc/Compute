@@ -264,7 +264,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             const AttributeType &type = _graph->attribute_type(node->type_id());
             void *self = node->get_self(type);
 
-            type.perform_update(self);
+            type.perform_update(self, frame.attribute);
 
             if (!node->state().is_value_initialized()) {
                 if (type.value_metadata().vw_size() > 0) {

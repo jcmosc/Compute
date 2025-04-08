@@ -175,8 +175,9 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
     }
 }
 
-void AGTypeApplyEnumData(AGTypeID typeID, void *value,
-                         void (*body)(uint32_t tag, AGTypeID field_type, void *field_value)) {
+bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
+                         void (*body)(const void *context, uint32_t tag, AGTypeID field_type, void *field_value),
+                         const void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
     auto value_witness = type->getValueWitnesses();
     if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
@@ -204,7 +205,7 @@ void AGTypeApplyEnumData(AGTypeID typeID, void *value,
                             size_t offset = (sizeof(::swift::HeapObject) + alignment_mask) & ~alignment_mask;
                             field_value = *(char **)value + offset;
                         }
-                        body(tag, AGTypeID(field_type), field_value);
+                        body(context, tag, AGTypeID(field_type), field_value);
 
                         enum_value_witness->destructiveInjectEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value),
                                                                      tag, type);
@@ -217,8 +218,9 @@ void AGTypeApplyEnumData(AGTypeID typeID, void *value,
     return false;
 }
 
-void AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
-                                void (*body)(uint32_t tag, AGTypeID field_type, void *field_value)) {
+bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
+                                void (*body)(const void *context, uint32_t tag, AGTypeID field_type, void *field_value),
+                                const void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
     auto value_witness = type->getValueWitnesses();
     if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
@@ -247,7 +249,7 @@ void AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
                             size_t offset = (sizeof(::swift::HeapObject) + alignment_mask) & ~alignment_mask;
                             field_value = *(char **)value + offset;
                         }
-                        body(tag, AGTypeID(field_type), field_value);
+                        body(context, tag, AGTypeID(field_type), field_value);
 
                         enum_value_witness->destructiveInjectEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value),
                                                                      tag, type);
@@ -288,7 +290,7 @@ void AGTypeInjectEnumTag(AGTypeID typeID, void *value, uint32_t tag) {
     if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {
         AG::precondition_failure("not an enum type: %s", type->name(false));
     }
-    
+
     auto enum_value_witness = value_witness->_asEVWT();
     enum_value_witness->destructiveInjectEnumTag(reinterpret_cast<AG::swift::opaque_value *>(value), tag, type);
 }

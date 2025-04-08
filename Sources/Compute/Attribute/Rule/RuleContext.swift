@@ -1,3 +1,7 @@
+struct RuleContextUpdateContext {
+    let body: () -> Void
+}
+
 public struct RuleContext<Value> {
 
     public var attribute: Attribute<Value>
@@ -7,44 +11,76 @@ public struct RuleContext<Value> {
     }
 
     public func update(body: () -> Void) {
-        fatalError("not implemented")
+        // TODO: use silgen?
+        withoutActuallyEscaping(body) { escapingBody in
+            withUnsafePointer(to: RuleContextUpdateContext(body: escapingBody)) { contextPointer in
+                __AGGraphWithUpdate(
+                    attribute.identifier,
+                    {
+                        $0.assumingMemoryBound(to: RuleContextUpdateContext.self).pointee.body()
+                    },
+                    contextPointer
+                )
+            }
+        }
     }
 
     public var value: Value {
         unsafeAddress {
-            fatalError("not implemented")
+            guard let result = __AGGraphGetOutputValue(Metadata(Value.self)) else {
+                preconditionFailure()
+            }
+            let pointer = result.assumingMemoryBound(to: Value.self)
+            return UnsafePointer(pointer)
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            withUnsafePointer(to: newValue) { newValuePointer in
+                __AGGraphSetOutputValue(newValuePointer, Metadata(Value.self))
+            }
         }
     }
 
     public var hasValue: Bool {
-        fatalError("not implemented")
+        let valuePointer = __AGGraphGetOutputValue(Metadata(Value.self))
+        return valuePointer != nil
     }
 
-    public func changedValue<T>(of attribute: Attribute<T>, options: ValueOptions) -> (value: Value, changed: Bool) {
-        fatalError("not implemented")
+    public func changedValue<T>(of input: Attribute<T>, options: AGValueOptions) -> (value: Value, changed: Bool) {
+        let result = __AGGraphGetInputValue(attribute.identifier, input.identifier, options, Metadata(Value.self))
+        return (
+            result.value.assumingMemoryBound(to: Value.self).pointee,
+            result.changed
+        )
     }
 
-    public func valueAndFlags<T>(of attribute: Attribute<T>, options: ValueOptions) -> (
-        value: Value, flags: ChangedValueFlags
+    public func valueAndFlags<T>(of input: Attribute<T>, options: AGValueOptions) -> (
+        value: Value, flags: AGChangedValueFlags
     ) {
-        fatalError("not implemented")
+        let result = __AGGraphGetInputValue(attribute.identifier, input.identifier, options, Metadata(Value.self))
+        return (
+            result.value.assumingMemoryBound(to: Value.self).pointee,
+            result.changed ? .changed : []
+        )
     }
 
-    public subscript<T>(_ attribute: Attribute<T>) -> T {
+    public subscript<InputValue>(_ input: Attribute<InputValue>) -> InputValue {
         unsafeAddress {
-            fatalError("not implemented")
+            return __AGGraphGetInputValue(attribute.identifier, input.identifier, [], Metadata(InputValue.self))
+                .value
+                .assumingMemoryBound(to: InputValue.self)
         }
     }
 
-    public subscript<T>(_ weakAttribute: WeakAttribute<T>) -> T? {
-        fatalError("not implemented")
+    public subscript<InputValue>(_ weakInput: WeakAttribute<InputValue>) -> InputValue? {
+        return weakInput.attribute.map { input in
+            return self[input]
+        }
     }
 
-    public subscript<T>(_ optionalAttribute: OptionalAttribute<T>) -> T? {
-        fatalError("not implemented")
+    public subscript<InputValue>(_ optionalInput: OptionalAttribute<InputValue>) -> InputValue? {
+        return optionalInput.attribute.map { input in
+            return self[input]
+        }
     }
 
 }

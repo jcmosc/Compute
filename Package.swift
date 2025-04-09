@@ -48,6 +48,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0")
     ],
     targets: [
+        .target(name: "Utilities"),
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],
@@ -62,7 +63,7 @@ let package = Package(
         ),
         .swiftRuntimeTarget(
             name: "ComputeCxx",
-            dependencies: ["EquatableSupport"],
+            dependencies: ["Utilities", "EquatableSupport"],
             cxxSettings: [.headerSearchPath("")]
         ),
         .target(name: "EquatableSupport"),

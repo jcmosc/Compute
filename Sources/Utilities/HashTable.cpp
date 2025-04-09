@@ -1,8 +1,8 @@
-#include "HashTable.h"
+#include "Utilities/HashTable.h"
 
 #include <memory>
 
-#include "Heap.h"
+#include "Utilities/Heap.h"
 
 namespace util {
 
@@ -74,7 +74,6 @@ UntypedTable::~UntypedTable() {
         free(_buckets);
     }
     if (_is_heap_owner && _heap) {
-        _heap->reset(nullptr, 0);
         delete _heap;
     }
 }
@@ -93,9 +92,9 @@ void UntypedTable::create_buckets() {
             _heap = new Heap(nullptr, 0, Heap::minimum_increment);
         }
 
-        size_t size = sizeof(Bucket *) * (1 << initial_bucket_mask_width);
-        _buckets = (Bucket *)_heap->alloc_(size);
-        std::memset(_buckets, 0, size);
+        size_t num_buckets = (1 << initial_bucket_mask_width);
+        _buckets = _heap->alloc<Bucket>(num_buckets);
+        std::memset(_buckets, 0, sizeof(Bucket) * num_buckets);
     }
 }
 
@@ -110,21 +109,21 @@ void UntypedTable::grow_buckets() {
     Bucket *old_buckets = _buckets;
     Bucket *new_buckets = nullptr;
 
-    uint64_t size = sizeof(Bucket *) * (1 << _bucket_mask_width);
+    size_t num_buckets = 1 << _bucket_mask_width;
     if (old_width >= initial_bucket_mask_width) {
-        new_buckets = new Bucket[1 << _bucket_mask_width];
+        new_buckets = new Bucket[num_buckets];
     } else {
         Heap *heap = _heap;
         if (heap == nullptr) {
             _heap = new Heap(nullptr, 0, Heap::minimum_increment);
         }
-        new_buckets = (Bucket *)_heap->alloc_(size);
+        new_buckets = _heap->alloc<Bucket>(num_buckets);
     }
-    std::memset(new_buckets, 0, size);
+    std::memset(new_buckets, 0, sizeof(Bucket) * num_buckets);
 
     // redistribute old buckets into new
     if (new_buckets) {
-        _bucket_mask = (1 << _bucket_mask_width) - 1;
+        _bucket_mask = num_buckets - 1;
         for (uint32_t i = 0; !(i >> old_width); i++) {
             for (UntypedTable::HashNode *node = old_buckets[i]; node != nullptr; node = node->next) {
                 uint64_t new_bucket = _bucket_mask & node->hash_value;
@@ -211,7 +210,7 @@ bool UntypedTable::insert(key_type key, value_type value) {
     if (inserted_node) {
         _spare_node = _spare_node->next;
     } else {
-        inserted_node = (HashNode *)_heap->alloc_(sizeof(HashNode));
+        inserted_node = _heap->alloc<HashNode>();
     }
 
     inserted_node->key = key;
@@ -282,7 +281,7 @@ bool UntypedTable::remove_ptr(key_type key) {
     return false;
 }
 
-void UntypedTable::for_each(entry_callback body, const void *context) const {
+void UntypedTable::for_each(entry_callback body, void *context) const {
     if (_count) {
         for (uint32_t i = 0; !(i >> _bucket_mask_width); i++) {
             for (UntypedTable::HashNode *node = _buckets[i]; node != nullptr; node = node->next) {

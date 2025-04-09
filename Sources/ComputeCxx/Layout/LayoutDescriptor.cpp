@@ -8,7 +8,7 @@
 #include "Controls.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
-#include "Util/HashTable.h"
+#include "Utilities/HashTable.h"
 
 namespace AG {
 

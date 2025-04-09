@@ -21,7 +21,7 @@ class UntypedTable {
     using key_equal = bool (*)(void const *, void const *);
     using key_callback = void (*)(const key_type);
     using value_callback = void (*)(const value_type);
-    using entry_callback = void (*)(const key_type, const value_type, const void *context);
+    using entry_callback = void (*)(const key_type, const value_type, void *context);
 
   private:
     struct HashNode {
@@ -51,15 +51,16 @@ class UntypedTable {
 
   public:
     UntypedTable();
-    UntypedTable(hasher custom_hasher, key_equal custom_compare, key_callback _Nullable did_remove_key,
-                 value_callback _Nullable did_remove_value, Heap *_Nullable heap);
+    UntypedTable(hasher _Nullable custom_hasher, key_equal _Nullable custom_compare,
+                 key_callback _Nullable did_remove_key, value_callback _Nullable did_remove_value,
+                 Heap *_Nullable heap);
     ~UntypedTable();
 
     // Lookup
     bool empty() const noexcept;
     size_type count() const noexcept { return _count; };
     value_type lookup(key_type key, nullable_key_type *_Nullable found_key) const noexcept;
-    void for_each(entry_callback body, const void *context) const;
+    void for_each(entry_callback body, void *context) const;
 
     // Modifiers
     bool insert(const key_type key, const value_type value);
@@ -67,8 +68,7 @@ class UntypedTable {
     bool remove_ptr(const key_type key);
 };
 
-template <typename Key, typename Value> class Table : UntypedTable {
-
+template <typename Key, typename Value> class Table : public UntypedTable {
   public:
     using key_type = Key;
     using value_type = Value;
@@ -76,7 +76,7 @@ template <typename Key, typename Value> class Table : UntypedTable {
     using key_equal = bool (*)(const key_type, const key_type);
     using key_callback = void (*)(const key_type);
     using value_callback = void (*)(const value_type);
-    using entry_callback = void (*)(const key_type, const value_type, const void *context);
+    using entry_callback = void (*)(const key_type, const value_type, void *context);
 
     Table() : UntypedTable(){};
     Table(hasher _Nullable custom_hasher, key_equal _Nullable custom_compare, key_callback _Nullable did_remove_key,
@@ -88,18 +88,22 @@ template <typename Key, typename Value> class Table : UntypedTable {
 
     // Lookup
 
-    value_type _Nullable lookup(const key_type key, key_type *_Nullable found_key) const noexcept {
-        auto result =
-            UntypedTable::lookup(key, reinterpret_cast<UntypedTable::nullable_key_type *_Nullable>(found_key));
-        return reinterpret_cast<value_type _Nullable>(result);
+    value_type lookup(const key_type key, key_type *_Nullable found_key) const noexcept {
+        auto result = UntypedTable::lookup(*(void **)&key,
+                                           reinterpret_cast<UntypedTable::nullable_key_type *_Nullable>(found_key));
+        return *(value_type *)&result;
     };
 
-    void for_each(entry_callback _Nonnull body, void const *context) const { UntypedTable::for_each(body, context); };
+    void for_each(entry_callback _Nonnull body, void *_Nullable context) const {
+        UntypedTable::for_each((UntypedTable::entry_callback)body, context);
+    };
 
     // Modifying entries
 
-    bool insert(const key_type key, const value_type value) { return UntypedTable::insert(key, value); };
-    bool remove(const key_type key) { return UntypedTable::remove(key); };
+    bool insert(const key_type key, const value_type value) {
+        return UntypedTable::insert(*(void **)&key, *(void **)&value);
+    };
+    bool remove(const key_type key) { return UntypedTable::remove(*(void **)&key); };
     bool remove_ptr(const key_type key) { return UntypedTable::remove_ptr(key); };
 };
 

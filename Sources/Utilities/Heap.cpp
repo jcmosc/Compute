@@ -1,4 +1,4 @@
-#include "Heap.h"
+#include "Utilities/Heap.h"
 
 #include <algorithm>
 
@@ -7,7 +7,7 @@ namespace util {
 constexpr uint64_t default_increment = 0x2000;
 
 Heap::Heap(char *start, uint64_t capacity, uint64_t increment) {
-    // enforece minimum but treat 0 as the default
+    // enforce minimum but treat 0 as the default
     uint64_t effective_increment = increment > 0 ? std::max(increment, minimum_increment) : default_increment;
 
     _increment = effective_increment;
@@ -17,7 +17,7 @@ Heap::Heap(char *start, uint64_t capacity, uint64_t increment) {
 
 util::Heap::~Heap() { reset(nullptr, 0); }
 
-char *util::Heap::alloc_(uint64_t size) {
+void *util::Heap::alloc_(uint64_t size) {
     if (_capacity >= size) {
         char *result = _free_start;
         _free_start += size;
@@ -32,7 +32,7 @@ char *util::Heap::alloc_(uint64_t size) {
         _free_start = buffer;
         _capacity = increment;
 
-        Node *node = reinterpret_cast<Node *>(alloc_(sizeof(Node)));
+        Node *node = alloc<Node>();
         node->next = _node;
         node->buffer = buffer;
         _node = node;
@@ -43,7 +43,7 @@ char *util::Heap::alloc_(uint64_t size) {
         return result;
     }
 
-    Node *node = (Node *)alloc_(sizeof(Node));
+    Node *node = alloc<Node>();
     char *result = (char *)malloc(size);
     if (result) {
         node->next = _node;

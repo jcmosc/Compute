@@ -17,7 +17,7 @@ void *Node::get_self(const AttributeType &type) const {
 }
 
 void Node::update_self(const Graph &graph, void *new_self) {
-    auto type = graph.attribute_type(_info.type_id);
+    auto type = graph.attribute_type(_type_id);
     void *self = get_self(type);
 
     if (!state().is_self_initialized()) {
@@ -36,7 +36,7 @@ void Node::destroy_self(const Graph &graph) {
     }
     set_state(state().with_self_initialized(false));
 
-    auto type = graph.attribute_type(_info.type_id);
+    auto type = graph.attribute_type(_type_id);
     void *self = get_self(type);
 
     type.vt_destroy_self(self);
@@ -56,7 +56,7 @@ void Node::allocate_value(Graph &graph, data::zone &zone) {
         return;
     }
 
-    auto type = graph.attribute_type(_info.type_id);
+    auto type = graph.attribute_type(_type_id);
     size_t size = type.value_metadata().vw_size();
     size_t alignment = type.value_metadata().getValueWitnesses()->getAlignmentMask();
 
@@ -81,14 +81,14 @@ void Node::destroy_value(Graph &graph) {
     }
     set_state(state().with_value_initialized(false));
 
-    auto type = graph.attribute_type(_info.type_id);
+    auto type = graph.attribute_type(_type_id);
     void *value = get_value();
 
     type.value_metadata().vw_destroy(static_cast<swift::opaque_value *>(value));
 }
 
 void Node::destroy(Graph &graph) {
-    auto type = graph.attribute_type(_info.type_id);
+    auto type = graph.attribute_type(_type_id);
 
     if (state().is_value_initialized()) {
         void *value = get_value();

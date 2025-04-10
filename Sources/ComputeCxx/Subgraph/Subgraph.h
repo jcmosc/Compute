@@ -179,10 +179,10 @@ class Subgraph : public data::zone {
     // flags 1 and 3 are the values themselvs
     // flags 3 and 4 are the dirty subset of 1 and 2
 
-    void set_flags(data::ptr<Node> node, NodeFlags::SubgraphFlags flags3);
+    void set_flags(data::ptr<Node> node, AttributeFlags flags);
 
-    void add_flags(uint8_t flags);
-    void add_dirty_flags(uint8_t dirty_flags);
+    void add_flags(AttributeFlags flags);
+    void add_dirty_flags(AttributeFlags dirty_flags);
 
     void propagate_flags();
     void propagate_dirty_flags();

@@ -487,7 +487,8 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
         node = (data::ptr<Node>)subgraph.alloc_bytes(uint32_t(total_size), uint32_t(alignment_mask | 3));
     }
     bool main_thread = type.main_thread();
-    *node = Node(Node::State().with_main_thread(main_thread).with_main_thread_only(main_thread), type_id, 0x20);
+    *node = Node(Node::State().with_main_thread(main_thread).with_main_thread_only(main_thread), type_id,
+                 Node::Flags(0x20));
 
     if (type_id >= 0x100000) {
         precondition_failure("too many node types allocated");
@@ -497,9 +498,9 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
 
     node->set_state(node->state().with_self_initialized(true));
     if (node->state().is_main_thread_only() && !type.value_metadata().getValueWitnesses()->isPOD()) {
-        node->flags().set_value4_unknown0x20(!type.unknown_0x20()); // toggle
+        node->flags().set_unknown0x20(!type.unknown_0x20()); // toggle
     } else {
-        node->flags().set_value4_unknown0x20(false);
+        node->flags().set_unknown0x20(false);
     }
     if (buffer != nullptr) {
         node->flags().set_has_indirect_self(true);
@@ -525,7 +526,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
         value_set_internal(node, *node.get(), value_source, type.value_metadata());
     } else {
         node->set_state(node->state().with_dirty(true).with_pending(true));
-        subgraph.add_dirty_flags(node->flags().subgraph_flags());
+        subgraph.add_dirty_flags(node->subgraph_flags());
     }
 
     subgraph.add_node(node);
@@ -606,14 +607,14 @@ void Graph::update_main_refs(AttributeID attribute) {
                         std::any_of(node.inputs().begin(), node.inputs().end(), [](auto input_edge) -> bool {
                             auto resolved = input_edge.value.resolve(TraversalOptions::EvaluateWeakReferences);
                             if (resolved.attribute().is_direct() &&
-                                resolved.attribute().to_node().flags().value4_unknown0x20()) {
+                                resolved.attribute().to_node().flags().unknown0x20()) {
                                 return true;
                             }
                         });
                 }
             }
-            if (node.flags().value4_unknown0x20() != new_unknown0x20) {
-                node.flags().set_value4_unknown0x20(new_unknown0x20);
+            if (node.flags().unknown0x20() != new_unknown0x20) {
+                node.flags().set_unknown0x20(new_unknown0x20);
                 output_edge_arrays.push_back({
                     &node.outputs().front(),
                     node.outputs().size(),
@@ -1133,9 +1134,9 @@ void Graph::value_mark(data::ptr<Node> node) {
             foreach_trace([&node](Trace &trace) { trace.set_pending(node, true); });
             node->set_state(node->state().with_pending(true));
         }
-        if (node->flags().subgraph_flags()) {
+        if (node->subgraph_flags()) {
             Subgraph *subgraph = AttributeID(node).subgraph();
-            subgraph->add_dirty_flags(node->flags().subgraph_flags());
+            subgraph->add_dirty_flags(node->subgraph_flags());
         }
     }
 
@@ -1159,7 +1160,7 @@ void Graph::value_mark_all() {
                     AttributeType &type = *_types[node.type_id()];
                     if (!type.use_graph_as_initial_value()) {
                         node.set_state(node.state().with_dirty(true).with_pending(true));
-                        subgraph->add_dirty_flags(node.flags().subgraph_flags());
+                        subgraph->add_dirty_flags(node.subgraph_flags());
                     }
                     for (auto input_edge : node.inputs()) {
                         input_edge.set_changed(true);
@@ -1226,7 +1227,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
                     output_node.set_state(output_node.state().with_dirty(true));
                     if (auto subgraph = output.subgraph()) {
-                        subgraph->add_dirty_flags(output_node.flags().subgraph_flags());
+                        subgraph->add_dirty_flags(output_node.subgraph_flags());
                     }
 
                     dirty_outputs = output_node.outputs();
@@ -1882,7 +1883,7 @@ void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
         foreach_trace([&node_ptr](Trace &trace) { trace.set_dirty(node_ptr, true); });
         node->set_state(node->state().with_dirty(true));
 
-        uint8_t subgraph_flags = node->flags().subgraph_flags();
+        AttributeFlags subgraph_flags = node->subgraph_flags();
         Subgraph *subgraph = AttributeID(node_ptr).subgraph();
         if (subgraph_flags && subgraph != nullptr) {
             subgraph->add_dirty_flags(subgraph_flags);
@@ -2027,9 +2028,9 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
         encoder.encode_varint(0x38);
         encoder.encode_varint(true);
     }
-    if (node.flags().subgraph_flags()) {
+    if (node.subgraph_flags()) {
         encoder.encode_varint(0x40);
-        encoder.encode_varint(node.flags().subgraph_flags());
+        encoder.encode_varint(node.subgraph_flags());
     }
     if (node.state().is_main_thread()) {
         encoder.encode_varint(0x48);
@@ -2039,9 +2040,9 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool flag) {
         encoder.encode_varint(0x50);
         encoder.encode_varint(true);
     }
-    if (node.flags().value4_unknown0x20()) {
+    if (node.flags().unknown0x20()) {
         encoder.encode_varint(0x58);
-        encoder.encode_varint(node.flags().value4_unknown0x20());
+        encoder.encode_varint(node.flags().unknown0x20());
     }
     if (node.state().is_value_initialized()) {
         encoder.encode_varint(0x60);

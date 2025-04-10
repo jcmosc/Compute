@@ -353,7 +353,7 @@ void Subgraph::foreach_ancestor(Callable body) {
 #pragma mark - Attributes
 
 void Subgraph::add_node(data::ptr<Node> node) {
-    node->flags().set_subgraph_flags(NodeFlags::SubgraphFlags::None);
+    node->set_subgraph_flags(0); // TODO: check value
     insert_attribute(AttributeID(node), true);
 
     if (_tree_root) {
@@ -377,9 +377,9 @@ void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes)
     AttributeID before_attribute = AttributeID::make_nil();
 
     if (after_flagged_nodes) {
-        if (!attribute.is_direct() || attribute.to_node().flags().subgraph_flags() == 0) {
+        if (!attribute.is_direct() || attribute.to_node().subgraph_flags() == 0) {
             for (auto candidate_attribute : AttributeIDList1(attribute.page_ptr())) {
-                if (!candidate_attribute.is_direct() || candidate_attribute.to_node().flags().subgraph_flags() == 0) {
+                if (!candidate_attribute.is_direct() || candidate_attribute.to_node().subgraph_flags() == 0) {
                     break;
                 }
                 before_attribute = candidate_attribute;
@@ -503,10 +503,10 @@ void Subgraph::update(uint8_t flags) {
                                     if (attribute.is_direct()) {
                                         auto node = attribute.to_node();
                                         if (flags) {
-                                            if (node.flags().subgraph_flags() == 0) {
+                                            if (node.subgraph_flags() == 0) {
                                                 break;
                                             }
-                                            if ((node.flags().subgraph_flags() & flags) == 0) {
+                                            if ((node.subgraph_flags() & flags) == 0) {
                                                 continue;
                                             }
                                         }
@@ -596,10 +596,10 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
                         }
                         if (attribute.is_direct()) {
                             if (!flags.is_null()) {
-                                if (attribute.to_node().flags().subgraph_flags() == 0) {
+                                if (attribute.to_node().subgraph_flags() == 0) {
                                     break;
                                 }
-                                if (flags.value3 & (attribute.to_node().flags().subgraph_flags() == 0)) {
+                                if (flags.value3 & (attribute.to_node().subgraph_flags() == 0)) {
                                     continue;
                                 }
                             }
@@ -766,16 +766,17 @@ data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::Tre
 
 // MARK: - Flags
 
-void Subgraph::set_flags(data::ptr<Node> node, NodeFlags::SubgraphFlags flags) {
-    if (node->flags().subgraph_flags() == flags) {
+void Subgraph::set_flags(data::ptr<Node> node, AttributeFlags flags) {
+    if (node->subgraph_flags() == flags) {
         return;
     }
-    if (node->flags().subgraph_flags() == 0 || flags == 0) {
+    if (node->subgraph_flags() == 0 || flags == 0) {
+        // potentially reorder
         unlink_attribute(node);
-        node->flags().set_subgraph_flags(flags);
+        node->set_subgraph_flags(flags);
         insert_attribute(node, true);
     } else {
-        node->flags().set_subgraph_flags(flags);
+        node->set_subgraph_flags(flags);
     }
 
     add_flags(flags);
@@ -784,7 +785,7 @@ void Subgraph::set_flags(data::ptr<Node> node, NodeFlags::SubgraphFlags flags) {
     }
 }
 
-void Subgraph::add_flags(uint8_t flags) {
+void Subgraph::add_flags(AttributeFlags flags) {
     // Status: doesn't exist in decompile
     if (flags & ~_flags.value1) {
         _flags.value1 |= flags;
@@ -792,7 +793,7 @@ void Subgraph::add_flags(uint8_t flags) {
     }
 }
 
-void Subgraph::add_dirty_flags(uint8_t dirty_flags) {
+void Subgraph::add_dirty_flags(AttributeFlags dirty_flags) {
     // Status: Verified
     if (dirty_flags & ~_flags.value3) {
         _flags.value3 |= dirty_flags;
@@ -1114,8 +1115,8 @@ void Subgraph::print(uint32_t indent_level) {
                 continue;
             }
             fprintf(stdout, "%s%u", first ? "" : " ", attribute.value());
-            if (attribute.to_node().flags().subgraph_flags()) {
-                fprintf(stdout, "(%u)", attribute.to_node().flags().subgraph_flags());
+            if (attribute.to_node().subgraph_flags()) {
+                fprintf(stdout, "(%u)", attribute.to_node().subgraph_flags().data());
             }
             first = false;
         }

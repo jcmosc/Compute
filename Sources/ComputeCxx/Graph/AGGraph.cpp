@@ -224,7 +224,8 @@ AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) {
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
-    return attribute_id.to_node().flags().subgraph_flags();
+    auto flags = attribute_id.to_node().subgraph_flags();
+    return AGAttributeFlags(flags.data());
 }
 
 void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
@@ -232,7 +233,7 @@ void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
-    attribute_id.subgraph()->set_flags(attribute_id.to_node_ptr(), AG::NodeFlags::SubgraphFlags(flags));
+    attribute_id.subgraph()->set_flags(attribute_id.to_node_ptr(), flags);
 }
 
 void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,

@@ -191,7 +191,7 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
     // ptr offsets are "one"-based, so that we can treat 0 as null.
     ptr<page> new_page = ptr<page>((new_page_index + 1) * page_size);
     new_page->zone = zone;
-    new_page->previous = nullptr;
+    new_page->next = nullptr;
     new_page->total = (needed_size + page_alignment_mask) & ~page_alignment_mask;
     new_page->in_use = sizeof(page);
 

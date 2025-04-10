@@ -203,7 +203,7 @@ void Subgraph::invalidate_now(Graph &graph) {
     }
 
     for (auto removed_subgraph : removed_subgraphs) {
-        for (data::ptr<data::page> page = removed_subgraph->last_page(); page != nullptr; page = page->previous) {
+        for (data::ptr<data::page> page = removed_subgraph->first_page(); page != nullptr; page = page->next) {
             bool found_nil_attribute = false;
 
             uint16_t relative_offset = page->relative_offset_1;
@@ -229,7 +229,7 @@ void Subgraph::invalidate_now(Graph &graph) {
     }
 
     for (auto removed_subgraph : removed_subgraphs) {
-        for (data::ptr<data::page> page = removed_subgraph->last_page(); page != nullptr; page = page->previous) {
+        for (data::ptr<data::page> page = removed_subgraph->first_page(); page != nullptr; page = page->next) {
             bool found_nil_attribute = false;
 
             uint16_t relative_offset = page->relative_offset_1;
@@ -277,7 +277,7 @@ void Subgraph::graph_destroyed() {
     }
     notify_observers();
 
-    for (data::ptr<data::page> page = last_page(); page != nullptr; page = page->previous) {
+    for (data::ptr<data::page> page = first_page(); page != nullptr; page = page->next) {
         uint16_t relative_offset = page->relative_offset_1;
         while (relative_offset) {
             AttributeID attribute = AttributeID(page + relative_offset);
@@ -558,8 +558,8 @@ void Subgraph::update(uint8_t flags) {
                         uint8_t old_flags_1 = subgraph->_flags.value1;
                         subgraph->_flags.value3 &= ~flags;
                         if (flags == 0 || (old_flags_1 & flags)) {
-                            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr;
-                                 page = page->previous) {
+                            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr;
+                                 page = page->next) {
                                 uint16_t relative_offset = page->relative_offset_1;
                                 while (relative_offset) {
                                     AttributeID attribute = AttributeID(page + relative_offset);
@@ -660,7 +660,7 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
 
         if (flags.value4 & 1 || subgraph->context_id() == _context_id) {
             if (flags.is_null() || (flags.value1 & subgraph->_flags.value1)) {
-                for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+                for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                     uint16_t relative_offset = page->relative_offset_1;
                     while (relative_offset) {
                         AttributeID attribute = AttributeID(page + relative_offset);
@@ -1133,7 +1133,7 @@ void Subgraph::encode(Encoder &encoder) const {
         encoder.encode_varint(1);
     }
 
-    for (data::ptr<data::page> page = last_page(); page != nullptr; page = page->previous) {
+    for (data::ptr<data::page> page = first_page(); page != nullptr; page = page->next) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
             uint16_t relative_offset = iteration == 0 ? page->relative_offset_1 : page->relative_offset_2;
             while (relative_offset) {
@@ -1199,7 +1199,7 @@ void Subgraph::print(uint32_t indent_level) {
     fprintf(stdout, "%s+ %p: %u in %lu [", indent_string, this, info().zone_id(), (unsigned long)_context_id);
 
     bool first = true;
-    for (data::ptr<data::page> page = last_page(); page != nullptr; page = page->previous) {
+    for (data::ptr<data::page> page = first_page(); page != nullptr; page = page->next) {
         uint16_t relative_offset = page->relative_offset_1;
         while (relative_offset) {
             AttributeID attribute = AttributeID(page + relative_offset);

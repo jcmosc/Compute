@@ -40,7 +40,7 @@ class zone {
     } bytes_info;
 
     vector<std::unique_ptr<void, table::malloc_zone_deleter>, 0, uint32_t> _malloc_buffers;
-    ptr<page> _last_page;
+    ptr<page> _first_page;
     ptr<bytes_info> _free_bytes;
     info _info;
 
@@ -51,7 +51,7 @@ class zone {
     info info() const { return _info; };
     void mark_deleted() { _info = _info.with_deleted(); };
 
-    ptr<page> last_page() const { return _last_page; };
+    ptr<page> first_page() const { return _first_page; };
 
     void clear();
     void realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask);

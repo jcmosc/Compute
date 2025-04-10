@@ -1148,7 +1148,7 @@ void Graph::value_mark_all() {
     }
 
     for (auto subgraph : _subgraphs) {
-        for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+        for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
             uint16_t relative_offset = page->relative_offset_1;
             while (relative_offset) {
                 AttributeID attribute = AttributeID(page + relative_offset);
@@ -2180,7 +2180,7 @@ void Graph::prepare_trace(Trace &trace) {
     }
     for (auto subgraph : _subgraphs) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
-            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                 bool should_break = false;
                 uint16_t relative_offset = iteration == 0 ? page->relative_offset_2 : page->relative_offset_1;
                 while (relative_offset) {
@@ -2224,7 +2224,7 @@ void Graph::prepare_trace(Trace &trace) {
     }
     for (auto subgraph : _subgraphs) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
-            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                 bool should_break = false;
                 uint16_t relative_offset = iteration == 0 ? page->relative_offset_2 : page->relative_offset_1;
                 while (relative_offset) {

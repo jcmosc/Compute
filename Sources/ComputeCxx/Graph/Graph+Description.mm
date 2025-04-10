@@ -251,7 +251,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
         auto node_indices_by_id = std::unordered_map<data::ptr<Node>, uint64_t>();
 
         for (auto subgraph : graph->subgraphs()) {
-            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                 uint16_t relative_offset = page->relative_offset_1;
                 while (relative_offset) {
                     AttributeID attribute = AttributeID(page + relative_offset);
@@ -343,7 +343,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
         }
 
         for (auto subgraph : graph->subgraphs()) {
-            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                 uint16_t relative_offset = page->relative_offset_1;
                 while (relative_offset) {
                     AttributeID attribute = AttributeID(page + relative_offset);
@@ -536,7 +536,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
             // Nodes
             NSMutableArray *nodes = [NSMutableArray array];
-            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                 uint16_t relative_offset = page->relative_offset_1;
                 while (relative_offset) {
                     AttributeID attribute = AttributeID(page + relative_offset);
@@ -776,7 +776,7 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
     if (!subgraphs().empty()) {
         for (auto subgraph : subgraphs()) {
-            for (data::ptr<data::page> page = subgraph->last_page(); page != nullptr; page = page->previous) {
+            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
                 uint16_t relative_offset = page->relative_offset_1;
                 while (relative_offset) {
                     AttributeID attribute = AttributeID(page + relative_offset);

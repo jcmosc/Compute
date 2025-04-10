@@ -18,9 +18,7 @@ class Graph;
 
 class NodeFlags {
   public:
-    enum SubgraphFlags : uint8_t {
-        None = 0
-    };
+    enum SubgraphFlags : uint8_t { None = 0 };
     enum Flags4 : uint8_t {
         HasIndirectSelf = 1 << 0,  // 0x01
         HasIndirectValue = 1 << 1, // 0x02
@@ -34,15 +32,11 @@ class NodeFlags {
     };
 
   private:
-    uint16_t _relative_offset;
     SubgraphFlags _subgraph_flags;
     uint8_t _value4;
 
   public:
     NodeFlags(uint8_t value4 = 0) : _value4(value4) {};
-
-    uint16_t relative_offset() const { return _relative_offset; };
-    void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
 
     // Flags 3
     SubgraphFlags subgraph_flags() const { return _subgraph_flags; };
@@ -141,6 +135,7 @@ class Node {
     static_assert(sizeof(Info) == 4);
 
     Info _info;
+    uint16_t _relative_offset;
     NodeFlags _flags;
     data::ptr<void> _value;
 
@@ -164,6 +159,9 @@ class Node {
                (state().is_main_thread() ? 1 : 0) << 4 | (flags().value4_unknown0x20() ? 1 : 0) << 5 |
                (state().is_main_thread_only() ? 1 : 0) << 6 | (flags().self_modified() ? 1 : 0) << 7;
     };
+    
+    uint16_t relative_offset() const { return _relative_offset; };
+    void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
 
     NodeFlags &flags() { return _flags; };
     const NodeFlags &flags() const { return _flags; };

@@ -390,8 +390,8 @@ void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes)
     uint16_t inserted_offset = (attribute.without_kind() - attribute.page_ptr()) | attribute.kind();
     uint16_t next_offset;
     if (before_attribute.is_direct()) {
-        next_offset = before_attribute.to_node().flags().relative_offset();
-        before_attribute.to_node().flags().set_relative_offset(inserted_offset);
+        next_offset = before_attribute.to_node().relative_offset();
+        before_attribute.to_node().set_relative_offset(inserted_offset);
     } else if (before_attribute.is_indirect()) {
         next_offset = before_attribute.to_indirect_node().relative_offset();
         before_attribute.to_indirect_node().set_relative_offset(inserted_offset);
@@ -406,7 +406,7 @@ void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes)
     }
 
     if (attribute.is_direct()) {
-        attribute.to_node().flags().set_relative_offset(next_offset);
+        attribute.to_node().set_relative_offset(next_offset);
     } else if (attribute.is_indirect()) {
         attribute.to_indirect_node().set_relative_offset(next_offset);
     }
@@ -428,15 +428,15 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
 
     uint16_t old_value = 0;
     if (attribute.is_direct()) {
-        old_value = attribute.to_node().flags().relative_offset();
-        attribute.to_node().flags().set_relative_offset(0);
+        old_value = attribute.to_node().relative_offset();
+        attribute.to_node().set_relative_offset(0);
     } else {
         old_value = attribute.to_indirect_node().relative_offset();
         attribute.to_indirect_node().set_relative_offset(0);
     }
 
     if (previous_attribute.is_direct()) {
-        previous_attribute.to_node().flags().set_relative_offset(old_value);
+        previous_attribute.to_node().set_relative_offset(old_value);
     } else if (previous_attribute.is_indirect()) {
         previous_attribute.to_indirect_node().set_relative_offset(old_value);
     } else {

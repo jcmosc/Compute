@@ -27,7 +27,7 @@ class AttributeIDIterator {
 
         AttributeID attribute_id = AttributeID(_page + _offset);
         if (attribute_id.is_direct()) {
-            _offset = attribute_id.to_node().flags().relative_offset();
+            _offset = attribute_id.to_node().relative_offset();
         } else if (attribute_id.is_indirect()) {
             _offset = attribute_id.to_indirect_node().relative_offset();
         } else {

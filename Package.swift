@@ -49,6 +49,12 @@ let package = Package(
     ],
     targets: [
         .target(name: "Utilities"),
+        .testTarget(
+            name: "UtilitiesTests",
+            dependencies: ["Utilities"],
+            cxxSettings: [.define("SWIFT_TESTING")],
+            swiftSettings: [.interoperabilityMode(.Cxx)]
+        ),
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],

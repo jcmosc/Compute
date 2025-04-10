@@ -4,11 +4,15 @@
 
 namespace util {
 
-constexpr uint64_t default_increment = 0x2000;
+constexpr size_t default_increment = 0x2000;
 
-Heap::Heap(char *start, uint64_t capacity, uint64_t increment) {
+std::shared_ptr<Heap> Heap::make_shared(char *_Nullable start, size_t capacity, size_t increment) {
+    return std::make_shared<Heap>(start, capacity, increment);
+}
+
+Heap::Heap(char *start, size_t capacity, size_t increment) {
     // enforce minimum but treat 0 as the default
-    uint64_t effective_increment = increment > 0 ? std::max(increment, minimum_increment) : default_increment;
+    size_t effective_increment = increment > 0 ? std::max(increment, minimum_increment) : default_increment;
 
     _increment = effective_increment;
     _node = nullptr;
@@ -17,7 +21,7 @@ Heap::Heap(char *start, uint64_t capacity, uint64_t increment) {
 
 util::Heap::~Heap() { reset(nullptr, 0); }
 
-void *util::Heap::alloc_(uint64_t size) {
+void *util::Heap::alloc_(size_t size) {
     if (_capacity >= size) {
         char *result = _free_start;
         _free_start += size;
@@ -33,6 +37,7 @@ void *util::Heap::alloc_(uint64_t size) {
         _capacity = increment;
 
         Node *node = alloc<Node>();
+
         node->next = _node;
         node->buffer = buffer;
         _node = node;
@@ -44,7 +49,7 @@ void *util::Heap::alloc_(uint64_t size) {
     }
 
     Node *node = alloc<Node>();
-    char *result = (char *)malloc(size);
+    void *result = malloc(size);
     if (result) {
         node->next = _node;
         node->buffer = result;
@@ -53,7 +58,7 @@ void *util::Heap::alloc_(uint64_t size) {
     return result;
 }
 
-void util::Heap::reset(char *_Nullable start, uint64_t capacity) {
+void util::Heap::reset(char *_Nullable start, size_t capacity) {
     while (_node) {
         void *buffer = _node->buffer;
         _node = _node->next;
@@ -66,6 +71,21 @@ void util::Heap::reset(char *_Nullable start, uint64_t capacity) {
     bool prealigned = ((uintptr_t)start & alignment_mask) == 0;
     _free_start = prealigned ? start : aligned_start;
     _capacity = capacity + (start - aligned_start);
+}
+
+size_t util::Heap::num_nodes() const {
+    size_t count = 0;
+    for (Node *node = _node; node != nullptr; node = node->next) {
+        count += 1;
+    }
+    return count;
+}
+
+void util::Heap::print() const {
+    fprintf(stdout, "Nodes\n");
+    for (Node *node = _node; node != nullptr; node = node->next) {
+        fprintf(stdout, "address=%-16p; buffer=%-16p; next=%-16p\n", node, node->buffer, node->next);
+    }
 }
 
 }; // namespace util

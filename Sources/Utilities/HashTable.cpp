@@ -26,6 +26,10 @@ uint64_t string_hash(char const *str) {
     return result;
 }
 
+constexpr uint32_t initial_bucket_mask_width = 4;
+
+std::shared_ptr<UntypedTable> UntypedTable::make_shared() { return std::make_shared<UntypedTable>(); }
+
 UntypedTable::UntypedTable() {
     _hash = pointer_hash;
     _compare = pointer_compare;
@@ -70,7 +74,7 @@ UntypedTable::~UntypedTable() {
             }
         }
     }
-    if (_bucket_mask > 4) {
+    if (_bucket_mask_width > initial_bucket_mask_width) {
         free(_buckets);
     }
     if (_is_heap_owner && _heap) {
@@ -80,26 +84,28 @@ UntypedTable::~UntypedTable() {
 
 #pragma mark - Managing buckets
 
-constexpr uint32_t initial_bucket_mask_width = 4;
+// Buckets are initially allocated by the util::Heap instance,
+// until they grow past initial_bucket_mask_width where they are allocated using new.ˆ
 
 void UntypedTable::create_buckets() {
-
-    if (_buckets == nullptr) {
-        _bucket_mask_width = initial_bucket_mask_width;
-        _bucket_mask = (1 << initial_bucket_mask_width) - 1;
-
-        if (_heap == nullptr) {
-            _heap = new Heap(nullptr, 0, Heap::minimum_increment);
-        }
-
-        size_t num_buckets = (1 << initial_bucket_mask_width);
-        _buckets = _heap->alloc<Bucket>(num_buckets);
-        std::memset(_buckets, 0, sizeof(Bucket) * num_buckets);
+    if (_buckets != nullptr) {
+        return;
     }
+
+    _bucket_mask_width = initial_bucket_mask_width;
+    _bucket_mask = (1 << initial_bucket_mask_width) - 1;
+
+    if (_heap == nullptr) {
+        _heap = new Heap(nullptr, 0, Heap::minimum_increment);
+    }
+
+    size_t num_buckets = (1 << initial_bucket_mask_width);
+    _buckets = _heap->alloc<Bucket>(num_buckets);
+    std::memset(_buckets, 0, sizeof(Bucket) * num_buckets);
 }
 
 void UntypedTable::grow_buckets() {
-    if (_bucket_mask_width > 0x1E) {
+    if (_bucket_mask_width > 30) {
         return;
     }
 
@@ -110,11 +116,10 @@ void UntypedTable::grow_buckets() {
     Bucket *new_buckets = nullptr;
 
     size_t num_buckets = 1 << _bucket_mask_width;
-    if (old_width >= initial_bucket_mask_width) {
+    if (_bucket_mask_width > initial_bucket_mask_width) {
         new_buckets = new Bucket[num_buckets];
     } else {
-        Heap *heap = _heap;
-        if (heap == nullptr) {
+        if (_heap == nullptr) {
             _heap = new Heap(nullptr, 0, Heap::minimum_increment);
         }
         new_buckets = _heap->alloc<Bucket>(num_buckets);

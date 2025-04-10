@@ -1,35 +1,61 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <stdint.h>
+#include <memory>
+#include <swift/bridging>
 
 CF_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
 class Heap {
-  private:
+  protected:
     typedef struct Node {
         struct Node *next;
         void *buffer;
     } Node;
 
-    uint64_t _increment;
+    size_t _increment;
     Node *_node;
     char *_free_start;
-    uint64_t _capacity;
+    size_t _capacity;
 
-    void *alloc_(uint64_t arg1);
+    void *alloc_(size_t arg1);
 
   public:
-    static constexpr uint64_t minimum_increment = 0x400;
+    static constexpr size_t minimum_increment = 0x400;
 
-    Heap(char *_Nullable start, uint64_t capacity, uint64_t increment);
+    static std::shared_ptr<Heap> make_shared(char *_Nullable start, size_t capacity, size_t increment);
+
+    Heap(char *_Nullable start, size_t capacity, size_t increment);
     ~Heap();
 
-    template <typename T> T *_Nonnull alloc(size_t count = 1) { return static_cast<T *>(alloc_(sizeof(T) * count)); };
-    void reset(char *_Nullable start, uint64_t capacity);
-};
+    // non-copyable
+    Heap(const Heap &) = delete;
+    Heap &operator=(const Heap &) = delete;
+
+    // non-movable
+    Heap(Heap &&) = delete;
+    Heap &operator=(Heap &&) = delete;
+
+    template <typename T> inline T *_Nonnull alloc(size_t count = 1) {
+        return static_cast<T *>(alloc_(sizeof(T) * count));
+    };
+    void reset(char *_Nullable start, size_t capacity);
+
+    // Debugging
+
+    size_t num_nodes() const;
+    size_t increment() const { return _increment; }
+    size_t capacity() const { return _capacity; }
+
+    void print() const;
+
+#ifdef SWIFT_TESTING
+    uint64_t *alloc_uint64_t(size_t count = 1) { return alloc<uint64_t>(count); }
+#endif
+
+} SWIFT_UNSAFE_REFERENCE;
 
 template <unsigned int _inline_size> class InlineHeap : public Heap {
   private:

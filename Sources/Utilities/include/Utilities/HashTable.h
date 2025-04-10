@@ -1,7 +1,8 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <stdint.h>
+#include <memory>
+#include <swift/bridging>
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -50,14 +51,24 @@ class UntypedTable {
     void grow_buckets();
 
   public:
+    static std::shared_ptr<UntypedTable> make_shared();
+
     UntypedTable();
     UntypedTable(hasher _Nullable custom_hasher, key_equal _Nullable custom_compare,
                  key_callback _Nullable did_remove_key, value_callback _Nullable did_remove_value,
                  Heap *_Nullable heap);
     ~UntypedTable();
 
+    // non-copyable
+    UntypedTable(const UntypedTable &) = delete;
+    UntypedTable &operator=(const UntypedTable &) = delete;
+    
+    // non-movable
+    UntypedTable(UntypedTable &&) = delete;
+    UntypedTable &operator=(UntypedTable &&) = delete;
+
     // Lookup
-    bool empty() const noexcept;
+    bool empty() const noexcept { return _count == 0; };
     size_type count() const noexcept { return _count; };
     value_type lookup(key_type key, nullable_key_type *_Nullable found_key) const noexcept;
     void for_each(entry_callback body, void *context) const;
@@ -66,7 +77,7 @@ class UntypedTable {
     bool insert(const key_type key, const value_type value);
     bool remove(const key_type key);
     bool remove_ptr(const key_type key);
-};
+} SWIFT_UNSAFE_REFERENCE;
 
 template <typename Key, typename Value> class Table : public UntypedTable {
   public:
@@ -78,13 +89,13 @@ template <typename Key, typename Value> class Table : public UntypedTable {
     using value_callback = void (*)(const value_type);
     using entry_callback = void (*)(const key_type, const value_type, void *context);
 
-    Table() : UntypedTable(){};
+    Table() : UntypedTable() {};
     Table(hasher _Nullable custom_hasher, key_equal _Nullable custom_compare, key_callback _Nullable did_remove_key,
           value_callback _Nullable did_remove_value, Heap *_Nullable heap)
         : UntypedTable(reinterpret_cast<UntypedTable::hasher>(custom_hasher),
                        reinterpret_cast<UntypedTable::key_equal>(custom_compare),
                        reinterpret_cast<UntypedTable::key_callback>(did_remove_key),
-                       reinterpret_cast<UntypedTable::value_callback>(did_remove_value), heap){};
+                       reinterpret_cast<UntypedTable::value_callback>(did_remove_value), heap) {};
 
     // Lookup
 

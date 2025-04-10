@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <concepts>
 #include <objc/runtime.h>
 
 CF_ASSUME_NONNULL_BEGIN
@@ -14,113 +13,87 @@ OBJC_EXPORT void objc_release(id obj);
 
 namespace util {
 
-template <typename T>
-
-class objc_ptr {
-  public:
-    using objc_type = T;
-
+template <typename T> class objc_ptr {
   private:
-    objc_type _ref;
+    id _storage;
+
+    static inline id to_storage(T obj) { return (id)(obj); }
+    static inline T from_storage(id storage) { return (T)storage; }
 
   public:
-    objc_ptr();
-    objc_ptr(objc_type ref);
-    ~objc_ptr();
+    constexpr objc_ptr() noexcept : _storage(nullptr) {}
+    constexpr objc_ptr(std::nullptr_t) noexcept : _storage(nullptr) {}
+
+    explicit objc_ptr(T obj) : _storage(to_storage(obj)) {
+        if (_storage) {
+            objc_retain(_storage);
+        }
+    }
+
+    ~objc_ptr() {
+        if (_storage) {
+            objc_release(_storage);
+        }
+    }
 
     // Copy and move constructors
-    objc_ptr(const objc_ptr &other);
-    objc_ptr(objc_ptr &&other) noexcept;
+
+    objc_ptr(const objc_ptr &other) noexcept : _storage(other._storage) {
+        if (_storage) {
+            objc_retain(_storage);
+        }
+    }
+
+    objc_ptr(objc_ptr &&other) noexcept : _storage(std::exchange(other._storage, nullptr)) {};
 
     // Copy and move assignment operators
-    objc_ptr &operator=(const objc_ptr &other);
-    objc_ptr &operator=(objc_ptr &&other) noexcept;
+
+    objc_ptr &operator=(const objc_ptr &other) noexcept {
+        if (this != &other) {
+            if (_storage) {
+                objc_release(_storage);
+            }
+            _storage = other._storage;
+            if (_storage) {
+                objc_retain(_storage);
+            }
+        }
+        return *this;
+    }
+
+    objc_ptr &operator=(objc_ptr &&other) noexcept {
+        if (this != &other) {
+            if (_storage) {
+                objc_release(_storage);
+            }
+            _storage = other._storage;
+            other._storage = nullptr;
+        }
+        return *this;
+    }
 
     // Modifiers
-    void reset(objc_type ref = nullptr);
+
+    void reset() noexcept { reset(nullptr); }
+
+    void reset(T obj = nullptr) noexcept {
+        if (_storage != obj) {
+            if (_storage) {
+                objc_release(_storage);
+            }
+            _storage = obj;
+            if (_storage) {
+                objc_retain(_storage);
+            }
+        }
+    }
 
     // Observers
-    objc_type get() const noexcept { return _ref; };
 
-    // Conversions
-    operator objc_type() const { return _ref; }
+    T get() const noexcept { return from_storage(_storage); };
+
+    explicit operator bool() const noexcept { return _storage != nullptr; }
 };
-
-template <typename T>
-
-objc_ptr<T>::objc_ptr() : _ref(nullptr){};
-
-template <typename T>
-
-objc_ptr<T>::objc_ptr(objc_type ref) : _ref(ref) {
-    if (_ref) {
-        objc_retain((id)_ref);
-    }
-}
-
-template <typename T>
-
-objc_ptr<T>::~objc_ptr() {
-    if (_ref) {
-        objc_release((id)_ref);
-    }
-}
-
-template <typename T>
-
-objc_ptr<T>::objc_ptr(const objc_ptr &other) : _ref(other._ref) {
-    if (_ref) {
-        objc_retain((id)_ref);
-    }
-}
-
-template <typename T>
-
-objc_ptr<T>::objc_ptr(objc_ptr &&other) noexcept : _ref(other._ref) {
-    other._ref = nullptr;
-}
-
-template <typename T>
-
-objc_ptr<T> &objc_ptr<T>::operator=(const objc_ptr &other) {
-    if (this != &other) {
-        if (_ref) {
-            objc_release((id)_ref);
-        }
-        _ref = other._ref;
-        if (_ref) {
-            objc_retain((id)_ref);
-        }
-    }
-    return *this;
-}
-
-template <typename T>
-
-objc_ptr<T> &objc_ptr<T>::operator=(objc_ptr &&other) noexcept {
-    if (this != &other) {
-        if (_ref) {
-            objc_release((id)_ref);
-        }
-        _ref = other._ref;
-        other._ref = nullptr;
-    }
-    return *this;
-}
-
-template <typename T>
-
-void objc_ptr<T>::reset(objc_type ref) {
-    if (_ref != ref) {
-        if (_ref) {
-            objc_release((id)_ref);
-        }
-        _ref = ref;
-        if (_ref) {
-            objc_retain((id)_ref);
-        }
-    }
-}
 
 } // namespace util
 

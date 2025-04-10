@@ -1,81 +1,97 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CoreFoundation.h>
+#include <utility>
 
 CF_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
-template <typename T> class cf_ptr {
-public:
-    using cf_type = T;
-    
-private:
-    cf_type _ref;
-    
-public:
-    cf_ptr() : _ref(nullptr){};
-    cf_ptr(cf_type ref) : _ref(ref) {
-        if (_ref) {
-            CFRetain(_ref);
+template <typename T>
+concept AnyCFTypeRef = std::is_same_v<T, CFArrayRef> || std::is_same_v<T, CFBooleanRef> ||
+                       std::is_same_v<T, CFDataRef> || std::is_same_v<T, CFDictionaryRef> ||
+                       std::is_same_v<T, CFNumberRef> || std::is_same_v<T, CFStringRef> || std::is_same_v<T, CFTypeRef>;
+
+template <AnyCFTypeRef T> class cf_ptr {
+  private:
+    CFTypeRef _storage;
+
+    static inline CFTypeRef to_storage(T ref) { return (CFTypeRef)(ref); }
+    static inline T from_storage(CFTypeRef storage) { return (T)storage; }
+
+  public:
+    constexpr cf_ptr() noexcept : _storage(nullptr) {}
+    constexpr cf_ptr(std::nullptr_t) noexcept : _storage(nullptr) {}
+
+    explicit cf_ptr(T ref) : _storage(to_storage(ref)) {
+        if (_storage) {
+            CFRetain(_storage);
         }
     }
+
     ~cf_ptr() {
-        if (_ref) {
-            CFRelease(_ref);
+        if (_storage) {
+            CFRelease(_storage);
         }
     }
-    
+
     // Copy and move constructors
-    cf_ptr(const cf_ptr &other) : _ref(other._ref) {
-        if (_ref) {
-            CFRetain(_ref);
+
+    cf_ptr(const cf_ptr &other) noexcept : _storage(other._storage) {
+        if (_storage) {
+            CFRetain(_storage);
         }
-    }
-    cf_ptr(cf_ptr &&other) noexcept : _ref(other._ref) { other._ref = nullptr; }
-    
+    };
+
+    cf_ptr(cf_ptr &&other) noexcept : _storage(std::exchange(other._storage, nullptr)) {};
+
     // Copy and move assignment operators
-    cf_ptr &operator=(const cf_ptr &other) {
+
+    cf_ptr &operator=(const cf_ptr &other) noexcept {
         if (this != &other) {
-            if (_ref) {
-                CFRelease(_ref);
+            if (_storage) {
+                CFRelease(_storage);
             }
-            _ref = other._ref;
-            if (_ref) {
-                CFRetain(_ref);
+            _storage = other._storage;
+            if (_storage) {
+                CFRetain(_storage);
             }
         }
         return *this;
-    }
+    };
+
     cf_ptr &operator=(cf_ptr &&other) noexcept {
         if (this != &other) {
-            if (_ref) {
-                CFRelease(_ref);
+            if (_storage) {
+                CFRelease(_storage);
             }
-            _ref = other._ref;
-            other._ref = nullptr;
+            _storage = other._storage;
+            other._storage = nullptr;
         }
         return *this;
     }
-    
+
     // Modifiers
-    void reset(cf_type ref = nullptr) {
-        if (_ref != ref) {
-            if (_ref) {
-                CFRelease(_ref);
+
+    void reset() noexcept { reset(nullptr); }
+
+    void reset(T ref = nullptr) noexcept {
+        if (_storage != ref) {
+            if (_storage) {
+                CFRelease(_storage);
             }
-            _ref = ref;
-            if (_ref) {
-                CFRetain(_ref);
+            _storage = to_storage(ref);
+            if (_storage) {
+                CFRetain(_storage);
             }
         }
     }
-    
+
     // Observers
-    cf_type get() const noexcept { return _ref; };
-    
-    // Conversions
-    operator cf_type() const { return _ref; }
+
+    T get() const noexcept { return from_storage(_storage); };
+
+    explicit operator bool() const noexcept { return _storage != nullptr; }
 };
 
 } // namespace util

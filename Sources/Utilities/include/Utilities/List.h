@@ -1,7 +1,7 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <utility>
+#include <swift/bridging>
 
 #include "Utilities/Heap.h"
 
@@ -28,31 +28,22 @@ template <typename T> class ForwardList {
     bool _is_heap_owner;
 
   public:
-    ForwardList() {
-        _heap = new util::Heap(nullptr, 0, util::Heap::minimum_increment);
-        _is_heap_owner = true;
-    };
-    ForwardList(util::Heap *heap) {
-        _heap = heap;
-        _is_heap_owner = false;
-    };
-    ~ForwardList() {
-        if (_is_heap_owner && _heap) {
-            delete _heap;
-        }
-    };
+    ForwardList();
+    ForwardList(util::Heap *heap);
+    ~ForwardList();
+
+    // non-copyable
+    ForwardList(const ForwardList &) = delete;
+    ForwardList &operator=(const ForwardList &) = delete;
+
+    // non-movable
+    ForwardList(ForwardList &&) = delete;
+    ForwardList &operator=(ForwardList &&) = delete;
 
     // MARK: Element access
 
-    reference front() {
-        assert(!empty());
-        return _front->value;
-    }
-
-    const_reference front() const {
-        assert(!empty());
-        return _front->value;
-    }
+    reference front();
+    const_reference front() const;
 
     // MARK: Capacity
 
@@ -60,59 +51,117 @@ template <typename T> class ForwardList {
 
     // MARK: Modifiers
 
-    void push_front(const T &value) {
-        Node *new_node;
-        if (_spare != nullptr) {
-            new_node = _spare;
-            _spare = _spare->previous;
-        } else {
-            new_node = _heap->alloc<Node>();
-        }
-        new_node->next = _front;
-        new_node->value = value;
-        _front = new_node;
-    }
+    void push_front(const T &value);
+    void push_front(T &&value);
+    template <class... Args> void emplace_front(Args &&...args);
 
-    void push_front(T &&value) {
-        Node *new_node;
-        if (_spare != nullptr) {
-            new_node = _spare;
-            _spare = _spare->previous;
-        } else {
-            new_node = _heap->alloc<Node>();
-        }
-        new_node->next = _front;
-        new_node->value = std::move(value);
-        _front = new_node;
-    }
+    void pop_front();
+};
 
-    template <class... Args> void emplace_front(Args &&...args) {
-        Node *new_node;
-        if (_spare != nullptr) {
-            new_node = _spare;
-            _spare = _spare->next;
-        } else {
-            new_node = _heap->alloc<Node>();
-        }
-        new_node->next = _front;
-        new (&new_node->value) T(args...);
-        _front = new_node;
-    }
+template <typename T>
+ForwardList<T>::ForwardList() : _heap(new Heap(nullptr, 0, util::Heap::minimum_increment)), _is_heap_owner(true){};
 
-    void pop_front() {
-        if (_front == nullptr) {
-            return;
-        }
+template <typename T> ForwardList<T>::ForwardList(util::Heap *heap) : _heap(heap), _is_heap_owner(false){};
 
-        Node *next = _front->next;
-        T value = _front->value;
-
-        _front->next = _spare;
-        _spare = _front;
-
-        _front = next;
+template <typename T> ForwardList<T>::~ForwardList() {
+    if (_is_heap_owner && _heap) {
+        delete _heap;
     }
 };
+
+template <typename T> ForwardList<T>::reference ForwardList<T>::front() {
+    assert(!empty());
+    return _front->value;
+}
+
+template <typename T> ForwardList<T>::const_reference ForwardList<T>::front() const {
+    assert(!empty());
+    return _front->value;
+}
+
+template <typename T> void ForwardList<T>::push_front(const T &value) {
+    Node *new_node;
+    if (_spare != nullptr) {
+        new_node = _spare;
+        _spare = _spare->next;
+    } else {
+        new_node = _heap->alloc<Node>();
+    }
+    new_node->next = _front;
+    new_node->value = value;
+    _front = new_node;
+}
+
+template <typename T> void ForwardList<T>::push_front(T &&value) {
+    Node *new_node;
+    if (_spare != nullptr) {
+        new_node = _spare;
+        _spare = _spare->previous;
+    } else {
+        new_node = _heap->alloc<Node>();
+    }
+    new_node->next = _front;
+    new_node->value = std::move(value);
+    _front = new_node;
+}
+
+template <typename T> template <class... Args> void ForwardList<T>::emplace_front(Args &&...args) {
+    Node *new_node;
+    if (_spare != nullptr) {
+        new_node = _spare;
+        _spare = _spare->next;
+    } else {
+        new_node = _heap->alloc<Node>();
+    }
+    new_node->next = _front;
+    new (&new_node->value) T(args...);
+    _front = new_node;
+}
+
+template <typename T> void ForwardList<T>::pop_front() {
+    if (_front == nullptr) {
+        return;
+    }
+
+    Node *next = _front->next;
+    T value = _front->value;
+
+    _front->next = _spare;
+    _spare = _front;
+
+    _front = next;
+}
+
+#ifdef SWIFT_TESTING
+
+class UInt64ForwardList : public ForwardList<uint64_t> {
+  public:
+    static std::shared_ptr<UInt64ForwardList> make_shared();
+
+    bool empty() const noexcept;
+
+    uint64_t front();
+
+    void push_front(const uint64_t &element);
+    void push_front(uint64_t &&element);
+
+    void pop_front();
+
+} SWIFT_UNSAFE_REFERENCE;
+
+std::shared_ptr<UInt64ForwardList> UInt64ForwardList::make_shared() { return std::make_shared<UInt64ForwardList>(); }
+
+bool UInt64ForwardList::empty() const noexcept { return ForwardList<uint64_t>::empty(); }
+
+uint64_t UInt64ForwardList::front() { return ForwardList<uint64_t>::front(); }
+
+void UInt64ForwardList::push_front(const uint64_t &element) { ForwardList<uint64_t>::push_front(element); }
+
+void UInt64ForwardList::push_front(uint64_t &&element) { ForwardList<uint64_t>::push_front(element); }
+
+void UInt64ForwardList::pop_front() { ForwardList<uint64_t>::pop_front(); }
+
+#endif
 
 } // namespace util
 

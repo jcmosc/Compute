@@ -8,6 +8,7 @@
 #include <tuple>
 #include <wchar.h>
 
+#include "Attribute/AttributeIDList.h"
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
 #include "Attribute/Node/Node.h"
@@ -1148,22 +1149,11 @@ void Graph::value_mark_all() {
     }
 
     for (auto subgraph : _subgraphs) {
-        for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
-            uint16_t relative_offset = page->relative_offset_1;
-            while (relative_offset) {
-                AttributeID attribute = AttributeID(page + relative_offset);
+        for (auto page : subgraph->pages()) {
+            for (auto attribute : AttributeIDList1(page)) {
                 if (attribute.is_nil()) {
                     break; // TODO: check if this should break out of entire loop
                 }
-
-                if (attribute.is_direct()) {
-                    relative_offset = attribute.to_node().flags().relative_offset();
-                } else if (attribute.is_indirect()) {
-                    relative_offset = attribute.to_indirect_node().relative_offset();
-                } else {
-                    relative_offset = 0;
-                }
-
                 if (attribute.is_direct()) {
                     auto node = attribute.to_node();
                     AttributeType &type = *_types[node.type_id()];
@@ -2180,22 +2170,14 @@ void Graph::prepare_trace(Trace &trace) {
     }
     for (auto subgraph : _subgraphs) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
-            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
+            for (auto page : subgraph->pages()) {
                 bool should_break = false;
-                uint16_t relative_offset = iteration == 0 ? page->relative_offset_2 : page->relative_offset_1;
-                while (relative_offset) {
-                    AttributeID attribute = AttributeID(page + relative_offset);
-
-                    if (attribute.is_direct()) {
-                        relative_offset = attribute.to_node().flags().relative_offset();
-                    } else if (attribute.is_indirect()) {
-                        relative_offset = attribute.to_indirect_node().relative_offset();
-                    } else if (attribute.is_nil()) {
-                        relative_offset = 0;
+                AttributeIDList list =
+                    iteration == 0 ? (AttributeIDList)AttributeIDList2(page) : (AttributeIDList)AttributeIDList1(page);
+                for (auto attribute : list) {
+                    if (attribute.is_nil()) {
                         should_break = true;
                         break;
-                    } else {
-                        relative_offset = 0;
                     }
 
                     if (attribute.is_direct()) {
@@ -2224,22 +2206,14 @@ void Graph::prepare_trace(Trace &trace) {
     }
     for (auto subgraph : _subgraphs) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
-            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
+            for (auto page : subgraph->pages()) {
                 bool should_break = false;
-                uint16_t relative_offset = iteration == 0 ? page->relative_offset_2 : page->relative_offset_1;
-                while (relative_offset) {
-                    AttributeID attribute = AttributeID(page + relative_offset);
-
-                    if (attribute.is_direct()) {
-                        relative_offset = attribute.to_node().flags().relative_offset();
-                    } else if (attribute.is_indirect()) {
-                        relative_offset = attribute.to_indirect_node().relative_offset();
-                    } else if (attribute.is_nil()) {
-                        relative_offset = 0;
+                AttributeIDList list =
+                    iteration == 0 ? (AttributeIDList)AttributeIDList2(page) : (AttributeIDList)AttributeIDList1(page);
+                for (auto attribute : list) {
+                    if (attribute.is_nil()) {
                         should_break = true;
                         break;
-                    } else {
-                        relative_offset = 0;
                     }
 
                     if (attribute.is_direct()) {

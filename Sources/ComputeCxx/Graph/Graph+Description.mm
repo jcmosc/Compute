@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "AGGraph.h"
+#include "Attribute/AttributeIDList.h"
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
 #include "Attribute/Node/Node.h"
@@ -251,138 +252,114 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
         auto node_indices_by_id = std::unordered_map<data::ptr<Node>, uint64_t>();
 
         for (auto subgraph : graph->subgraphs()) {
-            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
-                uint16_t relative_offset = page->relative_offset_1;
-                while (relative_offset) {
-                    AttributeID attribute = AttributeID(page + relative_offset);
-                    if (attribute.is_nil()) {
-                        break;
+            for (auto page : subgraph->pages()) {
+                for (auto attribute : AttributeIDList1(page)) {
+                    if (!attribute.is_direct()) {
+                        continue;
                     }
 
-                    if (attribute.is_direct()) {
-                        relative_offset = attribute.to_node().flags().relative_offset();
-                    } else if (attribute.is_indirect()) {
-                        relative_offset = attribute.to_indirect_node().relative_offset();
+                    uint64_t index = node_indices_by_id.size() + 1;
+                    node_indices_by_id.emplace(attribute, index);
+
+                    auto node = attribute.to_node();
+
+                    uint32_t type_id = node.type_id();
+                    uint64_t type_index;
+                    auto found = type_indices_by_id.find(type_id);
+                    if (found != type_indices_by_id.end()) {
+                        type_index = found->second;
                     } else {
-                        relative_offset = 0;
+                        type_index = type_ids.size();
+                        type_ids.push_back(type_id);
+                        type_indices_by_id.emplace(type_id, index);
                     }
 
-                    if (attribute.is_direct()) {
-                        uint64_t index = node_indices_by_id.size() + 1;
-                        node_indices_by_id.emplace(attribute, index);
+                    NSMutableDictionary *node_dict = [NSMutableDictionary dictionary];
+                    node_dict[@"type"] = [NSNumber numberWithUnsignedLong:type_index];
+                    node_dict[@"id"] = [NSNumber numberWithUnsignedLong:attribute];
 
-                        auto node = attribute.to_node();
-
-                        uint32_t type_id = node.type_id();
-                        uint64_t type_index;
-                        auto found = type_indices_by_id.find(type_id);
-                        if (found != type_indices_by_id.end()) {
-                            type_index = found->second;
-                        } else {
-                            type_index = type_ids.size();
-                            type_ids.push_back(type_id);
-                            type_indices_by_id.emplace(type_id, index);
+                    const AttributeType &attribute_type = graph->attribute_type(node.type_id());
+                    if (node.state().is_self_initialized()) {
+                        void *self = node.get_self(attribute_type);
+                        if (auto desc = attribute_type.vt_self_description(self)) {
+                            node_dict[@"desc"] = escaped_string((__bridge NSString *)desc, truncation_limit);
                         }
+                    }
+                    if (include_values && node.state().is_value_initialized()) {
+                        void *value = node.get_value();
+                        if (auto value_desc = attribute_type.vt_value_description(value)) {
+                            node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
+                        }
+                    }
 
-                        NSMutableDictionary *node_dict = [NSMutableDictionary dictionary];
-                        node_dict[@"type"] = [NSNumber numberWithUnsignedLong:type_index];
-                        node_dict[@"id"] = [NSNumber numberWithUnsignedLong:attribute];
+                    auto flags = attribute.to_node().value_state();
+                    if (flags) {
+                        node_dict[@"flags"] = [NSNumber numberWithUnsignedInt:flags];
+                    }
 
-                        const AttributeType &attribute_type = graph->attribute_type(node.type_id());
-                        if (node.state().is_self_initialized()) {
-                            void *self = node.get_self(attribute_type);
-                            if (auto desc = attribute_type.vt_self_description(self)) {
-                                node_dict[@"desc"] = escaped_string((__bridge NSString *)desc, truncation_limit);
+                    auto profile_data = graph->_profile_data.get();
+                    if (profile_data) {
+                        auto found = profile_data->all_events().items_by_attribute().find(attribute.to_node_ptr());
+                        if (found != profile_data->all_events().items_by_attribute().end()) {
+                            CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
+                            if (item_json) {
+                                node_dict[@"profile"] = (__bridge NSDictionary *)item_json;
                             }
                         }
-                        if (include_values && node.state().is_value_initialized()) {
-                            void *value = node.get_value();
-                            if (auto value_desc = attribute_type.vt_value_description(value)) {
-                                node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
-                            }
-                        }
-
-                        auto flags = attribute.to_node().value_state();
-                        if (flags) {
-                            node_dict[@"flags"] = [NSNumber numberWithUnsignedInt:flags];
-                        }
-
-                        auto profile_data = graph->_profile_data.get();
-                        if (profile_data) {
-                            auto found = profile_data->all_events().items_by_attribute().find(attribute.to_node_ptr());
-                            if (found != profile_data->all_events().items_by_attribute().end()) {
-                                CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
-                                if (item_json) {
-                                    node_dict[@"profile"] = (__bridge NSDictionary *)item_json;
-                                }
-                            }
-                            if (profile_data->categories().size()) {
-                                NSMutableDictionary *event_dicts = [NSMutableDictionary dictionary];
-                                for (auto &entry : profile_data->categories()) {
-                                    uint32_t event_id = entry.first;
-                                    auto found = entry.second.items_by_attribute().find(attribute.to_node_ptr());
-                                    if (found != entry.second.items_by_attribute().end()) {
-                                        CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
-                                        if (item_json) {
-                                            NSString *event_name =
-                                                [NSString stringWithUTF8String:graph->key_name(event_id)];
-                                            event_dicts[event_name] = (__bridge NSDictionary *)item_json;
-                                        }
+                        if (profile_data->categories().size()) {
+                            NSMutableDictionary *event_dicts = [NSMutableDictionary dictionary];
+                            for (auto &entry : profile_data->categories()) {
+                                uint32_t event_id = entry.first;
+                                auto found = entry.second.items_by_attribute().find(attribute.to_node_ptr());
+                                if (found != entry.second.items_by_attribute().end()) {
+                                    CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
+                                    if (item_json) {
+                                        NSString *event_name =
+                                            [NSString stringWithUTF8String:graph->key_name(event_id)];
+                                        event_dicts[event_name] = (__bridge NSDictionary *)item_json;
                                     }
                                 }
-                                if ([event_dicts count]) {
-                                    node_dict[@"events"] = event_dicts;
-                                }
+                            }
+                            if ([event_dicts count]) {
+                                node_dict[@"events"] = event_dicts;
                             }
                         }
-
-                        [node_dicts addObject:node_dict];
                     }
+
+                    [node_dicts addObject:node_dict];
                 }
             }
         }
 
         for (auto subgraph : graph->subgraphs()) {
-            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
-                uint16_t relative_offset = page->relative_offset_1;
-                while (relative_offset) {
-                    AttributeID attribute = AttributeID(page + relative_offset);
-                    if (attribute.is_nil()) {
-                        break;
+            for (auto page : subgraph->pages()) {
+                for (auto attribute : AttributeIDList1(page)) {
+                    if (!attribute.is_direct()) {
+                        continue;
                     }
 
-                    if (attribute.is_direct()) {
-                        relative_offset = attribute.to_node().flags().relative_offset();
-                    } else if (attribute.is_indirect()) {
-                        relative_offset = attribute.to_indirect_node().relative_offset();
-                    } else {
-                        relative_offset = 0;
-                    }
+                    auto node = attribute.to_node();
+                    for (auto input_edge : node.inputs()) {
+                        OffsetAttributeID resolved = input_edge.value.resolve(TraversalOptions::None);
+                        if (resolved.attribute().is_direct()) {
+                            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 
-                    if (attribute.is_direct()) {
-                        auto node = attribute.to_node();
-                        for (auto input_edge : node.inputs()) {
-                            OffsetAttributeID resolved = input_edge.value.resolve(TraversalOptions::None);
-                            if (resolved.attribute().is_direct()) {
-                                NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-
-                                auto src = node_indices_by_id.find(resolved.attribute().to_node_ptr())->second;
-                                dict[@"src"] = [NSNumber numberWithUnsignedLong:src];
-                                auto dest = node_indices_by_id.find(attribute.to_node_ptr())->second;
-                                dict[@"dest"] = [NSNumber numberWithUnsignedLong:dest];
-                                bool indirect = attribute.is_indirect();
-                                if (indirect) {
-                                    if (resolved.offset()) {
-                                        dict[@"offset"] = [NSNumber numberWithUnsignedLong:resolved.offset()];
-                                    }
+                            auto src = node_indices_by_id.find(resolved.attribute().to_node_ptr())->second;
+                            dict[@"src"] = [NSNumber numberWithUnsignedLong:src];
+                            auto dest = node_indices_by_id.find(attribute.to_node_ptr())->second;
+                            dict[@"dest"] = [NSNumber numberWithUnsignedLong:dest];
+                            bool indirect = attribute.is_indirect();
+                            if (indirect) {
+                                if (resolved.offset()) {
+                                    dict[@"offset"] = [NSNumber numberWithUnsignedLong:resolved.offset()];
                                 }
-                                if (indirect || input_edge.is_always_enabled() || input_edge.is_changed() ||
-                                    input_edge.is_unknown4() || input_edge.is_unprefetched()) {
-                                    dict[@"flags"] = @YES; //
-                                }
-
-                                [edge_dicts addObject:dict];
                             }
+                            if (indirect || input_edge.is_always_enabled() || input_edge.is_changed() ||
+                                input_edge.is_unknown4() || input_edge.is_unprefetched()) {
+                                dict[@"flags"] = @YES; //
+                            }
+
+                            [edge_dicts addObject:dict];
                         }
                     }
                 }
@@ -536,32 +513,20 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
             // Nodes
             NSMutableArray *nodes = [NSMutableArray array];
-            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
-                uint16_t relative_offset = page->relative_offset_1;
-                while (relative_offset) {
-                    AttributeID attribute = AttributeID(page + relative_offset);
-                    if (attribute.is_nil()) {
+            for (auto page : subgraph->pages()) {
+                for (auto attribute : AttributeIDList1(page)) {
+                    if (!attribute.is_direct()) {
                         break;
                     }
 
-                    if (attribute.is_direct()) {
-                        relative_offset = attribute.to_node().flags().relative_offset();
-                    } else if (attribute.is_indirect()) {
-                        relative_offset = attribute.to_indirect_node().relative_offset();
-                    } else {
-                        relative_offset = 0;
-                    }
-
-                    if (attribute.is_direct()) {
-                        uint8_t subgraph_flags = attribute.to_node().flags().subgraph_flags();
-                        auto found_node_index = node_indices_by_id.find(attribute.to_node_ptr());
-                        if (found_node_index != node_indices_by_id.end()) {
-                            [nodes addObject:[NSNumber numberWithUnsignedLong:found_node_index->second]];
-                            if (subgraph_flags) {
-                                NSMutableDictionary *node_dict = nodes[found_node_index->second];
-                                node_dict[@"subgraph_flags"] = [NSNumber numberWithUnsignedChar:subgraph_flags];
-                                nodes[found_node_index->second] = node_dict;
-                            }
+                    uint8_t subgraph_flags = attribute.to_node().flags().subgraph_flags();
+                    auto found_node_index = node_indices_by_id.find(attribute.to_node_ptr());
+                    if (found_node_index != node_indices_by_id.end()) {
+                        [nodes addObject:[NSNumber numberWithUnsignedLong:found_node_index->second]];
+                        if (subgraph_flags) {
+                            NSMutableDictionary *node_dict = nodes[found_node_index->second];
+                            node_dict[@"subgraph_flags"] = [NSNumber numberWithUnsignedChar:subgraph_flags];
+                            nodes[found_node_index->second] = node_dict;
                         }
                     }
                 }
@@ -776,21 +741,8 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
     if (!subgraphs().empty()) {
         for (auto subgraph : subgraphs()) {
-            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
-                uint16_t relative_offset = page->relative_offset_1;
-                while (relative_offset) {
-                    AttributeID attribute = AttributeID(page + relative_offset);
-
-                    if (attribute.is_direct()) {
-                        relative_offset = attribute.to_node().flags().relative_offset();
-                    } else if (attribute.is_indirect()) {
-                        relative_offset = attribute.to_indirect_node().relative_offset();
-                    } else if (attribute.is_nil()) {
-                        break;
-                    } else {
-                        break;
-                    }
-
+            for (auto page : subgraph->pages()) {
+                for (auto attribute : AttributeIDList1(page)) {
                     if (!attribute.is_direct()) {
                         continue;
                     }

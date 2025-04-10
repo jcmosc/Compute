@@ -21,7 +21,7 @@ class zone {
             deleted = 0x80000000,
         };
         uint32_t _value;
-        info(uint32_t value) : _value(value){};
+        info(uint32_t value) : _value(value) {};
 
       public:
         uint32_t zone_id() const { return _value & id_mask; }; // TODO: id()
@@ -51,7 +51,7 @@ class zone {
     info info() const { return _info; };
     void mark_deleted() { _info = _info.with_deleted(); };
 
-    ptr<page> first_page() const { return _first_page; };
+    page_ptr_list pages() const { return page_ptr_list(_first_page); };
 
     void clear();
     void realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask);

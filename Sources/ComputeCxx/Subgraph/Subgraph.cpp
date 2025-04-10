@@ -3,6 +3,7 @@
 #include <stack>
 
 #include "AGSubgraph-Private.h"
+#include "Attribute/AttributeIDList.h"
 #include "Attribute/AttributeType.h"
 #include "Attribute/Node/IndirectNode.h"
 #include "Attribute/Node/Node.h"
@@ -203,23 +204,15 @@ void Subgraph::invalidate_now(Graph &graph) {
     }
 
     for (auto removed_subgraph : removed_subgraphs) {
-        for (data::ptr<data::page> page = removed_subgraph->first_page(); page != nullptr; page = page->next) {
+        for (auto page : removed_subgraph->pages()) {
             bool found_nil_attribute = false;
-
-            uint16_t relative_offset = page->relative_offset_1;
-            while (relative_offset) {
-                AttributeID attribute = AttributeID(page + relative_offset);
+            for (auto attribute : AttributeIDList1(page)) {
                 if (attribute.is_direct()) {
-                    relative_offset = attribute.to_node().flags().relative_offset();
-                    graph.remove_node(attribute.to_node_ptr());
+                    graph.remove_node(attribute.to_node_ptr()); // TODO: does this muck up iteration
                 } else if (attribute.is_indirect()) {
-                    relative_offset = attribute.to_indirect_node().relative_offset();
-                    graph.remove_indirect_node(attribute.to_indirect_node_ptr());
+                    graph.remove_indirect_node(attribute.to_indirect_node_ptr()); // TODO: does this muck up iteration
                 } else if (attribute.is_nil()) {
-                    relative_offset = 0;
                     found_nil_attribute = true;
-                } else {
-                    relative_offset = 0;
                 }
             }
             if (found_nil_attribute) {
@@ -229,28 +222,15 @@ void Subgraph::invalidate_now(Graph &graph) {
     }
 
     for (auto removed_subgraph : removed_subgraphs) {
-        for (data::ptr<data::page> page = removed_subgraph->first_page(); page != nullptr; page = page->next) {
+        for (auto page : removed_subgraph->pages()) {
             bool found_nil_attribute = false;
-
-            uint16_t relative_offset = page->relative_offset_1;
-            while (relative_offset) {
-                AttributeID attribute = AttributeID(page + relative_offset);
-
+            for (auto attribute : AttributeIDList1(page)) {
                 if (attribute.is_direct()) {
-                    relative_offset = attribute.to_node().flags().relative_offset();
-                } else if (attribute.is_indirect()) {
-                    relative_offset = attribute.to_indirect_node().relative_offset();
-                } else if (attribute.is_nil()) {
-                    relative_offset = 0;
-                    found_nil_attribute = true;
-                } else {
-                    relative_offset = 0;
-                }
-
-                if (attribute.is_direct()) {
-                    attribute.to_node().destroy(*_graph);
+                    attribute.to_node().destroy(*_graph); // TODO: does this muck up iteration
 
                     _graph->did_destroy_node(); // decrement counter
+                } else if (attribute.is_nil()) {
+                    found_nil_attribute = true;
                 }
             }
             if (found_nil_attribute) {
@@ -277,24 +257,12 @@ void Subgraph::graph_destroyed() {
     }
     notify_observers();
 
-    for (data::ptr<data::page> page = first_page(); page != nullptr; page = page->next) {
-        uint16_t relative_offset = page->relative_offset_1;
-        while (relative_offset) {
-            AttributeID attribute = AttributeID(page + relative_offset);
-            if (attribute.is_nil()) {
+    for (auto page : pages()) {
+        for (auto attribute : AttributeIDList1(page)) {
+            if (attribute.is_direct()) {
+                attribute.to_node().destroy(*_graph); // TODO: does this muck up iteration?
+            } else if (attribute.is_nil()) {
                 break; // TODO: check if this should break out of entire loop
-            }
-
-            if (attribute.is_direct()) {
-                relative_offset = attribute.to_node().flags().relative_offset();
-            } else if (attribute.is_indirect()) {
-                relative_offset = attribute.to_indirect_node().relative_offset();
-            } else {
-                relative_offset = 0;
-            }
-
-            if (attribute.is_direct()) {
-                attribute.to_node().destroy(*_graph);
             }
         }
     }
@@ -405,85 +373,57 @@ void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
 
-void Subgraph::insert_attribute(AttributeID attribute, bool flag) {
-    AttributeID source = AttributeID::make_nil();
+void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes) {
+    AttributeID before_attribute = AttributeID::make_nil();
 
-    if (flag) {
+    if (after_flagged_nodes) {
         if (!attribute.is_direct() || attribute.to_node().flags().subgraph_flags() == 0) {
-            uint16_t relative_offset = attribute.page_ptr()->relative_offset_1;
-            while (relative_offset) {
-                AttributeID next_attribute = AttributeID(attribute.page_ptr().offset() + relative_offset);
-                if (next_attribute.is_direct()) {
-                    auto node = next_attribute.to_node();
-                    if (node.flags().subgraph_flags() == 0) {
-                        break;
-                    }
-                    source = next_attribute;
-                    relative_offset = node.flags().relative_offset();
-                    if (relative_offset == 0) {
-                        break;
-                    }
-                } else {
-                    relative_offset = 0; // TODO: check this line is here
+            for (auto candidate_attribute : AttributeIDList1(attribute.page_ptr())) {
+                if (!candidate_attribute.is_direct() || candidate_attribute.to_node().flags().subgraph_flags() == 0) {
+                    break;
                 }
+                before_attribute = candidate_attribute;
             }
         }
     }
 
-    // TODO: add RelativeAttributeID and simplify this
-
-    uint16_t next_value = (attribute.without_kind() - attribute.page_ptr()) | attribute.kind();
-
-    uint16_t previous_value = 0;
-    if (source.is_direct()) {
-        previous_value = source.to_node().flags().relative_offset();
-        source.to_node().flags().set_relative_offset(next_value);
-    } else if (source.is_indirect()) {
-        previous_value = source.to_indirect_node().relative_offset();
-        source.to_indirect_node().set_relative_offset(next_value);
+    uint16_t inserted_offset = (attribute.without_kind() - attribute.page_ptr()) | attribute.kind();
+    uint16_t next_offset;
+    if (before_attribute.is_direct()) {
+        next_offset = before_attribute.to_node().flags().relative_offset();
+        before_attribute.to_node().flags().set_relative_offset(inserted_offset);
+    } else if (before_attribute.is_indirect()) {
+        next_offset = before_attribute.to_indirect_node().relative_offset();
+        before_attribute.to_indirect_node().set_relative_offset(inserted_offset);
     } else {
-        if (flag) {
-            previous_value = source.page_ptr()->relative_offset_1;
-            source.page_ptr()->relative_offset_1 = next_value;
+        if (after_flagged_nodes) {
+            next_offset = attribute.page_ptr()->first_child_1;
+            attribute.page_ptr()->first_child_1 = inserted_offset;
         } else {
-            previous_value = source.page_ptr()->relative_offset_2;
-            source.page_ptr()->relative_offset_2 = next_value;
+            next_offset = attribute.page_ptr()->first_child_2;
+            attribute.page_ptr()->first_child_2 = inserted_offset;
         }
     }
 
     if (attribute.is_direct()) {
-        attribute.to_node().flags().set_relative_offset(previous_value);
+        attribute.to_node().flags().set_relative_offset(next_offset);
     } else if (attribute.is_indirect()) {
-        attribute.to_indirect_node().set_relative_offset(previous_value);
+        attribute.to_indirect_node().set_relative_offset(next_offset);
     }
 }
 
 void Subgraph::unlink_attribute(AttributeID attribute) {
-
-    uint16_t relative_offset = attribute.page_ptr()->relative_offset_1;
-
     // Find the attribute before the given attribute
     // TODO: what happens if attribute is not found
-    AttributeID before_attribute = AttributeID::make_nil();
-    while (relative_offset) {
-        AttributeID next_attribute = AttributeID(attribute.page_ptr().offset() + relative_offset);
-        if (next_attribute.is_nil()) {
+    AttributeID previous_attribute = AttributeID::make_nil();
+    for (auto candidate_attribute : AttributeIDList1(attribute.page_ptr())) {
+        if (candidate_attribute.is_nil()) {
             break;
         }
-
-        if (next_attribute == attribute) {
+        if (candidate_attribute == attribute) {
             break;
         }
-
-        if (next_attribute.is_direct()) {
-            relative_offset = next_attribute.to_node().flags().relative_offset();
-            before_attribute = next_attribute;
-        } else if (next_attribute.is_indirect()) {
-            relative_offset = next_attribute.to_indirect_node().relative_offset();
-            before_attribute = next_attribute;
-        } else {
-            relative_offset = 0;
-        }
+        previous_attribute = candidate_attribute;
     }
 
     uint16_t old_value = 0;
@@ -495,12 +435,12 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
         attribute.to_indirect_node().set_relative_offset(0);
     }
 
-    if (before_attribute.is_direct()) {
-        before_attribute.to_node().flags().set_relative_offset(old_value);
-    } else if (before_attribute.is_indirect()) {
-        before_attribute.to_indirect_node().set_relative_offset(old_value);
+    if (previous_attribute.is_direct()) {
+        previous_attribute.to_node().flags().set_relative_offset(old_value);
+    } else if (previous_attribute.is_indirect()) {
+        previous_attribute.to_indirect_node().set_relative_offset(old_value);
     } else {
-        attribute.page_ptr()->relative_offset_1 = old_value;
+        attribute.page_ptr()->first_child_1 = old_value;
     }
 }
 
@@ -558,17 +498,9 @@ void Subgraph::update(uint8_t flags) {
                         uint8_t old_flags_1 = subgraph->_flags.value1;
                         subgraph->_flags.value3 &= ~flags;
                         if (flags == 0 || (old_flags_1 & flags)) {
-                            for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr;
-                                 page = page->next) {
-                                uint16_t relative_offset = page->relative_offset_1;
-                                while (relative_offset) {
-                                    AttributeID attribute = AttributeID(page + relative_offset);
-                                    if (attribute.is_nil()) {
-                                        break;
-                                    }
-
+                            for (auto page : subgraph->pages()) {
+                                for (auto attribute : AttributeIDList1(page)) {
                                     if (attribute.is_direct()) {
-                                        relative_offset = attribute.to_node().flags().relative_offset();
                                         auto node = attribute.to_node();
                                         if (flags) {
                                             if (node.flags().subgraph_flags() == 0) {
@@ -582,12 +514,9 @@ void Subgraph::update(uint8_t flags) {
                                             nodes_to_update.push_back(attribute.to_node_ptr());
                                         }
                                     } else if (attribute.is_indirect()) {
-                                        relative_offset = attribute.to_indirect_node().relative_offset();
                                         if (flags) {
                                             break;
                                         }
-                                    } else {
-                                        relative_offset = 0;
                                     }
                                 }
                             }
@@ -660,17 +589,12 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
 
         if (flags.value4 & 1 || subgraph->context_id() == _context_id) {
             if (flags.is_null() || (flags.value1 & subgraph->_flags.value1)) {
-                for (data::ptr<data::page> page = subgraph->first_page(); page != nullptr; page = page->next) {
-                    uint16_t relative_offset = page->relative_offset_1;
-                    while (relative_offset) {
-                        AttributeID attribute = AttributeID(page + relative_offset);
+                for (auto page : subgraph->pages()) {
+                    for (auto attribute : AttributeIDList1(page)) {
                         if (attribute.is_nil()) {
                             break; // TODO: check if this should break out of entire loop
                         }
-
                         if (attribute.is_direct()) {
-                            relative_offset = attribute.to_node().flags().relative_offset();
-
                             if (!flags.is_null()) {
                                 if (attribute.to_node().flags().subgraph_flags() == 0) {
                                     break;
@@ -682,12 +606,9 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
 
                             body(attribute);
                         } else if (attribute.is_indirect()) {
-                            relative_offset = attribute.to_indirect_node().relative_offset();
                             if (!flags.is_null()) {
                                 break;
                             }
-                        } else {
-                            relative_offset = 0;
                         }
                     }
                 }
@@ -1133,23 +1054,11 @@ void Subgraph::encode(Encoder &encoder) const {
         encoder.encode_varint(1);
     }
 
-    for (data::ptr<data::page> page = first_page(); page != nullptr; page = page->next) {
+    for (auto page : pages()) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
-            uint16_t relative_offset = iteration == 0 ? page->relative_offset_1 : page->relative_offset_2;
-            while (relative_offset) {
-                AttributeID attribute = AttributeID(page + relative_offset);
-
-                if (attribute.is_direct()) {
-                    relative_offset = attribute.to_node().flags().relative_offset();
-                } else if (attribute.is_indirect()) {
-                    relative_offset = attribute.to_indirect_node().relative_offset();
-                } else if (attribute.is_nil() || relative_offset == 0) {
-                    break;
-                } else {
-                    relative_offset = 0;
-                    continue;
-                }
-
+            AttributeIDList list =
+                iteration == 0 ? (AttributeIDList)AttributeIDList1(page) : (AttributeIDList)AttributeIDList2(page);
+            for (auto attribute : list) {
                 encoder.encode_varint(0x32);
                 encoder.begin_length_delimited();
 
@@ -1199,29 +1108,16 @@ void Subgraph::print(uint32_t indent_level) {
     fprintf(stdout, "%s+ %p: %u in %lu [", indent_string, this, info().zone_id(), (unsigned long)_context_id);
 
     bool first = true;
-    for (data::ptr<data::page> page = first_page(); page != nullptr; page = page->next) {
-        uint16_t relative_offset = page->relative_offset_1;
-        while (relative_offset) {
-            AttributeID attribute = AttributeID(page + relative_offset);
-            if (attribute.is_nil()) {
-                break;
+    for (auto page : pages()) {
+        for (auto attribute : AttributeIDList1(page)) {
+            if (!attribute.is_direct()) {
+                continue;
             }
-
-            if (attribute.is_direct()) {
-                relative_offset = attribute.to_node().flags().relative_offset();
-            } else if (attribute.is_indirect()) {
-                relative_offset = attribute.to_indirect_node().relative_offset();
-            } else {
-                relative_offset = 0;
+            fprintf(stdout, "%s%u", first ? "" : " ", attribute.value());
+            if (attribute.to_node().flags().subgraph_flags()) {
+                fprintf(stdout, "(%u)", attribute.to_node().flags().subgraph_flags());
             }
-
-            if (attribute.is_direct()) {
-                fprintf(stdout, "%s%u", first ? "" : " ", attribute.value());
-                if (attribute.to_node().flags().subgraph_flags()) {
-                    fprintf(stdout, "(%u)", attribute.to_node().flags().subgraph_flags());
-                }
-                first = false;
-            }
+            first = false;
         }
     }
 

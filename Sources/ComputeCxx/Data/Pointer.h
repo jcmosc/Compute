@@ -26,8 +26,8 @@ template <typename T> class ptr {
     template <typename U> friend class ptr;
 
   public:
-    ptr(difference_type offset = 0) : _offset(offset){};
-    ptr(nullptr_t){};
+    ptr(difference_type offset = 0) : _offset(offset) {};
+    ptr(nullptr_t) {};
 
     void assert_valid() const {
         if (_offset >= table::shared().ptr_max_offset()) {

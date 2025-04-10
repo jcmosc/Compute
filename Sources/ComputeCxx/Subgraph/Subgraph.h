@@ -147,7 +147,7 @@ class Subgraph : public data::zone {
     void add_node(data::ptr<Node> node);
     void add_indirect(data::ptr<IndirectNode> node, bool flag);
 
-    void insert_attribute(AttributeID attribute, bool dirty);
+    void insert_attribute(AttributeID attribute, bool after_flagged_nodes);
 
     void unlink_attribute(AttributeID attribute);
 

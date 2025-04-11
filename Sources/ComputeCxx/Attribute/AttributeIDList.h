@@ -44,8 +44,8 @@ class AttributeIDIterator {
 
 class AttributeIDList {
   public:
-    virtual AttributeIDIterator begin();
-    virtual AttributeIDIterator end();
+    virtual AttributeIDIterator begin() {};
+    virtual AttributeIDIterator end() {};
 };
 
 class AttributeIDList1 : public AttributeIDList {

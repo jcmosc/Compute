@@ -465,7 +465,7 @@ void Subgraph::update(uint8_t flags) {
                                     AG::vector<util::cf_ptr<AGSubgraphStorage *>, 32, uint64_t>>();
             auto nodes_to_update = vector<data::ptr<Node>, 256, uint64_t>();
 
-            stack.push(std::move(to_cf()));
+            stack.push(util::cf_ptr(to_cf()));
             _traversal_seed = _last_traversal_seed;
 
             bool thread_is_updating = false;
@@ -474,7 +474,7 @@ void Subgraph::update(uint8_t flags) {
                 util::cf_ptr<AGSubgraphStorage *> object = stack.top();
                 stack.pop();
 
-                Subgraph *subgraph = Subgraph::from_cf(object);
+                Subgraph *subgraph = Subgraph::from_cf(object.get());
                 if (subgraph) {
 
                     while (subgraph->is_valid()) {
@@ -488,7 +488,7 @@ void Subgraph::update(uint8_t flags) {
                                     // TODO: check child has 0x3 pointer tag that needs to be masked...
                                     if (flags & (child_subgraph->_flags.value3 | child_subgraph->_flags.value4) &&
                                         child_subgraph->_traversal_seed != _traversal_seed) {
-                                        stack.push(std::move(child_subgraph->to_cf()));
+                                        stack.push(util::cf_ptr(child_subgraph->to_cf()));
                                         child_subgraph->_traversal_seed = _traversal_seed;
                                     }
                                 }

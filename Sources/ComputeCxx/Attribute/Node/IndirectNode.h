@@ -30,7 +30,7 @@ class IndirectNode {
     WeakAttributeID _source;
     Info _info;
     uint16_t _size;
-    uint16_t _relative_offset; // could be relative offset, see Subgraph::insert_attribute
+    RelativeAttributeID _relative_offset;
 
   public:
     IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size) : _source(source) {
@@ -38,7 +38,6 @@ class IndirectNode {
         _info.traverses_contexts = traverses_contexts;
         _info.offset = offset;
         _size = size;
-        _relative_offset = 0;
     }
 
     const WeakAttributeID &source() const { return _source; };
@@ -56,8 +55,8 @@ class IndirectNode {
         return _size != InvalidSize ? std::optional(size_t(_size)) : std::optional<size_t>();
     };
 
-    uint16_t relative_offset() const { return _relative_offset; };
-    void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
+    RelativeAttributeID relative_offset() const { return _relative_offset; };
+    void set_relative_offset(RelativeAttributeID relative_offset) { _relative_offset = relative_offset; };
 
     void modify(WeakAttributeID source, uint32_t offset);
 };
@@ -74,8 +73,8 @@ class MutableIndirectNode : public IndirectNode {
   public:
     MutableIndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size,
                         WeakAttributeID initial_source, uint32_t initial_offset)
-        : IndirectNode(source, traverses_contexts, offset, size), _dependency(0), _initial_source(initial_source),
-          _initial_offset(initial_offset){
+        : IndirectNode(source, traverses_contexts, offset, size), _dependency(), _initial_source(initial_source),
+          _initial_offset(initial_offset) {
 
           };
 

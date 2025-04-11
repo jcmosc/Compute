@@ -270,10 +270,10 @@ class Graph {
 
     // MARK: Inputs
 
-    void *_Nullable input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32_t zone_id, uint8_t input_flags,
-                                    const swift::metadata &type, uint8_t *state_out);
+    void *_Nullable input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32_t subgraph_id,
+                                    uint8_t input_flags, const swift::metadata &type, uint8_t *state_out);
 
-    void *_Nullable input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, uint32_t zone_id,
+    void *_Nullable input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, uint32_t subgraph_id,
                                          uint8_t input_flags, const swift::metadata &type, uint8_t *state_out,
                                          uint32_t index);
 

@@ -2,4 +2,4 @@
 
 #include "AttributeID.h"
 
-const AGAttribute AGAttributeNil = AGAttribute(AG::AttributeID::Kind::NilAttribute);
+const AGAttribute AGAttributeNil = AGAttribute(AG::AttributeIDNil.to_storage());

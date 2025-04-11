@@ -45,7 +45,6 @@ template <typename T> class ptr {
     ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
 
     difference_type offset() const noexcept { return _offset; }
-    difference_type offset_from_page() const noexcept { return _offset & page_alignment_mask; }
 
     template <typename U> ptr<U> aligned(difference_type alignment_mask = sizeof(difference_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);

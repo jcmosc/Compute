@@ -553,11 +553,11 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
     UpdateStack update_stack = UpdateStack(this, options);
 
     foreach_trace([&update_stack, &attribute, &options](Trace &trace) {
-        trace.begin_update(update_stack, attribute.to_node_ptr(), options);
+        trace.begin_update(update_stack, attribute.to_ptr<Node>(), options);
     });
 
     UpdateStatus status = UpdateStatus::Changed;
-    if (update_stack.push(attribute.to_node_ptr(), node, false, (options & 1) == 0)) {
+    if (update_stack.push(attribute.to_ptr<Node>(), node, false, (options & 1) == 0)) {
 
         status = update_stack.update();
         if (status == UpdateStatus::NeedsCallMainHandler) {
@@ -575,7 +575,7 @@ Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, uint8_t optio
     }
 
     foreach_trace([&update_stack, &attribute, &status](Trace &trace) {
-        trace.end_update(update_stack, attribute.to_node_ptr(), status);
+        trace.end_update(update_stack, attribute.to_ptr<Node>(), status);
     });
 
     // ~UpdateStatus called
@@ -648,10 +648,11 @@ void Graph::remove_node(data::ptr<Node> node) {
     }
 
     for (auto input_edge : node->inputs()) {
-        this->remove_removed_input(node, input_edge.value);
+        // TODO: check conversion is necessary here...
+        this->remove_removed_input(AttributeID(node), input_edge.value);
     }
     for (auto output_edge : node->outputs()) {
-        this->remove_removed_output(node, output_edge.value, false);
+        this->remove_removed_output(AttributeID(node), output_edge.value, false);
     }
 
     if (_profile_data != nullptr) {
@@ -660,9 +661,9 @@ void Graph::remove_node(data::ptr<Node> node) {
 }
 
 bool Graph::breadth_first_search(AttributeID attribute, SearchOptions options,
-                                 ClosureFunctionAB<bool, uint32_t> predicate) const {
+                                 ClosureFunctionAB<bool, AGAttribute> predicate) const {
     auto resolved = attribute.resolve(TraversalOptions::SkipMutableReference);
-    if (resolved.attribute().without_kind() == 0) {
+    if (!resolved.attribute().has_value()) {
         return false;
     }
 
@@ -771,7 +772,7 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
 
         // TODO: check accessing zone_id directly or through raw_page_seed
         // check references of raw_page_seed in ghidra
-        uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
+        uint32_t zone_id = attribute.has_value() ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
         bool traverses_contexts = subgraph.context_id() != attribute.subgraph()->context_id();
         uint16_t node_size = size.has_value() && size.value() <= 0xfffe ? uint16_t(size.value()) : 0xffff;
@@ -783,7 +784,7 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
     } else {
         auto indirect_node = (data::ptr<IndirectNode>)subgraph.alloc_bytes_recycle(sizeof(Node), 3);
 
-        uint32_t zone_id = attribute.without_kind() != 0 ? attribute.subgraph()->info().zone_id() : 0;
+        uint32_t zone_id = attribute.has_value() ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
         bool traverses_contexts = subgraph.context_id() != attribute.subgraph()->context_id();
         uint16_t node_size = size.has_value() && size.value() <= 0xfffe ? uint16_t(size.value()) : 0xffff;
@@ -821,32 +822,31 @@ void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node_ptr) {
         }
 
         if (source.is_direct()) {
-            //    auto removed_outputs = vector<AttributeID, 8, uint64_t>();
-            auto removed_outputs = vector<uint32_t, 8, uint64_t>();
+            auto removed_outputs = vector<AttributeID, 8, uint64_t>();
             for (auto output_edge : source.to_node().outputs()) {
                 if (remove_removed_output(AttributeID(indirect_node_ptr), output_edge.value, false)) {
                     removed_outputs.push_back(output_edge.value);
                 }
             }
             for (auto output : removed_outputs) {
-                remove_removed_input(AttributeID(output), AttributeID(indirect_node_ptr));
+                remove_removed_input(output, AttributeID(indirect_node_ptr));
                 //                remove_removed_input(output, attribute);
             }
             break;
         } else if (source.is_indirect()) {
             if (source.to_indirect_node().is_mutable()) {
-                auto removed_outputs = vector<uint32_t, 8, uint64_t>();
+                auto removed_outputs = vector<AttributeID, 8, uint64_t>();
                 for (auto output_edge : source.to_indirect_node().to_mutable().outputs()) {
                     if (remove_removed_output(AttributeID(indirect_node_ptr), output_edge.value, false)) {
                         removed_outputs.push_back(output_edge.value);
                     }
                 }
                 for (auto output : removed_outputs) {
-                    remove_removed_input(AttributeID(output), AttributeID(indirect_node_ptr));
+                    remove_removed_input(output, AttributeID(indirect_node_ptr));
                 }
                 break;
             } else {
-                indirect_node_ptr = source.to_indirect_node_ptr();
+                indirect_node_ptr = source.to_ptr<IndirectNode>();
             }
         } else {
             break;
@@ -898,11 +898,11 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> attribute, bool non
     }
 
     auto initial_source = attribute->to_mutable().initial_source();
-    if (initial_source.attribute().without_kind() == 0 && non_nil) {
+    if (!initial_source.attribute().has_value() && non_nil) {
         return false;
     }
 
-    WeakAttributeID new_source = {AttributeID::make_nil(), 0};
+    WeakAttributeID new_source = {AttributeIDNil, 0};
     uint32_t new_offset = 0;
     if (!initial_source.expired()) {
         new_source = initial_source;
@@ -944,7 +944,7 @@ const AttributeID &Graph::indirect_attribute_dependency(data::ptr<IndirectNode> 
 
 void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute, AttributeID dependency) {
     // Status: Verified
-    if (dependency.without_kind()) {
+    if (dependency.has_value()) {
         if (!dependency.is_direct()) {
             precondition_failure("indirect dependencies must be attributes");
         }
@@ -952,7 +952,7 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute,
             precondition_failure("indirect dependencies must share a subgraph with their attribute");
         }
     } else {
-        dependency = AttributeID(0);
+        dependency = AttributeID(); // TODO: check
     }
     if (!attribute->is_mutable()) {
         precondition_failure("not an indirect attribute: %u", attribute);
@@ -964,11 +964,11 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> attribute,
     if (old_dependency != dependency) {
         AttributeID indirect_attribute = AttributeID(attribute).with_kind(AttributeID::Kind::Indirect);
         if (old_dependency) {
-            remove_output_edge(old_dependency.to_node_ptr(), indirect_attribute);
+            remove_output_edge(old_dependency.to_ptr<Node>(), indirect_attribute);
         }
         attribute->to_mutable().set_dependency(dependency);
         if (dependency) {
-            add_output_edge(dependency.to_node_ptr(), indirect_attribute);
+            add_output_edge(dependency.to_ptr<Node>(), indirect_attribute);
             if (dependency.to_node().state().is_dirty()) {
                 propagate_dirty(indirect_attribute);
             }
@@ -986,7 +986,7 @@ void *Graph::value_ref(AttributeID attribute, uint32_t zone_id, const swift::met
         attribute.resolve(TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
                           (zone_id != 0 ? TraversalOptions::EvaluateWeakReferences : TraversalOptions::AssertNotNil));
 
-    if (zone_id != 0 && (resolved.attribute().without_kind() == 0 || !resolved.attribute().is_direct())) {
+    if (zone_id != 0 && (!resolved.attribute().has_value() || !resolved.attribute().is_direct())) {
         return nullptr;
     }
 
@@ -1046,7 +1046,7 @@ bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, c
 
     bool changed = value_set_internal(node, *node.get(), value, value_type);
     if (changed) {
-        propagate_dirty(node);
+        propagate_dirty(AttributeID(node));
     }
     return changed;
 }
@@ -1140,7 +1140,7 @@ void Graph::value_mark(data::ptr<Node> node) {
         }
     }
 
-    propagate_dirty(node);
+    propagate_dirty(AttributeID(node));
 }
 
 void Graph::value_mark_all() {
@@ -1223,7 +1223,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
                 next_state = Node::State(output_node.state().data() | state.data());
 
                 if (!output_node.state().is_dirty()) {
-                    foreach_trace([&output](Trace &trace) { trace.set_dirty(output.to_node_ptr(), true); });
+                    foreach_trace([&output](Trace &trace) { trace.set_dirty(output.to_ptr<Node>(), true); });
 
                     output_node.set_state(output_node.state().with_dirty(true));
                     if (auto subgraph = output.subgraph()) {
@@ -1294,7 +1294,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 #pragma mark - Inputs
 
 // TODO: inline
-void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input_attribute, uint32_t zone_id,
+void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input_attribute, uint32_t subgraph_id,
                              uint8_t input_flags, const swift::metadata &type, uint8_t *state_out) {
 
     // TODO: double check this is input_attribute and not node
@@ -1307,7 +1307,7 @@ void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input_attribu
 
     if (index < 0) {
         // TODO: AVGalueOptions is same as InputEdge::Flags ?
-        return input_value_ref_slow(node, input_attribute, zone_id, input_flags, type, state_out, index);
+        return input_value_ref_slow(node, input_attribute, subgraph_id, input_flags, type, state_out, index);
     }
 
     AG::OffsetAttributeID resolved_input =
@@ -1326,10 +1326,10 @@ void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input_attribu
 
     // TODO: combine with block above, make index signed first though
     // TODO: AVGalueOptions is same as InputEdge::Flags ?
-    return input_value_ref_slow(node, input_attribute, zone_id, input_flags, type, state_out, index);
+    return input_value_ref_slow(node, input_attribute, subgraph_id, input_flags, type, state_out, index);
 }
 
-void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_attribute, uint32_t zone_id,
+void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_attribute, uint32_t subgraph_id,
                                   uint8_t input_flags, const swift::metadata &type, uint8_t *state_out,
                                   uint32_t index) {
 
@@ -1346,17 +1346,17 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
         }
         if (!node->state().is_dirty()) {
             auto resolved = input_attribute.resolve(
-                zone_id != 0 ? TraversalOptions::UpdateDependencies | TraversalOptions::EvaluateWeakReferences
-                             : TraversalOptions::UpdateDependencies | TraversalOptions::AssertNotNil);
+                subgraph_id != 0 ? TraversalOptions::UpdateDependencies | TraversalOptions::EvaluateWeakReferences
+                                 : TraversalOptions::UpdateDependencies | TraversalOptions::AssertNotNil);
 
-            if (zone_id != 0) {
-                if (resolved.attribute().without_kind() == 0 || !resolved.attribute().is_direct()) {
+            if (subgraph_id != 0) {
+                if (!resolved.attribute().has_value() || !resolved.attribute().is_direct()) {
                     return 0;
                 }
             }
             update_attribute(resolved.attribute(), 0);
         }
-        index = add_input(node, input_attribute, zone_id != 0, input_flags & 1);
+        index = add_input(node, input_attribute, subgraph_id != 0, input_flags & 1);
         if (index < 0) {
             return nullptr;
         }
@@ -1368,20 +1368,20 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
     input_edge.set_unknown4(true);
 
     OffsetAttributeID resolved = input_edge.value.resolve(
-        zone_id != 0 ? TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
-                           TraversalOptions::EvaluateWeakReferences
-                     : TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
-                           TraversalOptions::AssertNotNil);
+        subgraph_id != 0 ? TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
+                               TraversalOptions::EvaluateWeakReferences
+                         : TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
+                               TraversalOptions::AssertNotNil);
 
-    if (zone_id != 0) {
-        if (resolved.attribute().without_kind() == 0 || !resolved.attribute().is_direct()) {
+    if (subgraph_id != 0) {
+        if (!resolved.attribute().has_value() || !resolved.attribute().is_direct()) {
             return nullptr;
         }
     }
 
     if (!resolved.attribute().to_node().state().is_value_initialized() ||
         resolved.attribute().to_node().state().is_dirty()) {
-        if (zone_id != 0) {
+        if (subgraph_id != 0) {
             auto zone_id_before_update = data::table::shared().raw_page_seed(resolved.attribute().page_ptr());
 
             update_attribute(resolved.attribute(), 0);
@@ -1428,7 +1428,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
 }
 
 void Graph::input_value_add(data::ptr<Node> node, AttributeID input_attribute, uint8_t input_flags) {
-    input_attribute.to_node_ptr().assert_valid();
+    input_attribute.validate_data_offset();
 
     // TODO: check flag and mask are right way around
     auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
@@ -1442,7 +1442,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input_attribute, u
 
 uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options) {
     auto resolved = input.resolve(TraversalOptions::EvaluateWeakReferences);
-    if (resolved.attribute().without_kind() == 0) {
+    if (!resolved.attribute().has_value()) {
         if (allow_nil) {
             return -1;
         }
@@ -1483,7 +1483,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
         index = (uint32_t)(pos - node->inputs().begin());
     }
 
-    add_input_dependencies(node, resolved.attribute());
+    add_input_dependencies(AttributeID(node), resolved.attribute());
 
     if (node->state().is_updating()) {
         reset_update(node);
@@ -1510,10 +1510,10 @@ void Graph::remove_all_inputs(data::ptr<Node> node) {
 void Graph::add_input_dependencies(AttributeID attribute, AttributeID input) {
     auto resolved = input.resolve(TraversalOptions::SkipMutableReference);
     if (resolved.attribute().is_direct()) {
-        add_output_edge(resolved.attribute().to_node_ptr(), attribute);
+        add_output_edge(resolved.attribute().to_ptr<Node>(), attribute);
     } else if (resolved.attribute().is_indirect()) {
         assert(resolved.attribute().to_indirect_node().is_mutable());
-        add_output_edge(resolved.attribute().to_mutable_indirect_node_ptr(), attribute);
+        add_output_edge(resolved.attribute().to_ptr<MutableIndirectNode>(), attribute);
     }
     update_main_refs(attribute);
 }
@@ -1521,10 +1521,10 @@ void Graph::add_input_dependencies(AttributeID attribute, AttributeID input) {
 void Graph::remove_input_dependencies(AttributeID attribute, AttributeID input) {
     auto resolved = input.resolve(TraversalOptions::SkipMutableReference);
     if (resolved.attribute().is_direct()) {
-        remove_output_edge(resolved.attribute().to_node_ptr(), attribute);
+        remove_output_edge(resolved.attribute().to_ptr<Node>(), attribute);
     } else if (resolved.attribute().is_indirect()) {
         assert(resolved.attribute().to_indirect_node().is_mutable());
-        remove_output_edge(resolved.attribute().to_mutable_indirect_node_ptr(), attribute);
+        remove_output_edge(resolved.attribute().to_ptr<MutableIndirectNode>(), attribute);
     }
     update_main_refs(attribute);
 }
@@ -1543,10 +1543,10 @@ void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
     auto resolved = input.resolve(TraversalOptions::SkipMutableReference | TraversalOptions::EvaluateWeakReferences);
     if (resolved.attribute().subgraph()->validation_state() != Subgraph::ValidationState::Invalidated) {
         if (resolved.attribute().is_direct()) {
-            remove_output_edge(resolved.attribute().to_node_ptr(), attribute);
+            remove_output_edge(resolved.attribute().to_ptr<Node>(), attribute);
         } else if (resolved.attribute().is_indirect()) {
             assert(resolved.attribute().to_indirect_node().is_mutable());
-            remove_output_edge(resolved.attribute().to_mutable_indirect_node_ptr(), attribute);
+            remove_output_edge(resolved.attribute().to_ptr<MutableIndirectNode>(), attribute);
         }
     }
 }
@@ -1715,7 +1715,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
     }
 
     if (output.is_direct()) {
-        auto output_node_ptr = output.to_node_ptr();
+        auto output_node_ptr = output.to_ptr<Node>();
 
         uint32_t index = 0;
         for (auto input : output_node_ptr->inputs()) {
@@ -1732,16 +1732,15 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
         return false;
     }
 
-    auto indirect_node = output.to_indirect_node_ptr();
+    auto indirect_node = output.to_ptr<IndirectNode>();
 
     if (indirect_node->source().attribute() != attribute) {
 
         // clear dependency
         auto dependency = indirect_node->to_mutable().dependency();
         if (dependency && dependency == attribute) {
-            foreach_trace(
-                [&indirect_node](Trace &trace) { trace.set_dependency(indirect_node, AttributeID::make_nil()); });
-            indirect_node->to_mutable().set_dependency(AttributeID(0)); // TODO: 0 or nullptr
+            foreach_trace([&indirect_node](Trace &trace) { trace.set_dependency(indirect_node, AttributeIDNil); });
+            indirect_node->to_mutable().set_dependency(AttributeID()); // TODO: 0 or nullptr
             return true;
         }
 
@@ -1750,9 +1749,9 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
 
     // reset source
     auto initial_source = indirect_node->to_mutable().initial_source();
-    WeakAttributeID new_source = {AttributeID::make_nil(), 0};
+    WeakAttributeID new_source = {AttributeIDNil, 0};
     uint32_t new_offset = 0;
-    if (initial_source.attribute().without_kind() != 0 && !initial_source.expired()) {
+    if (initial_source.attribute().has_value() && !initial_source.expired()) {
         new_source = initial_source;
         new_offset = indirect_node->to_mutable().initial_offset();
     }
@@ -1761,7 +1760,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
         [&indirect_node, &new_source](Trace &trace) { trace.set_source(indirect_node, new_source.attribute()); });
     indirect_node->modify(new_source, new_offset);
 
-    if (new_source.attribute().without_kind() != 0 && !new_source.expired()) {
+    if (new_source.attribute().has_value() && !new_source.expired()) {
         add_input_dependencies(output, new_source.attribute());
     }
 
@@ -1854,7 +1853,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                         }
                     }
                     foreach_trace([&output_edge, &input_index](Trace &trace) {
-                        trace.set_edge_pending(output_edge->value.to_node_ptr(), input_index, true);
+                        trace.set_edge_pending(output_edge->value.to_ptr<Node>(), input_index, true);
                     });
                     input_edge.set_changed(true);
                 }
@@ -1889,7 +1888,7 @@ void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
             subgraph->add_dirty_flags(subgraph_flags);
         }
 
-        propagate_dirty(node_ptr);
+        propagate_dirty(AttributeID(node_ptr));
     }
 }
 
@@ -2067,9 +2066,9 @@ void Graph::encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_
         encoder.encode_varint(8);
         encoder.encode_varint(indirect_node.source().attribute());
     }
-    if (indirect_node.source().zone_id()) {
+    if (indirect_node.source().subgraph_id()) {
         encoder.encode_varint(0x10);
-        encoder.encode_varint(indirect_node.source().zone_id());
+        encoder.encode_varint(indirect_node.source().subgraph_id());
     }
     if (indirect_node.offset()) {
         encoder.encode_varint(0x18);
@@ -2098,7 +2097,7 @@ void Graph::encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_
 }
 
 void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
-    if (tree->node.without_kind()) {
+    if (tree->node.has_value()) {
         encoder.encode_varint(0x10);
         encoder.encode_varint(tree->node);
     }
@@ -2182,7 +2181,7 @@ void Graph::prepare_trace(Trace &trace) {
                     }
 
                     if (attribute.is_direct()) {
-                        auto node = attribute.to_node_ptr();
+                        auto node = attribute.to_ptr<Node>();
                         trace.added(node);
                         if (node->state().is_dirty()) {
                             trace.set_dirty(node, true);
@@ -2195,7 +2194,7 @@ void Graph::prepare_trace(Trace &trace) {
                             trace.set_value(node, value);
                         }
                     } else if (attribute.is_indirect()) {
-                        auto indirect_node = attribute.to_indirect_node_ptr();
+                        auto indirect_node = attribute.to_ptr<IndirectNode>();
                         trace.added(indirect_node);
                     }
                 }
@@ -2218,7 +2217,7 @@ void Graph::prepare_trace(Trace &trace) {
                     }
 
                     if (attribute.is_direct()) {
-                        auto node = attribute.to_node_ptr();
+                        auto node = attribute.to_ptr<Node>();
                         uint32_t edge_index = 0;
                         for (auto input_edge : node->inputs()) {
                             trace.add_edge(node, input_edge.value,
@@ -2229,7 +2228,7 @@ void Graph::prepare_trace(Trace &trace) {
                             edge_index += 1;
                         }
                     } else if (attribute.is_indirect()) {
-                        auto indirect_node = attribute.to_indirect_node_ptr();
+                        auto indirect_node = attribute.to_ptr<IndirectNode>();
                         trace.set_source(indirect_node, indirect_node->source().attribute());
                         if (indirect_node->is_mutable() && indirect_node->to_mutable().dependency() != 0) {
                             trace.set_dependency(indirect_node, indirect_node->to_mutable().dependency());

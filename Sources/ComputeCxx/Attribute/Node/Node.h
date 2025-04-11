@@ -130,7 +130,7 @@ class Node {
   private:
     State _state;
     unsigned int _type_id : 24;
-    uint16_t _relative_offset;
+    RelativeAttributeID _relative_offset;
     AttributeFlags _subgraph_flags;
     Flags _flags;
     data::ptr<void> _value;
@@ -153,8 +153,8 @@ class Node {
                (state().is_main_thread_only() ? 1 : 0) << 6 | (flags().self_modified() ? 1 : 0) << 7;
     };
 
-    uint16_t relative_offset() const { return _relative_offset; };
-    void set_relative_offset(uint16_t relative_offset) { _relative_offset = relative_offset; };
+    RelativeAttributeID relative_offset() const { return _relative_offset; };
+    void set_relative_offset(RelativeAttributeID relative_offset) { _relative_offset = relative_offset; };
 
     AttributeFlags &subgraph_flags() { return _subgraph_flags; };
     const AttributeFlags &subgraph_flags() const { return _subgraph_flags; };

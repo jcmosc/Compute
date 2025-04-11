@@ -53,7 +53,7 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute) {
     AG::Graph::Context *context = AG::Graph::Context::from_cf(graph);
 
     AG::Subgraph *subgraph =
-        new (&instance->subgraph) AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID(attribute));
+        new (&instance->subgraph) AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID::from_storage(attribute));
     return instance;
 };
 
@@ -121,8 +121,8 @@ AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {
 }
 
 AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
-    auto attribute_id = AG::AttributeID(attribute);
-    attribute_id.to_node_ptr().assert_valid();
+    auto attribute_id = AG::AttributeID::from_storage(attribute);
+    attribute_id.validate_data_offset();
 
     auto subgraph = attribute_id.subgraph();
     if (subgraph == nullptr) {
@@ -277,7 +277,7 @@ void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {
     if (subgraph->subgraph == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
-    subgraph->subgraph->set_tree_owner(AG::AttributeID(owner));
+    subgraph->subgraph->set_tree_owner(AG::AttributeID::from_storage(owner));
 }
 
 void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags) {
@@ -287,7 +287,7 @@ void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, u
     }
 
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    current->add_tree_value(AG::AttributeID(value), metadata, key, flags);
+    current->add_tree_value(AG::AttributeID::from_storage(value), metadata, key, flags);
 }
 
 void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags) {
@@ -297,7 +297,7 @@ void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags
     }
 
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    current->begin_tree(AG::AttributeID(value), metadata, flags);
+    current->begin_tree(AG::AttributeID::from_storage(value), metadata, flags);
 }
 
 void AGSubgraphEndTreeElement(AGAttribute value) {

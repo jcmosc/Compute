@@ -9,7 +9,7 @@ public struct WeakAttribute<Value> {
     }
 
     public init() {
-        base = AnyWeakAttribute(rawValue: 0) // TODO: memberwise init
+        base = AnyWeakAttribute(attribute: AnyAttribute(rawValue: 0), subgraph_id: 0)
     }
 
     public init(_ attribute: Attribute<Value>) {

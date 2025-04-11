@@ -217,7 +217,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                             frame.num_pushed_inputs = input_index;
 
-                            push(dependency.to_node_ptr(), dependency.to_node(), false, false);
+                            push(dependency.to_ptr<Node>(), dependency.to_node(), false, false);
                             // go to top regardless
                             return update();
                         }
@@ -239,7 +239,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                         frame.num_pushed_inputs = input_index + 1;
 
-                        if (push(input_attribute.to_node_ptr(), input_node, true, true)) {
+                        if (push(input_attribute.to_ptr<Node>(), input_node, true, true)) {
                             // go to top
                             return update();
                         }
@@ -264,7 +264,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             const AttributeType &type = _graph->attribute_type(node->type_id());
             void *self = node->get_self(type);
 
-            type.perform_update(self, frame.attribute);
+            type.perform_update(self, AttributeID(frame.attribute)); // could be ptr<Node>?
 
             if (!node->state().is_value_initialized()) {
                 if (type.value_metadata().vw_size() > 0) {

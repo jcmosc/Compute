@@ -1172,10 +1172,10 @@ void Graph::TraceRecorder::set_source(data::ptr<IndirectNode> indirect_node, Att
         _encoder.encode_varint(0x20);
         _encoder.encode_varint(source_attribute);
     }
-    auto zone_id = indirect_node->source().zone_id();
-    if (zone_id) {
+    auto subgraph_id = indirect_node->source().subgraph_id();
+    if (subgraph_id) {
         _encoder.encode_varint(0x28);
-        _encoder.encode_varint(zone_id);
+        _encoder.encode_varint(subgraph_id);
     }
 
     field_backtrace(_encoder, 8);

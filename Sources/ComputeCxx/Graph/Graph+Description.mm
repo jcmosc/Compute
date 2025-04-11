@@ -299,7 +299,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
                     auto profile_data = graph->_profile_data.get();
                     if (profile_data) {
-                        auto found = profile_data->all_events().items_by_attribute().find(attribute.to_node_ptr());
+                        auto found = profile_data->all_events().items_by_attribute().find(attribute.to_ptr<Node>());
                         if (found != profile_data->all_events().items_by_attribute().end()) {
                             CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
                             if (item_json) {
@@ -310,7 +310,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                             NSMutableDictionary *event_dicts = [NSMutableDictionary dictionary];
                             for (auto &entry : profile_data->categories()) {
                                 uint32_t event_id = entry.first;
-                                auto found = entry.second.items_by_attribute().find(attribute.to_node_ptr());
+                                auto found = entry.second.items_by_attribute().find(attribute.to_ptr<Node>());
                                 if (found != entry.second.items_by_attribute().end()) {
                                     CFDictionaryRef item_json = profile_data->json_data(found->second, *graph);
                                     if (item_json) {
@@ -344,9 +344,9 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                         if (resolved.attribute().is_direct()) {
                             NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 
-                            auto src = node_indices_by_id.find(resolved.attribute().to_node_ptr())->second;
+                            auto src = node_indices_by_id.find(resolved.attribute().to_ptr<Node>())->second;
                             dict[@"src"] = [NSNumber numberWithUnsignedLong:src];
-                            auto dest = node_indices_by_id.find(attribute.to_node_ptr())->second;
+                            auto dest = node_indices_by_id.find(attribute.to_ptr<Node>())->second;
                             dict[@"dest"] = [NSNumber numberWithUnsignedLong:dest];
                             bool indirect = attribute.is_indirect();
                             if (indirect) {
@@ -520,7 +520,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                     }
 
                     AttributeFlags subgraph_flags = attribute.to_node().subgraph_flags();
-                    auto found_node_index = node_indices_by_id.find(attribute.to_node_ptr());
+                    auto found_node_index = node_indices_by_id.find(attribute.to_ptr<Node>());
                     if (found_node_index != node_indices_by_id.end()) {
                         [nodes addObject:[NSNumber numberWithUnsignedLong:found_node_index->second]];
                         if (subgraph_flags) {
@@ -585,11 +585,11 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
 
                     // TODO: what is creator key?
 
-                    if (tree->node.without_kind() != 0 && tree->type != nullptr) {
+                    if (tree->node.has_value() && tree->type != nullptr) {
                         OffsetAttributeID resolved = tree->node.resolve(TraversalOptions::ReportIndirectionInOffset);
                         if (resolved.attribute().is_direct()) {
                             tree_dict[@"node"] = [NSNumber
-                                numberWithUnsignedLong:node_indices_by_id.find(resolved.attribute().to_node_ptr())
+                                numberWithUnsignedLong:node_indices_by_id.find(resolved.attribute().to_ptr<Node>())
                                                            ->second];
                             if (resolved.offset() != 0) {
                                 tree_dict[@"offset"] = [NSNumber numberWithUnsignedLong:resolved.offset() - 1]; // 3
@@ -602,9 +602,9 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                         if (tree->parent == nullptr) {
                             tree_dict[@"root"] = @YES;
                         }
-                    } else if (tree->node.without_kind() != 0 && tree->type == nullptr) {
+                    } else if (tree->node.has_value() && tree->type == nullptr) {
                         tree_dict[@"node"] = [NSNumber
-                            numberWithUnsignedLong:node_indices_by_id.find(tree->node.to_node_ptr())->second]; // 2
+                            numberWithUnsignedLong:node_indices_by_id.find(tree->node.to_ptr<Node>())->second]; // 2
                     } else {
                         if (tree->parent == nullptr) {
                             tree_dict[@"root"] = @YES; // 1
@@ -657,7 +657,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                             NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                             dict[@"node"] =
                                 [NSNumber numberWithUnsignedLong:node_indices_by_id
-                                                                     .find(resolved_value.attribute().to_node_ptr())
+                                                                     .find(resolved_value.attribute().to_ptr<Node>())
                                                                      ->second];
                             if (resolved_value.offset() != 0) {
                                 dict[@"offset"] = [NSNumber numberWithUnsignedLong:resolved_value.offset()];
@@ -749,7 +749,7 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
                     if (!attribute_ids || [attribute_ids containsIndex:attribute]) {
 
-                        [result appendFormat:@"  _%d[label=\"%d", attribute.value(), attribute.value()];
+                        [result appendFormat:@"  _%d[label=\"%d", attribute.to_storage(), attribute.to_storage()];
 
                         Node &node = attribute.to_node();
                         const AttributeType &node_type = attribute_type(node.type_id());
@@ -776,7 +776,7 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
                         double duration_fraction = 0.0;
                         if (auto profile_data = _profile_data.get()) {
                             auto items_by_attribute = profile_data->all_events().items_by_attribute();
-                            auto found_item = items_by_attribute.find(attribute.to_node_ptr());
+                            auto found_item = items_by_attribute.find(attribute.to_ptr<Node>());
                             if (found_item != items_by_attribute.end()) {
                                 auto item = found_item->second;
                                 if (item.data().update_count) {
@@ -832,16 +832,17 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
                             AttributeID resolved_input_attribute =
                                 input_edge.value.resolve(TraversalOptions::None).attribute();
                             if (resolved_input_attribute.is_direct() &&
-                                (!attribute_ids || [attribute_ids containsIndex:resolved_input_attribute.value()])) {
+                                (!attribute_ids ||
+                                 [attribute_ids containsIndex:resolved_input_attribute.to_storage()])) {
 
-                                [result appendFormat:@"  _%d -> _%d[", input_edge.value.without_kind().value(),
-                                                     attribute.value()];
+                                [result appendFormat:@"  _%d -> _%d[", input_edge.value.to_ptr<void>().offset(),
+                                                     attribute.to_storage()];
 
                                 // collect source inputs
                                 AttributeID intermediate = input_edge.value;
                                 while (intermediate.is_indirect()) {
-                                    indirect_nodes.try_emplace(intermediate.without_kind().to_indirect_node_ptr(),
-                                                               intermediate.without_kind().to_indirect_node_ptr());
+                                    indirect_nodes.try_emplace(intermediate.to_ptr<IndirectNode>(),
+                                                               intermediate.to_ptr<IndirectNode>());
 
                                     AttributeID source = intermediate.to_indirect_node().source().attribute();
                                     if (source.is_direct()) {
@@ -884,12 +885,13 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
             OffsetAttributeID resolved_source =
                 indirect_node->source().attribute().resolve(TraversalOptions::SkipMutableReference);
-            [result appendFormat:@"  _%d -> _%d[label=\"@%d\"];\n", resolved_source.attribute().without_kind().value(),
+            [result appendFormat:@"  _%d -> _%d[label=\"@%d\"];\n", resolved_source.attribute().to_ptr<void>().offset(),
                                  indirect_node.offset(), resolved_source.offset()];
 
             if (indirect_node->is_mutable()) {
                 if (auto dependency = indirect_node->to_mutable().dependency()) {
-                    [result appendFormat:@"  _%d -> _%d[color=blue];\n", dependency.value(), indirect_node.offset()];
+                    [result
+                        appendFormat:@"  _%d -> _%d[color=blue];\n", dependency.to_storage(), indirect_node.offset()];
                 }
             }
         }
@@ -920,7 +922,7 @@ CFStringRef Graph::description_stack(CFDictionaryRef options) {
                 [description appendString:@"  -- inputs:\n"];
                 for (auto input_edge : frame->attribute->inputs()) {
                     OffsetAttributeID resolved = input_edge.value.resolve(TraversalOptions::ReportIndirectionInOffset);
-                    [description appendFormat:@"    %u", resolved.attribute().value()];
+                    [description appendFormat:@"    %u", resolved.attribute().to_storage()];
                     if (resolved.offset() != 0) {
                         [description appendFormat:@"[@%d]", resolved.offset() - 1];
                     }

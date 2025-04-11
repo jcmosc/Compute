@@ -47,10 +47,14 @@ inline TraversalOptions operator|(TraversalOptions lhs, TraversalOptions rhs) {
 }
 
 class AttributeID {
+    friend RelativeAttributeID;
+
   private:
     static constexpr uint32_t KindMask = 0x3;
 
     uint32_t _value;
+
+    explicit constexpr AttributeID(uint32_t value) : _value(value) {};
 
   public:
     enum Kind : uint32_t {
@@ -59,55 +63,79 @@ class AttributeID {
         NilAttribute = 1 << 1,
     };
 
-    explicit AttributeID(uint32_t value) : _value(value){};
-    AttributeID(data::ptr<Node> node) : _value(node | Kind::Direct){};
-    AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect){};
-    static AttributeID make_nil() { return AttributeID(Kind::NilAttribute); };
+    explicit constexpr AttributeID() : _value(0) {};
+    explicit AttributeID(data::ptr<Node> node) : _value(node | Kind::Direct) {};
+    explicit AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect) {};
+    explicit AttributeID(data::ptr<MutableIndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect) {};
 
-    operator bool() const { return _value == 0; };
+    constexpr uint32_t to_storage() const { return _value; }
+    static constexpr AttributeID from_storage(uint32_t value) { return AttributeID(value); }
 
-    uint32_t value() const { return _value; };
+    //
+
+    // MARK: Operators
+
+    bool operator==(const AttributeID &other) const { return _value == other._value; }
+    bool operator!=(const AttributeID &other) const { return _value != other._value; }
+
+    bool operator<(const AttributeID &other) const { return _value < other._value; }
+
+    operator bool() const { return _value != 0; }
+
+    // MARK: Accessing zone data
+
+    //    data::ptr<void> as_ptr() const { return data::ptr<void>(_value); };
+
+    //    uint32_t value() const { return _value; }
+    //    operator bool() const { return _value == 0; };
+
+    data::page &page() const { return *data::ptr<void>(_value).page_ptr(); };
+    data::ptr<data::page> page_ptr() const { return data::ptr<void>(_value).page_ptr(); };
+
+    void validate_data_offset() const { data::ptr<void>(_value).assert_valid(); };
+
+    // MARK: Relative
+
+    RelativeAttributeID to_relative() const;
+
+    // MARK: Accessing graph data
 
     Kind kind() const { return Kind(_value & KindMask); };
     AttributeID with_kind(Kind kind) const { return AttributeID((_value & ~KindMask) | kind); };
-    AttributeID without_kind() const { return AttributeID((_value & ~KindMask)); };
 
     bool is_direct() const { return kind() == Kind::Direct; };
     bool is_indirect() const { return kind() == Kind::Indirect; };
     bool is_nil() const { return kind() == Kind::NilAttribute; }; // TODO: return true if whole thing is zero?
 
-    // TODO: make these data::ptr<>
-    Node &to_node() const {
-        assert(is_direct());
-        return *data::ptr<Node>(_value & ~KindMask);
-    };
-    data::ptr<Node> to_node_ptr() const {
+    bool has_value() const { return (_value & ~KindMask) != 0; }
+
+    template <typename T> data::ptr<T> to_ptr() const { return data::ptr<T>(_value & ~KindMask); }
+    template <> data::ptr<Node> to_ptr() const {
         assert(is_direct());
         return data::ptr<Node>(_value & ~KindMask);
-    };
-
-    IndirectNode &to_indirect_node() const {
-        assert(is_indirect());
-        return *data::ptr<IndirectNode>(_value & ~KindMask);
-    };
-    data::ptr<IndirectNode> to_indirect_node_ptr() const {
+    }
+    template <> data::ptr<IndirectNode> to_ptr() const {
         assert(is_indirect());
         return data::ptr<IndirectNode>(_value & ~KindMask);
-    };
-    data::ptr<MutableIndirectNode> to_mutable_indirect_node_ptr() const {
-        assert(is_indirect()); // XXX: no assertion that it is mutable
+    }
+    template <> data::ptr<MutableIndirectNode> to_ptr() const {
+        assert(is_indirect());
         return data::ptr<MutableIndirectNode>(_value & ~KindMask);
-    };
+    }
 
-    Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone); }
+    Node &to_node() const { return *to_ptr<Node>(); };
+    IndirectNode &to_indirect_node() const { return *to_ptr<IndirectNode>(); };
 
-    data::ptr<data::page> page_ptr() const { return data::ptr<void>(_value).page_ptr(); };
+    Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page().zone); }
 
-    // Value metadata
+    // MARK: Value metdata
+
     std::optional<size_t> size() const;
 
-    // Graph traversal
+    // MARK: Graph traversal
+
     bool traverses(AttributeID other, TraversalOptions options) const;
+
     OffsetAttributeID resolve(TraversalOptions options) const;
     OffsetAttributeID resolve_slow(TraversalOptions options) const;
 };
@@ -115,6 +143,18 @@ class AttributeID {
 class RelativeAttributeID {
   private:
     uint16_t _value;
+
+  public:
+    constexpr RelativeAttributeID() : _value(0) {};
+    constexpr RelativeAttributeID(nullptr_t) : _value(0) {};
+    constexpr RelativeAttributeID(uint16_t value) : _value(value) {};
+
+    uint16_t value() const { return _value; }
+
+    bool operator==(const RelativeAttributeID &other) const { return _value == other._value; }
+    bool operator!=(const RelativeAttributeID &other) const { return _value != other._value; }
+
+    AttributeID resolve(data::ptr<data::page> page_ptr) { return AttributeID(page_ptr + _value); }
 };
 
 extern AttributeID AttributeIDNil;

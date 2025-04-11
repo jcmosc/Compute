@@ -13,18 +13,18 @@ namespace AG {
 class WeakAttributeID {
   private:
     AttributeID _attribute;
-    uint32_t _zone_id;
+    uint32_t _subgraph_id;
 
   public:
-    WeakAttributeID(AGWeakAttribute opaque_value)
-        : _attribute(opaque_value & 0xffffffff), _zone_id(opaque_value >> 0x20){};
-    WeakAttributeID(AttributeID attribute, uint32_t zone_id) : _attribute(attribute), _zone_id(zone_id){};
+    WeakAttributeID(AttributeID attribute, uint32_t subgraph_id) : _attribute(attribute), _subgraph_id(subgraph_id) {};
 
-    // TODO: rename
-    uint64_t to_opaque_value() const { return _attribute.value() | ((uint64_t)_zone_id << 0x20); };
+    AGWeakAttribute to_cf() const { return AGWeakAttribute(_attribute, _subgraph_id); };
+    static WeakAttributeID from_cf(AGWeakAttribute data) {
+        return WeakAttributeID(AttributeID::from_storage(data.attribute), data.subgraph_id);
+    };
 
     const AttributeID &attribute() const { return _attribute; };
-    uint32_t zone_id() const { return _zone_id; };
+    uint32_t subgraph_id() const { return _subgraph_id; };
 
     bool expired() const;
 

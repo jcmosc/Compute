@@ -11,7 +11,11 @@
 
 namespace AG {
 
-AttributeID AttributeIDNil = AttributeID::make_nil();
+AttributeID AttributeIDNil = AttributeID::from_storage(2);
+
+RelativeAttributeID AttributeID::to_relative() const {
+    return RelativeAttributeID(((_value & ~KindMask) - page_ptr()) | kind());
+}
 
 std::optional<size_t> AttributeID::size() const {
     if (is_direct()) {
@@ -58,7 +62,6 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
         }
 
         auto indirect_node = to_indirect_node();
-
         if (indirect_node.is_mutable()) {
             if (options & TraversalOptions::SkipMutableReference) {
                 return OffsetAttributeID(result, offset);
@@ -80,7 +83,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (options & TraversalOptions::AssertNotNil) {
                     precondition_failure("invalid indirect ref: %u", _value);
                 }
-                return OffsetAttributeID(AttributeID::make_nil());
+                return OffsetAttributeID(AttributeIDNil);
             }
         }
 

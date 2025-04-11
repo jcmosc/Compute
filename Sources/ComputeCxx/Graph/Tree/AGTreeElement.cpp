@@ -51,7 +51,7 @@ AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter) {
     auto tree_element_id = AG::TreeElementID(iter->tree_element);
     AG::AttributeID node =
         tree_element_id.subgraph()->tree_node_at_index(tree_element_id.to_element_ptr(), iter->index);
-    if (node.without_kind() == 0) {
+    if (!node.has_value()) {
         return AGAttributeNil;
     }
     iter->index += 1;

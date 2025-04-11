@@ -10,6 +10,7 @@
 #include "Attribute/OffsetAttributeID.h"
 #include "Encoder/Encoder.h"
 #include "Errors/Errors.h"
+#include "Graph/AGGraph-Private.h"
 #include "Graph/Context.h"
 #include "Graph/Graph.h"
 #include "Graph/Tree/TreeElement.h"
@@ -47,11 +48,11 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
     graph->add_subgraph(*this);
 
     if (AGSubgraphShouldRecordTree()) {
-        if (owner.without_kind() == 0) {
+        if (!owner.has_value()) {
             auto update = Graph::current_update();
             if (update.tag() == 0 && update.get() != nullptr) {
                 if (auto top = update.get()->global_top()) {
-                    owner = top->attribute;
+                    owner = AttributeID(top->attribute);
                 }
             }
         }
@@ -208,9 +209,9 @@ void Subgraph::invalidate_now(Graph &graph) {
             bool found_nil_attribute = false;
             for (auto attribute : AttributeIDList1(page)) {
                 if (attribute.is_direct()) {
-                    graph.remove_node(attribute.to_node_ptr()); // TODO: does this muck up iteration
+                    graph.remove_node(attribute.to_ptr<Node>()); // TODO: does this muck up iteration
                 } else if (attribute.is_indirect()) {
-                    graph.remove_indirect_node(attribute.to_indirect_node_ptr()); // TODO: does this muck up iteration
+                    graph.remove_indirect_node(attribute.to_ptr<IndirectNode>()); // TODO: does this muck up iteration
                 } else if (attribute.is_nil()) {
                     found_nil_attribute = true;
                 }
@@ -374,7 +375,7 @@ void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
 }
 
 void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes) {
-    AttributeID before_attribute = AttributeID::make_nil();
+    AttributeID before_attribute = AttributeIDNil;
 
     if (after_flagged_nodes) {
         if (!attribute.is_direct() || attribute.to_node().subgraph_flags() == 0) {
@@ -387,8 +388,8 @@ void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes)
         }
     }
 
-    uint16_t inserted_offset = (attribute.without_kind() - attribute.page_ptr()) | attribute.kind();
-    uint16_t next_offset;
+    RelativeAttributeID inserted_offset = attribute.to_relative();
+    RelativeAttributeID next_offset;
     if (before_attribute.is_direct()) {
         next_offset = before_attribute.to_node().relative_offset();
         before_attribute.to_node().set_relative_offset(inserted_offset);
@@ -398,10 +399,10 @@ void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes)
     } else {
         if (after_flagged_nodes) {
             next_offset = attribute.page_ptr()->first_child_1;
-            attribute.page_ptr()->first_child_1 = inserted_offset;
+            attribute.page_ptr()->first_child_1 = inserted_offset.value();
         } else {
             next_offset = attribute.page_ptr()->first_child_2;
-            attribute.page_ptr()->first_child_2 = inserted_offset;
+            attribute.page_ptr()->first_child_2 = inserted_offset.value();
         }
     }
 
@@ -415,7 +416,7 @@ void Subgraph::insert_attribute(AttributeID attribute, bool after_flagged_nodes)
 void Subgraph::unlink_attribute(AttributeID attribute) {
     // Find the attribute before the given attribute
     // TODO: what happens if attribute is not found
-    AttributeID previous_attribute = AttributeID::make_nil();
+    AttributeID previous_attribute = AttributeIDNil;
     for (auto candidate_attribute : AttributeIDList1(attribute.page_ptr())) {
         if (candidate_attribute.is_nil()) {
             break;
@@ -426,13 +427,13 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
         previous_attribute = candidate_attribute;
     }
 
-    uint16_t old_value = 0;
+    RelativeAttributeID old_value = RelativeAttributeID();
     if (attribute.is_direct()) {
         old_value = attribute.to_node().relative_offset();
-        attribute.to_node().set_relative_offset(0);
+        attribute.to_node().set_relative_offset(nullptr);
     } else {
         old_value = attribute.to_indirect_node().relative_offset();
-        attribute.to_indirect_node().set_relative_offset(0);
+        attribute.to_indirect_node().set_relative_offset(nullptr);
     }
 
     if (previous_attribute.is_direct()) {
@@ -440,7 +441,7 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
     } else if (previous_attribute.is_indirect()) {
         previous_attribute.to_indirect_node().set_relative_offset(old_value);
     } else {
-        attribute.page_ptr()->first_child_1 = old_value;
+        attribute.page_ptr()->first_child_1 = old_value.value();
     }
 }
 
@@ -511,7 +512,7 @@ void Subgraph::update(uint8_t flags) {
                                             }
                                         }
                                         if (node.state().is_dirty()) {
-                                            nodes_to_update.push_back(attribute.to_node_ptr());
+                                            nodes_to_update.push_back(attribute.to_ptr<Node>());
                                         }
                                     } else if (attribute.is_indirect()) {
                                         if (flags) {
@@ -532,7 +533,7 @@ void Subgraph::update(uint8_t flags) {
                         for (auto node : nodes_to_update) {
                             if (!thread_is_updating) {
                                 _graph->increment_transaction_count_if_needed();
-                                _graph->update_attribute(node, true);
+                                _graph->update_attribute(AttributeID(node), true);
 
                                 if (!subgraph->is_valid()) {
                                     break;
@@ -704,7 +705,7 @@ AttributeID Subgraph::tree_node_at_index(data::ptr<Graph::TreeElement> tree_elem
             }
         }
     }
-    return AttributeID::make_nil();
+    return AttributeIDNil;
 }
 
 data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::TreeElement> tree_element) {
@@ -737,7 +738,7 @@ data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::Tre
             continue;
         }
         AttributeID attribute = subgraph->_tree_root->node;
-        if (attribute.without_kind() == 0) {
+        if (!attribute.has_value()) {
             continue;
         }
         OffsetAttributeID resolved = attribute.resolve(TraversalOptions::None);
@@ -772,9 +773,9 @@ void Subgraph::set_flags(data::ptr<Node> node, AttributeFlags flags) {
     }
     if (node->subgraph_flags() == 0 || flags == 0) {
         // potentially reorder
-        unlink_attribute(node);
+        unlink_attribute(AttributeID(node));
         node->set_subgraph_flags(flags);
-        insert_attribute(node, true);
+        insert_attribute(AttributeID(node), true);
     } else {
         node->set_subgraph_flags(flags);
     }
@@ -1114,7 +1115,7 @@ void Subgraph::print(uint32_t indent_level) {
             if (!attribute.is_direct()) {
                 continue;
             }
-            fprintf(stdout, "%s%u", first ? "" : " ", attribute.value());
+            fprintf(stdout, "%s%u", first ? "" : " ", attribute.to_storage());
             if (attribute.to_node().subgraph_flags()) {
                 fprintf(stdout, "(%u)", attribute.to_node().subgraph_flags().data());
             }

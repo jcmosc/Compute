@@ -34,6 +34,19 @@ extension AnyWeakAttribute: @retroactive CustomStringConvertible {
 
 }
 
-extension AnyWeakAttribute: @retroactive Equatable {}
+extension AnyWeakAttribute: @retroactive Equatable {
+    
+    public static func ==(lhs: AnyWeakAttribute, rhs: AnyWeakAttribute) -> Bool {
+        return lhs.attribute == rhs.attribute && lhs.subgraph_id == rhs.subgraph_id
+    }
+    
+}
 
-extension AnyWeakAttribute: @retroactive Hashable {}
+extension AnyWeakAttribute: @retroactive Hashable {
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(attribute)
+        hasher.combine(subgraph_id)
+    }
+    
+}

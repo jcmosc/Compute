@@ -63,7 +63,7 @@ size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, uint32_t index, AGTyp
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, uint32_t index, const void *element_value,
+void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, uint32_t index, void *element_value,
                         AGTypeID element_type, AGTupleCopyOptions options);
 
 CF_EXPORT
@@ -83,7 +83,8 @@ void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, uint32_t i
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
-                       const void (*function)(const AGUnsafeMutableTuple mutable_tuple, const void *context),
+                       void (*function)(const void *context AG_SWIFT_CONTEXT, const AGUnsafeMutableTuple mutable_tuple)
+                           AG_SWIFT_CC(swift),
                        const void *context);
 
 CF_EXTERN_C_END

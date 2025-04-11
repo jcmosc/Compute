@@ -52,8 +52,8 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute) {
 
     AG::Graph::Context *context = AG::Graph::Context::from_cf(graph);
 
-    AG::Subgraph *subgraph =
-        new (&instance->subgraph) AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID::from_storage(attribute));
+    AG::Subgraph *subgraph = new (&instance->subgraph)
+        AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID::from_storage(attribute));
     return instance;
 };
 
@@ -253,7 +253,7 @@ void AGSubgraphUpdate(AGSubgraphRef subgraph, uint8_t flags) {
 }
 
 void AGSubgraphApply(AGSubgraphRef subgraph, AGAttributeFlags flags,
-                     void (*function)(AGAttribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                     void (*function)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift),
                      const void *function_context) {
     if (subgraph->subgraph == nullptr) {
         return;

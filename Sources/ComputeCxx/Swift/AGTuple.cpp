@@ -189,8 +189,10 @@ void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, uint32_t i
 }
 
 void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
-                       const void (*function)(const AGUnsafeMutableTuple mutable_tuple, const void *context),
+                       void (*function)(const void *context AG_SWIFT_CONTEXT, const AGUnsafeMutableTuple mutable_tuple)
+                           AG_SWIFT_CC(swift),
                        const void *context) {
+    // TODO: why didn't I call function from implementation?
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     auto buffer_size = metadata->vw_stride() * count;
     if (buffer_size <= 0x1000) {

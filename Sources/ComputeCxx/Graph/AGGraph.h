@@ -16,7 +16,6 @@ CF_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
-typedef struct AGUnownedGraph *AGUnownedGraphRef;
 typedef struct AGUnownedGraphContext *AGUnownedGraphContextRef;
 
 CF_EXPORT
@@ -120,7 +119,7 @@ void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags);
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
-                            const void (*modify)(const void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
+                            void (*modify)(const void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
                             const void *context);
 
 typedef CF_OPTIONS(uint32_t, AGSearchOptions) {
@@ -132,7 +131,7 @@ typedef CF_OPTIONS(uint32_t, AGSearchOptions) {
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
-                   bool (*predicate)(AGAttribute attribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                   bool (*predicate)(const void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
                    const void *context);
 
 // MARK: Cached attributes
@@ -143,8 +142,8 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
                                  AGCachedValueOptions options, AGAttribute attribute, bool *_Nullable changed_out,
-                                 uint32_t (*closure)(AGUnownedGraphContextRef graph_context,
-                                                     const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 uint32_t (*closure)(const void *context AG_SWIFT_CONTEXT,
+                                                     AGUnownedGraphContextRef graph_context) AG_SWIFT_CC(swift),
                                  const void *closure_context);
 
 CF_EXPORT
@@ -224,7 +223,7 @@ void AGGraphInvalidateValue(AGAttribute attribute);
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGGraphSetInvalidationCallback(AGGraphRef graph,
-                                    void (*callback)(AGAttribute, const void *context AG_SWIFT_CONTEXT)
+                                    void (*callback)(const void *context AG_SWIFT_CONTEXT, AGAttribute)
                                         AG_SWIFT_CC(swift),
                                     const void *callback_context);
 
@@ -289,8 +288,9 @@ CF_REFINED_FOR_SWIFT
 void AGGraphWithMainThreadHandler(AGGraphRef graph,
                                   void (*function)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                   const void *body_context,
-                                  void (*main_thread_handler)(void (*thunk)(const void *),
-                                                              const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                  void (*main_thread_handler)(const void *context AG_SWIFT_CONTEXT,
+                                                              void (*trampoline_thunk)(const void *),
+                                                              const void *trampoline) AG_SWIFT_CC(swift),
                                   const void *main_thread_handler_context);
 
 // MARK: Values

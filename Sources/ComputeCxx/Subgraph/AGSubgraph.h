@@ -110,7 +110,7 @@ void AGSubgraphUpdate(AGSubgraphRef subgraph, uint8_t flags);
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphApply(AGSubgraphRef subgraph, AGAttributeFlags flags,
-                     void (*function)(AGAttribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                     void (*function)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift),
                      const void *function_context);
 
 // MARK: Tree

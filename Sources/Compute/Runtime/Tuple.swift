@@ -1,15 +1,17 @@
+struct AGTupleWithBufferThunk {
+    let body: (UnsafeMutableTuple) -> Void
+}
+
 public func withUnsafeTuple(of type: TupleType, count: Int, _ body: (UnsafeMutableTuple) -> Void) {
-    struct Context {
-        let body: (UnsafeMutableTuple) -> Void
-    }
     withoutActuallyEscaping(body) { escapingBody in
-        withUnsafePointer(to: Context(body: escapingBody)) { contextPointer in
-            // TODO: why didn't I call function from implementation?
+        withUnsafePointer(to: AGTupleWithBufferThunk(body: escapingBody)) { thunkPointer in
             __AGTupleWithBuffer(
                 type,
                 count,
-                { $1.assumingMemoryBound(to: Context.self).pointee.body($0) },
-                contextPointer
+                {
+                    $0.assumingMemoryBound(to: AGTupleWithBufferThunk.self).pointee.body($1)
+                },
+                thunkPointer
             )
         }
     }

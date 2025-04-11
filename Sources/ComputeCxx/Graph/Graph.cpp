@@ -390,9 +390,8 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
     _main_handler = nullptr;
     _main_handler_context = nullptr;
 
-    // TODO: is context passed in as arg, or is it _main_handler_context
     MainTrampoline trampoline = {this, current_update_thread, context, body};
-    main_handler(MainTrampoline::thunk, &trampoline);
+    main_handler(main_handler_context, MainTrampoline::thunk, &trampoline);
 
     _main_handler = main_handler;
     _main_handler_context = main_handler_context;

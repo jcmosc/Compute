@@ -1,14 +1,14 @@
 import ComputeCxx
 
-extension Graph {
+struct AGGraphInternAttributeTypeThunk {
+    let body: () -> UnsafeRawPointer
+}
 
-    struct InternAttributeTypeContext {
-        let selfType: Any.Type
-        let bodyType: _AttributeBody.Type
-        let valueType: Any.Type
-        let flags: AGAttributeTypeFlags
-        let update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
-    }
+struct AGAttributeTypeUpdateThunk {
+    let body: (UnsafeMutableRawPointer, AnyAttribute) -> Void
+}
+
+extension Graph {
 
     func internAttributeType(
         selfType: Any.Type,
@@ -18,30 +18,31 @@ extension Graph {
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UInt32 {
         return withoutActuallyEscaping(update) { escapingUpdate in
-            let context = InternAttributeTypeContext(
-                selfType: selfType,
-                bodyType: bodyType,
-                valueType: valueType,
-                flags: flags,
-                update: escapingUpdate
-            )
-            return withUnsafePointer(to: context) { contextPointer in
+            let thunk = AGGraphInternAttributeTypeThunk(body: {
+                return withUnsafePointer(to: AGAttributeTypeUpdateThunk(body: escapingUpdate())) { updateThunkPointer in
+                    let attributeType = AGAttributeType(
+                        selfType: selfType,
+                        bodyType: bodyType,
+                        valueType: valueType,
+                        flags: flags,
+                        update: {
+                            $0.assumingMemoryBound(to: AGAttributeTypeUpdateThunk.self).pointee.body($1, $2)
+                        },
+                        updateContext: updateThunkPointer
+                    )
+                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
+                    pointer.initialize(to: attributeType)
+                    return UnsafeRawPointer(pointer)
+                }
+            })
+            return withUnsafePointer(to: thunk) { thunkPointer in
                 return __AGGraphInternAttributeType(
                     self,
                     Metadata(selfType),
-                    { contextPointer in
-                        // FUN_1afe82038
-                        let context = contextPointer.assumingMemoryBound(to: InternAttributeTypeContext.self).pointee
-                        let pointer = AGAttributeType.allocate(
-                            selfType: context.selfType,
-                            bodyType: context.bodyType,
-                            valueType: context.valueType,
-                            flags: context.flags,
-                            update: context.update
-                        )
-                        return UnsafeRawPointer(pointer)
+                    {
+                        return $0.assumingMemoryBound(to: AGGraphInternAttributeTypeThunk.self).pointee.body()
                     },
-                    contextPointer
+                    thunkPointer
                 )
             }
         }
@@ -59,19 +60,16 @@ extension AGAttributeType {
         flags: AGAttributeTypeFlags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafeMutablePointer<AGAttributeType> {
-        struct Context {
-            let update: (UnsafeMutableRawPointer, AnyAttribute) -> Void
-        }
-        return withUnsafePointer(to: Context(update: update())) { contextPointer in
+        return withUnsafePointer(to: AGAttributeTypeUpdateThunk(body: update())) { updateThunkPointer in
             let attributeType = AGAttributeType(
                 selfType: selfType,
                 bodyType: bodyType,
                 valueType: valueType,
                 flags: flags,
-                update: { context, body, attribute in
-                    context.assumingMemoryBound(to: Context.self).pointee.update(body, attribute)
+                update: {
+                    $0.assumingMemoryBound(to: AGAttributeTypeUpdateThunk.self).pointee.body($1, $2)
                 },
-                updateContext: contextPointer
+                updateContext: updateThunkPointer
             )
             let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
             pointer.initialize(to: attributeType)

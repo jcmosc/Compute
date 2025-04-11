@@ -1,7 +1,3 @@
-struct RuleContextUpdateContext {
-    let body: () -> Void
-}
-
 public struct RuleContext<Value> {
 
     public var attribute: Attribute<Value>
@@ -11,18 +7,7 @@ public struct RuleContext<Value> {
     }
 
     public func update(body: () -> Void) {
-        // TODO: use silgen?
-        withoutActuallyEscaping(body) { escapingBody in
-            withUnsafePointer(to: RuleContextUpdateContext(body: escapingBody)) { contextPointer in
-                __AGGraphWithUpdate(
-                    attribute.identifier,
-                    {
-                        $0.assumingMemoryBound(to: RuleContextUpdateContext.self).pointee.body()
-                    },
-                    contextPointer
-                )
-            }
-        }
+        AnyRuleContext(attribute: attribute.identifier).update(body: body)
     }
 
     public var value: Value {

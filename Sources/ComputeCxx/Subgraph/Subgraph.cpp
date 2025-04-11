@@ -873,7 +873,7 @@ void Subgraph::notify_observers() {
 #pragma mark - Cache
 
 data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata &metadata, void *body,
-                                      ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure) {
+                                      ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure) {
     if (_cache == nullptr) {
         _cache = (data::ptr<NodeCache>)alloc_bytes(sizeof(NodeCache), 7);
         new (&_cache) NodeCache();
@@ -891,7 +891,8 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
         type->equatable = equatable;
         type->last_item = nullptr;
         type->first_item = nullptr;
-        type->type_id = closure(reinterpret_cast<AGUnownedGraphRef>(_graph));
+        auto graph_context = AGUnownedGraphContext(_graph);
+        type->type_id = closure(&graph_context);
         _cache->types().insert(&metadata, type);
     }
 

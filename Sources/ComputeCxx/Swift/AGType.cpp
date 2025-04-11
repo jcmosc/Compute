@@ -74,16 +74,18 @@ const char *AGTypeNominalDescriptorName(AGTypeID typeID) {
 }
 
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*body)(const char *field_name, size_t field_size, AGTypeID field_type, void *context),
-                       void *context) {
+                       void (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
+                                    AGTypeID field_type) AG_SWIFT_CC(swift),
+                       const void *context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
-        void (*_body)(const char *field_name, size_t field_size, AGTypeID field_type, void *context);
-        void *_context;
+        void (*_body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
+                      AGTypeID field_type) AG_SWIFT_CC(swift);
+        const void *_context;
 
       public:
-        Visitor(void (*body)(const char *field_name, size_t field_size, AGTypeID field_type, void *context),
-                void *context)
+        Visitor(void (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size, AGTypeID field_type) AG_SWIFT_CC(swift),
+                const void *context)
             : _body(body), _context(context) {}
 
         bool unknown_result() const override { return true; }
@@ -93,7 +95,7 @@ void AGTypeApplyFields(AGTypeID typeID,
             auto field_type = type.mangled_type_name_ref(mangled_name, true, nullptr);
             if (field_type) {
                 auto field_name = field.FieldName.get();
-                _body(field_name, field_offset, AGTypeID(field_type), _context);
+                _body(_context, field_name, field_offset, AGTypeID(field_type));
             }
             return true;
         }
@@ -106,18 +108,21 @@ void AGTypeApplyFields(AGTypeID typeID,
 }
 
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*body)(const char *field_name, size_t field_size, AGTypeID field_type, void *context),
-                        void *context) {
+                        bool (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
+                                     AGTypeID field_type) AG_SWIFT_CC(swift),
+                        const void *context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
         AGTypeApplyOptions _options;
-        bool (*_body)(const char *field_name, size_t field_size, AGTypeID field_type, void *context);
-        void *_context;
+        bool (*_body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
+                      AGTypeID field_type) AG_SWIFT_CC(swift);
+        const void *_context;
 
       public:
         Visitor(AGTypeApplyOptions options,
-                bool (*body)(const char *field_name, size_t field_size, AGTypeID field_type, void *context),
-                void *context)
+                bool (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
+                             AGTypeID field_type) AG_SWIFT_CC(swift),
+                const void *context)
             : _options(options), _body(body), _context(context) {}
 
         bool unknown_result() const override { return _options & 2; }
@@ -129,7 +134,7 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
                 return unknown_result();
             }
             auto field_name = field.FieldName.get();
-            _body(field_name, field_offset, AGTypeID(field_type), _context);
+            _body(_context, field_name, field_offset, AGTypeID(field_type));
             return field_name != nullptr;
         }
         bool visit_case(const AG::swift::metadata &type, const AG::swift::field_record &field,
@@ -140,7 +145,7 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
                 return unknown_result();
             }
             auto field_name = field.FieldName.get();
-            _body(field_name, index, AGTypeID(field_type), _context);
+            _body(_context, field_name, index, AGTypeID(field_type));
             return field_name != nullptr;
         }
     };
@@ -176,7 +181,8 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
 }
 
 bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
-                         void (*body)(const void *context, uint32_t tag, AGTypeID field_type, void *field_value),
+                         void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
+                                      void *field_value) AG_SWIFT_CC(swift),
                          const void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
     auto value_witness = type->getValueWitnesses();
@@ -219,7 +225,7 @@ bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
 }
 
 bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
-                                void (*body)(const void *context, uint32_t tag, AGTypeID field_type, void *field_value),
+                                void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type, void *field_value) AG_SWIFT_CC(swift),
                                 const void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
     auto value_witness = type->getValueWitnesses();

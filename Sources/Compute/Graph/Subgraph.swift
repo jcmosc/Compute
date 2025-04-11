@@ -1,23 +1,23 @@
 import ComputeCxx
 
-struct SubgraphContextVV {
+struct AGSubgraphAddObserverThunk {
     let body: () -> Void
 }
 
-struct SubgraphContextAV {
+struct AGSubgraphApplyThunk {
     let body: (AnyAttribute) -> Void
 }
 
 extension Subgraph {
 
     public func addObserver(_ observer: @escaping () -> Void) -> Int {
-        let result = withUnsafePointer(to: SubgraphContextVV(body: observer)) { contextPointer in
+        let result = withUnsafePointer(to: AGSubgraphAddObserverThunk(body: observer)) { thunkPointer in
             return __AGSubgraphAddObserver(
                 self,
                 {
-                    $0.assumingMemoryBound(to: SubgraphContextVV.self).pointee.body()
+                    $0.assumingMemoryBound(to: AGSubgraphAddObserverThunk.self).pointee.body()
                 },
-                contextPointer
+                thunkPointer
             )
         }
         return Int(result)  // TODO: where is this converted?
@@ -36,15 +36,14 @@ extension Subgraph {
 
     public func forEach(_ flags: AGAttributeFlags, _ body: (AnyAttribute) -> Void) {
         withoutActuallyEscaping(body) { escapingBody in
-            withUnsafePointer(to: SubgraphContextAV(body: escapingBody)) { contextPointer in
+            withUnsafePointer(to: AGSubgraphApplyThunk(body: escapingBody)) { thunkPointer in
                 __AGSubgraphApply(
                     self,
                     flags,
                     {
-                        // TODO: swap params
-                        $1.assumingMemoryBound(to: SubgraphContextAV.self).pointee.body($0)
+                        $0.assumingMemoryBound(to: AGSubgraphApplyThunk.self).pointee.body($1)
                     },
-                    contextPointer
+                    thunkPointer
                 )
             }
         }

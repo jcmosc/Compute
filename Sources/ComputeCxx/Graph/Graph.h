@@ -67,7 +67,8 @@ class Graph {
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
 
-    typedef void (*MainHandler)(void (*thunk)(const void *), const void *thunk_context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
+    typedef void (*MainHandler)(const void *_Nullable context AG_SWIFT_CONTEXT, void (*trampoline_thunk)(const void *),
+                                const void *trampoline) AG_SWIFT_CC(swift);
 
   private:
     static Graph *_all_graphs;
@@ -233,7 +234,7 @@ class Graph {
     void remove_node(data::ptr<Node> node);
 
     bool breadth_first_search(AttributeID attribute, SearchOptions options,
-                              ClosureFunctionAB<bool, uint32_t> predicate) const;
+                              ClosureFunctionAB<bool, AGAttribute> predicate) const;
 
     void did_allocate_node_value(size_t size) { _num_node_value_bytes += size; };
     void did_destroy_node_value(size_t size) { _num_node_value_bytes -= size; };

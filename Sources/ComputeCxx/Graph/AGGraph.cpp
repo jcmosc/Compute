@@ -237,7 +237,7 @@ void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
 }
 
 void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
-                            void (*modify)(void *body, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                            void (*modify)(const void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
                             const void *context) {
     auto attribute_id = AG::AttributeID::from_storage(attribute);
     if (!attribute_id.is_direct()) {
@@ -256,7 +256,7 @@ void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidat
 }
 
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
-                   bool (*predicate)(uint32_t attribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                   bool (*predicate)(const void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
                    const void *context) {
     auto attribute_id = AG::AttributeID::from_storage(attribute);
     attribute_id.validate_data_offset();
@@ -267,7 +267,7 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
     }
 
     return subgraph->graph()->breadth_first_search(attribute_id, AG::Graph::SearchOptions(options),
-                                                   AG::ClosureFunctionAB<bool, uint32_t>(predicate, context));
+                                                   AG::ClosureFunctionAB<bool, AGAttribute>(predicate, context));
 }
 
 #pragma mark - Cached attributes
@@ -277,7 +277,7 @@ namespace {
 void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &metadata, void *body,
                             const AG::swift::metadata &value_type, AGCachedValueOptions options,
                             AG::AttributeID attribute, uint8_t *state_out,
-                            AG::ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure) {
+                            AG::ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure) {
 
     auto current_update = AG::Graph::current_update();
     AG::Graph::UpdateStack *stack = current_update.tag() == 0 ? current_update.get() : nullptr;
@@ -317,16 +317,16 @@ void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &meta
 
 void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
                                  AGCachedValueOptions options, AGAttribute attribute, bool *changed_out,
-                                 uint32_t (*closure)(AGUnownedGraphRef graph, const void *context AG_SWIFT_CONTEXT)
-                                     AG_SWIFT_CC(swift),
+                                 uint32_t (*closure)(const void *context AG_SWIFT_CONTEXT,
+                                                     AGUnownedGraphContextRef graph) AG_SWIFT_CC(swift),
                                  const void *closure_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
 
     uint8_t state = 0;
-    void *value = read_cached_attribute(identifier, *metadata, body, *value_metadata, options,
-                                        AG::AttributeID::from_storage(attribute), &state,
-                                        AG::ClosureFunctionCI<uint32_t, AGUnownedGraphRef>(closure, closure_context));
+    void *value = read_cached_attribute(
+        identifier, *metadata, body, *value_metadata, options, AG::AttributeID::from_storage(attribute), &state,
+        AG::ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef>(closure, closure_context));
     if (changed_out) {
         *changed_out = state & 1 ? true : false;
     }
@@ -667,8 +667,9 @@ void AGGraphWithoutUpdate(void (*function)(const void *context AG_SWIFT_CONTEXT)
 void AGGraphWithMainThreadHandler(AGGraphRef graph,
                                   void (*function)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                   const void *body_context,
-                                  void (*main_thread_handler)(void (*thunk)(const void *),
-                                                              const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                  void (*main_thread_handler)(const void *context AG_SWIFT_CONTEXT,
+                                                              void (*trampoline_thunk)(const void *),
+                                                              const void *trampoline) AG_SWIFT_CC(swift),
                                   const void *main_thread_handler_context) {
     auto context = AG::Graph::Context::from_cf(graph);
     context->graph().with_main_handler(AG::ClosureFunctionVV<void>(function, body_context), main_thread_handler,

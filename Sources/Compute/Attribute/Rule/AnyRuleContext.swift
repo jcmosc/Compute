@@ -1,5 +1,9 @@
 import ComputeCxx
 
+struct AGGraphWithUpdateThunk {
+    let body: () -> Void
+}
+
 public struct AnyRuleContext {
 
     public var attribute: AnyAttribute
@@ -13,18 +17,15 @@ public struct AnyRuleContext {
     }
 
     public func update(body: () -> Void) {
-        struct Context {
-            let body: () -> Void
-        }
         // TODO: use silgen?
         withoutActuallyEscaping(body) { escapingBody in
-            withUnsafePointer(to: Context(body: escapingBody)) { contextPointer in
+            withUnsafePointer(to: AGGraphWithUpdateThunk(body: escapingBody)) { thunkPointer in
                 __AGGraphWithUpdate(
                     attribute,
                     {
-                        $0.assumingMemoryBound(to: Context.self).pointee.body()
+                        $0.assumingMemoryBound(to: AGGraphWithUpdateThunk.self).pointee.body()
                     },
-                    contextPointer
+                    thunkPointer
                 )
             }
         }

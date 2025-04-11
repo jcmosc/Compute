@@ -1,22 +1,25 @@
 import ComputeCxx
 import Foundation
 
+struct AGTypeApplyFieldsThunk {
+    var body: (UnsafePointer<CChar>, Int, Any.Type) -> Void
+}
+
+struct AGTypeApplyFields2Thunk {
+    var body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool
+}
+
 public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, Any.Type) -> Void) {
-    struct Context {
-        var body: (UnsafePointer<CChar>, Int, Any.Type) -> Void
-    }
 
     withoutActuallyEscaping(body) { escapingClosure in
-        var context = Context(body: escapingClosure)
-        withUnsafeMutablePointer(to: &context) { contextPointer in
+        withUnsafePointer(to: AGTypeApplyFieldsThunk(body: escapingClosure)) { thunkPointer in
             __AGTypeApplyFields(
                 Metadata(type),
-                { name, offset, metadata, context in
-                    guard let context = context?.assumingMemoryBound(to: Context.self).pointee else {
-                        return
-                    }
-                    context.body(name, offset, metadata.type)
-                }, contextPointer)
+                {
+                    $0.assumingMemoryBound(to: AGTypeApplyFieldsThunk.self).pointee.body($1, $2, $3.type)
+                },
+                thunkPointer
+            )
         }
     }
 }
@@ -39,16 +42,15 @@ extension Metadata {
         }
 
         return withoutActuallyEscaping(body) { escapingClosure in
-            var context = Context(body: escapingClosure)
-            return withUnsafeMutablePointer(to: &context) { contextPointer in
+            return withUnsafePointer(to: AGTypeApplyFields2Thunk(body: escapingClosure)) { thunkPointer in
                 return __AGTypeApplyFields2(
-                    self, options,
-                    { name, offsetOrIndex, metadata, context in
-                        guard let context = context?.assumingMemoryBound(to: Context.self).pointee else {
-                            return false
-                        }
-                        return context.body(name, offsetOrIndex, metadata.type)
-                    }, contextPointer)
+                    self,
+                    options,
+                    {
+                        return $0.assumingMemoryBound(to: AGTypeApplyFields2Thunk.self).pointee.body($1, $2, $3.type)
+                    },
+                    thunkPointer
+                )
             }
         }
     }

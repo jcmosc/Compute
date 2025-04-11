@@ -1,6 +1,6 @@
 import ComputeCxx
 
-struct AGTypeApplyEnumDataContext {
+struct AGTypeApplyEnumDataThunk {
     let body: (Int, Any.Type, UnsafeRawPointer) -> Void
 }
 
@@ -9,21 +9,20 @@ public func withUnsafePointerToEnumCase<Value>(
     do body: (Int, Any.Type, UnsafeRawPointer) -> Void
 ) -> Bool {
     return withoutActuallyEscaping(body) { escapingBody in
-        let context = AGTypeApplyEnumDataContext(body: escapingBody)
-        return withUnsafePointer(to: context) { contextPointer in
+        return withUnsafePointer(to: AGTypeApplyEnumDataThunk(body: escapingBody)) { thunkPointer in
             return __AGTypeApplyEnumData(
                 Metadata(Value.self),
                 enumValue,
                 {
-                    $0.assumingMemoryBound(to: AGTypeApplyEnumDataContext.self).pointee.body(Int($1), $2.type, $3)
+                    $0.assumingMemoryBound(to: AGTypeApplyEnumDataThunk.self).pointee.body(Int($1), $2.type, $3)
                 },
-                contextPointer
+                thunkPointer
             )
         }
     }
 }
 
-struct AGTypeApplyMutableEnumDataContext {
+struct AGTypeApplyMutableEnumDatThunk {
     let body: (Int, Any.Type, UnsafeMutableRawPointer) -> Void
 }
 
@@ -32,15 +31,14 @@ public func withUnsafeMutablePointerToEnumCase<Value>(
     do body: (Int, Any.Type, UnsafeMutableRawPointer) -> Void
 ) -> Bool {
     return withoutActuallyEscaping(body) { escapingBody in
-        let context = AGTypeApplyMutableEnumDataContext(body: escapingBody)
-        return withUnsafePointer(to: context) { contextPointer in
+        return withUnsafePointer(to: AGTypeApplyMutableEnumDatThunk(body: escapingBody)) { thunkPointer in
             return __AGTypeApplyMutableEnumData(
                 Metadata(Value.self),
                 enumValue,
                 {
-                    $0.assumingMemoryBound(to: AGTypeApplyMutableEnumDataContext.self).pointee.body(Int($1), $2.type, $3)
+                    $0.assumingMemoryBound(to: AGTypeApplyMutableEnumDatThunk.self).pointee.body(Int($1), $2.type, $3)
                 },
-                contextPointer
+                thunkPointer
             )
         }
     }

@@ -1,40 +1,43 @@
 import ComputeCxx
 
-struct ContextVV {
+struct AGGraphSetUpdateCallbackThunk {
     let body: () -> Void
 }
 
-struct ContextAV {
+struct AGGraphSetInvalidationCallbackThunk {
     let body: (AnyAttribute) -> Void
 }
 
-struct ContextPV {
-    let body: (() -> Void) -> Void
+struct AGGraphWithMainThreadHandlerThunk {
+    let body: () -> Void
+}
+
+struct MainThreadHandlerThunk {
+    let body: ((UnsafeRawPointer) -> Void, UnsafeRawPointer) -> Void
 }
 
 extension Graph {
 
     public func onUpdate(_ handler: @escaping () -> Void) {
-        withUnsafePointer(to: ContextVV(body: handler)) { contextPointer in
+        withUnsafePointer(to: AGGraphSetUpdateCallbackThunk(body: handler)) { thunkPointer in
             __AGGraphSetUpdateCallback(
                 self,
                 {
-                    $0.assumingMemoryBound(to: ContextVV.self).pointee.body()
+                    $0.assumingMemoryBound(to: AGGraphSetUpdateCallbackThunk.self).pointee.body()
                 },
-                contextPointer
+                thunkPointer
             )
         }
     }
 
     public func onInvalidation(_ handler: @escaping (AnyAttribute) -> Void) {
-        withUnsafePointer(to: ContextAV(body: handler)) { contextPointer in
+        withUnsafePointer(to: AGGraphSetInvalidationCallbackThunk(body: handler)) { thunkPointer in
             __AGGraphSetInvalidationCallback(
                 self,
                 {
-                    // TODO: swap params around
-                    $1.assumingMemoryBound(to: ContextAV.self).pointee.body($0)
+                    $0.assumingMemoryBound(to: AGGraphSetInvalidationCallbackThunk.self).pointee.body($1)
                 },
-                contextPointer
+                thunkPointer
             )
         }
     }
@@ -61,36 +64,33 @@ extension Graph {
         return result
     }
 
-    // todo: delete @escaping
     public func withMainThreadHandler(
+        // TODO: does this need to be escaping?
         _ mainThreadHandler: @escaping (() -> Void) -> Void,
-        do body: @escaping () -> Void
+        do body: () -> Void
     ) {
-        //        let bodyContext = ContextVV(body: body)
-        //        let mainThreadHandlerContext = ContextPV(body: mainThreadHandler)
-        //        withUnsafePointer(to: bodyContext) { bodyContextPointer in
-        //            withUnsafePointer(
-        //                to: mainThreadHandlerContext
-        //            ) { mainThreadHandlerContextPointer in
-        //                __AGGraphWithMainThreadHandler(
-        //                    self,
-        //                    {
-        //                        $0.assumingMemoryBound(to: ContextVV.self).pointee.body()
-        //                    },
-        //                    bodyContextPointer,
-        //                    { thunk, context in
-        //
-        //
-        //                        // TODO: swap params
-        //                        context.assumingMemoryBound(to: ContextPV.self).pointee.body({
-        //                            thunk()
-        //                        })
-        //                    },
-        //                    mainThreadHandlerContextPointer
-        //                )
-        //            }
-        //
-        //        }
+        withoutActuallyEscaping(body) { escapingBody in
+            withUnsafePointer(to: AGGraphWithMainThreadHandlerThunk(body: escapingBody)) { thunkPointer in
+                let mainThreadHandlerThunk = MainThreadHandlerThunk(body: { handler, context in
+                    mainThreadHandler({
+                        handler(context)
+                    })
+                })
+                withUnsafePointer(to: mainThreadHandlerThunk) { mainThreadHandlerThunkPointer in
+                    __AGGraphWithMainThreadHandler(
+                        self,
+                        {
+                            $0.assumingMemoryBound(to: AGGraphWithMainThreadHandlerThunk.self).pointee.body()
+                        },
+                        thunkPointer,
+                        {
+                            $0.assumingMemoryBound(to: MainThreadHandlerThunk.self).pointee.body($1, $2)
+                        },
+                        mainThreadHandlerThunkPointer
+                    )
+                }
+            }
+        }
     }
 
 }

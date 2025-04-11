@@ -36,7 +36,6 @@ class AttributeType {
         Unknown0x20 = 1 << 5,            // 0x20 // used in update_main_refs
     };
 
-    // TODO: closure context here is first param, is this consistent???
     using UpdateFunction = void (*)(const void *context, void *body, AttributeID attribute);
 
   private:

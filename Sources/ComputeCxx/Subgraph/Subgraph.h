@@ -205,7 +205,7 @@ class Subgraph : public data::zone {
 
     // FIXME: not AGUnownedGraphContextRef
     data::ptr<Node> cache_fetch(uint64_t identifier, const swift::metadata &type, void *body,
-                                ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure);
+                                ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure);
     void cache_insert(data::ptr<Node> node);
     void cache_collect();
 

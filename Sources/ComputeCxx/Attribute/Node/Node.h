@@ -171,7 +171,7 @@ class Node {
         }
     }
 
-    void *get_self(const AttributeType &type) const; // TODO: inline
+    void *get_self(const AttributeType &type) const;
     void update_self(const Graph &graph, void *new_self);
     void destroy_self(const Graph &graph);
 

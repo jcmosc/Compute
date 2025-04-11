@@ -74,17 +74,16 @@ const char *AGTypeNominalDescriptorName(AGTypeID typeID) {
 }
 
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
-                                    AGTypeID field_type) AG_SWIFT_CC(swift),
+                       void (*body)(const void *context, const char *field_name, size_t field_size,
+                                    AGTypeID field_type),
                        const void *context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
-        void (*_body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
-                      AGTypeID field_type) AG_SWIFT_CC(swift);
+        void (*_body)(const void *context, const char *field_name, size_t field_size, AGTypeID field_type);
         const void *_context;
 
       public:
-        Visitor(void (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size, AGTypeID field_type) AG_SWIFT_CC(swift),
+        Visitor(void (*body)(const void *context, const char *field_name, size_t field_size, AGTypeID field_type),
                 const void *context)
             : _body(body), _context(context) {}
 
@@ -108,20 +107,18 @@ void AGTypeApplyFields(AGTypeID typeID,
 }
 
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
-                                     AGTypeID field_type) AG_SWIFT_CC(swift),
+                        bool (*body)(const void *context, const char *field_name, size_t field_size,
+                                     AGTypeID field_type),
                         const void *context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
         AGTypeApplyOptions _options;
-        bool (*_body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
-                      AGTypeID field_type) AG_SWIFT_CC(swift);
+        bool (*_body)(const void *context, const char *field_name, size_t field_size, AGTypeID field_type);
         const void *_context;
 
       public:
         Visitor(AGTypeApplyOptions options,
-                bool (*body)(const void *context AG_SWIFT_CONTEXT, const char *field_name, size_t field_size,
-                             AGTypeID field_type) AG_SWIFT_CC(swift),
+                bool (*body)(const void *context, const char *field_name, size_t field_size, AGTypeID field_type),
                 const void *context)
             : _options(options), _body(body), _context(context) {}
 
@@ -225,7 +222,8 @@ bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
 }
 
 bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
-                                void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type, void *field_value) AG_SWIFT_CC(swift),
+                                void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
+                                             void *field_value) AG_SWIFT_CC(swift),
                                 const void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
     auto value_witness = type->getValueWitnesses();

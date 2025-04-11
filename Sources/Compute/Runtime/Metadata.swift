@@ -37,10 +37,6 @@ extension Metadata {
     public func forEachField(options: ApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
         -> Bool
     {
-        struct Context {
-            var body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool
-        }
-
         return withoutActuallyEscaping(body) { escapingClosure in
             return withUnsafePointer(to: AGTypeApplyFields2Thunk(body: escapingClosure)) { thunkPointer in
                 return __AGTypeApplyFields2(

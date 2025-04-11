@@ -8,15 +8,16 @@ DebugServer::Connection::Connection(DebugServer *server, int socket) {
     _server = server;
     _socket = socket;
 
-    _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, socket, 0, dispatch_get_main_queue());
-    dispatch_set_context(_dispatch_source, this);
-    dispatch_source_set_event_handler_f(_dispatch_source, handler);
-    dispatch_resume(_dispatch_source);
+    _dispatch_source =
+        util::objc_ptr(dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, socket, 0, dispatch_get_main_queue()));
+    dispatch_set_context(_dispatch_source.get(), this);
+    dispatch_source_set_event_handler_f(_dispatch_source.get(), handler);
+    dispatch_resume(_dispatch_source.get());
 }
 
 DebugServer::Connection::~Connection() {
-    dispatch_source_set_event_handler(_dispatch_source, nullptr);
-    dispatch_set_context(_dispatch_source, nullptr);
+    dispatch_source_set_event_handler(_dispatch_source.get(), nullptr);
+    dispatch_set_context(_dispatch_source.get(), nullptr);
     _dispatch_source = nullptr;
 
     close(_socket);

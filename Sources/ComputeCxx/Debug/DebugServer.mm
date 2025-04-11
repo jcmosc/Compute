@@ -99,10 +99,11 @@ DebugServer::DebugServer(uint32_t options) {
         return this;
     }
 
-    _dispatch_source = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, dispatch_get_main_queue());
-    dispatch_set_context(_dispatch_source, this);
-    dispatch_source_set_event_handler_f(_dispatch_source, accept_handler);
-    dispatch_resume(_dispatch_source);
+    _dispatch_source =
+        util::objc_ptr(dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, _socket, 0, dispatch_get_main_queue()));
+    dispatch_set_context(_dispatch_source.get(), this);
+    dispatch_source_set_event_handler_f(_dispatch_source.get(), accept_handler);
+    dispatch_resume(_dispatch_source.get());
 
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &_ip_address, ip_str, sizeof(ip_str));
@@ -115,8 +116,8 @@ DebugServer::~DebugServer() { shutdown(); }
 
 void DebugServer::shutdown() {
     if (auto dispatch_source = _dispatch_source) {
-        dispatch_source_set_event_handler(dispatch_source, nullptr);
-        dispatch_set_context(dispatch_source, nullptr);
+        dispatch_source_set_event_handler(dispatch_source.get(), nullptr);
+        dispatch_set_context(dispatch_source.get(), nullptr);
         _dispatch_source = nullptr;
     }
     if (_socket >= 0) {

@@ -265,12 +265,12 @@ void AGSubgraphApply(AGSubgraphRef subgraph, AGAttributeFlags flags,
 
 #pragma mark - Tree
 
-uint32_t AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {
+AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {
     if (subgraph->subgraph == nullptr) {
         return 0; // TODO: nullptr
     }
 
-    return subgraph->subgraph->tree_root();
+    return AG::TreeElementID(subgraph->subgraph->tree_root()).to_storage();
 }
 
 void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {

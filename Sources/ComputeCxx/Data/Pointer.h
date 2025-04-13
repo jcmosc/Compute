@@ -50,7 +50,7 @@ template <typename T> class ptr {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);
     };
 
-    operator bool() const noexcept { return _offset != 0; };
+    explicit operator bool() const noexcept { return _offset != 0; };
     std::add_lvalue_reference_t<T> operator*() const noexcept { return *get(); };
     T *_Nonnull operator->() const noexcept { return get(); };
 
@@ -64,12 +64,16 @@ template <typename T> class ptr {
     bool operator>(difference_type offset) const noexcept { return _offset > offset; };
     bool operator>=(difference_type offset) const noexcept { return _offset >= offset; };
 
-    template <typename U> ptr<U> operator+(difference_type shift) const noexcept { return ptr(_offset + shift); };
-    template <typename U> ptr<U> operator-(difference_type shift) const noexcept { return ptr(_offset - shift); };
+    template <typename U> ptr<U> operator+(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
+    template <typename U> ptr<U> operator-(difference_type shift) const noexcept { return ptr<U>(_offset - shift); };
 
     template <typename U> difference_type operator-(const ptr<U> &other) const noexcept {
         return _offset - other._offset;
     };
+
+    template <typename U> ptr<U> advanced(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
+
+    template <typename U> ptr<U> unsafe_cast() const { return ptr<U>(_offset); }
 };
 
 } // namespace data

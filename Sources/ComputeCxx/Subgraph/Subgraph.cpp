@@ -633,7 +633,7 @@ void Subgraph::apply(Flags flags, ClosureFunctionAV<void, unsigned int> body) {
 
 void Subgraph::begin_tree(AttributeID value, const swift::metadata *type, uint32_t flags) {
 
-    data::ptr<Graph::TreeElement> tree = (data::ptr<Graph::TreeElement>)alloc_bytes(sizeof(Graph::TreeElement), 7);
+    data::ptr<Graph::TreeElement> tree = alloc_bytes(sizeof(Graph::TreeElement), 7).unsafe_cast<Graph::TreeElement>();
     tree->type = type;
     tree->node = value;
     tree->flags = flags;
@@ -672,7 +672,7 @@ void Subgraph::add_tree_value(AttributeID value, const swift::metadata *type, co
 
     auto key_id = graph()->intern_key(key);
 
-    data::ptr<Graph::TreeValue> tree_value = (data::ptr<Graph::TreeValue>)alloc_bytes(sizeof(Graph::TreeValue), 7);
+    data::ptr<Graph::TreeValue> tree_value = alloc_bytes(sizeof(Graph::TreeValue), 7).unsafe_cast<Graph::TreeValue>();
     tree_value->type = type;
     tree_value->value = value;
     tree_value->key_id = key_id;
@@ -723,7 +723,7 @@ data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::Tre
 
     // TODO: verify this is lower_bound
     auto iter = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
-                                 [](auto iter, auto value) -> bool { return iter.first.offset() < value; });
+                                 [](auto iter, auto value) -> bool { return iter.first.offset() < value.offset(); });
     if (iter == nodes.end()) {
         return;
     }
@@ -755,8 +755,8 @@ data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::Tre
     std::sort(subgraph_vector.begin(), subgraph_vector.end());
 
     // TODO: not sure what is happening here
-    uint32_t result = 0;
-    uint32_t last_old_parent = 0;
+    auto result = data::ptr<Graph::TreeElement>();
+    auto last_old_parent = data::ptr<Graph::TreeElement>();
     for (auto subgraph : subgraph_vector) {
         result = subgraph->_tree_root;
         subgraph->_tree_root->next_sibling = last_old_parent;
@@ -836,7 +836,7 @@ bool Subgraph::intersects(uint8_t mask) const { return ((_flags.value1 | _flags.
 uint64_t Subgraph::add_observer(ClosureFunctionVV<void> &&callback) {
     if (!_observers) {
         _observers =
-            (data::ptr<vector<Observer, 0, uint64_t> *>)alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7);
+            alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
         *_observers = new vector<Observer, 0, uint64_t>();
     }
 
@@ -875,7 +875,7 @@ void Subgraph::notify_observers() {
 data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata &metadata, void *body,
                                       ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure) {
     if (_cache == nullptr) {
-        _cache = (data::ptr<NodeCache>)alloc_bytes(sizeof(NodeCache), 7);
+        _cache = alloc_bytes(sizeof(NodeCache), 7).unsafe_cast<NodeCache>();
         new (&_cache) NodeCache();
     }
 
@@ -886,7 +886,7 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
             precondition_failure("cache key must be equatable: %s", metadata.name(false));
         }
 
-        type = (data::ptr<NodeCache::Type>)alloc_bytes(sizeof(NodeCache::Type), 7);
+        type = alloc_bytes(sizeof(NodeCache::Type), 7).unsafe_cast<NodeCache::Type>();
         type->type = &metadata;
         type->equatable = equatable;
         type->last_item = nullptr;

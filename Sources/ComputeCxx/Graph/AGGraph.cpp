@@ -184,7 +184,8 @@ AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const voi
     if (!current_subgraph) {
         AG::precondition_failure("no subgraph active while adding attribute");
     }
-    return current_subgraph->graph()->add_attribute(*current_subgraph, type_id, body, value);
+    auto attribute = current_subgraph->graph()->add_attribute(*current_subgraph, type_id, body, value);
+    return AG::AttributeID(attribute).to_storage();
 }
 
 AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
@@ -355,7 +356,7 @@ AGAttribute AGGraphGetCurrentAttribute() {
         if (auto update_stack = update.get()) {
             auto frame = update_stack->frames().back();
             if (frame.attribute) {
-                return frame.attribute;
+                return AG::AttributeID(frame.attribute).to_storage();
             }
         }
     }

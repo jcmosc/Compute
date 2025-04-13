@@ -4,6 +4,7 @@
 
 #include "Attribute/AGAttribute.h"
 #include "Graph/AGGraph.h"
+#include "Graph/Tree/AGTreeElement.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -117,7 +118,7 @@ void AGSubgraphApply(AGSubgraphRef subgraph, AGAttributeFlags flags,
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint32_t AGSubgraphGetTreeRoot(AGSubgraphRef subgraph);
+AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

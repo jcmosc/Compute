@@ -207,7 +207,7 @@ void table::dealloc_page_locked(ptr<page> page) {
     _num_used_pages -= num_pages;
 
     // convert the page address (starts at 512) to an index (starts at 0)
-    int32_t page_index = (page / page_size) - 1;
+    int32_t page_index = (page.offset() / page_size) - 1;
     for (int32_t i = 0; i != num_pages; i += 1) {
 
         int32_t next_page_index = page_index + i;
@@ -254,7 +254,7 @@ uint64_t table::raw_page_seed(ptr<page> page) {
 
     lock();
 
-    uint32_t page_index = (page / page_size) - 1;
+    uint32_t page_index = (page.offset() / page_size) - 1;
     uint32_t map_index = page_index / pages_per_map;
 
     uint64_t result = 0;

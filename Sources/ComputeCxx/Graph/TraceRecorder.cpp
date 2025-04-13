@@ -151,7 +151,7 @@ void Graph::TraceRecorder::encode_stack() {
 
             if (frame->attribute) {
                 _encoder.encode_varint(8);
-                _encoder.encode_varint(frame->attribute);
+                _encoder.encode_varint(frame->attribute.offset());
             }
             if (frame->needs_update) {
                 _encoder.encode_varint(0x10);
@@ -492,7 +492,7 @@ void Graph::TraceRecorder::begin_update(const Graph::UpdateStack &update_stack, 
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (options) {
         _encoder.encode_varint(0x20);
@@ -516,7 +516,7 @@ void Graph::TraceRecorder::end_update(const Graph::UpdateStack &update_stack, da
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (update_status == Graph::UpdateStatus::Changed) {
         _encoder.encode_varint(0x20);
@@ -539,7 +539,7 @@ void Graph::TraceRecorder::begin_update(data::ptr<Node> node) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
 
     _encoder.end_length_delimited();
@@ -558,7 +558,7 @@ void Graph::TraceRecorder::end_update(data::ptr<Node> node, bool changed) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (changed) {
         _encoder.encode_varint(0x20);
@@ -674,7 +674,7 @@ void Graph::TraceRecorder::begin_modify(data::ptr<Node> node) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
 
     _encoder.end_length_delimited();
@@ -715,7 +715,7 @@ void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event_id) 
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (event_id) {
         _encoder.encode_varint(0x20);
@@ -738,7 +738,7 @@ void Graph::TraceRecorder::end_event(data::ptr<Node> node, uint32_t event_id) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (event_id) {
         _encoder.encode_varint(0x20);
@@ -941,7 +941,7 @@ void Graph::TraceRecorder::added(data::ptr<Node> node) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     auto zone_id = AttributeID(node).subgraph()->info().zone_id();
     if (zone_id) {
@@ -971,7 +971,7 @@ void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, uin
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (input) {
         _encoder.encode_varint(0x20);
@@ -995,7 +995,7 @@ void Graph::TraceRecorder::remove_edge(data::ptr<Node> node, uint32_t input_inde
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     auto input_edge = node->inputs()[input_index];
     if (input_edge.value) {
@@ -1023,7 +1023,7 @@ void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node, uint32_t input
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     auto input_edge = node->inputs()[input_index];
     if (input_edge.value) {
@@ -1053,7 +1053,7 @@ void Graph::TraceRecorder::set_dirty(data::ptr<Node> node, bool dirty) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (dirty) {
         _encoder.encode_varint(0x20);
@@ -1078,7 +1078,7 @@ void Graph::TraceRecorder::set_pending(data::ptr<Node> node, bool pending) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
     if (pending) {
         _encoder.encode_varint(0x20);
@@ -1103,7 +1103,7 @@ void Graph::TraceRecorder::set_value(data::ptr<Node> node, const void *value) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
 
     _encoder.end_length_delimited();
@@ -1124,7 +1124,7 @@ void Graph::TraceRecorder::mark_value(data::ptr<Node> node) {
 
     if (node) {
         _encoder.encode_varint(0x18);
-        _encoder.encode_varint(node);
+        _encoder.encode_varint(node.offset());
     }
 
     _encoder.end_length_delimited();

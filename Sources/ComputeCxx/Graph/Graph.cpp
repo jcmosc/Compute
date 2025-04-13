@@ -481,9 +481,10 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
 
     data::ptr<Node> node;
     if (total_size > 0x10) {
-        node = (data::ptr<Node>)subgraph.alloc_bytes_recycle(uint32_t(total_size), uint32_t(alignment_mask | 3));
+        node = subgraph.alloc_bytes_recycle(uint32_t(total_size), uint32_t(alignment_mask | 3)).unsafe_cast<Node>();
     } else {
-        node = (data::ptr<Node>)subgraph.alloc_bytes(uint32_t(total_size), uint32_t(alignment_mask | 3));
+        node = (data::ptr<Node>)subgraph.alloc_bytes(uint32_t(total_size), uint32_t(alignment_mask | 3))
+                   .unsafe_cast<Node>();
     }
     bool main_thread = type.main_thread();
     *node = Node(Node::State().with_main_thread(main_thread).with_main_thread_only(main_thread), type_id,
@@ -767,7 +768,7 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
     }
 
     if (is_mutable) {
-        auto indirect_node = (data::ptr<MutableIndirectNode>)subgraph.alloc_bytes(sizeof(MutableIndirectNode), 3);
+        auto indirect_node = subgraph.alloc_bytes(sizeof(MutableIndirectNode), 3).unsafe_cast<MutableIndirectNode>();
 
         // TODO: check accessing zone_id directly or through raw_page_seed
         // check references of raw_page_seed in ghidra
@@ -778,10 +779,10 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
         *indirect_node = MutableIndirectNode(source, traverses_contexts, offset, node_size, source, offset);
 
         add_input_dependencies(AttributeID(indirect_node).with_kind(AttributeID::Kind::Indirect), attribute);
-        subgraph.add_indirect((data::ptr<IndirectNode>)indirect_node, true);
-        return (data::ptr<IndirectNode>)indirect_node;
+        subgraph.add_indirect(indirect_node.unsafe_cast<IndirectNode>(), true);
+        return indirect_node.unsafe_cast<IndirectNode>();
     } else {
-        auto indirect_node = (data::ptr<IndirectNode>)subgraph.alloc_bytes_recycle(sizeof(Node), 3);
+        auto indirect_node = subgraph.alloc_bytes_recycle(sizeof(Node), 3).unsafe_cast<IndirectNode>();
 
         uint32_t zone_id = attribute.has_value() ? attribute.subgraph()->info().zone_id() : 0;
         auto source = WeakAttributeID(attribute, zone_id);
@@ -1447,7 +1448,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
         }
         precondition_failure("reading from invalid source attribute: %u", input);
     }
-    if (resolved.attribute() == node) {
+    if (resolved.attribute() == AttributeID(node)) {
         precondition_failure("cyclic edge: %u -> %u", resolved.attribute(), node);
     }
 
@@ -1782,7 +1783,7 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
             return;
         }
         for (auto input : output.value.to_node().inputs()) {
-            if (input.value.resolve(TraversalOptions::None).attribute() != node) {
+            if (input.value.resolve(TraversalOptions::None).attribute() != AttributeID(node)) {
                 continue;
             }
             if (input.is_changed()) {
@@ -2145,7 +2146,7 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
                 }
                 if (node->second) {
                     encoder.encode_varint(0x30);
-                    encoder.encode_varint(node->second);
+                    encoder.encode_varint(node->second.offset());
                 }
             }
         }

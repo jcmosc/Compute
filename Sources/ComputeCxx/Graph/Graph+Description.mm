@@ -127,7 +127,7 @@ void Graph::print_cycle(data::ptr<Node> node) {
                 collect_stack(nodes);
                 NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
                 for (auto node : nodes) {
-                    [indexSet addIndex:node];
+                    [indexSet addIndex:node.offset()];
                 }
 
                 NSMutableDictionary *dict = [NSMutableDictionary
@@ -966,7 +966,7 @@ CFArrayRef Graph::description_stack_nodes(CFDictionaryRef options) {
         auto frames = update.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
 
-            [nodes addObject:[NSNumber numberWithUnsignedInt:frame->attribute]];
+            [nodes addObject:[NSNumber numberWithUnsignedInt:frame->attribute.offset()]];
 
             frame_count += 1;
             if (frame_count >= max_frames) {
@@ -995,7 +995,7 @@ CFDictionaryRef Graph::description_stack_frame(CFDictionaryRef options) {
             if (i == frame_index || frame.attribute == frame_node) {
 
                 dictionary[@"index"] = [NSNumber numberWithUnsignedLong:i];
-                dictionary[@"node-id"] = [NSNumber numberWithUnsignedInt:frame.attribute];
+                dictionary[@"node-id"] = [NSNumber numberWithUnsignedInt:frame.attribute.offset()];
 
                 const AttributeType &type = attribute_type(frame.attribute->type_id());
                 AGSetTypeForKey((__bridge CFMutableDictionaryRef)dictionary, (__bridge CFStringRef) @"self-type",

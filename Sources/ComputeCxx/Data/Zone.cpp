@@ -27,7 +27,7 @@ void zone::clear() {
 void zone::realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask) {
     if (new_size > size && *buffer) {
         auto page = buffer->page_ptr();
-        uint32_t buffer_offset_from_page = buffer->offset() - page;
+        uint32_t buffer_offset_from_page = buffer->offset() - page.offset();
         if ((page->in_use == buffer_offset_from_page + size && page->total >= buffer_offset_from_page + new_size)) {
             page->in_use += new_size - size;
         } else {
@@ -46,6 +46,19 @@ void zone::realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, ui
             *buffer = new_buffer;
         }
     }
+}
+
+ptr<void> zone::alloc_bytes(uint32_t size, uint32_t alignment_mask) {
+    if (_first_page) {
+        uint32_t aligned_in_use = (_first_page->in_use + alignment_mask) & ~alignment_mask;
+        uint32_t new_used_size = aligned_in_use + size;
+        if (new_used_size <= _first_page->total) {
+            _first_page->in_use = new_used_size;
+            return _first_page.advanced<void>(aligned_in_use);
+        }
+    }
+
+    return alloc_slow(size, alignment_mask);
 }
 
 ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
@@ -67,8 +80,8 @@ ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
         }
 
         // check if there will be some bytes remaining within the same page
-        ptr<void> end = aligned_bytes + size;
-        if ((uint32_t(aligned_bytes) ^ uint32_t(end)) <= page_alignment_mask) {
+        auto end = aligned_bytes.advanced<void>(size);
+        if ((aligned_bytes.offset() ^ end.offset()) <= page_alignment_mask) {
             ptr<bytes_info> aligned_end = end.aligned<bytes_info>();
             uint32_t remaining_size = usable_size - size + (end - aligned_end);
             if (remaining_size >= sizeof(bytes_info)) {
@@ -85,24 +98,11 @@ ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
     return alloc_bytes(size, alignment_mask);
 }
 
-ptr<void> zone::alloc_bytes(uint32_t size, uint32_t alignment_mask) {
-    if (_first_page) {
-        uint32_t aligned_in_use = (_first_page->in_use + alignment_mask) & ~alignment_mask;
-        uint32_t new_used_size = aligned_in_use + size;
-        if (new_used_size <= _first_page->total) {
-            _first_page->in_use = new_used_size;
-            return _first_page + aligned_in_use;
-        }
-    }
-
-    return alloc_slow(size, alignment_mask);
-}
-
 ptr<void> zone::alloc_slow(uint32_t size, uint32_t alignment_mask) {
     if (_first_page) {
 
         // check if we can use remaining bytes in this page
-        ptr<void> next_bytes = _first_page + _first_page->in_use;
+        ptr<void> next_bytes = _first_page.advanced<void>(_first_page->in_use);
         if (next_bytes.page_ptr() == _first_page) {
 
             ptr<bytes_info> aligned_next_bytes = next_bytes.aligned<bytes_info>();
@@ -145,7 +145,7 @@ ptr<void> zone::alloc_slow(uint32_t size, uint32_t alignment_mask) {
     }
 
     new_page->in_use = aligned_used_bytes + size;
-    return new_page + aligned_used_bytes;
+    return new_page.advanced<void>(aligned_used_bytes);
 };
 
 #pragma mark - Persistent memory

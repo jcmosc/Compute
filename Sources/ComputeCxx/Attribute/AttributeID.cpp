@@ -14,7 +14,7 @@ namespace AG {
 AttributeID AttributeIDNil = AttributeID::from_storage(2);
 
 RelativeAttributeID AttributeID::to_relative() const {
-    return RelativeAttributeID(((_value & ~KindMask) - page_ptr()) | kind());
+    return RelativeAttributeID(((_value & ~KindMask) - page_ptr().offset()) | kind());
 }
 
 std::optional<size_t> AttributeID::size() const {

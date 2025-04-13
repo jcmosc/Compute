@@ -64,9 +64,9 @@ class AttributeID {
     };
 
     explicit constexpr AttributeID() : _value(0) {};
-    explicit AttributeID(data::ptr<Node> node) : _value(node | Kind::Direct) {};
-    explicit AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect) {};
-    explicit AttributeID(data::ptr<MutableIndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect) {};
+    explicit AttributeID(data::ptr<Node> node) : _value(node.offset() | Kind::Direct) {};
+    explicit AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node.offset() | Kind::Indirect) {};
+    explicit AttributeID(data::ptr<MutableIndirectNode> indirect_node) : _value(indirect_node.offset() | Kind::Indirect) {};
 
     constexpr uint32_t to_storage() const { return _value; }
     static constexpr AttributeID from_storage(uint32_t value) { return AttributeID(value); }
@@ -154,7 +154,7 @@ class RelativeAttributeID {
     bool operator==(const RelativeAttributeID &other) const { return _value == other._value; }
     bool operator!=(const RelativeAttributeID &other) const { return _value != other._value; }
 
-    AttributeID resolve(data::ptr<data::page> page_ptr) { return AttributeID(page_ptr + _value); }
+    AttributeID resolve(data::ptr<data::page> page_ptr) { return AttributeID(page_ptr.offset() + _value); }
 };
 
 extern AttributeID AttributeIDNil;

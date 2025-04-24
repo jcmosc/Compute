@@ -106,7 +106,7 @@ AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute);
+AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.info(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

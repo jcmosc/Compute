@@ -29,8 +29,7 @@ extension AnyAttribute {
     }
 
     public func visitBody<Visitor: AttributeBodyVisitor>(_ visitor: inout Visitor) {
-        let info = __AGGraphGetAttributeInfo(self)
-        let type = info.type.pointee.body_type_id.type as! _AttributeBody.Type
+        let type = info.type.pointee.typeID.type as! _AttributeBody.Type
         type._visitSelf(info.body, visitor: &visitor)
     }
 
@@ -94,18 +93,15 @@ extension AnyAttribute {
     }
 
     public var _bodyType: Any.Type {
-        let info = __AGGraphGetAttributeInfo(self)
-        return info.type.pointee.body_type_id.type
+        return info.type.pointee.typeID.type
     }
 
     public var _bodyPointer: UnsafeRawPointer {
-        let info = __AGGraphGetAttributeInfo(self)
         return info.body
     }
 
     public var valueType: Any.Type {
-        let info = __AGGraphGetAttributeInfo(self)
-        return info.type.pointee.value_type_id.type
+        return info.type.pointee.valueTypeID.type
     }
 
 }

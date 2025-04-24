@@ -1,6 +1,7 @@
 #include "ProfileData.h"
 
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
+
 #include <mach/mach_time.h>
 
 #include "Graph/Graph.h"

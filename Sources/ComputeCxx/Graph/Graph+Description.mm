@@ -1,6 +1,7 @@
 #include "Graph.h"
 
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
+
 #include <iostream>
 
 #include "AGGraph.h"

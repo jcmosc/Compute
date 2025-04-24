@@ -1,6 +1,6 @@
 #include "AGAppObserver.h"
 
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
 
 #include "Graph/Graph.h"
 

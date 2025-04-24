@@ -1,6 +1,7 @@
 #include "DebugServer.h"
 
-#include <Foundation/Foundation.h>
+#import <Foundation/Foundation.h>
+
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>

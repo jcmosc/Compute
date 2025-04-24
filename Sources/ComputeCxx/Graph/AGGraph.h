@@ -110,11 +110,11 @@ AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttributeFlags AGGraphGetFlags(AGAttribute attribute);
+AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.flags(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags);
+void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) CF_SWIFT_NAME(setter:AGAttribute.flags(self:_:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

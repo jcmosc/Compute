@@ -71,19 +71,8 @@ extension AnyAttribute {
         }
     }
 
-    public var flags: AGAttributeFlags {
-        get {
-            return __AGGraphGetFlags(self)
-        }
-        set {
-            __AGGraphSetFlags(self, newValue)
-        }
-    }
-
     public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
-        let oldFlags = __AGGraphGetFlags(self)
-        let newFlags = oldFlags.subtracting(mask).union(newFlags.intersection(mask))
-        __AGGraphSetFlags(self, newFlags)
+        flags = flags.subtracting(mask).union(newFlags.intersection(mask))
     }
 
     public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {

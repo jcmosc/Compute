@@ -214,7 +214,7 @@ void indirect_pointer_vector<T, size_type>::resize(size_type count) {
     }
     if (count == 1) {
         if (_data == 0) {
-            _data = NullElement;
+            _data = NullElement; // How does this affect size,empty and capacity?
         }
         return;
     }

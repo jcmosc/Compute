@@ -52,7 +52,10 @@ template <typename T> class ptr {
 
     explicit operator bool() const noexcept { return _offset != 0; };
     std::add_lvalue_reference_t<T> operator*() const noexcept { return *get(); };
-    T *_Nonnull operator->() const noexcept { return get(); };
+    T *_Nonnull operator->() const noexcept {
+        assert(_offset != 0);
+        return get();
+    };
 
     bool operator==(const ptr<T> &other) const noexcept { return _offset == other._offset; };
     bool operator!=(const ptr<T> &other) const noexcept { return _offset != other._offset; };

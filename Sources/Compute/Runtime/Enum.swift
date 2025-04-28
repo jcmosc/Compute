@@ -1,45 +1,33 @@
 import ComputeCxx
 
-struct AGTypeApplyEnumDataThunk {
-    let body: (Int, Any.Type, UnsafeRawPointer) -> Void
-}
+@_extern(c, "AGTypeApplyEnumData")
+func applyEnumData(
+    type: Metadata,
+    value: UnsafeRawPointer,
+    body: (Int, Metadata, UnsafeRawPointer) -> Void
+) -> Bool
 
 public func withUnsafePointerToEnumCase<Value>(
     of enumValue: UnsafeMutablePointer<Value>,
     do body: (Int, Any.Type, UnsafeRawPointer) -> Void
 ) -> Bool {
-    return withoutActuallyEscaping(body) { escapingBody in
-        return withUnsafePointer(to: AGTypeApplyEnumDataThunk(body: escapingBody)) { thunkPointer in
-            return __AGTypeApplyEnumData(
-                Metadata(Value.self),
-                enumValue,
-                {
-                    $0.assumingMemoryBound(to: AGTypeApplyEnumDataThunk.self).pointee.body(Int($1), $2.type, $3)
-                },
-                thunkPointer
-            )
-        }
+    return applyEnumData(type: Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
+        body(tag, fieldType.type, fieldValue)
     }
 }
 
-struct AGTypeApplyMutableEnumDatThunk {
-    let body: (Int, Any.Type, UnsafeMutableRawPointer) -> Void
-}
+@_extern(c, "AGTypeApplyMutableEnumData")
+func applyMutableEnumData(
+    type: Metadata,
+    value: UnsafeRawPointer,
+    body: (Int, Metadata, UnsafeMutableRawPointer) -> Void
+) -> Bool
 
 public func withUnsafeMutablePointerToEnumCase<Value>(
     of enumValue: UnsafeMutablePointer<Value>,
     do body: (Int, Any.Type, UnsafeMutableRawPointer) -> Void
 ) -> Bool {
-    return withoutActuallyEscaping(body) { escapingBody in
-        return withUnsafePointer(to: AGTypeApplyMutableEnumDatThunk(body: escapingBody)) { thunkPointer in
-            return __AGTypeApplyMutableEnumData(
-                Metadata(Value.self),
-                enumValue,
-                {
-                    $0.assumingMemoryBound(to: AGTypeApplyMutableEnumDatThunk.self).pointee.body(Int($1), $2.type, $3)
-                },
-                thunkPointer
-            )
-        }
+    return applyMutableEnumData(type: Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
+        body(tag, fieldType.type, fieldValue)
     }
 }

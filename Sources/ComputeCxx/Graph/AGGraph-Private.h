@@ -8,12 +8,12 @@
 
 CF_ASSUME_NONNULL_BEGIN
 
-struct AGUnownedGraphContext {
-    AG::Graph *graph;
-};
-
 struct AGGraphStorage {
     CFRuntimeBase base;
+    AG::Graph::Context context;
+};
+
+struct AGGraphContextStorage {
     AG::Graph::Context context;
 };
 

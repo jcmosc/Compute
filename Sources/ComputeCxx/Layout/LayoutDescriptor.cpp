@@ -120,13 +120,14 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, LayoutDescri
         if (result) {
             return atoi(result) != 0;
         }
-        return false;
+        return true;
     }();
 
     if (options.fetch_layouts_synchronously() || !async_layouts) {
         // insert layout synchronously
         double start_time = current_time();
         layout = LayoutDescriptor::make_layout(type, comparison_mode, heap_mode);
+        assert(layout);
         double end_time = current_time();
 
         if (comparison_mode < 0) {

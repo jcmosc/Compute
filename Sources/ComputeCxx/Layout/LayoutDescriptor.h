@@ -14,7 +14,7 @@ class context_descriptor;
 } // namespace swift
 
 /// A string that encodes an object's layout in memory.
-using ValueLayout = const unsigned char *_Nullable;
+using ValueLayout = const unsigned char *;
 
 extern const ValueLayout ValueLayoutEmpty;
 

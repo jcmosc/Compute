@@ -49,13 +49,12 @@ AGTreeElementNodeIterator AGTreeElementMakeNodeIterator(AGTreeElement tree_eleme
 
 AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter) {
     auto tree_element_id = AG::TreeElementID::from_storage(iter->tree_element);
-    AG::AttributeID node =
-        tree_element_id.subgraph()->tree_node_at_index(tree_element_id.to_ptr(), iter->index);
+    AG::AttributeID node = tree_element_id.subgraph()->tree_node_at_index(tree_element_id.to_ptr(), iter->index);
     if (!node.has_value()) {
         return AGAttributeNil;
     }
     iter->index += 1;
-    return node;
+    return AGAttribute(node);
 }
 
 #pragma mark - Iterating children
@@ -69,7 +68,8 @@ AGTreeElementChildIterator AGTreeElementMakeChildIterator(AGTreeElement tree_ele
 AGTreeElement AGTreeElementGetNextChild(AGTreeElementChildIterator *iter) {
     AGTreeElement next_child = iter->next_child;
     if (next_child) {
-        iter->next_child = AG::TreeElementID(AG::TreeElementID::from_storage(next_child).to_ptr()->next_sibling).to_storage();
+        iter->next_child =
+            AG::TreeElementID(AG::TreeElementID::from_storage(next_child).to_ptr()->next_sibling).to_storage();
         return next_child;
     }
 

@@ -16,7 +16,7 @@ AGAttribute AGTreeValueGetValue(AGTreeValue tree_value) {
 
 const char *AGTreeValueGetKey(AGTreeValue tree_value) {
     auto tree_value_id = AG::TreeValueID::from_storage(tree_value);
-    auto key_id = tree_value_id.to_tree_value().value;
+    auto key_id = tree_value_id.to_tree_value().key_id;
     return tree_value_id.subgraph()->graph()->key_name(key_id);
 }
 

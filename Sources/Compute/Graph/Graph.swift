@@ -1,44 +1,64 @@
 import ComputeCxx
 
-struct AGGraphSetUpdateCallbackThunk {
-    let body: () -> Void
-}
+extension Graph {
 
-struct AGGraphSetInvalidationCallbackThunk {
-    let body: (AnyAttribute) -> Void
-}
+    @_extern(c, "AGGraphWithUpdate")
+    static func withUpdate(attribute: AnyAttribute, body: () -> Void)
 
-struct AGGraphWithMainThreadHandlerThunk {
-    let body: () -> Void
-}
-
-struct MainThreadHandlerThunk {
-    let body: ((UnsafeRawPointer) -> Void, UnsafeRawPointer) -> Void
 }
 
 extension Graph {
 
+    @_extern(c, "AGGraphSearch")
+    static func search(attribute: AnyAttribute, options: AGSearchOptions, predicate: (AnyAttribute) -> Bool) -> Bool
+
+}
+
+extension Graph {
+
+    @_extern(c, "AGGraphMutateAttribute")
+    static func mutateAttribute(
+        _ attribute: AnyAttribute,
+        type: Metadata,
+        invalidating: Bool,
+        body: (UnsafeMutableRawPointer) -> Void
+    )
+
+}
+
+extension Graph {
+
+    @_extern(c, "AGGraphSetUpdateCallback")
+    private static func setUpdateCallback(_ graph: UnsafeRawPointer, callback: (() -> Void)?)
+
+    public static func setUpdateCallback(_ graph: Graph, callback: (() -> Void)?) {
+        withUnsafePointer(to: self) { selfPointer in
+            Graph.setUpdateCallback(selfPointer, callback: callback)
+        }
+    }
+
     public func onUpdate(_ handler: @escaping () -> Void) {
-        withUnsafePointer(to: AGGraphSetUpdateCallbackThunk(body: handler)) { thunkPointer in
-            __AGGraphSetUpdateCallback(
-                self,
-                {
-                    $0.assumingMemoryBound(to: AGGraphSetUpdateCallbackThunk.self).pointee.body()
-                },
-                thunkPointer
-            )
+        withUnsafePointer(to: self) { graphPointer in
+            Graph.setUpdateCallback(graphPointer, callback: handler)
+        }
+    }
+
+}
+
+extension Graph {
+
+    @_extern(c, "AGGraphSetInvalidationCallback")
+    private static func setInvalidationCallback(_ graph: UnsafeRawPointer, callback: ((AnyAttribute) -> Void)?)
+
+    public static func setInvalidationCallback(_ graph: Graph, callback: ((AnyAttribute) -> Void)?) {
+        withUnsafePointer(to: self) { selfPointer in
+            Graph.setInvalidationCallback(selfPointer, callback: callback)
         }
     }
 
     public func onInvalidation(_ handler: @escaping (AnyAttribute) -> Void) {
-        withUnsafePointer(to: AGGraphSetInvalidationCallbackThunk(body: handler)) { thunkPointer in
-            __AGGraphSetInvalidationCallback(
-                self,
-                {
-                    $0.assumingMemoryBound(to: AGGraphSetInvalidationCallbackThunk.self).pointee.body($1)
-                },
-                thunkPointer
-            )
+        withUnsafePointer(to: self) { graphPointer in
+            Graph.setInvalidationCallback(graphPointer, callback: handler)
         }
     }
 
@@ -64,32 +84,19 @@ extension Graph {
         return result
     }
 
+    @_extern(c, "AGGraphWithMainThreadHandler")
+    private static func withMainThreadHandler(
+        _ graph: UnsafeRawPointer,
+        body: () -> Void,
+        mainThreadHandler: (() -> Void) -> Void
+    )
+
     public func withMainThreadHandler(
-        // TODO: does this need to be escaping?
-        _ mainThreadHandler: @escaping (() -> Void) -> Void,
+        _ mainThreadHandler: (() -> Void) -> Void,
         do body: () -> Void
     ) {
-        withoutActuallyEscaping(body) { escapingBody in
-            withUnsafePointer(to: AGGraphWithMainThreadHandlerThunk(body: escapingBody)) { thunkPointer in
-                let mainThreadHandlerThunk = MainThreadHandlerThunk(body: { handler, context in
-                    mainThreadHandler({
-                        handler(context)
-                    })
-                })
-                withUnsafePointer(to: mainThreadHandlerThunk) { mainThreadHandlerThunkPointer in
-                    __AGGraphWithMainThreadHandler(
-                        self,
-                        {
-                            $0.assumingMemoryBound(to: AGGraphWithMainThreadHandlerThunk.self).pointee.body()
-                        },
-                        thunkPointer,
-                        {
-                            $0.assumingMemoryBound(to: MainThreadHandlerThunk.self).pointee.body($1, $2)
-                        },
-                        mainThreadHandlerThunkPointer
-                    )
-                }
-            }
+        withUnsafePointer(to: self) { selfPointer in
+            Graph.withMainThreadHandler(selfPointer, body: body, mainThreadHandler: mainThreadHandler)
         }
     }
 
@@ -132,18 +139,24 @@ extension Graph {
 
 extension Graph {
 
+    public var mainUpdates: Int { numericCast(counter(for: .mainThreadUpdateCount)) }
+
+}
+
+extension Graph {
+
     public func print(includeValues: Bool) {
         Swift.print(graphvizDescription(includeValues: includeValues))
     }
 
-    public func archiveJSON(name: String?) {
+    public static func archiveJSON(name: String?) {
         __AGGraphArchiveJSON(name?.cString(using: .utf8))
     }
 
     public func graphvizDescription(includeValues: Bool) -> String {
-        let result = __AGGraphDescription(
+        let result = Graph.description(
             self,
-            [AGDescriptionFormat: "graph/dot", AGDescriptionIncludeValues: includeValues] as CFDictionary
+            options: [AGDescriptionFormat: "graph/dot", AGDescriptionIncludeValues: includeValues] as CFDictionary
         ).takeUnretainedValue()
         guard let description = result as? String else {
             preconditionFailure()
@@ -156,9 +169,9 @@ extension Graph {
     }
 
     public static func stackDescription(maxFrames: Int) -> String {
-        let result = __AGGraphDescription(
+        let result = Graph.description(
             nil,
-            [AGDescriptionFormat: "stack/text", AGDescriptionMaxFrames: maxFrames] as CFDictionary
+            options: [AGDescriptionFormat: "stack/text", AGDescriptionMaxFrames: maxFrames] as CFDictionary
         ).takeUnretainedValue()
         guard let description = result as? String else {
             preconditionFailure()
@@ -171,7 +184,7 @@ extension Graph {
 extension Graph: @retroactive Equatable {
 
     public static func == (_ lhs: Graph, _ rhs: Graph) -> Bool {
-        return __AGGraphGetCounter(lhs, .graphID) == __AGGraphGetCounter(rhs, .graphID)
+        return lhs.counter(for: .graphID) == rhs.counter(for: .graphID)
     }
 
 }

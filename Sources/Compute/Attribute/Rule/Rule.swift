@@ -54,8 +54,20 @@ extension Rule {
 
 }
 
-struct AGGraphReadCachedAttributeThunk {
-    let body: (AGUnownedGraphContextRef) -> UInt32
+extension Graph {
+
+    @_extern(c, "AGGraphReadCachedAttribute")
+    static func readCachedAttribute(
+        identifier: UInt64,
+        type: Metadata,
+        body: UnsafeMutableRawPointer,
+        valueType: Metadata,
+        options: AGCachedValueOptions,
+        attribute: AnyAttribute,
+        changed: UnsafeMutablePointer<Bool>?,
+        internAttributeType: (AGUnownedGraphRef) -> UInt32
+    )
+        -> UnsafeRawPointer
 }
 
 extension Rule where Self: Hashable {
@@ -94,38 +106,33 @@ extension Rule where Self: Hashable {
         bodyPtr: UnsafeRawPointer,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafePointer<Value> {
-
-        let result = withUnsafePointer(to: self) { selfPointer in
-            return withoutActuallyEscaping(update) { escapingUpdate in
-                let thunk = AGGraphReadCachedAttributeThunk { graphContextRef in
-                    let graph = __AGGraphContextGetGraph(graphContextRef)
-                    return graph.takeUnretainedValue().internAttributeType(
+        return withUnsafePointer(to: self) { selfPointer in
+            let result = Graph.readCachedAttribute(
+                identifier: UInt64(hashValue),
+                type: Metadata(Self.self),
+                body: UnsafeMutablePointer(mutating: selfPointer),
+                valueType: Metadata(Value.self),
+                options: options,
+                attribute: owner ?? .nil,
+                changed: nil
+            ) { graphContext in
+                return graphContext.internAttributeType(
+                    type: Metadata(Self.self)
+                ) {
+                    let attributeType = AGAttributeType(
                         selfType: Self.self,
                         bodyType: Self.self,
                         valueType: Value.self,
-                        flags: [],
-                        update: escapingUpdate
+                        flags: [],  // TODO: check flags are empty
+                        update: update()
                     )
-                }
-                return withUnsafePointer(to: thunk) { thunkPointer in
-                    return __AGGraphReadCachedAttribute(
-                        UInt64(hashValue),  // TODO: bitPattern?
-                        Metadata(Self.self),
-                        UnsafeMutablePointer(mutating: selfPointer),
-                        Metadata(Value.self),
-                        options,
-                        owner ?? .nil,
-                        nil,
-                        {
-                            return $0.assumingMemoryBound(to: AGGraphReadCachedAttributeThunk.self).pointee.body($1)
-                        },
-                        thunkPointer
-                    )
+                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
+                    pointer.initialize(to: attributeType)
+                    return UnsafeRawPointer(pointer)
                 }
             }
+            return result.assumingMemoryBound(to: Value.self)
         }
-        let pointer = result.assumingMemoryBound(to: Value.self)
-        return UnsafePointer(pointer)
     }
 
 }

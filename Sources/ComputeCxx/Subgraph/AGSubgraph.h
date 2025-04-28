@@ -18,11 +18,12 @@ CFTypeID AGSubgraphGetTypeID();
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphCreate(AGGraphRef graph);
+AGSubgraphRef AGSubgraphCreate(AGGraphRef graph) CF_SWIFT_NAME(AGSubgraphRef.init(graph:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute);
+AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute)
+    CF_SWIFT_NAME(AGSubgraphRef.init(graph:attribute:));
 
 // MARK: Current subgraph
 
@@ -38,11 +39,12 @@ void AGSubgraphSetCurrent(AGSubgraphRef _Nullable subgraph) CF_SWIFT_NAME(setter
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.graph(self:));
+AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext()
+    CF_SWIFT_NAME(getter:AGSubgraphRef.currentGraphContext());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGUnownedGraphContextRef AGSubgraphGetCurrentGraphContext(AGSubgraphRef subgraph);
+AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.graph(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -138,11 +140,11 @@ void AGSubgraphEndTreeElement(AGAttribute value);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGSubgraphShouldRecordTree();
+bool AGSubgraphShouldRecordTree() CF_SWIFT_NAME(getter:AGSubgraphRef.shouldRecordTree());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphSetShouldRecordTree();
+void AGSubgraphSetShouldRecordTree() CF_SWIFT_NAME(AGSubgraphRef.setShouldRecordTree());
 
 // MARK: Observers
 

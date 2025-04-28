@@ -16,8 +16,12 @@ typedef uint32_t AGAttribute AG_SWIFT_STRUCT AG_SWIFT_NAME(AnyAttribute);
 CF_EXPORT
 const AGAttribute AGAttributeNil;
 
+// TODO: validate where these come from
 typedef CF_OPTIONS(uint8_t, AGAttributeFlags) {
-    AGAttributeFlagsNone = 0,
+    AGAttributeFlagsDefault = 0,
+    AGAttributeFlagsActive = 1 << 0,
+    AGAttributeFlagsRemovable = 1 << 1,
+    AGAttributeFlagsInvalidatable = 1 << 2,
 };
 
 typedef CF_OPTIONS(uint32_t, AGAttributeTypeFlags) {
@@ -36,11 +40,17 @@ typedef struct AGAttributeVTable {
     void *callback5;
 } AGAttributeVTable;
 
+struct AGClosureStorage2 {
+    void *a;
+    void *b;
+};
+
 typedef struct AGAttributeType {
-    AGTypeID body_type_id;
-    AGTypeID value_type_id;
-    void (*update_function)(const void *, void *, AGAttribute);
-    const void *_Nullable update_function_context;
+    AGTypeID typeID;
+    AGTypeID valueTypeID;
+
+    AGClosureStorage2 update_function;
+
     AGAttributeVTable *_Nullable callbacks;
     AGAttributeTypeFlags flags;
 

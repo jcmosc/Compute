@@ -8,11 +8,11 @@ extension AGComparisonOptions {
 
 }
 
-func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: AGComparisonMode) -> Bool {
+public func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: AGComparisonMode = [._1, ._2]) -> Bool {
     return compareValues(lhs, rhs, options: AGComparisonOptions(mode: mode))
 }
 
-func compareValues<Value>(_ lhs: Value, _ rhs: Value, options: AGComparisonOptions) -> Bool {
+public func compareValues<Value>(_ lhs: Value, _ rhs: Value, options: AGComparisonOptions) -> Bool {
     return withUnsafePointer(to: lhs) { lhsPointer in
         return withUnsafePointer(to: rhs) { rhsPointer in
             return __AGCompareValues(lhsPointer, rhsPointer, Metadata(Value.self), options.union(.copyOnWrite))
@@ -20,3 +20,5 @@ func compareValues<Value>(_ lhs: Value, _ rhs: Value, options: AGComparisonOptio
     }
 
 }
+
+

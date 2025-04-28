@@ -1,21 +1,5 @@
-struct AGTupleWithBufferThunk {
-    let body: (UnsafeMutableTuple) -> Void
-}
-
-public func withUnsafeTuple(of type: TupleType, count: Int, _ body: (UnsafeMutableTuple) -> Void) {
-    withoutActuallyEscaping(body) { escapingBody in
-        withUnsafePointer(to: AGTupleWithBufferThunk(body: escapingBody)) { thunkPointer in
-            __AGTupleWithBuffer(
-                type,
-                count,
-                {
-                    $0.assumingMemoryBound(to: AGTupleWithBufferThunk.self).pointee.body($1)
-                },
-                thunkPointer
-            )
-        }
-    }
-}
+@_extern(c, "AGTupleWithBuffer")
+public func withUnsafeTuple(of type: TupleType, count: Int, _ body: (UnsafeMutableTuple) -> Void)
 
 extension TupleType {
 
@@ -24,7 +8,7 @@ extension TupleType {
     }
 
     public init(_ type: Any.Type) {
-        self.init(rawValue: OpaquePointer.init(unsafeBitCast(type, to: UnsafePointer<Metadata>.self)))
+        self.init(rawValue: unsafeBitCast(type, to: OpaquePointer.self))
     }
 
     public var type: Any.Type {

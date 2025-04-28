@@ -179,10 +179,10 @@ class Subgraph : public data::zone {
     // flags 1 and 3 are the values themselvs
     // flags 3 and 4 are the dirty subset of 1 and 2
 
-    void set_flags(data::ptr<Node> node, AttributeFlags flags);
+    void set_flags(data::ptr<Node> node, AGAttributeFlags flags);
 
-    void add_flags(AttributeFlags flags);
-    void add_dirty_flags(AttributeFlags dirty_flags);
+    void add_flags(AGAttributeFlags flags);
+    void add_dirty_flags(AGAttributeFlags dirty_flags);
 
     void propagate_flags();
     void propagate_dirty_flags();
@@ -203,9 +203,8 @@ class Subgraph : public data::zone {
 
     // MARK: Cache
 
-    // FIXME: not AGUnownedGraphContextRef
     data::ptr<Node> cache_fetch(uint64_t identifier, const swift::metadata &type, void *body,
-                                ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure);
+                                ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure);
     void cache_insert(data::ptr<Node> node);
     void cache_collect();
 

@@ -1,0 +1,64 @@
+{
+  "configurations" : [
+    {
+      "id" : "EF776845-F06A-498A-A7EE-EA72E31616F9",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "environmentVariableEntries" : [
+      {
+        "key" : "AG_PREFETCH_LAYOUTS",
+        "value" : "1"
+      },
+      {
+        "key" : "AG_ASYNC_LAYOUTS",
+        "value" : "0"
+      }
+    ]
+  },
+  "testTargets" : [
+    {
+      "skippedTests" : {
+        "suites" : [
+          {
+            "name" : "MetadataTests",
+            "testFunctions" : [
+              "description(of:equals:)"
+            ]
+          }
+        ]
+      },
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "ComputeTests",
+        "name" : "ComputeTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "UtilitiesTests",
+        "name" : "UtilitiesTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "ComputeCxxTests",
+        "name" : "ComputeCxxTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "ComputeCompatibilityTests",
+        "name" : "ComputeCompatibilityTests"
+      }
+    }
+  ],
+  "version" : 1
+}

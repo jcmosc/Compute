@@ -35,7 +35,7 @@ void ExternalTrace::end_update(const AG::Subgraph &subgraph) {
 void ExternalTrace::begin_update(const AG::Graph::UpdateStack &update_stack, AG::data::ptr<AG::Node> node,
                                  uint32_t options) {
     if (auto callback = _interface->begin_update_stack) {
-        callback(_trace, AG::AttributeID(node).to_storage());
+        callback(_trace, AGAttribute(AG::AttributeID(node)));
     }
 }
 
@@ -75,14 +75,14 @@ void ExternalTrace::end_update(const AG::Graph::Context &context) {
 void ExternalTrace::begin_invalidation(const AG::Graph::Context &context, AG::AttributeID attribute) {
     auto cf_context = context.to_cf();
     if (auto callback = _interface->begin_invalidation) {
-        callback(_trace, cf_context, attribute);
+        callback(_trace, cf_context, AGAttribute(attribute));
     }
 }
 
 void ExternalTrace::end_invalidation(const AG::Graph::Context &context, AG::AttributeID attribute) {
     auto cf_context = context.to_cf();
     if (auto callback = _interface->end_invalidation) {
-        callback(_trace, cf_context, attribute);
+        callback(_trace, cf_context, AGAttribute(attribute));
     }
 }
 
@@ -102,7 +102,7 @@ void ExternalTrace::begin_event(AG::data::ptr<AG::Node> node, uint32_t event_id)
     if (auto callback = _interface->begin_event) {
         if (auto subgraph = AG::AttributeID(node).subgraph()) {
             const char *event_name = subgraph->graph()->key_name(event_id);
-            callback(_trace, AG::AttributeID(node).to_storage(), event_name);
+            callback(_trace, AGAttribute(AG::AttributeID(node)), event_name);
         }
     }
 }
@@ -111,7 +111,7 @@ void ExternalTrace::end_event(AG::data::ptr<AG::Node> node, uint32_t event_id) {
     if (auto callback = _interface->end_event) {
         if (auto subgraph = AG::AttributeID(node).subgraph()) {
             const char *event_name = subgraph->graph()->key_name(event_id);
-            callback(_trace, AG::AttributeID(node).to_storage(), event_name);
+            callback(_trace, AGAttribute(AG::AttributeID(node)), event_name);
         }
     }
 }
@@ -225,19 +225,19 @@ void ExternalTrace::mark_value(AG::data::ptr<AG::Node> node) {
 
 void ExternalTrace::added(AG::data::ptr<AG::IndirectNode> indirect_node) {
     if (auto callback = _interface->added_indirect_node) {
-        callback(_trace, AG::AttributeID(indirect_node)); // TODO: check sets kind
+        callback(_trace, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
     }
 }
 
 void ExternalTrace::set_source(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID source) {
     if (auto callback = _interface->set_source) {
-        callback(_trace, AG::AttributeID(indirect_node)); // TODO: check sets kind
+        callback(_trace, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
     }
 }
 
 void ExternalTrace::set_dependency(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID dependency) {
     if (auto callback = _interface->set_dependency) {
-        callback(_trace, AG::AttributeID(indirect_node)); // TODO: check sets kind
+        callback(_trace, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
     }
 }
 
@@ -306,7 +306,7 @@ void ExternalTrace::compare_failed(AG::data::ptr<AG::Node> node, const void *lhs
     if (_interface->options > 3) {
         AGComparisonStateStorage storage = {lhs, rhs, range_offset, range_size, AGTypeID(&type)};
         if (auto callback = _interface->compare_failed) {
-            callback(_trace, AG::AttributeID(node).to_storage(), &storage);
+            callback(_trace, AGAttribute(AG::AttributeID(node)), &storage);
         }
     }
 }

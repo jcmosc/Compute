@@ -796,16 +796,15 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
 }
 
 void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node_ptr) {
-    IndirectNode &indirect_node = *indirect_node_ptr;
     if (indirect_node_ptr->is_mutable()) {
         AttributeID attribute = AttributeID(indirect_node_ptr);
 
-        remove_removed_input(attribute, indirect_node.source().attribute());
-        AttributeID dependency = indirect_node.to_mutable().dependency();
+        remove_removed_input(attribute, indirect_node_ptr->source().attribute());
+        AttributeID dependency = indirect_node_ptr->to_mutable().dependency();
         if (dependency != 0) { // TODO: == nullptr operator...
             remove_removed_input(attribute, dependency);
         }
-        for (auto output_edge : indirect_node.to_mutable().outputs()) {
+        for (auto output_edge : indirect_node_ptr->to_mutable().outputs()) {
             remove_removed_output(attribute, output_edge.value, false);
         }
         return;
@@ -1336,7 +1335,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input_at
     if ((input_flags >> 1) & 1) {
         auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
                                                 InputEdge::Flags::Unprefetched | InputEdge::Flags::AlwaysEnabled);
-        index = index_of_input(*node, comparator);
+        index = index_of_input(*node.get(), comparator);
     }
 
     if (index < 0) {
@@ -1433,7 +1432,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input_attribute, u
     // TODO: check flag and mask are right way around
     auto comparator = InputEdge::Comparator(input_attribute, input_flags & 1,
                                             InputEdge::Flags::Unprefetched | InputEdge::Flags::AlwaysEnabled);
-    auto index = index_of_input(*node, comparator);
+    auto index = index_of_input(*node.get(), comparator);
     if (index >= 0) {
         auto input_edge = node->inputs()[index];
         input_edge.set_unknown4(true);
@@ -1497,7 +1496,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
 
 void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
     remove_input_dependencies(AttributeID(node), node->inputs()[index].value);
-    remove_input_edge(node, *node, index);
+    remove_input_edge(node, *node.get(), index);
 }
 
 void Graph::remove_all_inputs(data::ptr<Node> node) {
@@ -1882,7 +1881,7 @@ void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
         foreach_trace([&node_ptr](Trace &trace) { trace.set_dirty(node_ptr, true); });
         node->set_state(node->state().with_dirty(true));
 
-        AttributeFlags subgraph_flags = node->subgraph_flags();
+        AGAttributeFlags subgraph_flags = node->subgraph_flags();
         Subgraph *subgraph = AttributeID(node_ptr).subgraph();
         if (subgraph_flags && subgraph != nullptr) {
             subgraph->add_dirty_flags(subgraph_flags);

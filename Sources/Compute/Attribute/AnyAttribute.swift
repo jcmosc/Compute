@@ -1,13 +1,5 @@
 import ComputeCxx
 
-struct AGGraphMutateAttributeThunk {
-    let body: (UnsafeMutableRawPointer) -> Void
-}
-
-struct AGGraphSearchThunk {
-    let body: (AnyAttribute) -> Bool
-}
-
 extension AnyAttribute {
 
     public static var current: AnyAttribute? {
@@ -33,41 +25,14 @@ extension AnyAttribute {
         type._visitSelf(info.body, visitor: &visitor)
     }
 
-    // XXX: Swift compiler crashes when capturing a generic type
     public func mutateBody<Body>(as type: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
-        withoutActuallyEscaping(mutator) { escapingMutator in
-            let thunk = AGGraphMutateAttributeThunk(body: { bodyPointer in
-                escapingMutator(&bodyPointer.assumingMemoryBound(to: Body.self).pointee)
-            })
-            withUnsafePointer(to: thunk) { thunkPointer in
-                __AGGraphMutateAttribute(
-                    self,
-                    Metadata(type),
-                    invalidating,
-                    {
-                        $0.assumingMemoryBound(to: AGGraphMutateAttributeThunk.self).pointee.body($1)
-                    },
-                    thunkPointer
-                )
-            }
+        Graph.mutateAttribute(self, type: Metadata(type), invalidating: invalidating) { pointer in
+            mutator(&pointer.assumingMemoryBound(to: Body.self).pointee)
         }
-
     }
 
     public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
-        // TODO: @silgen?
-        return withoutActuallyEscaping(predicate) { escapingPredicate in
-            return withUnsafePointer(to: AGGraphSearchThunk(body: escapingPredicate)) { thunkPointer in
-                return __AGGraphSearch(
-                    self,
-                    options,
-                    {
-                        $0.assumingMemoryBound(to: AGGraphSearchThunk.self).pointee.body($1)
-                    },
-                    thunkPointer
-                )
-            }
-        }
+        return Graph.search(attribute: self, options: options, predicate: predicate)
     }
 
     public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {

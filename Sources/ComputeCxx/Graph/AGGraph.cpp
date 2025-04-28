@@ -63,24 +63,29 @@ AGGraphRef AGGraphCreateShared(AGGraphRef original) {
         graph = &original->context.graph();
         AG::Graph::will_add_to_context(graph);
     } else {
-        graph = new AG::Graph();
+        graph = new AG::Graph(); // ref = 1
     }
 
-    new (&instance->context) AG::Graph::Context(graph);
+    new (&instance->context) AG::Graph::Context(graph); // ref + 1
 
-    AG::Graph::did_remove_from_context(graph);
+    AG::Graph::did_remove_from_context(graph); // ref - 1
 
     instance->context.set_invalidated(false);
 
     return instance;
 };
 
-AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) {
-    return reinterpret_cast<AGUnownedGraphContextRef>(AG::Graph::Context::from_cf(graph));
+AGUnownedGraphRef AGGraphGetGraphContext(AGGraphRef graph) {
+    AG::Graph::Context *graph_context = AG::Graph::Context::from_cf(graph);
+    AG::Graph *unowned_graph = &graph_context->graph();
+    fprintf(stdout, "AGGraphGetGraphContext %p -> %p", graph, unowned_graph);
+    return reinterpret_cast<AGUnownedGraphRef>(unowned_graph);
 }
 
-AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context) {
-    return reinterpret_cast<AGGraphRef>(reinterpret_cast<uintptr_t>(context) - sizeof(CFRuntimeBase));
+AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef storage) {
+    auto graph_context = reinterpret_cast<AG::Graph::Context *>(storage);
+    fprintf(stdout, "AGGraphContextGetGraph %p -> %p", storage, graph_context->to_cf());
+    return graph_context->to_cf();
 }
 
 const void *AGGraphGetContext(AGGraphRef graph) {
@@ -150,12 +155,13 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 
 #pragma mark - Attribute types
 
-// TODO: is this AGGraphRef or AG::Graph ?
-uint32_t AGGraphInternAttributeType(AGGraphRef graph, AGTypeID type,
-                                    const void *(*intern)(const void *context AG_SWIFT_CONTEXT)AG_SWIFT_CC(swift),
-                                    const void *context) {
+uint32_t
+AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,
+                           const void *(*intern_function)(const void *context AG_SWIFT_CONTEXT)AG_SWIFT_CC(swift),
+                           const void *intern_function_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    return graph->context.graph().intern_type(metadata, AG::ClosureFunctionVP<const void *>(intern, context));
+    AG::Graph *graph = reinterpret_cast<AG::Graph *>(unowned_graph);
+    return graph->intern_type(metadata, AG::ClosureFunctionVP<const void *>(intern_function, intern_function_context));
 }
 
 void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) {
@@ -184,8 +190,8 @@ AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const voi
     if (!current_subgraph) {
         AG::precondition_failure("no subgraph active while adding attribute");
     }
-    auto attribute = current_subgraph->graph()->add_attribute(*current_subgraph, type_id, body, value);
-    return AG::AttributeID(attribute).to_storage();
+    auto node = current_subgraph->graph()->add_attribute(*current_subgraph, type_id, body, value);
+    return AGAttribute(AG::AttributeID(node));
 }
 
 AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
@@ -225,8 +231,7 @@ AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) {
     if (!attribute_id.is_direct()) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
-    auto flags = attribute_id.to_node().subgraph_flags();
-    return AGAttributeFlags(flags.data());
+    return attribute_id.to_node().subgraph_flags();
 }
 
 void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
@@ -278,7 +283,7 @@ namespace {
 void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &metadata, void *body,
                             const AG::swift::metadata &value_type, AGCachedValueOptions options,
                             AG::AttributeID attribute, uint8_t *state_out,
-                            AG::ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure) {
+                            AG::ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure) {
 
     auto current_update = AG::Graph::current_update();
     AG::Graph::UpdateStack *stack = current_update.tag() == 0 ? current_update.get() : nullptr;
@@ -319,7 +324,7 @@ void *read_cached_attribute(uint64_t identifier, const AG::swift::metadata &meta
 void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
                                  AGCachedValueOptions options, AGAttribute attribute, bool *changed_out,
                                  uint32_t (*closure)(const void *context AG_SWIFT_CONTEXT,
-                                                     AGUnownedGraphContextRef graph) AG_SWIFT_CC(swift),
+                                                     AGUnownedGraphRef graph) AG_SWIFT_CC(swift),
                                  const void *closure_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
@@ -327,7 +332,7 @@ void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body,
     uint8_t state = 0;
     void *value = read_cached_attribute(
         identifier, *metadata, body, *value_metadata, options, AG::AttributeID::from_storage(attribute), &state,
-        AG::ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef>(closure, closure_context));
+        AG::ClosureFunctionCI<uint32_t, AGUnownedGraphRef>(closure, closure_context));
     if (changed_out) {
         *changed_out = state & 1 ? true : false;
     }
@@ -356,7 +361,7 @@ AGAttribute AGGraphGetCurrentAttribute() {
         if (auto update_stack = update.get()) {
             auto frame = update_stack->frames().back();
             if (frame.attribute) {
-                return AG::AttributeID(frame.attribute).to_storage();
+                return AGAttribute(AG::AttributeID(frame.attribute));
             }
         }
     }

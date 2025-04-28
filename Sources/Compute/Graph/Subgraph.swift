@@ -1,26 +1,14 @@
 import ComputeCxx
 
-struct AGSubgraphAddObserverThunk {
-    let body: () -> Void
-}
-
-struct AGSubgraphApplyThunk {
-    let body: (AnyAttribute) -> Void
-}
-
 extension Subgraph {
 
-    public func addObserver(_ observer: @escaping () -> Void) -> Int {
-        let result = withUnsafePointer(to: AGSubgraphAddObserverThunk(body: observer)) { thunkPointer in
-            return __AGSubgraphAddObserver(
-                self,
-                {
-                    $0.assumingMemoryBound(to: AGSubgraphAddObserverThunk.self).pointee.body()
-                },
-                thunkPointer
-            )
+    @_extern(c, "AGSubgraphAddObserver")
+    private static func addObserver(_ subgraph: UnsafeRawPointer, observer: () -> Void) -> Int
+
+    func addObserver(_ observer: () -> Void) -> Int {
+        return withUnsafePointer(to: self) { selfPointer in
+            return Subgraph.addObserver(selfPointer, observer: observer)
         }
-        return Int(result)  // TODO: where is this converted?
     }
 
     public func apply<T>(_ body: () -> T) -> T {
@@ -34,20 +22,13 @@ extension Subgraph {
         return body()
     }
 
-    public func forEach(_ flags: AGAttributeFlags, _ body: (AnyAttribute) -> Void) {
-        withoutActuallyEscaping(body) { escapingBody in
-            withUnsafePointer(to: AGSubgraphApplyThunk(body: escapingBody)) { thunkPointer in
-                __AGSubgraphApply(
-                    self,
-                    flags,
-                    {
-                        $0.assumingMemoryBound(to: AGSubgraphApplyThunk.self).pointee.body($1)
-                    },
-                    thunkPointer
-                )
-            }
-        }
+    @_extern(c, "AGSubgraphApply")
+    private static func apply(_ subgraph: UnsafeRawPointer, flags: AGAttributeFlags, body: (AnyAttribute) -> Void)
 
+    public func forEach(_ flags: AGAttributeFlags, _ body: (AnyAttribute) -> Void) {
+        withUnsafePointer(to: self) { selfPointer in
+            Subgraph.apply(selfPointer, flags: flags, body: body)
+        }
     }
 
 }
@@ -55,19 +36,19 @@ extension Subgraph {
 extension Subgraph {
 
     public static func addTreeValue<Value>(_ value: Attribute<Value>, forKey key: UnsafePointer<Int8>, flags: UInt32) {
-        if __AGSubgraphShouldRecordTree() {
+        if shouldRecordTree {
             __AGSubgraphAddTreeValue(value.identifier, Metadata(Value.self), key, flags)
         }
     }
 
     public static func beginTreeElement<Value>(value: Attribute<Value>, flags: UInt32) {
-        if __AGSubgraphShouldRecordTree() {
+        if shouldRecordTree {
             __AGSubgraphBeginTreeElement(value.identifier, Metadata(Value.self), flags)
         }
     }
 
     public static func endTreeElement<Value>(value: Attribute<Value>) {
-        if __AGSubgraphShouldRecordTree() {
+        if shouldRecordTree {
             __AGSubgraphEndTreeElement(value.identifier)
         }
     }

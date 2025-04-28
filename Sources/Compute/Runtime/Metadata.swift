@@ -1,26 +1,16 @@
 import ComputeCxx
 import Foundation
 
-struct AGTypeApplyFieldsThunk {
-    var body: (UnsafePointer<CChar>, Int, Any.Type) -> Void
-}
+extension Metadata {
 
-struct AGTypeApplyFields2Thunk {
-    var body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool
+    @_extern(c, "AGTypeApplyFields")
+    static func applyFields(type: Metadata, body: (UnsafePointer<CChar>, Int, Metadata) -> Void)
+
 }
 
 public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, Any.Type) -> Void) {
-
-    withoutActuallyEscaping(body) { escapingClosure in
-        withUnsafePointer(to: AGTypeApplyFieldsThunk(body: escapingClosure)) { thunkPointer in
-            __AGTypeApplyFields(
-                Metadata(type),
-                {
-                    $0.assumingMemoryBound(to: AGTypeApplyFieldsThunk.self).pointee.body($1, $2, $3.type)
-                },
-                thunkPointer
-            )
-        }
+    Metadata.applyFields(type: Metadata(type)) { fieldName, fieldOffset, fieldType in
+        body(fieldName, fieldOffset, fieldType.type)
     }
 }
 
@@ -34,20 +24,19 @@ extension Metadata {
         return unsafeBitCast(rawValue, to: Any.Type.self)
     }
 
-    public func forEachField(options: ApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
+    @_extern(c, "AGTypeApplyFields2")
+    static func applyFields2(
+        type: Metadata,
+        options: AGTypeApplyOptions,
+        body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
+    )
+        -> Bool
+
+    public func forEachField(options: AGTypeApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
         -> Bool
     {
-        return withoutActuallyEscaping(body) { escapingClosure in
-            return withUnsafePointer(to: AGTypeApplyFields2Thunk(body: escapingClosure)) { thunkPointer in
-                return __AGTypeApplyFields2(
-                    self,
-                    options,
-                    {
-                        return $0.assumingMemoryBound(to: AGTypeApplyFields2Thunk.self).pointee.body($1, $2, $3.type)
-                    },
-                    thunkPointer
-                )
-            }
+        return Metadata.applyFields2(type: self, options: options) { fieldName, fieldOffset, fieldType in
+            return body(fieldName, fieldOffset, fieldType.type)
         }
     }
 

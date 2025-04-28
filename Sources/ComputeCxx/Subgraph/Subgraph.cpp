@@ -26,7 +26,10 @@ pthread_key_t Subgraph::_current_subgraph_key;
 
 void Subgraph::make_current_subgraph_key() { pthread_key_create(&Subgraph::_current_subgraph_key, 0); }
 
-Subgraph *Subgraph::current_subgraph() { return (Subgraph *)pthread_getspecific(Subgraph::_current_subgraph_key); }
+Subgraph *Subgraph::current_subgraph() {
+    assert(Subgraph::_current_subgraph_key);
+    return (Subgraph *)pthread_getspecific(Subgraph::_current_subgraph_key);
+}
 
 void Subgraph::set_current_subgraph(Subgraph *subgraph) {
     pthread_setspecific(Subgraph::_current_subgraph_key, subgraph);
@@ -59,13 +62,16 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
         begin_tree(owner, nullptr, 0);
     }
 
-    context.graph().foreach_trace([*this](Trace &trace) { trace.created(*this); });
+    context.graph().foreach_trace([this](Trace &trace) {
+        trace.created(*this);
+        //        fprintf(stdout, "trace created subgraph ref");
+    });
 }
 
 Subgraph::~Subgraph() {
     if (_observers) {
         notify_observers();
-        delete _observers.get(); // what pointer is deleted?
+        delete _observers.get(); // TODO: what pointer is deleted?
     }
     if (_cache) {
         _cache->~NodeCache();
@@ -767,7 +773,7 @@ data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::Tre
 
 // MARK: - Flags
 
-void Subgraph::set_flags(data::ptr<Node> node, AttributeFlags flags) {
+void Subgraph::set_flags(data::ptr<Node> node, AGAttributeFlags flags) {
     if (node->subgraph_flags() == flags) {
         return;
     }
@@ -786,7 +792,7 @@ void Subgraph::set_flags(data::ptr<Node> node, AttributeFlags flags) {
     }
 }
 
-void Subgraph::add_flags(AttributeFlags flags) {
+void Subgraph::add_flags(AGAttributeFlags flags) {
     // Status: doesn't exist in decompile
     if (flags & ~_flags.value1) {
         _flags.value1 |= flags;
@@ -794,7 +800,7 @@ void Subgraph::add_flags(AttributeFlags flags) {
     }
 }
 
-void Subgraph::add_dirty_flags(AttributeFlags dirty_flags) {
+void Subgraph::add_dirty_flags(AGAttributeFlags dirty_flags) {
     // Status: Verified
     if (dirty_flags & ~_flags.value3) {
         _flags.value3 |= dirty_flags;
@@ -842,14 +848,14 @@ uint64_t Subgraph::add_observer(ClosureFunctionVV<void> &&callback) {
 
     auto observer_id = AGMakeUniqueID();
 
-    auto observers = *_observers;
     auto observer = Observer(callback, observer_id);
-    observers->push_back(observer);
+    (*_observers)->push_back(observer);
     return observer_id;
 }
 
 void Subgraph::remove_observer(uint64_t observer_id) {
-    if (auto observers = *_observers) {
+    if (auto observers_ptr = _observers.get()) {
+        auto observers = *observers_ptr;
         auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
             if (observer.observer_id == observer_id) {
                 return true;
@@ -861,7 +867,8 @@ void Subgraph::remove_observer(uint64_t observer_id) {
 }
 
 void Subgraph::notify_observers() {
-    if (auto observers = *_observers) {
+    if (auto observers_ptr = _observers.get()) {
+        auto observers = *observers_ptr;
         while (!observers->empty()) {
             auto &observer = observers->back();
             observer.callback();
@@ -873,7 +880,7 @@ void Subgraph::notify_observers() {
 #pragma mark - Cache
 
 data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata &metadata, void *body,
-                                      ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> closure) {
+                                      ClosureFunctionCI<uint32_t, AGUnownedGraphRef> closure) {
     if (_cache == nullptr) {
         _cache = alloc_bytes(sizeof(NodeCache), 7).unsafe_cast<NodeCache>();
         new (&_cache) NodeCache();
@@ -891,8 +898,7 @@ data::ptr<Node> Subgraph::cache_fetch(uint64_t identifier, const swift::metadata
         type->equatable = equatable;
         type->last_item = nullptr;
         type->first_item = nullptr;
-        auto graph_context = AGUnownedGraphContext(_graph);
-        type->type_id = closure(&graph_context);
+        type->type_id = closure(reinterpret_cast<AGUnownedGraphRef>(_graph));
         _cache->types().insert(&metadata, type);
     }
 
@@ -1116,9 +1122,9 @@ void Subgraph::print(uint32_t indent_level) {
             if (!attribute.is_direct()) {
                 continue;
             }
-            fprintf(stdout, "%s%u", first ? "" : " ", attribute.to_storage());
+            fprintf(stdout, "%s%u", first ? "" : " ", AGAttribute(attribute));
             if (attribute.to_node().subgraph_flags()) {
-                fprintf(stdout, "(%u)", attribute.to_node().subgraph_flags().data());
+                fprintf(stdout, "(%u)", attribute.to_node().subgraph_flags());
             }
             first = false;
         }

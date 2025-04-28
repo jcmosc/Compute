@@ -2,8 +2,9 @@
 
 #include <dispatch/dispatch.h>
 
-#include "Graph/AGGraph.h"
+#include "Graph/AGGraph-Private.h"
 #include "Graph/Context.h"
+#include "Graph/Tree/TreeElement.h"
 #include "Subgraph.h"
 
 namespace {
@@ -13,7 +14,7 @@ CFRuntimeClass &subgraph_type_id() {
         AGSubgraphStorage *storage = (AGSubgraphStorage *)subgraph_ref;
         AG::Subgraph *subgraph = storage->subgraph;
         if (subgraph) {
-            // TODO: should call destructor?
+            // TODO: should call destructor????x
             subgraph->clear_object();
             subgraph->invalidate_and_delete_(false);
         }
@@ -52,8 +53,9 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute) {
 
     AG::Graph::Context *context = AG::Graph::Context::from_cf(graph);
 
-    AG::Subgraph *subgraph = new (&instance->subgraph)
-        AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID::from_storage(attribute));
+    instance->subgraph =
+        new AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID::from_storage(attribute));
+    ;
     return instance;
 };
 
@@ -85,6 +87,16 @@ void AGSubgraphSetCurrent(AGSubgraphRef subgraph) {
 
 #pragma mark - Graph
 
+AGUnownedGraphRef AGSubgraphGetCurrentGraphContext() {
+    AG::Subgraph *current = AG::Subgraph::current_subgraph();
+    if (current == nullptr) {
+        return nullptr;
+    }
+
+    AG::Graph *graph = current->graph();
+    return reinterpret_cast<AGUnownedGraphRef>(graph);
+}
+
 AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) {
     if (subgraph->subgraph == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
@@ -93,22 +105,11 @@ AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) {
     auto context_id = subgraph->subgraph->context_id();
     if (context_id != 0) {
         if (auto context = subgraph->subgraph->graph()->context_with_id(context_id)) {
-            return AGGraphContextGetGraph(
-                reinterpret_cast<AGUnownedGraphContextRef>(context)); // TODO: proper conversion
+            return AGGraphContextGetGraph(reinterpret_cast<AGUnownedGraphContextRef>(context));
         }
     }
 
-    AG::precondition_failure("accessing invalidated contex");
-}
-
-AGUnownedGraphContextRef AGSubgraphGetCurrentGraphContext() {
-    AG::Subgraph *current = AG::Subgraph::current_subgraph();
-    if (current == nullptr) {
-        return nullptr;
-    }
-
-    // FIXME: this is not the context
-    return (AGUnownedGraphContextRef)current->graph();
+    AG::precondition_failure("accessing invalidated context");
 }
 
 AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {

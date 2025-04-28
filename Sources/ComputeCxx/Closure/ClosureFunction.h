@@ -24,11 +24,12 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
     inline ClosureFunction(std::nullptr_t) : _function(nullptr), _context(nullptr) {}
     inline ~ClosureFunction() { ::swift::swift_release((::swift::HeapObject *)_context); }
 
-    operator bool() { return _function != nullptr; }
+    explicit operator bool() { return _function != nullptr; }
 
     const ReturnType operator()(Args... args) const noexcept {
         return _function(_context, std::forward<Args>(args)...);
     }
+    
 };
 
 template <typename ReturnType>

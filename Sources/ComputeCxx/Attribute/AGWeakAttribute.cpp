@@ -16,5 +16,5 @@ AGWeakAttribute AGCreateWeakAttribute(AGAttribute attribute) {
 
 AGAttribute AGWeakAttributeGetAttribute(AGWeakAttribute attribute) {
     auto attribute_id = AG::WeakAttributeID::from_cf(attribute);
-    return attribute_id.evaluate().to_storage();
+    return attribute_id.evaluate();
 }

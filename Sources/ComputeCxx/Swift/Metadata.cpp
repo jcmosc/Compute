@@ -126,7 +126,7 @@ void metadata::append_description(CFMutableStringRef description) const {
     }
     if (all_parents.empty()) {
         all_parents.push_back({
-            name(true),
+            name(false),
             0,
         });
     }
@@ -518,11 +518,11 @@ bool metadata::visit(metadata_visitor &visitor) const {
             auto enum_context = reinterpret_cast<const ::swift::EnumDescriptor *>(context);
             if (enum_context->Fields) {
                 if (enum_context->getNumPayloadCases() != 0) {
-                    if (enum_context->Fields->NumFields == 0) {
-                        return true;
-                    }
                     unsigned index = 0;
                     for (auto &field : enum_context->Fields->getFields()) {
+                        if (!field.hasMangledTypeName()) {
+                            continue;
+                        }
                         if (!visitor.visit_case(*this, field, index)) {
                             return false;
                         }

@@ -15,7 +15,7 @@ Graph::Context::Context(Graph *graph) {
     _unique_id = AGMakeUniqueID();
     _deadline = UINT64_MAX;
 
-    graph->_num_contexts += 1;
+    Graph::will_add_to_context(graph);
     graph->_contexts_by_id.insert(_unique_id, this);
 
     _graph->foreach_trace([this](Trace &trace) { trace.created(*this); });
@@ -47,13 +47,15 @@ Graph::Context::~Context() {
         // batch.~without_invalidating called here
     }
 
-    _graph->_num_contexts -= 1;
-    if (_graph && _graph->_num_contexts == 0) {
-        _graph->~Graph();
-    }
+    Graph::did_remove_from_context(_graph);
+//    _graph->_num_contexts -= 1;
+//    if (_graph && _graph->_num_contexts == 0) {
+//        _graph->~Graph();
+//    }
+    
 }
 
-// TODO: AGUnknownedGraphContextRef ?
+
 Graph::Context *Graph::Context::from_cf(AGGraphStorage *storage) {
     if (storage->context._invalidated) {
         precondition_failure("invalidated graph");

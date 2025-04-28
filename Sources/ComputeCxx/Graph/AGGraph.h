@@ -16,7 +16,8 @@ CF_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
-typedef struct AGUnownedGraphContext *AGUnownedGraphContextRef;
+typedef void *AGUnownedGraphRef AG_SWIFT_STRUCT;
+typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -26,19 +27,20 @@ CFTypeID AGGraphGetTypeID();
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGGraphCreate();
+AGGraphRef AGGraphCreate() CF_SWIFT_NAME(AGGraphRef.init());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph);
+AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph) CF_SWIFT_NAME(AGGraphRef.init(shared:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph);
+AGUnownedGraphRef AGGraphGetGraphContext(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.graphContext(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context);
+AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context)
+    CF_SWIFT_NAME(getter:AGUnownedGraphContextRef.graph(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -69,7 +71,7 @@ typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query);
+uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) CF_SWIFT_NAME(AGGraphRef.counter(self:for:));
 
 // MARK: Subgraphs
 
@@ -85,7 +87,7 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint32_t AGGraphInternAttributeType(AGGraphRef graph, AGTypeID type,
+uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
                                     const void *_Nonnull (*_Nonnull intern)(const void *context AG_SWIFT_CONTEXT)
                                         AG_SWIFT_CC(swift),
                                     const void *context);
@@ -143,7 +145,7 @@ CF_REFINED_FOR_SWIFT
 void *AGGraphReadCachedAttribute(uint64_t identifier, AGTypeID type, void *body, AGTypeID value_type,
                                  AGCachedValueOptions options, AGAttribute attribute, bool *_Nullable changed_out,
                                  uint32_t (*closure)(const void *context AG_SWIFT_CONTEXT,
-                                                     AGUnownedGraphContextRef graph_context) AG_SWIFT_CC(swift),
+                                                     AGUnownedGraphRef graph_context) AG_SWIFT_CC(swift),
                                  const void *closure_context);
 
 CF_EXPORT
@@ -484,7 +486,8 @@ void AGGraphResetProfile(AGGraphRef _Nullable graph);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFTypeRef AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options);
+CFTypeRef AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options)
+    CF_SWIFT_NAME(AGGraphRef.description(_:options:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

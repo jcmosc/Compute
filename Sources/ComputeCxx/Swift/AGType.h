@@ -12,9 +12,9 @@ CF_EXTERN_C_BEGIN
 
 typedef const struct AGSwiftMetadata *AGTypeID AG_SWIFT_STRUCT AG_SWIFT_NAME(Metadata);
 
-typedef struct AG_SWIFT_NAME(Signature) AGTypeSignature {
+typedef struct AGTypeSignature {
     uint32_t data[5];
-} AGTypeSignature;
+} AG_SWIFT_NAME(Signature) AGTypeSignature;
 
 typedef CF_CLOSED_ENUM(uint32_t, AGTypeKind) {
     AGTypeKindNone,
@@ -54,31 +54,31 @@ const char *_Nullable AGTypeNominalDescriptorName(AGTypeID typeID)
     CF_SWIFT_NAME(getter:Metadata.nominalDescriptorName(self:));
 
 typedef CF_OPTIONS(uint32_t, AGTypeApplyOptions) {
-    AGTypeApplyOptionsNone = 0,
-    AGTypeApplyOptionsHeapClasses = 1 << 0,
-    AGTypeApplyOptions_2 = 1 << 1,
-    AGTypeApplyOptionsEnumCases = 1 << 2,
-} CF_SWIFT_NAME(Metadata.ApplyOptions);
+    AGTypeApplyOptionsEnumerateStructFields = 0,
+    AGTypeApplyOptionsEnumerateClassFields = 1 << 0,
+    AGTypeApplyOptionsContinueAfterUnknownField = 1 << 1,
+    AGTypeApplyOptionsEnumerateEnumCases = 1 << 2,
+};
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*body)(const void *context, const char *field_name, size_t field_size,
-                                    AGTypeID field_type),
-                       const void *context);
+                       void (*apply)(const void *_Nullable context AG_SWIFT_CONTEXT, const char *field_name,
+                                     size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
+                       const void *apply_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*body)(const void *context, const char *field_name, size_t field_size,
-                                     AGTypeID field_type),
-                        const void *context);
+                        bool (*_Nonnull apply)(const void *context AG_SWIFT_CONTEXT, const char *field_name,
+                                               size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
+                        const void *apply_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
                          void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
-                                      void *field_value) AG_SWIFT_CC(swift),
+                                      const void *field_value) AG_SWIFT_CC(swift),
                          const void *context);
 
 CF_EXPORT

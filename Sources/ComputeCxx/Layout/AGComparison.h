@@ -42,9 +42,9 @@ typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
 };
 
 typedef CF_OPTIONS(uint16_t, AGComparisonMode) {
-    AGComparisonModeDefault = 0,
-    AGComparisonModeOption1 = 1,
-    AGComparisonModeOption2 = 2
+    AGComparisonModeNone = 0,
+    AGComparisonMode_1 = 1,
+    AGComparisonMode_2 = 2
 };
 
 CF_EXPORT
@@ -53,7 +53,7 @@ bool AGCompareValues(const void *destination, const void *source, AGTypeID type_
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-const unsigned char *AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority);
+const unsigned char *_Nullable AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority) CF_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdint.h>
 
+#include "AGAttribute.h"
 #include "Data/Page.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
@@ -41,10 +42,11 @@ enum TraversalOptions : uint32_t {
     /// if any weak references evaluate to nil.
     EvaluateWeakReferences = 1 << 4,
 };
-
-inline TraversalOptions operator|(TraversalOptions lhs, TraversalOptions rhs) {
-    return static_cast<TraversalOptions>(lhs | rhs);
+inline TraversalOptions &operator|=(TraversalOptions &lhs, TraversalOptions rhs) {
+    lhs = TraversalOptions(uint32_t(lhs) | uint32_t(rhs));
+    return lhs;
 }
+inline TraversalOptions operator|(TraversalOptions lhs, TraversalOptions rhs) { return (lhs |= rhs); }
 
 class AttributeID {
     friend RelativeAttributeID;
@@ -66,9 +68,10 @@ class AttributeID {
     explicit constexpr AttributeID() : _value(0) {};
     explicit AttributeID(data::ptr<Node> node) : _value(node.offset() | Kind::Direct) {};
     explicit AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node.offset() | Kind::Indirect) {};
-    explicit AttributeID(data::ptr<MutableIndirectNode> indirect_node) : _value(indirect_node.offset() | Kind::Indirect) {};
+    explicit AttributeID(data::ptr<MutableIndirectNode> indirect_node)
+        : _value(indirect_node.offset() | Kind::Indirect) {};
 
-    constexpr uint32_t to_storage() const { return _value; }
+    operator AGAttribute() const { return _value; }
     static constexpr AttributeID from_storage(uint32_t value) { return AttributeID(value); }
 
     //
@@ -80,16 +83,20 @@ class AttributeID {
 
     bool operator<(const AttributeID &other) const { return _value < other._value; }
 
-    operator bool() const { return _value != 0; }
+    explicit operator bool() const { return _value != 0; }
 
     // MARK: Accessing zone data
 
     //    data::ptr<void> as_ptr() const { return data::ptr<void>(_value); };
 
     //    uint32_t value() const { return _value; }
-    //    operator bool() const { return _value == 0; };
+    //    explicit operator bool() const { return _value == 0; };
 
-    data::page &page() const { return *data::ptr<void>(_value).page_ptr(); };
+    data::page &page() const {
+        assert(_value);
+        return *data::ptr<void>(_value).page_ptr();
+    };
+
     data::ptr<data::page> page_ptr() const { return data::ptr<void>(_value).page_ptr(); };
 
     void validate_data_offset() const { data::ptr<void>(_value).assert_valid(); };

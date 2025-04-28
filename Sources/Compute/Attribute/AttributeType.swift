@@ -1,51 +1,26 @@
 import ComputeCxx
 
-struct AGGraphInternAttributeTypeThunk {
-    let body: () -> UnsafeRawPointer
-}
-
-struct AGAttributeTypeUpdateThunk {
-    let body: (UnsafeMutableRawPointer, AnyAttribute) -> Void
-}
-
 extension Graph {
 
-    func internAttributeType(
-        selfType: Any.Type,
-        bodyType: _AttributeBody.Type,
-        valueType: Any.Type,
-        flags: AGAttributeTypeFlags,
-        update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
-    ) -> UInt32 {
-        return withoutActuallyEscaping(update) { escapingUpdate in
-            let thunk = AGGraphInternAttributeTypeThunk(body: {
-                return withUnsafePointer(to: AGAttributeTypeUpdateThunk(body: escapingUpdate())) { updateThunkPointer in
-                    let attributeType = AGAttributeType(
-                        selfType: selfType,
-                        bodyType: bodyType,
-                        valueType: valueType,
-                        flags: flags,
-                        update: {
-                            $0.assumingMemoryBound(to: AGAttributeTypeUpdateThunk.self).pointee.body($1, $2)
-                        },
-                        updateContext: updateThunkPointer
-                    )
-                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
-                    pointer.initialize(to: attributeType)
-                    return UnsafeRawPointer(pointer)
-                }
-            })
-            return withUnsafePointer(to: thunk) { thunkPointer in
-                return __AGGraphInternAttributeType(
-                    self,
-                    Metadata(selfType),
-                    {
-                        return $0.assumingMemoryBound(to: AGGraphInternAttributeTypeThunk.self).pointee.body()
-                    },
-                    thunkPointer
-                )
-            }
-        }
+    @_extern(c, "AGGraphInternAttributeType")
+    fileprivate static func internAttributeType(
+        _ graph: UnsafeRawPointer,
+        type: Metadata,
+        makeAttributeType: () -> UnsafeRawPointer
+    )
+        -> UInt32
+
+}
+
+extension AGUnownedGraphRef {
+
+    @inline(__always)
+    func internAttributeType(type: Metadata, makeAttributeType: () -> UnsafeRawPointer) -> UInt32 {
+        return Graph.internAttributeType(
+            unsafeBitCast(self, to: UnsafeRawPointer.self),
+            type: type,
+            makeAttributeType: makeAttributeType
+        )
     }
 
 }
@@ -60,21 +35,18 @@ extension AGAttributeType {
         flags: AGAttributeTypeFlags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafeMutablePointer<AGAttributeType> {
-        return withUnsafePointer(to: AGAttributeTypeUpdateThunk(body: update())) { updateThunkPointer in
-            let attributeType = AGAttributeType(
-                selfType: selfType,
-                bodyType: bodyType,
-                valueType: valueType,
-                flags: flags,
-                update: {
-                    $0.assumingMemoryBound(to: AGAttributeTypeUpdateThunk.self).pointee.body($1, $2)
-                },
-                updateContext: updateThunkPointer
-            )
-            let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
-            pointer.initialize(to: attributeType)
-            return pointer
-        }
+
+        let attributeType = AGAttributeType(
+            selfType: selfType,
+            bodyType: bodyType,
+            valueType: valueType,
+            flags: flags,
+            update: update()
+        )
+        let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
+        pointer.initialize(to: attributeType)
+        return pointer
+
     }
 
     // sub_1AFE86960
@@ -83,8 +55,7 @@ extension AGAttributeType {
         bodyType: _AttributeBody.Type,  // witness table
         valueType: Any.Type,
         flags: AGAttributeTypeFlags,
-        update: @convention(c) (UnsafeRawPointer, UnsafeMutableRawPointer, AnyAttribute) -> Void,
-        updateContext: UnsafeRawPointer?
+        update: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void,
     ) {
         self.init()
 
@@ -95,10 +66,9 @@ extension AGAttributeType {
             effectiveFlags.insert(.option4)  // TODO: is this flag reallyHasDestroySelf??
         }
 
-        self.body_type_id = Metadata(selfType)
-        self.value_type_id = Metadata(valueType)
-        self.update_function = update
-        self.update_function_context = updateContext
+        self.typeID = Metadata(selfType)
+        self.valueTypeID = Metadata(valueType)
+        self.update_function = unsafeBitCast(update, to: AGClosureStorage2.self)
         self.callbacks = nil
         self.flags = effectiveFlags
 

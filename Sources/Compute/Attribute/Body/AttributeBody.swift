@@ -27,7 +27,7 @@ extension _AttributeBody {
     }
 
     public static var comparisonMode: AGComparisonMode {
-        return .option2
+        return ._2
     }
 
     public static var flags: AGAttributeTypeFlags {

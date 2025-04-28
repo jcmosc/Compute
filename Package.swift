@@ -45,7 +45,8 @@ let package = Package(
         .library(name: "Compute", targets: ["Compute"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0")
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
+        .package(path: "../DarwinPrivateFrameworks"),
     ],
     targets: [
         .target(name: "Utilities"),
@@ -59,12 +60,28 @@ let package = Package(
             name: "Compute",
             dependencies: ["ComputeCxx"],
             cxxSettings: [.headerSearchPath("../ComputeCxx")],
-            swiftSettings: [.interoperabilityMode(.Cxx)]
+            swiftSettings: [.interoperabilityMode(.Cxx), .enableExperimentalFeature("Extern")]
         ),
         .testTarget(
             name: "ComputeTests",
-            dependencies: ["Compute", .product(name: "Algorithms", package: "swift-algorithms")],
-            swiftSettings: [.interoperabilityMode(.Cxx)],
+            dependencies: [
+                "Compute",
+                .product(name: "Algorithms", package: "swift-algorithms"),
+            ],
+            swiftSettings: [
+                .interoperabilityMode(.Cxx)
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
+        .testTarget(
+            name: "ComputeCompatibilityTests",
+            dependencies: [
+                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+            ],
+            swiftSettings: [
+                .interoperabilityMode(.Cxx)
+            ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
         .swiftRuntimeTarget(
@@ -73,6 +90,24 @@ let package = Package(
             cxxSettings: [.headerSearchPath("")]
         ),
         .target(name: "ComputeCxxSwiftSupport"),
+        .testTarget(
+            name: "ComputeCxxTests",
+            dependencies: ["ComputeCxx"],
+            cSettings: [
+                .headerSearchPath("../../Sources/ComputeCxx"),
+                .unsafeFlags([
+                    "-isystem", "\(swiftProjectPath)/swift/include",
+                    "-isystem", "\(swiftProjectPath)/swift/stdlib/public/SwiftShims",
+                    "-isystem", "\(swiftProjectPath)/swift/stdlib/public/runtime",
+                    "-isystem", "\(swiftProjectPath)/llvm-project/llvm/include",
+                    "-isystem", "\(swiftProjectPath)/llvm-project/clang/include",
+                    "-isystem", "\(swiftProjectPath)/build/Default/swift/include",
+                    "-isystem", "\(swiftProjectPath)/build/Default/llvm/include",
+                    "-isystem", "\(swiftProjectPath)/build/Default/llvm/tools/clang/include",
+                ]),
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
     ],
     cxxLanguageStandard: .cxx20
 )

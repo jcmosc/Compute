@@ -11,19 +11,16 @@ CF_EXTERN_C_BEGIN
 
 struct AGOpaqueValue;
 
-struct AGClosureStorage {
+class AGClosureStorage {
+  public:
     const AGOpaqueValue *_Nullable function;
     const AGOpaqueValue *_Nullable context;
-
-    AGClosureStorage() : function(nullptr), context(nullptr){};
-    AGClosureStorage(const AGOpaqueValue *fun, const AGOpaqueValue *ctx) : function(fun), context(ctx){};
 } SWIFT_SHARED_REFERENCE(AGRetainClosure, AGReleaseClosure);
 
-void AGRetainClosure(AGClosureStorage *closure);
-void AGReleaseClosure(AGClosureStorage *closure);
-
-
 typedef struct AGClosureStorage *AGClosureRef AG_SWIFT_NAME(Closure);
+
+void AGRetainClosure(AGClosureRef closure);
+void AGReleaseClosure(AGClosureRef closure);
 
 CF_EXTERN_C_END
 

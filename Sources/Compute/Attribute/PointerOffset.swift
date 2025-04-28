@@ -56,7 +56,7 @@ extension UnsafePointer {
             .assumingMemoryBound(to: Member.self)
     }
 
-    public subscript<Member>(offset: PointerOffset<Pointee, Member>) -> Member {
+    public subscript<Member>(offset offset: PointerOffset<Pointee, Member>) -> Member {
         unsafeAddress {
             return UnsafeRawPointer(self)
                 .advanced(by: offset.byteOffset)
@@ -83,7 +83,7 @@ extension UnsafeMutablePointer {
                 .advanced(by: offset.byteOffset)
                 .assumingMemoryBound(to: Member.self)
         }
-        unsafeMutableAddress {
+        nonmutating unsafeMutableAddress {
             return UnsafeMutableRawPointer(self)
                 .advanced(by: offset.byteOffset)
                 .assumingMemoryBound(to: Member.self)

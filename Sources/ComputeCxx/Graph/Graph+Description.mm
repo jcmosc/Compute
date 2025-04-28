@@ -520,7 +520,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                         break;
                     }
 
-                    AttributeFlags subgraph_flags = attribute.to_node().subgraph_flags();
+                    AGAttributeFlags subgraph_flags = attribute.to_node().subgraph_flags();
                     auto found_node_index = node_indices_by_id.find(attribute.to_ptr<Node>());
                     if (found_node_index != node_indices_by_id.end()) {
                         [nodes addObject:[NSNumber numberWithUnsignedLong:found_node_index->second]];
@@ -750,7 +750,7 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
                     if (!attribute_ids || [attribute_ids containsIndex:attribute]) {
 
-                        [result appendFormat:@"  _%d[label=\"%d", attribute.to_storage(), attribute.to_storage()];
+                        [result appendFormat:@"  _%d[label=\"%d", AGAttribute(attribute), AGAttribute(attribute)];
 
                         Node &node = attribute.to_node();
                         const AttributeType &node_type = attribute_type(node.type_id());
@@ -833,11 +833,10 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
                             AttributeID resolved_input_attribute =
                                 input_edge.value.resolve(TraversalOptions::None).attribute();
                             if (resolved_input_attribute.is_direct() &&
-                                (!attribute_ids ||
-                                 [attribute_ids containsIndex:resolved_input_attribute.to_storage()])) {
+                                (!attribute_ids || [attribute_ids containsIndex:resolved_input_attribute])) {
 
                                 [result appendFormat:@"  _%d -> _%d[", input_edge.value.to_ptr<void>().offset(),
-                                                     attribute.to_storage()];
+                                                     AGAttribute(attribute)];
 
                                 // collect source inputs
                                 AttributeID intermediate = input_edge.value;
@@ -892,7 +891,7 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
             if (indirect_node->is_mutable()) {
                 if (auto dependency = indirect_node->to_mutable().dependency()) {
                     [result
-                        appendFormat:@"  _%d -> _%d[color=blue];\n", dependency.to_storage(), indirect_node.offset()];
+                        appendFormat:@"  _%d -> _%d[color=blue];\n", AGAttribute(dependency), indirect_node.offset()];
                 }
             }
         }
@@ -923,7 +922,7 @@ CFStringRef Graph::description_stack(CFDictionaryRef options) {
                 [description appendString:@"  -- inputs:\n"];
                 for (auto input_edge : frame->attribute->inputs()) {
                     OffsetAttributeID resolved = input_edge.value.resolve(TraversalOptions::ReportIndirectionInOffset);
-                    [description appendFormat:@"    %u", resolved.attribute().to_storage()];
+                    [description appendFormat:@"    %u", AGAttribute(resolved.attribute())];
                     if (resolved.offset() != 0) {
                         [description appendFormat:@"[@%d]", resolved.offset() - 1];
                     }

@@ -1,4 +1,5 @@
 #include "Attribute/AGAttribute.h"
+#include "Closure/AGClosure.h"
 #include "Graph/AGDescription.h"
 #include "Graph/AGGraph.h"
 #include "Graph/Tree/AGTreeElement.h"
@@ -6,3 +7,4 @@
 #include "Subgraph/AGSubgraph.h"
 #include "Swift/AGTuple.h"
 #include "Swift/AGType.h"
+#include "UniqueID/AGUniqueID.h"

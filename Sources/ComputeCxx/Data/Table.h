@@ -55,6 +55,7 @@ class table {
     static table &shared();
 
     table();
+    ~table(); // only called during testing
 
     void lock();
     void unlock();

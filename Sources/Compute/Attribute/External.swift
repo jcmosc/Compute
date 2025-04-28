@@ -13,7 +13,7 @@ public struct External<Value> {
 extension External: _AttributeBody {
 
     public static var comparisonMode: AGComparisonMode {
-        return [.option1, .option2]
+        return [._1, ._2]
     }
 
     public static var flags: AGAttributeTypeFlags {

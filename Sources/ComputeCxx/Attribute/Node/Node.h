@@ -16,19 +16,6 @@ class zone;
 class AttributeType;
 class Graph;
 
-// AGAttributeFlags
-class AttributeFlags {
-  private:
-    uint8_t _data;
-
-  public:
-    AttributeFlags() : _data(0) {}
-    AttributeFlags(uint8_t data) : _data(data) {}
-    uint8_t data() const { return _data; }
-
-    operator bool() const { return _data == 0; };
-};
-
 class Node {
   public:
     class State {
@@ -131,7 +118,7 @@ class Node {
     State _state;
     unsigned int _type_id : 24;
     RelativeAttributeID _relative_offset;
-    AttributeFlags _subgraph_flags;
+    AGAttributeFlags _subgraph_flags;
     Flags _flags;
     data::ptr<void> _value;
 
@@ -156,9 +143,9 @@ class Node {
     RelativeAttributeID relative_offset() const { return _relative_offset; };
     void set_relative_offset(RelativeAttributeID relative_offset) { _relative_offset = relative_offset; };
 
-    AttributeFlags &subgraph_flags() { return _subgraph_flags; };
-    const AttributeFlags &subgraph_flags() const { return _subgraph_flags; };
-    void set_subgraph_flags(AttributeFlags subgraph_flags) { _subgraph_flags = subgraph_flags; };
+    AGAttributeFlags &subgraph_flags() { return _subgraph_flags; };
+    const AGAttributeFlags &subgraph_flags() const { return _subgraph_flags; };
+    void set_subgraph_flags(AGAttributeFlags subgraph_flags) { _subgraph_flags = subgraph_flags; };
 
     Flags &flags() { return _flags; };
     const Flags &flags() const { return _flags; };

@@ -39,20 +39,24 @@ public struct Attribute<Value> {
         flags: AGAttributeTypeFlags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) {
-
-        guard let subgraph = Subgraph.current else {
-            // or preconditionFailure...
-            fatalError("attempting to create attribute with no subgraph: \(Body.self)")
+        guard let graphContext = Subgraph.currentGraphContext else {
+            preconditionFailure("attempting to create attribute with no subgraph: \(Body.self)")
         }
 
-        let graph = subgraph.graph
-        let typeID = graph.internAttributeType(
-            selfType: Body.self,
-            bodyType: Body.self,  // TODO: make this function generic, don't need to pass witness tables
-            valueType: Value.self,
-            flags: flags,
-            update: update
-        )
+        let typeID = graphContext.internAttributeType(
+            type: Metadata(Body.self)
+        ) {
+            let attributeType = AGAttributeType(
+                selfType: Body.self,
+                bodyType: Body.self,
+                valueType: Value.self,
+                flags: flags,
+                update: update()
+            )
+            let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
+            pointer.initialize(to: attributeType)
+            return UnsafeRawPointer(pointer)
+        }
         identifier = __AGGraphCreateAttribute(typeID, body, value)
     }
 
@@ -125,7 +129,7 @@ public struct Attribute<Value> {
         get {
             return identifier.flags
         }
-        set {
+        nonmutating set {
             identifier.flags = newValue
         }
     }

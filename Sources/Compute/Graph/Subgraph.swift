@@ -6,9 +6,7 @@ extension Subgraph {
     private static func addObserver(_ subgraph: UnsafeRawPointer, observer: () -> Void) -> Int
 
     func addObserver(_ observer: () -> Void) -> Int {
-        return withUnsafePointer(to: self) { selfPointer in
-            return Subgraph.addObserver(selfPointer, observer: observer)
-        }
+        return Subgraph.addObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
     }
 
     public func apply<T>(_ body: () -> T) -> T {
@@ -26,9 +24,7 @@ extension Subgraph {
     private static func apply(_ subgraph: UnsafeRawPointer, flags: AGAttributeFlags, body: (AnyAttribute) -> Void)
 
     public func forEach(_ flags: AGAttributeFlags, _ body: (AnyAttribute) -> Void) {
-        withUnsafePointer(to: self) { selfPointer in
-            Subgraph.apply(selfPointer, flags: flags, body: body)
-        }
+        Subgraph.apply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags: flags, body: body)
     }
 
 }

@@ -32,15 +32,11 @@ extension Graph {
     private static func setUpdateCallback(_ graph: UnsafeRawPointer, callback: (() -> Void)?)
 
     public static func setUpdateCallback(_ graph: Graph, callback: (() -> Void)?) {
-        withUnsafePointer(to: self) { selfPointer in
-            Graph.setUpdateCallback(selfPointer, callback: callback)
-        }
+        Graph.setUpdateCallback(unsafeBitCast(graph, to: UnsafeRawPointer.self), callback: callback)
     }
 
     public func onUpdate(_ handler: @escaping () -> Void) {
-        withUnsafePointer(to: self) { graphPointer in
-            Graph.setUpdateCallback(graphPointer, callback: handler)
-        }
+        Graph.setUpdateCallback(self, callback: handler)
     }
 
 }
@@ -51,15 +47,11 @@ extension Graph {
     private static func setInvalidationCallback(_ graph: UnsafeRawPointer, callback: ((AnyAttribute) -> Void)?)
 
     public static func setInvalidationCallback(_ graph: Graph, callback: ((AnyAttribute) -> Void)?) {
-        withUnsafePointer(to: self) { selfPointer in
-            Graph.setInvalidationCallback(selfPointer, callback: callback)
-        }
+        Graph.setInvalidationCallback(unsafeBitCast(graph, to: UnsafeRawPointer.self), callback: callback)
     }
 
     public func onInvalidation(_ handler: @escaping (AnyAttribute) -> Void) {
-        withUnsafePointer(to: self) { graphPointer in
-            Graph.setInvalidationCallback(graphPointer, callback: handler)
-        }
+        Graph.setInvalidationCallback(self, callback: handler)
     }
 
     public func withDeadline<T>(_ deadline: UInt64, _ body: () -> T) -> T {

@@ -11,6 +11,10 @@
   "defaultOptions" : {
     "environmentVariableEntries" : [
       {
+        "key" : "AG_PRINT_LAYOUTS",
+        "value" : "1"
+      },
+      {
         "key" : "AG_PREFETCH_LAYOUTS",
         "value" : "1"
       },

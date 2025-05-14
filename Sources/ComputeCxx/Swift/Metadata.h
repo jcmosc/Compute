@@ -66,7 +66,7 @@ class metadata : public ::swift::Metadata {
 
     enum visit_options {
         heap_class = 1 << 0,
-        heap_locals = 1 << 1,
+        heap_locals = 1 << 1, // visit captured refs
         heap_generic_locals = 1 << 2,
 
         heap_class_and_generic_locals = heap_class | heap_generic_locals,
@@ -74,6 +74,8 @@ class metadata : public ::swift::Metadata {
 
     bool visit(metadata_visitor &visitor) const;
     bool visit_heap(metadata_visitor &visitor, visit_options options) const;
+
+  private:
     bool visit_heap_class(metadata_visitor &visitor) const;
     bool visit_heap_locals(metadata_visitor &visitor) const;
 };

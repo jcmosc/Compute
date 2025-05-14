@@ -101,10 +101,16 @@ struct PODStruct {
 
 // Enum types
 
+enum EmptyEnum {}
+
 enum CEnum {
     case a
     case b
     case c
+}
+
+enum TaggedEnum1 {
+    case a(Int)
 }
 
 enum TaggedEnum {

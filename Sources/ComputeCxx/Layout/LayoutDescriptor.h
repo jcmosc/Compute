@@ -16,17 +16,17 @@ class context_descriptor;
 /// A string that encodes an object's layout in memory.
 using ValueLayout = const unsigned char *;
 
-extern const ValueLayout ValueLayoutEmpty;
+extern const ValueLayout ValueLayoutTrivial;
 
 namespace LayoutDescriptor {
 
 enum class HeapMode : uint16_t {
     Option0 = 0,
     Option1 = 1,
-    Option2 = 2,
+    CaptureRef = 2, // something to do with function
 };
 
-extern uintptr_t base_address;
+extern unsigned char base_address;
 
 enum ComparisonMode : uint16_t {
 
@@ -37,6 +37,7 @@ struct ComparisonOptions {
     uint32_t _value;
 
   public:
+    // TODO: delete in favour of AG...
     enum {
         ComparisonModeMask = 0xff,
         CopyOnWrite = 1 << 8,
@@ -86,7 +87,7 @@ bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs,
 bool compare_bytes(char unsigned const *lhs, char unsigned const *rhs, size_t size, size_t *_Nullable failure_location);
 bool compare_heap_objects(char unsigned const *lhs, char unsigned const *rhs, ComparisonOptions options,
                           bool is_function);
-bool compare_indirect(ValueLayout *_Nullable layout_ref, const swift::metadata &lhs_type,
+bool compare_indirect(ValueLayout _Nullable *_Nullable layout_ref, const swift::metadata &lhs_type,
                       const swift::metadata &rhs_type, ComparisonOptions options, const unsigned char *lhs,
                       const unsigned char *rhs);
 bool compare_existential_values(const swift::existential_type_metadata &type, const unsigned char *lhs,

@@ -16,14 +16,14 @@ AGTypeID AGComparisonStateGetFieldType(AGComparisonState state) { return state->
 bool AGCompareValues(const void *destination, const void *source, AGTypeID type_id, AGComparisonOptions options) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(type_id);
     auto layout = AG::LayoutDescriptor::fetch(*type, options, 0);
-    if (layout == AG::ValueLayoutEmpty) {
+    if (layout == AG::ValueLayoutTrivial) {
         layout = nullptr;
     }
     return AG::LayoutDescriptor::compare(layout, (const unsigned char *)destination, (const unsigned char *)source,
                                          type->vw_size(), options);
 }
 
-const unsigned char *AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority) {
+AGValueLayout AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(type_id);
     return AG::LayoutDescriptor::fetch(*type, options, priority);
 }

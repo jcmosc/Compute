@@ -233,7 +233,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
                 unsigned shift = 0;
                 enum_tag = 0;
-                while (*(int *)c < 0) {
+                while (*c & 0x80) {
                     enum_tag = enum_tag | ((*c & 0x7f) << shift);
                     shift += 7;
                     c += 1;
@@ -316,7 +316,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
                 unsigned shift = 0;
                 enum_tag = 0;
-                while (*(int *)c < 0) {
+                while (*c & 0x80) {
                     enum_tag = enum_tag | ((*c & 0x7f) << shift);
                     shift += 7;
                     c += 1;

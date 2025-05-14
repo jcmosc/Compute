@@ -1072,7 +1072,7 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         }
 
         // TODO: make void * and rename to dest and source
-        ValueLayout layout = type.layout() == ValueLayoutPOD ? nullptr : type.layout();
+        ValueLayout layout = type.layout() == ValueLayoutTrivial ? nullptr : type.layout();
         if (LayoutDescriptor::compare(layout, (const unsigned char *)value_dest, (const unsigned char *)value_source,
                                       value_type.vw_size(), comparison_options)) {
             return false;
@@ -1647,7 +1647,7 @@ bool Graph::compare_edge_values(InputEdge input_edge, const AttributeType *type,
     if (layout == nullptr) {
         layout = LayoutDescriptor::fetch(type->value_metadata(), options, 0);
     }
-    if (layout == ValueLayoutPOD) {
+    if (layout == ValueLayoutTrivial) {
         layout = nullptr;
     }
 

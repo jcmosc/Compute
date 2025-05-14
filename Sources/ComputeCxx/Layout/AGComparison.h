@@ -36,6 +36,10 @@ AGTypeID AGComparisonStateGetFieldType(AGComparisonState state);
 
 typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
     AGComparisonOptionsNone = 0,
+    
+    AGComparisonOptions_1 = 1 << 0,
+    AGComparisonOptions_2 = 1 << 1,
+    
     AGComparisonOptionsCopyOnWrite = 1 << 8,
     AGComparisonOptionsFetchLayoutsSynchronously = 1 << 9,
     AGComparisonOptionsReportFailures = 1ul << 31,
@@ -51,9 +55,12 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGCompareValues(const void *destination, const void *source, AGTypeID type_id, AGComparisonOptions options);
 
+typedef const unsigned char *_Nullable AGValueLayout AG_SWIFT_STRUCT AG_SWIFT_NAME(ValueLayout);
+
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-const unsigned char *_Nullable AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority) CF_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
+AGValueLayout AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority)
+    CF_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

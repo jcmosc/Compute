@@ -505,7 +505,7 @@ bool metadata::visit(metadata_visitor &visitor) const {
                     }
                     index += 1;
                 }
-                return true;
+                return struct_context->NumFields > 0;
             }
         }
         return visitor.unknown_result();

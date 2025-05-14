@@ -62,7 +62,7 @@ class Graph {
         bool _sorted;
 
       public:
-        vector<TreeElementNodePair, 0, uint64_t> nodes() { return _nodes; };
+        vector<TreeElementNodePair, 0, uint64_t> &nodes() { return _nodes; };
         void sort_nodes();
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
@@ -385,7 +385,7 @@ class Graph {
     void sync_tracing();
     CFStringRef copy_trace_path();
 
-    vector<Trace *, 0, uint32_t> traces() const { return _traces; };
+    const vector<Trace *, 0, uint32_t> &traces() const { return _traces; };
 
     template <typename T>
         requires std::invocable<T, Trace &>

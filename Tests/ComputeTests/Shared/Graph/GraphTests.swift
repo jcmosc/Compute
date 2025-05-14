@@ -25,8 +25,6 @@ struct GraphTests {
         }
         let name = "empty_graph.json"
         Graph.archiveJSON(name: name)
-        //        let name = "empty_graph.json"
-        //        name.withCString { Graph.archiveJSON(name: $0) }
         let url =
             if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
                 URL(filePath: NSTemporaryDirectory().appending(name))

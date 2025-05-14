@@ -74,7 +74,7 @@ class TypeDescriptorCache {
     void lock() { os_unfair_lock_lock(&_lock); };
     void unlock() { os_unfair_lock_unlock(&_lock); };
 
-    vector<std::pair<const swift::context_descriptor *, LayoutDescriptor::ComparisonMode>> modes() { return _modes; };
+    vector<std::pair<const swift::context_descriptor *, LayoutDescriptor::ComparisonMode>> &modes() { return _modes; };
 
     static void *make_key(const swift::metadata *type, LayoutDescriptor::ComparisonMode comparison_mode,
                           LayoutDescriptor::HeapMode heap_mode);
@@ -233,7 +233,7 @@ ComparisonMode mode_for_type(const swift::metadata *type, ComparisonMode default
 
     ComparisonMode result = default_mode;
     TypeDescriptorCache::shared_cache().lock();
-    auto modes = TypeDescriptorCache::shared_cache().modes();
+    auto &modes = TypeDescriptorCache::shared_cache().modes();
     auto iter = std::find_if(modes.begin(), modes.end(),
                              [&](const auto &element) -> bool { return element.first == descriptor; });
     if (iter != modes.end()) {
@@ -250,7 +250,7 @@ void add_type_descriptor_override(const swift::context_descriptor *_Nullable typ
     }
 
     TypeDescriptorCache::shared_cache().lock();
-    auto modes = TypeDescriptorCache::shared_cache().modes();
+    auto &modes = TypeDescriptorCache::shared_cache().modes();
     auto iter = std::find_if(modes.begin(), modes.end(),
                              [&](const auto &element) -> bool { return element.first == type_descriptor; });
     if (iter != modes.end()) {
@@ -1040,7 +1040,7 @@ ValueLayout Builder::commit(const swift::metadata &type) {
             return ValueLayoutEmpty;
         }
     }
-    auto layout_data = emitter.data();
+    auto &layout_data = emitter.data();
 
     unsigned char *result;
 
@@ -1131,7 +1131,7 @@ bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
 }
 
 void Builder::revert(const RevertItemsInfo &info) {
-    auto items = get_items();
+    auto &items = get_items();
     while (items.size() > info.item_index) {
         items.pop_back();
     }
@@ -1153,7 +1153,7 @@ bool Builder::visit_element(const swift::metadata &type, const swift::metadata::
         _current_comparison_mode = mode_for_type(&type, _current_comparison_mode);
 
         if (should_visit_fields(type, false)) {
-            auto items = get_items();
+            auto &items = get_items();
 
             auto num_items = items.size();
 
@@ -1185,7 +1185,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
         return false;
     }
 
-    auto items = get_items();
+    auto &items = get_items();
 
     // Add EnumItem if this is the first case
     if (index == 0) {
@@ -1195,9 +1195,9 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
             &type,
             {},
         };
-        items.push_back(item);
+        items.push_back(std::move(item));
     }
-    EnumItem enum_item = std::get<EnumItem>(items.back()); // throws
+    EnumItem &enum_item = std::get<EnumItem>(items.back()); // throws
 
     // Add this case to the enum item
     EnumItem::Case enum_case = {
@@ -1205,7 +1205,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
         _current_offset,
         {},
     };
-    enum_item.cases.push_back(enum_case);
+    enum_item.cases.push_back(std::move(enum_case));
 
     bool result;
 
@@ -1240,7 +1240,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
             if (should_visit_fields(*field_type, false)) {
 
                 // same as visit_element
-                auto items = get_items();
+                auto &items = get_items();
                 size_t prev_offset = -1;
                 size_t prev_size = 0;
                 if (auto data_item = items.size() > 0 ? std::get_if<DataItem>(&items.back()) : nullptr) {

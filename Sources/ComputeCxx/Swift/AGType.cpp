@@ -90,9 +90,9 @@ void AGTypeApplyFields(AGTypeID typeID,
                 const void *body_context)
             : _body(body), _body_context(body_context) {}
 
-        bool unknown_result() const override { return true; }
+        bool unknown_result() override { return true; }
         bool visit_field(const AG::swift::metadata &type, const AG::swift::field_record &field, size_t field_offset,
-                         size_t field_size) const override {
+                         size_t field_size) override {
             auto mangled_name = field.MangledTypeName.get();
             auto field_type = type.mangled_type_name_ref(mangled_name, true, nullptr);
             if (field_type) {
@@ -122,9 +122,9 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
         Visitor(AGTypeApplyOptions options, AG::ClosureFunction<bool, const char *, size_t, AGTypeID> *body)
             : _options(options), _body(body) {}
 
-        bool unknown_result() const override { return _options & AGTypeApplyOptionsContinueAfterUnknownField; }
+        bool unknown_result() override { return _options & AGTypeApplyOptionsContinueAfterUnknownField; }
         bool visit_field(const AG::swift::metadata &type, const AG::swift::field_record &field, size_t field_offset,
-                         size_t field_size) const override {
+                         size_t field_size) override {
             auto mangled_name = field.MangledTypeName.get();
             auto field_type = type.mangled_type_name_ref(mangled_name, true, nullptr);
             if (!field_type) {
@@ -135,7 +135,7 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
             return result != 0;
         }
         bool visit_case(const AG::swift::metadata &type, const AG::swift::field_record &field,
-                        uint32_t index) const override {
+                        uint32_t index) override {
             auto mangled_name = field.MangledTypeName.get();
             auto field_type = type.mangled_type_name_ref(mangled_name, true, nullptr); // TODO: _cached or not?
             if (!field_type) {

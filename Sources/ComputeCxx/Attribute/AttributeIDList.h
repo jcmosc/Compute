@@ -55,8 +55,10 @@ class AttributeIDList1 : public AttributeIDList {
   public:
     AttributeIDList1(data::ptr<data::page> page) : _page(page) {}
 
-    AttributeIDIterator begin() { return AttributeIDIterator(_page, RelativeAttributeID(_page->first_child_1)); }
-    AttributeIDIterator end() { return AttributeIDIterator(nullptr, nullptr); }
+    virtual AttributeIDIterator begin() override {
+        return AttributeIDIterator(_page, RelativeAttributeID(_page->first_child_1));
+    }
+    virtual AttributeIDIterator end() override { return AttributeIDIterator(nullptr, nullptr); }
 };
 
 class AttributeIDList2 : public AttributeIDList {
@@ -66,8 +68,10 @@ class AttributeIDList2 : public AttributeIDList {
   public:
     AttributeIDList2(data::ptr<data::page> page) : _page(page) {}
 
-    AttributeIDIterator begin() { return AttributeIDIterator(_page, RelativeAttributeID(_page->first_child_2)); }
-    AttributeIDIterator end() { return AttributeIDIterator(nullptr, nullptr); }
+    virtual AttributeIDIterator begin() override {
+        return AttributeIDIterator(_page, RelativeAttributeID(_page->first_child_2));
+    }
+    virtual AttributeIDIterator end() override { return AttributeIDIterator(nullptr, nullptr); }
 };
 
 } // namespace AG

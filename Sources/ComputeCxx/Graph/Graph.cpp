@@ -122,7 +122,7 @@ Graph::Graph()
             }
         }
 
-        return {profiler_flags, trace_flags, trace_subsystems};
+        return {profiler_flags, trace_flags, std::move(trace_subsystems)};
     }();
 
     if (trace_flags && !trace_subsystems.empty()) {
@@ -318,7 +318,7 @@ void Graph::reset_update(data::ptr<Node> node) {
 
 void Graph::collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes) {
     for (auto update_stack = current_update(); update_stack != nullptr; update_stack = update_stack.get()->previous()) {
-        auto frames = update_stack.get()->frames();
+        auto &frames = update_stack.get()->frames();
         for (auto iter = frames.rbegin(), end = frames.rend(); iter != end; ++iter) {
             nodes.push_back(iter->attribute);
         }
@@ -331,13 +331,13 @@ void Graph::with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body) 
         UpdateStack _base;
 
       public:
-        scoped_update(UpdateStack base, data::ptr<AG::Node> node) : _base(base) {
+        scoped_update(Graph *graph, uint8_t options, data::ptr<AG::Node> node) : _base(graph, options) {
             _base.frames().push_back({node, node->state().is_pending()});
         };
         ~scoped_update() { _base.frames().pop_back(); }
     };
 
-    scoped_update update = scoped_update(UpdateStack(this, 0), node);
+    scoped_update update = scoped_update(this, 0, node);
     body();
     // ~scoped_update called
 }
@@ -1070,9 +1070,9 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         if (type.layout() == nullptr) {
             type.set_layout(LayoutDescriptor::fetch(value_type, comparison_options, 0));
         }
-        ValueLayout layout = type.layout() == ValueLayoutEmpty ? nullptr : type.layout();
 
         // TODO: make void * and rename to dest and source
+        ValueLayout layout = type.layout() == ValueLayoutPOD ? nullptr : type.layout();
         if (LayoutDescriptor::compare(layout, (const unsigned char *)value_dest, (const unsigned char *)value_source,
                                       value_type.vw_size(), comparison_options)) {
             return false;
@@ -1276,7 +1276,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
     for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
         bool stop = false;
-        auto frames = update.get()->frames();
+        auto &frames = update.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
             if (frame->attribute->state().is_main_thread()) {
                 stop = true;
@@ -1644,11 +1644,11 @@ bool Graph::compare_edge_values(InputEdge input_edge, const AttributeType *type,
         LayoutDescriptor::ComparisonOptions(type->comparison_mode()) | LayoutDescriptor::ComparisonOptions::CopyOnWrite;
 
     auto layout = type->layout();
-    if (layout == 0) {
+    if (layout == nullptr) {
         layout = LayoutDescriptor::fetch(type->value_metadata(), options, 0);
     }
-    if (layout == ValueLayoutEmpty) {
-        layout = 0;
+    if (layout == ValueLayoutPOD) {
+        layout = nullptr;
     }
 
     return LayoutDescriptor::compare_partial(layout, (unsigned char *)destination_value + resolved_offset,
@@ -2135,7 +2135,7 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) {
         if (tree_data_element != map->end()) {
             tree_data_element->second.sort_nodes();
 
-            auto nodes = tree_data_element->second.nodes();
+            auto &nodes = tree_data_element->second.nodes();
             std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found =
                 std::find_if(nodes.begin(), nodes.end(), [&tree](auto node) { return node.first == tree; });
 
@@ -2367,7 +2367,7 @@ void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint
             duration = end_time - start_time - _profile_data->precision();
         }
 
-        auto category = _profile_data.get()->categories().try_emplace(event_id).first->second;
+        auto &category = _profile_data.get()->categories().try_emplace(event_id).first->second;
         category.add_update(node, duration, changed);
 
         _profile_data->set_has_unmarked_categories(true);

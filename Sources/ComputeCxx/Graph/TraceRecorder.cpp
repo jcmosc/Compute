@@ -144,7 +144,7 @@ void Graph::TraceRecorder::encode_stack() {
     _encoder.begin_length_delimited();
 
     for (auto update = first_update; update != nullptr; update = update.get()->previous()) {
-        auto frames = update.get()->frames();
+        auto &frames = update.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
             _encoder.encode_varint(10);
             _encoder.begin_length_delimited();

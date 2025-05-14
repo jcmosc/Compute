@@ -166,7 +166,7 @@ id Graph::description(Graph *graph, CFDictionaryRef options) {
     if ([format isEqualToString:@"graph/dict"]) {
         return (__bridge id)description_graph(graph, options);
     }
-    if ([format isEqualToString:@"graph/dot"]) {
+    if (graph && [format isEqualToString:@"graph/dot"]) {
         return (__bridge id)graph->description_graph_dot(options);
     }
     if ([format hasPrefix:@"stack/"]) {
@@ -382,8 +382,8 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                         type_indices_by_id.try_emplace(type_id, index);
                     }
                 } else {
-                    for (auto entry : graph->_profile_data->categories()) {
-                        auto category = entry.second;
+                    for (auto &entry : graph->_profile_data->categories()) {
+                        auto &category = entry.second;
                         auto removed_item = category.removed_items_by_type_id().find(type_id);
                         if (removed_item != category.removed_items_by_type_id().end()) {
                             if (!type_indices_by_id.contains(type_id)) {
@@ -630,7 +630,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
                     auto tree_data_element = map->find(subgraph);
                     if (tree_data_element != map->end()) {
 
-                        auto data_nodes = tree_data_element->second.nodes();
+                        auto &data_nodes = tree_data_element->second.nodes();
                         std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found = std::find_if(
                             data_nodes.begin(), data_nodes.end(), [&tree](auto node) { return node.first == tree; });
 
@@ -692,7 +692,7 @@ CFDictionaryRef Graph::description_graph(Graph *graph_param, CFDictionaryRef opt
             }
             if (!profile_data->categories().empty()) {
                 NSMutableDictionary *events = [NSMutableDictionary dictionary];
-                for (auto category : profile_data->categories()) {
+                for (auto &category : profile_data->categories()) {
                     NSDictionary *json = (__bridge NSDictionary *)profile_data->json_data(category.second, *graph);
                     if (json) {
                         events[[NSString stringWithUTF8String:graph->key_name(category.first)]] = json;
@@ -776,10 +776,10 @@ CFStringRef Graph::description_graph_dot(CFDictionaryRef _Nullable options) {
 
                         double duration_fraction = 0.0;
                         if (auto profile_data = _profile_data.get()) {
-                            auto items_by_attribute = profile_data->all_events().items_by_attribute();
+                            auto &items_by_attribute = profile_data->all_events().items_by_attribute();
                             auto found_item = items_by_attribute.find(attribute.to_ptr<Node>());
                             if (found_item != items_by_attribute.end()) {
-                                auto item = found_item->second;
+                                auto &item = found_item->second;
                                 if (item.data().update_count) {
                                     uint64_t update_count = item.data().update_count;
                                     uint64_t update_total = item.data().update_total;
@@ -911,7 +911,7 @@ CFStringRef Graph::description_stack(CFDictionaryRef options) {
 
     int frame_count = 0;
     for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
-        auto frames = update.get()->frames();
+        auto &frames = update.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
 
             const AttributeType &type = attribute_type(frame->attribute->type_id());
@@ -963,7 +963,7 @@ CFArrayRef Graph::description_stack_nodes(CFDictionaryRef options) {
 
     int frame_count = 0;
     for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
-        auto frames = update.get()->frames();
+        auto &frames = update.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
 
             [nodes addObject:[NSNumber numberWithUnsignedInt:frame->attribute.offset()]];
@@ -989,7 +989,7 @@ CFDictionaryRef Graph::description_stack_frame(CFDictionaryRef options) {
 
     for (auto update = current_update(); update != nullptr; update = update.get()->previous()) {
         int i = 0;
-        auto frames = update.get()->frames();
+        auto &frames = update.get()->frames();
         for (auto frame : frames) {
 
             if (i == frame_index || frame.attribute == frame_node) {

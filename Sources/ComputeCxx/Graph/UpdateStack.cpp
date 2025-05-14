@@ -61,7 +61,7 @@ Graph::UpdateStack::Frame *Graph::UpdateStack::global_top() {
 void Graph::UpdateStack::cancel() {
     for (util::tagged_ptr<Graph::UpdateStack> update_stack = current_update(); update_stack != nullptr;
          update_stack = update_stack.get()->previous()) {
-        auto frames = update_stack.get()->frames();
+        auto &frames = update_stack.get()->frames();
         for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
             if (frame->cancelled) {
                 return;

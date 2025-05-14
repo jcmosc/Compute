@@ -196,7 +196,7 @@ void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     auto buffer_size = metadata->vw_stride() * count;
     if (buffer_size <= 0x1000) {
-        char buffer[buffer_size];
+        char buffer[buffer_size]; // TODO: use alloca
         memset(&buffer, 0, buffer_size);
         //        function(tuple_type, buffer);
     } else {

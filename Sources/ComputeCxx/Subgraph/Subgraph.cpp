@@ -123,7 +123,7 @@ void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
             _graph->will_invalidate_subgraph(*this);
             _validation_state = ValidationState::InvalidationScheduled;
             if (was_valid) {
-                _graph->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
+                _graph->foreach_trace([this](Trace &trace) { trace.invalidate(*this); });
             }
         }
     }
@@ -141,7 +141,7 @@ void Subgraph::invalidate_now(Graph &graph) {
     if (_validation_state != ValidationState::Invalidated) {
         _validation_state = ValidationState::Invalidated;
         if (was_valid) {
-            _graph->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
+            _graph->foreach_trace([this](Trace &trace) { trace.invalidate(*this); });
         }
         clear_object();
         stack.push(this);
@@ -260,7 +260,7 @@ void Subgraph::graph_destroyed() {
     _validation_state = ValidationState::GraphDestroyed;
 
     if (was_valid) {
-        graph()->foreach_trace([*this](Trace &trace) { trace.invalidate(*this); });
+        graph()->foreach_trace([this](Trace &trace) { trace.invalidate(*this); });
     }
     notify_observers();
 
@@ -364,7 +364,7 @@ void Subgraph::add_node(data::ptr<Node> node) {
     insert_attribute(AttributeID(node), true);
 
     if (_tree_root) {
-        auto tree_data_element = graph()->tree_data_element_for_subgraph(this);
+        auto &tree_data_element = graph()->tree_data_element_for_subgraph(this);
         tree_data_element.push_back({
             _tree_root,
             node,
@@ -463,7 +463,7 @@ void Subgraph::update(uint8_t flags) {
     if (is_valid()) {
         if ((flags & (_flags.value1 | _flags.value2))) {
 
-            _graph->foreach_trace([*this, &flags](Trace &trace) { trace.begin_update(*this, flags); });
+            _graph->foreach_trace([this, &flags](Trace &trace) { trace.begin_update(*this, flags); });
 
             _last_traversal_seed += 1; // TODO: check atomics
 
@@ -557,7 +557,7 @@ void Subgraph::update(uint8_t flags) {
             } // while !stack.empty
 
             _graph->invalidate_subgraphs();
-            _graph->foreach_trace([*this](Trace &trace) { trace.end_update(*this); });
+            _graph->foreach_trace([this](Trace &trace) { trace.end_update(*this); });
         }
     }
 }
@@ -695,7 +695,7 @@ AttributeID Subgraph::tree_node_at_index(data::ptr<Graph::TreeElement> tree_elem
         if (tree_data_element != map->end()) {
             tree_data_element->second.sort_nodes();
 
-            auto nodes = tree_data_element->second.nodes();
+            auto &nodes = tree_data_element->second.nodes();
             std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found = std::find_if(
                 nodes.begin(), nodes.end(), [&tree_element](auto node) { return node.first == tree_element; });
 
@@ -722,7 +722,7 @@ data::ptr<Graph::TreeElement> Subgraph::tree_subgraph_child(data::ptr<Graph::Tre
     auto tree_data_element = map->find(this);
     tree_data_element->second.sort_nodes();
 
-    auto nodes = tree_data_element->second.nodes();
+    auto &nodes = tree_data_element->second.nodes();
     if (nodes.empty()) {
         return nullptr;
     }

@@ -43,12 +43,12 @@ class table {
     uint32_t _num_zones = 0;
 
     using remapped_region = std::pair<vm_address_t, int64_t>;
-    vector<remapped_region, 0, uint32_t> _remapped_regions = {};
+    vector<remapped_region, 0, uint32_t> _remapped_regions;
 
     constexpr static unsigned int pages_per_map = 64;
     using page_map_type = std::bitset<pages_per_map>;
-    vector<page_map_type, 0, uint32_t> _page_maps = {};
-    vector<page_map_type, 0, uint32_t> _page_metadata_maps = {};
+    vector<page_map_type, 0, uint32_t> _page_maps;
+    vector<page_map_type, 0, uint32_t> _page_metadata_maps;
 
   public:
     static table &ensure_shared();

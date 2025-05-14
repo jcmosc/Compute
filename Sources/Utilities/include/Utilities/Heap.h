@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <memory>
 #include <swift/bridging>
 
 CF_ASSUME_NONNULL_BEGIN
@@ -25,7 +24,8 @@ class Heap {
   public:
     static constexpr size_t minimum_increment = 0x400;
 
-    static std::shared_ptr<Heap> make_shared(char *_Nullable start, size_t capacity, size_t increment);
+    static Heap *create(char *_Nullable start, size_t capacity, size_t increment);
+    static void destroy(Heap *value);
 
     Heap(char *_Nullable start, size_t capacity, size_t increment);
     ~Heap();

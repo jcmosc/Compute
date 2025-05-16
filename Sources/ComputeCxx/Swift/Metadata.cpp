@@ -126,7 +126,7 @@ void metadata::append_description(CFMutableStringRef description) const {
     }
     if (all_parents.empty()) {
         all_parents.push_back({
-            name(true),
+            name(false),
             0,
         });
     }
@@ -305,7 +305,8 @@ void metadata::copy_on_write_heap_object(void **object_ref) const {
     assert(::swift::isHeapMetadataKind(getKind()));
     auto heap_metadata = reinterpret_cast<const ::swift::HeapMetadata *>(this);
 
-    ::swift::HeapObject *copy = ::swift::swift_allocObject(heap_metadata, vw_size(), vw_alignment());
+    ::swift::HeapObject *copy =
+        ::swift::swift_allocObject(heap_metadata, vw_size(), getValueWitnesses()->getAlignmentMask());
     vw_initializeWithCopy(reinterpret_cast<opaque_value *>(copy), reinterpret_cast<opaque_value *>(*object_ref));
     ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(*object_ref));
     *object_ref = copy;
@@ -496,15 +497,15 @@ bool metadata::visit(metadata_visitor &visitor) const {
                 auto field_offsets = struct_type->getFieldOffsets();
                 unsigned index = 0;
                 for (auto &field : struct_context->Fields->getFields()) {
-                    size_t offset = field_offsets[index];
+                    size_t field_offset = field_offsets[index];
                     size_t end_offset = index + 1 < struct_context->NumFields ? field_offsets[index + 1] : vw_size();
-                    size_t field_size = offset <= end_offset ? end_offset - offset : -1;
-                    if (!visitor.visit_field(*this, field, offset, field_size)) {
+                    size_t field_size = field_offset <= end_offset ? end_offset - field_offset : -1;
+                    if (!visitor.visit_field(*this, field, field_offset, field_size)) {
                         return false;
                     }
                     index += 1;
                 }
-                return true;
+                return struct_context->NumFields > 0;
             }
         }
         return visitor.unknown_result();
@@ -517,11 +518,11 @@ bool metadata::visit(metadata_visitor &visitor) const {
             auto enum_context = reinterpret_cast<const ::swift::EnumDescriptor *>(context);
             if (enum_context->Fields) {
                 if (enum_context->getNumPayloadCases() != 0) {
-                    if (enum_context->Fields->NumFields == 0) {
-                        return true;
-                    }
                     unsigned index = 0;
                     for (auto &field : enum_context->Fields->getFields()) {
+                        if (!field.hasMangledTypeName()) {
+                            continue;
+                        }
                         if (!visitor.visit_case(*this, field, index)) {
                             return false;
                         }
@@ -692,10 +693,10 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
 
             unsigned index = 0;
             for (auto &field : class_context->Fields->getFields()) {
-                size_t offset = field_offsets[index];
+                size_t field_offset = field_offsets[index];
                 size_t end_offset = index + 1 < class_context->NumFields ? field_offsets[index + 1] : vw_size();
-                size_t field_size = offset <= end_offset ? end_offset - offset : -1;
-                if (!visitor.visit_field(*this, field, offset, field_size)) {
+                size_t field_size = field_offset <= end_offset ? end_offset - field_offset : -1;
+                if (!visitor.visit_field(*this, field, field_offset, field_size)) {
                     return false;
                 }
                 index += 1;

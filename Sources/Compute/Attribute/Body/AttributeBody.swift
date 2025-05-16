@@ -1,9 +1,11 @@
+import ComputeCxx
+
 public protocol _AttributeBody {
 
     static func _destroySelf(_ self: UnsafeMutableRawPointer)
     static func _updateDefault(_ default: UnsafeMutableRawPointer)
 
-    static var comparisonMode: ComparisonMode { get }
+    static var comparisonMode: AGComparisonMode { get }
     static var _hasDestroySelf: Bool { get }
     static var flags: AttributeTypeFlags { get }
 
@@ -19,7 +21,7 @@ extension _AttributeBody {
         fatalError("not implemented")
     }
 
-    public static var comparisonMode: ComparisonMode {
+    public static var comparisonMode: AGComparisonMode {
         fatalError("not implemented")
     }
 

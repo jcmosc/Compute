@@ -2,6 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include "AGComparison.h"
 #include "LayoutDescriptor.h"
 #include "Swift/MetadataVisitor.h"
 #include "Vector/Vector.h"
@@ -53,11 +54,8 @@ class Builder : public swift::metadata_visitor {
     template <typename T> class Emitter {
       private:
         T *_Nonnull _data;
-        size_t _emitted_size;
-
-        /// Indicates whether iterating the layout descriptor will be less efficient than iterating the object
-        /// itself.
-        bool _layout_exceeds_object_size;
+        size_t _emitted_size = 0;
+        bool _invalid = false;
 
       public:
         void operator()(const DataItem &item);
@@ -70,9 +68,9 @@ class Builder : public swift::metadata_visitor {
         void enter(const RangeItem &range_item);
 
         const vector<unsigned char, 512, uint64_t> &data() const { return *_data; };
-        bool layout_exceeds_object_size() const { return _layout_exceeds_object_size; };
-        void set_layout_exceeds_object_size(bool value) { _layout_exceeds_object_size = value; };
         size_t emitted_size() const { return _emitted_size; };
+        bool is_invalid() const { return _invalid; };
+        void set_invalid(bool invalid) { _invalid = invalid; };
 
         void finish();
     };
@@ -80,10 +78,12 @@ class Builder : public swift::metadata_visitor {
     template <> class Emitter<vector<unsigned char, 512, uint64_t>> {
       private:
         vector<unsigned char, 512, uint64_t> *_Nonnull _data;
-        size_t _emitted_size;
-        bool _layout_exceeds_object_size;
+        size_t _emitted_size = 0;
+        bool _invalid = false;
 
       public:
+        Emitter(vector<unsigned char, 512, uint64_t> *data);
+
         void operator()(const DataItem &item);
         void operator()(const EqualsItem &item);
         void operator()(const IndirectItem &item);
@@ -94,11 +94,19 @@ class Builder : public swift::metadata_visitor {
         void enter(const RangeItem &range_item);
 
         const vector<unsigned char, 512, uint64_t> &data() const { return *_data; };
-        bool layout_exceeds_object_size() const { return _layout_exceeds_object_size; };
-        void set_layout_exceeds_object_size(bool value) { _layout_exceeds_object_size = value; };
         size_t emitted_size() const { return _emitted_size; };
+        bool is_invalid() const { return _invalid; };
+        void set_invalid(bool invalid) { _invalid = invalid; };
 
         void finish();
+
+        template <typename value_t> void emit_value(value_t value) {
+            // TODO: make not set to zero before overwriting
+            uint64_t size = _data->size();
+            _data->resize(size + sizeof(value_t), 0);
+            unsigned char *type_pointer = &(*_data)[size];
+            *(value_t *)type_pointer = value;
+        }
     };
 
   private:
@@ -108,19 +116,19 @@ class Builder : public swift::metadata_visitor {
     static void lock() { os_unfair_lock_lock(&_lock); };
     static void unlock() { os_unfair_lock_unlock(&_lock); };
 
-    ComparisonMode _current_comparison_mode;
+    AGComparisonMode _current_comparison_mode;
     HeapMode _heap_mode;
-    size_t _current_offset;
+    size_t _current_offset = 0;
     uint64_t _enum_case_depth = 0;
-    EnumItem::Case *_current_enum_case;
+    EnumItem::Case *_current_enum_case = nullptr;
     vector<Item, 0, uint64_t> _items;
 
   public:
-    Builder(ComparisonMode comparison_mode, HeapMode heap_mode)
+    Builder(AGComparisonMode comparison_mode, HeapMode heap_mode)
         : _current_comparison_mode(comparison_mode), _heap_mode(heap_mode) {}
 
     size_t current_offset() { return _current_offset; };
-    ComparisonMode current_comparison_mode() { return _current_comparison_mode; };
+    AGComparisonMode current_comparison_mode() { return _current_comparison_mode; };
     vector<Item, 0, uint64_t> &get_items() {
         return _current_enum_case != nullptr ? _current_enum_case->children : _items;
     };
@@ -138,12 +146,12 @@ class Builder : public swift::metadata_visitor {
     void revert(const RevertItemsInfo &info);
 
     virtual bool visit_element(const swift::metadata &type, const swift::metadata::ref_kind kind, size_t element_offset,
-                               size_t element_size);
+                               size_t element_size) override;
 
-    virtual bool visit_case(const swift::metadata &type, const swift::field_record &field, uint32_t arg);
-    virtual bool visit_existential(const swift::existential_type_metadata &type);
-    virtual bool visit_function(const swift::function_type_metadata &type);
-    virtual bool visit_native_object(const swift::metadata &type);
+    virtual bool visit_case(const swift::metadata &type, const swift::field_record &field, uint32_t arg) override;
+    virtual bool visit_existential(const swift::existential_type_metadata &type) override;
+    virtual bool visit_function(const swift::function_type_metadata &type) override;
+    virtual bool visit_native_object(const swift::metadata &type) override;
 };
 
 } // namespace LayoutDescriptor

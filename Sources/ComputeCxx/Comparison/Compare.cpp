@@ -1,8 +1,8 @@
 #include "Compare.h"
 
 #include "Controls.h"
-#include "Swift/EquatableSupport.h"
 #include "Swift/Metadata.h"
+#include "Swift/SwiftShims.h"
 
 namespace AG {
 namespace LayoutDescriptor {
@@ -52,7 +52,7 @@ Compare::Frame::~Frame() {
 }
 
 bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
-                         size_t size, ComparisonOptions options) {
+                         size_t size, AGComparisonOptions options) {
     size_t end = size < 0 ? ~0 : offset + size;
 
     const unsigned char *c = layout;
@@ -130,8 +130,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_size = type->vw_size();
             size_t item_end = offset + item_size;
 
-            if (!compare_indirect(&layout_pointer, *_enums.back().type, *type, options.without_reporting_failures(),
-                                  lhs + offset, rhs + offset)) {
+            if (!compare_indirect(&layout_pointer, *_enums.back().type, *type,
+                                  options & ~AGComparisonOptionsReportFailures, lhs + offset, rhs + offset)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -149,7 +149,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + item_size;
 
             if (!compare_existential_values(*reinterpret_cast<const swift::existential_type_metadata *>(type),
-                                            lhs + offset, rhs + offset, options.without_reporting_failures())) {
+                                            lhs + offset, rhs + offset, options & ~AGComparisonOptionsReportFailures)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -165,8 +165,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + 8;
 
             if (lhs + offset != rhs + offset) {
-                if (!compare_heap_objects(lhs + offset, rhs + offset,
-                                          ComparisonOptions(options.without_reporting_failures()), is_function)) {
+                if (!compare_heap_objects(lhs + offset, rhs + offset, options & ~AGComparisonOptionsReportFailures,
+                                          is_function)) {
                     failed(options, lhs, rhs, offset, 8, nullptr);
                     return false;
                 }
@@ -260,7 +260,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             // Push enum
 
-            bool is_copy = options.copy_on_write();
+            bool is_copy = options & AGComparisonOptionsCopyOnWrite;
             const unsigned char *_Nonnull lhs_enum;
             const unsigned char *_Nonnull rhs_enum;
             bool owns_copies = false;
@@ -355,9 +355,9 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
     }
 }
 
-bool Compare::failed(ComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+bool Compare::failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                      size_t size, const swift::metadata *type) {
-    if (options.report_failures()) {
+    if (options & AGComparisonOptionsReportFailures) {
         // TODO: tracing
     }
 }

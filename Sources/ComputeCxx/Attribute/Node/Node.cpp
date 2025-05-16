@@ -52,8 +52,8 @@ void Node::allocate_value(Graph &graph, data::zone &zone) {
 
     if (has_indirect_value()) {
         _value = zone.alloc_bytes_recycle(sizeof(void *), sizeof(void *) - 1);
-        void *value = zone.alloc_persistent(size);
-        *(static_cast<data::ptr<void *>>(_value)).get() = value;
+        void *persistent_buffer = zone.alloc_persistent(size);
+        *_value.unsafe_cast<void *>().get() = persistent_buffer;
     } else {
         if (size <= 0x10) {
             _value = zone.alloc_bytes_recycle(uint32_t(size), uint32_t(alignment));

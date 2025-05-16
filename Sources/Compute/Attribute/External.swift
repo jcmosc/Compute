@@ -12,7 +12,7 @@ public struct External<Value> {
 
 extension External: _AttributeBody {
 
-    public static var comparisonMode: ComparisonMode {
+    public static var comparisonMode: AGComparisonMode {
         fatalError("not implemented")
     }
 

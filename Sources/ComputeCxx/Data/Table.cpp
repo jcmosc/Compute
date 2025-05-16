@@ -59,6 +59,12 @@ table::table() {
     }
 }
 
+table::~table() {
+    if (_malloc_zone) {
+        malloc_destroy_zone(_malloc_zone);
+    }
+}
+
 void table::lock() { os_unfair_lock_lock(&_lock); }
 
 void table::unlock() { os_unfair_lock_unlock(&_lock); }
@@ -191,7 +197,7 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
     // ptr offsets are "one"-based, so that we can treat 0 as null.
     ptr<page> new_page = ptr<page>((new_page_index + 1) * page_size);
     new_page->zone = zone;
-    new_page->previous = nullptr;
+    new_page->next = nullptr;
     new_page->total = (needed_size + page_alignment_mask) & ~page_alignment_mask;
     new_page->in_use = sizeof(page);
 
@@ -207,7 +213,7 @@ void table::dealloc_page_locked(ptr<page> page) {
     _num_used_pages -= num_pages;
 
     // convert the page address (starts at 512) to an index (starts at 0)
-    int32_t page_index = (page / page_size) - 1;
+    int32_t page_index = (page.offset() / page_size) - 1;
     for (int32_t i = 0; i != num_pages; i += 1) {
 
         int32_t next_page_index = page_index + i;
@@ -246,7 +252,7 @@ void table::make_pages_reusable(uint32_t page_index, bool reusable) {
         mprotect(mapped_pages_address, mapped_pages_size, protection);
     }
 
-    _num_reusable_pages += reusable ? mapped_pages_size : -mapped_pages_size;
+    _num_reusable_bytes += reusable ? mapped_pages_size : -mapped_pages_size;
 }
 
 uint64_t table::raw_page_seed(ptr<page> page) {
@@ -254,18 +260,28 @@ uint64_t table::raw_page_seed(ptr<page> page) {
 
     lock();
 
-    uint32_t page_index = (page / page_size) - 1;
+    uint32_t page_index = (page.offset() / page_size) - 1;
     uint32_t map_index = page_index / pages_per_map;
 
     uint64_t result = 0;
     if (map_index < _page_metadata_maps.size() && _page_metadata_maps[map_index].test(page_index % page_size)) {
-        auto raw_zone_info = page->zone->info().to_raw_value();
+        auto raw_zone_info = page->zone->info().to_raw_value(); // TODO: check includes deleted flag
         result = raw_zone_info | (1 < 8);
     }
 
     unlock();
 
     return result;
+}
+
+#pragma mark - Printing
+
+void table::print() {
+    lock();
+    fprintf(stdout, "data::table %p:\n  %.2fKB allocated, %.2fKB used, %.2fKB reusable.\n", this,
+            (_ptr_max_offset - page_size) / 1024.0, (_num_used_pages * page_size) / 1024.0,
+            _num_reusable_bytes / 1024.0);
+    unlock();
 }
 
 } // namespace data

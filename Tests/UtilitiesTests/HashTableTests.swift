@@ -6,8 +6,10 @@ struct HashTableTests {
 
     @Test("Initialize empty table")
     func initEmpty() {
-        let tablePointer = util.UntypedTable.make_shared()
-        let table = tablePointer.pointee
+        let table = util.UntypedTable.create()
+        defer {
+            util.UntypedTable.destroy(table)
+        }
 
         #expect(table.empty())
         #expect(table.count() == 0)
@@ -22,8 +24,10 @@ struct HashTableTests {
             }
         }
 
-        let tablePointer = util.UntypedTable.make_shared()
-        let table = tablePointer.pointee
+        let table = util.UntypedTable.create()
+        defer {
+            util.UntypedTable.destroy(table)
+        }
 
         let key = "key1"
         let value = Value(prop: "valueProp")
@@ -49,8 +53,10 @@ struct HashTableTests {
             }
         }
 
-        let tablePointer = util.UntypedTable.make_shared()
-        let table = tablePointer.pointee
+        let table = util.UntypedTable.create()
+        defer {
+            util.UntypedTable.destroy(table)
+        }
 
         let key = "key1"
         let value = Value(prop: "valueProp")

@@ -45,7 +45,8 @@ let package = Package(
         .library(name: "Compute", targets: ["Compute"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0")
+        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
+        .package(path: "../DarwinPrivateFrameworks"),
     ],
     targets: [
         .target(name: "Utilities"),
@@ -59,20 +60,36 @@ let package = Package(
             name: "Compute",
             dependencies: ["ComputeCxx"],
             cxxSettings: [.headerSearchPath("../ComputeCxx")],
-            swiftSettings: [.interoperabilityMode(.Cxx)]
+            swiftSettings: [.interoperabilityMode(.Cxx), .enableExperimentalFeature("Extern")]
         ),
         .testTarget(
             name: "ComputeTests",
-            dependencies: ["Compute", .product(name: "Algorithms", package: "swift-algorithms")],
-            swiftSettings: [.interoperabilityMode(.Cxx)],
+            dependencies: [
+                "Compute",
+                .product(name: "Algorithms", package: "swift-algorithms"),
+            ],
+            swiftSettings: [
+                .interoperabilityMode(.Cxx)
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
+        .testTarget(
+            name: "ComputeCompatibilityTests",
+            dependencies: [
+                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+            ],
+            swiftSettings: [
+                .interoperabilityMode(.Cxx)
+            ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
         .swiftRuntimeTarget(
             name: "ComputeCxx",
-            dependencies: ["Utilities", "EquatableSupport"],
+            dependencies: ["Utilities", "ComputeCxxSwiftSupport"],
             cxxSettings: [.headerSearchPath("")]
         ),
-        .target(name: "EquatableSupport"),
+        .target(name: "ComputeCxxSwiftSupport"),
     ],
     cxxLanguageStandard: .cxx20
 )

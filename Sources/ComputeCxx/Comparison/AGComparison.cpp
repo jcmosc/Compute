@@ -1,15 +1,8 @@
-#include "AGComparison.h"
+#include "AGComparison-Private.h"
 
-#include "Layout/LayoutDescriptor.h"
+#include "Comparison/LayoutDescriptor.h"
 #include "Swift/ContextDescriptor.h"
 #include "Swift/Metadata.h"
-
-typedef struct AGComparisonStateStorage {
-    const void *destination;
-    const void *source;
-    AGFieldRange field_range;
-    AGTypeID field_type;
-} AGComparisonStateStorage;
 
 const void *AGComparisonStateGetDestination(AGComparisonState state) { return state->destination; }
 
@@ -22,11 +15,11 @@ AGTypeID AGComparisonStateGetFieldType(AGComparisonState state) { return state->
 bool AGCompareValues(const void *destination, const void *source, AGTypeID type_id, AGComparisonOptions options) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(type_id);
     auto layout = AG::LayoutDescriptor::fetch(*type, options, 0);
-    if (layout == AG::ValueLayoutEmpty) {
+    if (layout == AG::ValueLayoutTrivial) {
         layout = nullptr;
     }
-    AG::LayoutDescriptor::compare(layout, (const unsigned char *)destination, (const unsigned char *)source,
-                                  type->vw_size(), options);
+    return AG::LayoutDescriptor::compare(layout, (const unsigned char *)destination, (const unsigned char *)source,
+                                         type->vw_size(), options);
 }
 
 const unsigned char *AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options, uint32_t priority) {
@@ -36,6 +29,5 @@ const unsigned char *AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptio
 
 void AGOverrideComparisonForTypeDescriptor(void *descriptor, AGComparisonMode mode) {
     AG::LayoutDescriptor::add_type_descriptor_override(
-        reinterpret_cast<const AG::swift::context_descriptor *>(descriptor),
-        AG::LayoutDescriptor::ComparisonMode(mode));
+        reinterpret_cast<const AG::swift::context_descriptor *>(descriptor), mode);
 }

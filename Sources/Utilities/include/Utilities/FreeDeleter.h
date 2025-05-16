@@ -1,6 +1,7 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <stdlib.h>
 
 CF_ASSUME_NONNULL_BEGIN
 

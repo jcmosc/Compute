@@ -6,9 +6,11 @@ namespace util {
 
 constexpr size_t default_increment = 0x2000;
 
-std::shared_ptr<Heap> Heap::make_shared(char *_Nullable start, size_t capacity, size_t increment) {
-    return std::make_shared<Heap>(start, capacity, increment);
+Heap *Heap::create(char *_Nullable start, size_t capacity, size_t increment) {
+    return new Heap(start, capacity, increment);
 }
+
+void Heap::destroy(Heap *value) { delete value; }
 
 Heap::Heap(char *start, size_t capacity, size_t increment) {
     // enforce minimum but treat 0 as the default

@@ -5,15 +5,15 @@
 namespace AG {
 namespace swift {
 
-bool metadata_visitor::unknown_result() const { return false; }
+bool metadata_visitor::unknown_result() { return false; }
 
 bool metadata_visitor::visit_element(const metadata &type, const metadata::ref_kind kind, size_t element_offset,
-                                     size_t element_size) const {
+                                     size_t element_size) {
     return unknown_result();
 }
 
 bool metadata_visitor::visit_field(const metadata &type, const field_record &field, size_t field_offset,
-                                   size_t field_size) const {
+                                   size_t field_size) {
     const char *mangled_type_name = field.MangledTypeName ? field.MangledTypeName.get() : nullptr;
     if (mangled_type_name) {
         metadata::ref_kind ref_kind = metadata::ref_kind::strong;
@@ -29,19 +29,17 @@ bool metadata_visitor::visit_field(const metadata &type, const field_record &fie
     return unknown_result();
 }
 
-bool metadata_visitor::visit_case(const metadata &type, const field_record &field, uint32_t index) const {
+bool metadata_visitor::visit_case(const metadata &type, const field_record &field, uint32_t index) {
     return unknown_result();
 }
 
-bool metadata_visitor::metadata_visitor::visit_class(const any_class_type_metadata &type) const {
-    return unknown_result();
-}
+bool metadata_visitor::metadata_visitor::visit_class(const any_class_type_metadata &type) { return unknown_result(); }
 
-bool metadata_visitor::visit_existential(const existential_type_metadata &type) const { return unknown_result(); }
+bool metadata_visitor::visit_existential(const existential_type_metadata &type) { return unknown_result(); }
 
-bool metadata_visitor::visit_function(const function_type_metadata &type) const { return unknown_result(); }
+bool metadata_visitor::visit_function(const function_type_metadata &type) { return unknown_result(); }
 
-bool metadata_visitor::visit_native_object(const metadata &type) const { return unknown_result(); }
+bool metadata_visitor::visit_native_object(const metadata &type) { return unknown_result(); }
 
 } // namespace swift
 } // namespace AG

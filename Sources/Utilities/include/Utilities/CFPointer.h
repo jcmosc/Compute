@@ -7,12 +7,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
-template <typename T>
-concept AnyCFTypeRef = std::is_same_v<T, CFArrayRef> || std::is_same_v<T, CFBooleanRef> ||
-                       std::is_same_v<T, CFDataRef> || std::is_same_v<T, CFDictionaryRef> ||
-                       std::is_same_v<T, CFNumberRef> || std::is_same_v<T, CFStringRef> || std::is_same_v<T, CFTypeRef>;
-
-template <AnyCFTypeRef T> class cf_ptr {
+template <typename T> class cf_ptr {
   private:
     CFTypeRef _storage;
 

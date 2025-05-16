@@ -8,8 +8,10 @@ struct HeapTests {
 
     @Test("Initializing with default arguments")
     func initDefault() {
-        let heapPointer = util.Heap.make_shared(nil, 0, 0)
-        let heap = heapPointer.pointee
+        let heap = util.Heap.create(nil, 0, 0)
+        defer {
+            util.Heap.destroy(heap)
+        }
 
         #expect(heap.capacity() == 0)
         #expect(heap.increment() == 0x2000)
@@ -18,8 +20,10 @@ struct HeapTests {
 
     @Test("Allocating small object uses node")
     func allocateSmallObjects() {
-        let heapPointer = util.Heap.make_shared(nil, 0, 0)
-        let heap = heapPointer.pointee
+        let heap = util.Heap.create(nil, 0, 0)
+        defer {
+            util.Heap.destroy(heap)
+        }
 
         let _ = heap.__alloc_uint64_tUnsafe()
 
@@ -36,8 +40,10 @@ struct HeapTests {
 
     @Test("Allocating large object creates new node")
     func allocateLargeObject() {
-        let heapPointer = util.Heap.make_shared(nil, 0, 0)
-        let heap = heapPointer.pointee
+        let heap = util.Heap.create(nil, 0, 0)
+        defer {
+            util.Heap.destroy(heap)
+        }
 
         // larger than minimum increment
         let _ = heap.__alloc_uint64_tUnsafe(500)

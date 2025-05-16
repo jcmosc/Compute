@@ -1,6 +1,8 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFDictionary.h>
+#include <CoreFoundation/CFString.h>
 #include <SwiftEquatableSupport.h>
 
 #include "AGSwiftSupport.h"

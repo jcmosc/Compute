@@ -6,16 +6,20 @@ struct ListTests {
 
     @Test("Initialize empty list")
     func initEmpty() {
-        let listPointer = util.UInt64ForwardList.make_shared()
-        let list = listPointer.pointee
+        let list = util.UInt64ForwardList.create()
+        defer {
+            util.UInt64ForwardList.destroy(list)
+        }
 
         #expect(list.empty())
     }
 
     @Test("Push element")
     func pushElement() {
-        let listPointer = util.UInt64ForwardList.make_shared()
-        let list = listPointer.pointee
+        let list = util.UInt64ForwardList.create()
+        defer {
+            util.UInt64ForwardList.destroy(list)
+        }
 
         list.push_front(1)
 
@@ -27,8 +31,10 @@ struct ListTests {
 
     @Test("Push multiple elements")
     func pushMultipleElements() {
-        let listPointer = util.UInt64ForwardList.make_shared()
-        let list = listPointer.pointee
+        let list = util.UInt64ForwardList.create()
+        defer {
+            util.UInt64ForwardList.destroy(list)
+        }
 
         list.push_front(1)
         list.push_front(2)
@@ -40,8 +46,10 @@ struct ListTests {
 
     @Test("Remove element")
     func removeElement() {
-        let listPointer = util.UInt64ForwardList.make_shared()
-        let list = listPointer.pointee
+        let list = util.UInt64ForwardList.create()
+        defer {
+            util.UInt64ForwardList.destroy(list)
+        }
 
         list.push_front(1)
         list.push_front(2)

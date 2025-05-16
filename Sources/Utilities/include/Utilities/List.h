@@ -136,7 +136,8 @@ template <typename T> void ForwardList<T>::pop_front() {
 
 class UInt64ForwardList : public ForwardList<uint64_t> {
   public:
-    static std::shared_ptr<UInt64ForwardList> make_shared();
+    static UInt64ForwardList *create();
+    static void destroy(UInt64ForwardList *value);
 
     bool empty() const noexcept;
 
@@ -149,7 +150,9 @@ class UInt64ForwardList : public ForwardList<uint64_t> {
 
 } SWIFT_UNSAFE_REFERENCE;
 
-std::shared_ptr<UInt64ForwardList> UInt64ForwardList::make_shared() { return std::make_shared<UInt64ForwardList>(); }
+UInt64ForwardList *UInt64ForwardList::create() { return new UInt64ForwardList(); }
+
+void UInt64ForwardList::destroy(UInt64ForwardList *value) { delete value; }
 
 bool UInt64ForwardList::empty() const noexcept { return ForwardList<uint64_t>::empty(); }
 

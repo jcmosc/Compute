@@ -26,8 +26,8 @@ template <typename T> class ptr {
     template <typename U> friend class ptr;
 
   public:
-    ptr(difference_type offset = 0) : _offset(offset){};
-    ptr(nullptr_t){};
+    ptr(difference_type offset = 0) : _offset(offset) {};
+    ptr(nullptr_t) {};
 
     void assert_valid() const {
         if (_offset >= table::shared().ptr_max_offset()) {
@@ -35,23 +35,30 @@ template <typename T> class ptr {
         }
     }
 
-    element_type *_Nonnull get() const noexcept {
-        assert(_offset != 0);
+    element_type *_Nullable get() const noexcept {
+        if (_offset == 0) {
+            return nullptr;
+        }
         return reinterpret_cast<element_type *>(table::shared().ptr_base() + _offset);
     }
 
     ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
 
-    difference_type page_relative_offset() const noexcept { return _offset & page_alignment_mask; }
+    difference_type offset() const noexcept { return _offset; }
 
     template <typename U> ptr<U> aligned(difference_type alignment_mask = sizeof(difference_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);
     };
 
-    operator bool() const noexcept { return _offset != 0; };
+    explicit operator bool() const noexcept { return _offset != 0; };
     std::add_lvalue_reference_t<T> operator*() const noexcept { return *get(); };
-    T *_Nonnull operator->() const noexcept { return get(); };
+    T *_Nonnull operator->() const noexcept {
+        assert(_offset != 0);
+        return get();
+    };
 
+    bool operator==(const ptr<T> &other) const noexcept { return _offset == other._offset; };
+    bool operator!=(const ptr<T> &other) const noexcept { return _offset != other._offset; };
     bool operator==(nullptr_t) const noexcept { return _offset == 0; };
     bool operator!=(nullptr_t) const noexcept { return _offset != 0; };
 
@@ -60,12 +67,16 @@ template <typename T> class ptr {
     bool operator>(difference_type offset) const noexcept { return _offset > offset; };
     bool operator>=(difference_type offset) const noexcept { return _offset >= offset; };
 
-    template <typename U> ptr<U> operator+(difference_type shift) const noexcept { return ptr(_offset + shift); };
-    template <typename U> ptr<U> operator-(difference_type shift) const noexcept { return ptr(_offset - shift); };
+    template <typename U> ptr<U> operator+(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
+    template <typename U> ptr<U> operator-(difference_type shift) const noexcept { return ptr<U>(_offset - shift); };
 
     template <typename U> difference_type operator-(const ptr<U> &other) const noexcept {
         return _offset - other._offset;
     };
+
+    template <typename U> ptr<U> advanced(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
+
+    template <typename U> ptr<U> unsafe_cast() const { return ptr<U>(_offset); }
 };
 
 } // namespace data

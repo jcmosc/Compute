@@ -24,7 +24,7 @@ class AttributeID {
     static constexpr uint32_t KindMask = 0x3;
 
     uint32_t _value;
-    AttributeID(uint32_t value) : _value(value){};
+    AttributeID(uint32_t value) : _value(value) {};
 
   public:
     enum Kind : uint32_t {
@@ -54,8 +54,8 @@ class AttributeID {
         EvaluateWeakReferences = 1 << 4,
     };
 
-    AttributeID(data::ptr<Node> node) : _value(node | Kind::Direct){};
-    AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node | Kind::Indirect){};
+    explicit AttributeID(data::ptr<Node> node) : _value(node.offset() | Kind::Direct) {};
+    explicit AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node.offset() | Kind::Indirect) {};
     static AttributeID make_nil() { return AttributeID(Kind::NilAttribute); };
 
     operator bool() const { return _value == 0; };

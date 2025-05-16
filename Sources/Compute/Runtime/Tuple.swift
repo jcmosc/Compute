@@ -1,148 +1,168 @@
-public func withUnsafeTuple(of type: TupleType, count: Int, _ body: (UnsafeMutableTuple) -> Void) {
-    fatalError("not implemented")
-}
+@_extern(c, "AGTupleWithBuffer")
+public func withUnsafeTuple(of type: TupleType, count: Int, _ body: (UnsafeMutableTuple) -> Void)
 
-public struct TupleType {
-    
-    public struct CopyOptions {}
+extension TupleType {
 
     public init(_ types: [Any.Type]) {
-        fatalError("not implemented")
+        self.init(count: UInt32(types.count), elements: types.map(Metadata.init))
     }
 
     public init(_ type: Any.Type) {
-        fatalError("not implemented")
+        self.init(rawValue: unsafeBitCast(type, to: OpaquePointer.self))
     }
 
     public var type: Any.Type {
-        fatalError("not implemented")
+        return unsafeBitCast(rawValue, to: Any.Type.self)
     }
 
     public var isEmpty: Bool {
-        fatalError("not implemented")
+        return count == 0
     }
 
     public var indices: Range<Int> {
-        fatalError("not implemented")
+        return 0..<count
     }
 
     public func type(at index: Int) -> Any.Type {
-        fatalError("not implemented")
+        return elementType(at: UInt32(index)).type
     }
 
     public func offset<T>(at index: Int, as type: T.Type) -> Int {
-        fatalError("not implemented")
+        return elementOffset(at: UInt32(index), type: Metadata(type))
     }
 
     public func getElement<T>(
-        in tupleValue: UnsafeMutableRawPointer, at index: Int, to destinationValue: UnsafeMutablePointer<T>,
-        options: TupleType.CopyOptions
+        in tupleValue: UnsafeMutableRawPointer,
+        at index: Int,
+        to destinationValue: UnsafeMutablePointer<T>,
+        options: CopyOptions
     ) {
-        fatalError("not implemented")
+        __AGTupleGetElement(self, tupleValue, UInt32(index), destinationValue, Metadata(T.self), options)
     }
 
     public func setElement<T>(
-        in tupleValue: UnsafeMutableRawPointer, at index: Int, from sourceValue: UnsafePointer<T>,
-        options: TupleType.CopyOptions
+        in tupleValue: UnsafeMutableRawPointer,
+        at index: Int,
+        from sourceValue: UnsafePointer<T>,
+        options: CopyOptions
     ) {
-        fatalError("not implemented")
+        __AGTupleSetElement(self, tupleValue, UInt32(index), sourceValue, Metadata(T.self), options)
     }
 
 }
 
-public struct UnsafeTuple {
+extension UnsafeTuple {
 
     public var count: Int {
-        fatalError("not implemented")
+        return type.count
     }
 
     public var isEmpty: Bool {
-        fatalError("not implemented")
+        return type.isEmpty
     }
 
     public var indices: Range<Int> {
-        fatalError("not implemented")
+        return type.indices
     }
 
-    public func address<T>(as type: T.Type) -> UnsafePointer<T> {
-        fatalError("not implemented")
+    public func address<T>(as expectedType: T.Type) -> UnsafePointer<T> {
+        guard type.type == expectedType else {
+            preconditionFailure()
+        }
+        return value.assumingMemoryBound(to: expectedType)
     }
 
     public func address<T>(of index: Int, as elementType: T.Type) -> UnsafePointer<T> {
-        fatalError("not implemented")
+        return value.advanced(by: type.elementOffset(at: UInt32(index), type: Metadata(elementType)))
+            .assumingMemoryBound(to: elementType)
     }
 
     public subscript<T>() -> T {
         unsafeAddress {
-            fatalError("not implemented")
+            return address(as: T.self)
         }
     }
 
     public subscript<T>(_ index: Int) -> T {
         unsafeAddress {
-            fatalError("not implemented")
+            return address(of: index, as: T.self)
         }
     }
 
 }
 
-public struct UnsafeMutableTuple {
+extension UnsafeMutableTuple {
 
     public init(with tupleType: TupleType) {
-        fatalError("not implemented")
+        self.init(
+            type: tupleType,
+            value: UnsafeMutableRawPointer.allocate(
+                byteCount: tupleType.size,
+                alignment: -1
+            )
+        )
     }
 
     public func deallocate(initialized: Bool) {
-        fatalError("not implemented")
+        if initialized {
+            deinitialize()
+        }
+        value.deallocate()
     }
 
     public func initialize<T>(at index: Int, to element: T) {
-        fatalError("not implemented")
+        withUnsafePointer(to: element) { elementPointer in
+            type.setElement(in: value, at: index, from: elementPointer, options: .initCopy)
+        }
     }
 
     public func deinitialize() {
-        fatalError("not implemented")
+        type.destroy(value)
     }
 
     public func deinitialize(at index: Int) {
-        fatalError("not implemented")
+        type.destroy(value, at: UInt32(index))
     }
 
     public var count: Int {
-        fatalError("not implemented")
-    }
-    
-    public var isEmpty: Bool {
-        fatalError("not implemented")
-    }
-    
-    public var indices: Range<Int> {
-        fatalError("not implemented")
+        return type.count
     }
 
-    public func address<T>(as type: T.Type) -> UnsafeMutablePointer<T> {
-        fatalError("not implemented")
+    public var isEmpty: Bool {
+        return type.isEmpty
+    }
+
+    public var indices: Range<Int> {
+        return type.indices
+    }
+
+    public func address<T>(as expectedType: T.Type) -> UnsafeMutablePointer<T> {
+        guard type.type == expectedType else {
+            preconditionFailure()
+        }
+        return value.assumingMemoryBound(to: expectedType)
     }
 
     public func address<T>(of index: Int, as elementType: T.Type) -> UnsafeMutablePointer<T> {
-        fatalError("not implemented")
+        return value.advanced(by: type.elementOffset(at: UInt32(index), type: Metadata(elementType)))
+            .assumingMemoryBound(to: elementType)
     }
 
     public subscript<T>() -> T {
         unsafeAddress {
-            fatalError("not implemented")
+            return UnsafePointer(address(as: T.self))
         }
-        unsafeMutableAddress {
-            fatalError("not implemented")
+        nonmutating unsafeMutableAddress {
+            return address(as: T.self)
         }
     }
 
     public subscript<T>(_ index: Int) -> T {
         unsafeAddress {
-            fatalError("not implemented")
+            return UnsafePointer(address(of: index, as: T.self))
         }
-        unsafeMutableAddress {
-            fatalError("not implemented")
+        nonmutating unsafeMutableAddress {
+            return address(of: index, as: T.self)
         }
     }
 

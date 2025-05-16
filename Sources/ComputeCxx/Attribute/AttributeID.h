@@ -24,7 +24,7 @@ class AttributeID {
     static constexpr uint32_t KindMask = 0x3;
 
     uint32_t _value;
-    AttributeID(uint32_t value) : _value(value){};
+    AttributeID(uint32_t value) : _value(value) {};
 
   public:
     enum Kind : uint32_t {

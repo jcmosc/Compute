@@ -25,7 +25,7 @@ class Node {
 
       private:
         uint8_t _data;
-        explicit constexpr State(uint8_t data) : _data(data){};
+        explicit constexpr State(uint8_t data) : _data(data) {};
 
       public:
         bool is_value_initialized() { return _data & ValueInitialized; };

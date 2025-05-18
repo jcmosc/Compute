@@ -2,32 +2,51 @@ import ComputeCxx
 
 extension Subgraph {
 
-    public func addObserver(_ observer: () -> Void) -> Int {
-        fatalError("not implemented")
+    @_extern(c, "AGSubgraphAddObserver")
+    private static func addObserver(_ subgraph: UnsafeRawPointer, observer: () -> Void) -> Int
+
+    func addObserver(_ observer: () -> Void) -> Int {
+        return Subgraph.addObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
     }
 
     public func apply<T>(_ body: () -> T) -> T {
-        fatalError("not implemented")
+        let previousSubgraph = Subgraph.current
+        let previousUpdate = __AGGraphClearUpdate()
+        defer {
+            Subgraph.current = previousSubgraph
+            __AGGraphSetUpdate(previousUpdate)
+        }
+        Subgraph.current = self
+        return body()
     }
 
-    public func forEach(_ flags: AttributeFlags, _ body: (AnyAttribute) -> Void) {
-        fatalError("not implemented")
+    @_extern(c, "AGSubgraphApply")
+    private static func apply(_ subgraph: UnsafeRawPointer, flags: AGAttributeFlags, body: (AnyAttribute) -> Void)
+
+    public func forEach(_ flags: AGAttributeFlags, _ body: (AnyAttribute) -> Void) {
+        Subgraph.apply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags: flags, body: body)
     }
 
 }
 
 extension Subgraph {
 
-    public func addTreeValue<Value>(_ attribute: Attribute<Value>, forKey key: UnsafePointer<Int8>, flags: UInt32) {
-        fatalError("not implemented")
+    public static func addTreeValue<Value>(_ value: Attribute<Value>, forKey key: UnsafePointer<Int8>, flags: UInt32) {
+        if shouldRecordTree {
+            __AGSubgraphAddTreeValue(value.identifier, Metadata(Value.self), key, flags)
+        }
     }
 
-    public func beginTreeElement<Value>(value: Attribute<Value>, flags: UInt32) {
-        fatalError("not implemented")
+    public static func beginTreeElement<Value>(value: Attribute<Value>, flags: UInt32) {
+        if shouldRecordTree {
+            __AGSubgraphBeginTreeElement(value.identifier, Metadata(Value.self), flags)
+        }
     }
 
-    public func endTreeElement<Value>(value: Attribute<Value>) {
-        fatalError("not implemented")
+    public static func endTreeElement<Value>(value: Attribute<Value>) {
+        if shouldRecordTree {
+            __AGSubgraphEndTreeElement(value.identifier)
+        }
     }
 
 }

@@ -2,48 +2,114 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include "Attribute/Node/Node.h"
+#include "Comparison/AGComparison.h"
+#include "Comparison/LayoutDescriptor.h"
 #include "Swift/Metadata.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
+class AttributeID;
 class AttributeType;
 
 class AttributeVTable {
   public:
-    enum Flags : uint8_t {
-        HasDestroySelf = 1 << 2,
-    };
-
-    using Callback = void (*)(AttributeType *attribute_type, void *body);
+    using Callback = void (*)(const AttributeType *attribute_type, void *body);
+    using DescriptionCallback = CFStringRef _Nonnull (*)(const AttributeType *attribute_type, void *body);
+    Callback _unknown_0x00;
+    Callback _unknown_0x08;
     Callback destroy_self;
+    DescriptionCallback _self_description;
+    DescriptionCallback _value_description;
+    Callback _update_stack_callback; // maybe initialize value
 };
 
 class AttributeType {
+  public:
+    enum Flags : uint32_t {
+        ComparisonModeMask = 0x3,
+
+        HasDestroySelf = 1 << 2,         // 0x04
+        MainThread = 1 << 3,             // 0x08
+        UseGraphAsInitialValue = 1 << 4, // 0x10
+        Unknown0x20 = 1 << 5,            // 0x20 // used in update_main_refs
+    };
+
+    using UpdateFunction = void (*)(const void *context, void *body, AttributeID attribute);
+
   private:
     swift::metadata *_self_metadata;
     swift::metadata *_value_metadata;
-    void *_field1;
-    void *_field2;
-    AttributeVTable *_v_table;
-    uint8_t _v_table_flags;
+    UpdateFunction _update_function;
+    void *_update_context;
+    AttributeVTable *_vtable;
+    Flags _flags;
+
+    // set after construction
     uint32_t _attribute_offset;
+    ValueLayout _layout;
 
   public:
+    class deleter {};
+
     const swift::metadata &self_metadata() const { return *_self_metadata; };
     const swift::metadata &value_metadata() const { return *_value_metadata; };
+
+    Flags flags() const { return _flags; };
+
+    bool main_thread() const { return _flags & Flags::MainThread; };
+    bool use_graph_as_initial_value() const { return _flags & Flags::UseGraphAsInitialValue; };
+    bool unknown_0x20() const { return _flags & Flags::Unknown0x20; };
 
     /// Returns the offset in bytes from a Node to the attribute body,
     /// aligned to the body's alignment.
     uint32_t attribute_offset() const { return _attribute_offset; };
+    void update_attribute_offset();
+
+    ValueLayout layout() const { return _layout; };
+    void set_layout(ValueLayout layout) { _layout = layout; };
+    AGComparisonMode comparison_mode() const { return AGComparisonMode(_flags & Flags::ComparisonModeMask); };
+    void update_layout() {
+        if (!_layout) {
+            auto comparison_mode = AGComparisonMode(_flags & Flags::ComparisonModeMask);
+            _layout = LayoutDescriptor::fetch(value_metadata(), comparison_mode, 1);
+        }
+    };
+
+    void perform_update(void *body, AttributeID attribute) const {
+        _update_function(_update_context, body, attribute);
+    };
 
     // V table methods
-    void v_destroy_self(void *body) {
-        if (_v_table_flags & AttributeVTable::Flags::HasDestroySelf) {
-            _v_table->destroy_self(this, body);
+    void vt_destroy_self(void *body) {
+        // TODO: does this check _flags or the callback itself?
+        if (_flags & Flags::HasDestroySelf) {
+            _vtable->destroy_self(this, body);
         }
     }
+
+    CFStringRef _Nullable vt_self_description(void *self_data) const {
+        if (auto callback = _vtable->_self_description) {
+            return callback(this, self_data);
+        }
+        return nullptr;
+    }
+    CFStringRef _Nullable vt_value_description(void *value) const {
+        if (auto callback = _vtable->_value_description) {
+            return callback(this, value);
+        }
+        return nullptr;
+    }
+
+    AttributeVTable::DescriptionCallback _Nullable vt_get_self_description_callback() const {
+        return _vtable->_self_description;
+    }
+    AttributeVTable::DescriptionCallback _Nullable vt_get_value_description_callback() const {
+        return _vtable->_value_description;
+    }
+    AttributeVTable::Callback vt_get_update_stack_callback() const { return _vtable->_update_stack_callback; }
 };
 
 } // namespace AG

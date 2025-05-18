@@ -7,15 +7,21 @@ public struct PointerOffset<Base, Member> {
     }
 
     public static func of(_ member: inout Member) -> PointerOffset<Base, Member> {
-        fatalError("not implemented")
+        return withUnsafePointer(to: &member) { memberPointer in
+            let offset = UnsafeRawPointer(memberPointer) - UnsafeRawPointer(invalidScenePointer())
+            return PointerOffset(byteOffset: offset)
+        }
     }
 
     public static func offset(_ body: (inout Base) -> PointerOffset<Base, Member>) -> PointerOffset<Base, Member> {
-        fatalError("not implemented")
+        guard MemoryLayout<Member>.size != 0 else {
+            return PointerOffset(byteOffset: 0)
+        }
+        return body(&invalidScenePointer().pointee)
     }
 
     public static func invalidScenePointer() -> UnsafeMutablePointer<Base> {
-        fatalError("not implemented")
+        return UnsafeMutablePointer(bitPattern: MemoryLayout<Base>.stride)!
     }
 
 }
@@ -50,7 +56,7 @@ extension UnsafePointer {
             .assumingMemoryBound(to: Member.self)
     }
 
-    public subscript<Member>(offset: PointerOffset<Pointee, Member>) -> Member {
+    public subscript<Member>(offset offset: PointerOffset<Pointee, Member>) -> Member {
         unsafeAddress {
             return UnsafeRawPointer(self)
                 .advanced(by: offset.byteOffset)
@@ -77,7 +83,7 @@ extension UnsafeMutablePointer {
                 .advanced(by: offset.byteOffset)
                 .assumingMemoryBound(to: Member.self)
         }
-        unsafeMutableAddress {
+        nonmutating unsafeMutableAddress {
             return UnsafeMutableRawPointer(self)
                 .advanced(by: offset.byteOffset)
                 .assumingMemoryBound(to: Member.self)

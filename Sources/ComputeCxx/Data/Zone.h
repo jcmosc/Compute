@@ -24,7 +24,7 @@ class zone {
         info(uint32_t value) : _value(value) {};
 
       public:
-        uint32_t zone_id() { return _value & id_mask; };
+        uint32_t zone_id() const { return _value & id_mask; }; // TODO: id()
         info with_zone_id(uint32_t zone_id) const { return info((_value & ~id_mask) | (zone_id & id_mask)); };
 
         info with_deleted() const { return info(_value | deleted); };
@@ -61,7 +61,7 @@ class zone {
     // Paged memory
     ptr<void> alloc_bytes(uint32_t size, uint32_t alignment_mask);
     ptr<void> alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask);
-    
+
 
     // Persistent memory
     void *alloc_persistent(size_t size);

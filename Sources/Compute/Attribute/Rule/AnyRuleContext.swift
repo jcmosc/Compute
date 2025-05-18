@@ -9,41 +9,55 @@ public struct AnyRuleContext {
     }
 
     public init<Value>(_ ruleContext: RuleContext<Value>) {
-        fatalError("not implemented")
-    }
-
-    public func unsafeCast<Value>(to type: Value.Type) -> RuleContext<Value> {
-        fatalError("not implemented")
+        self.attribute = ruleContext.attribute.identifier
     }
 
     public func update(body: () -> Void) {
-        fatalError("not implemented")
+        Graph.withUpdate(attribute: attribute, body: body)
     }
 
-    public func changedValue<Value>(of attribute: Attribute<Value>, options: ValueOptions) -> (
+    public func changedValue<Value>(of input: Attribute<Value>, options: AGValueOptions) -> (
         value: Value, changed: Bool
     ) {
-        fatalError("not implemented")
+        let result = __AGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
+        return (
+            result.value.assumingMemoryBound(to: Value.self).pointee,
+            result.changed
+        )
     }
 
-    public func valueAndFlags<Value>(of attribute: Attribute<Value>, options: ValueOptions) -> (
-        value: Value, flags: ChangedValueFlags
+    public func valueAndFlags<Value>(of input: Attribute<Value>, options: AGValueOptions) -> (
+        value: Value, flags: AGChangedValueFlags
     ) {
-        fatalError("not implemented")
+        let result = __AGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
+        return (
+            result.value.assumingMemoryBound(to: Value.self).pointee,
+            result.changed ? .changed : []
+        )
     }
 
-    public subscript<Value>(_ attribute: Attribute<Value>) -> Value {
+    public subscript<Value>(_ input: Attribute<Value>) -> Value {
         unsafeAddress {
-            fatalError("not implemented")
+            return __AGGraphGetInputValue(attribute, input.identifier, [], Metadata(Value.self))
+                .value
+                .assumingMemoryBound(to: Value.self)
         }
     }
 
-    public subscript<Value>(_ weakAttribute: WeakAttribute<Value>) -> Value? {
-        fatalError("not implemented")
+    public subscript<Value>(_ weakInput: WeakAttribute<Value>) -> Value? {
+        return weakInput.attribute.map { input in
+            return self[input]
+        }
     }
 
-    public subscript<Value>(_ optionalAttribute: OptionalAttribute<Value>) -> Value? {
-        fatalError("not implemented")
+    public subscript<Value>(_ optionalInput: OptionalAttribute<Value>) -> Value? {
+        return optionalInput.attribute.map { input in
+            return self[input]
+        }
+    }
+
+    public func unsafeCast<Value>(to type: Value.Type) -> RuleContext<Value> {
+        return RuleContext<Value>(attribute: Attribute(identifier: attribute))
     }
 
 }

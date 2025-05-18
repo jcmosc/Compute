@@ -104,6 +104,7 @@ ptr<void> zone::alloc_slow(uint32_t size, uint32_t alignment_mask) {
         // check if we can use remaining bytes in this page
         ptr<void> next_bytes = _first_page.advanced<void>(_first_page->in_use);
         if (next_bytes.page_ptr() == _first_page) {
+
             ptr<bytes_info> aligned_next_bytes = next_bytes.aligned<bytes_info>();
             int32_t remaining_size = _first_page->total - _first_page->in_use + (next_bytes - aligned_next_bytes);
             if (remaining_size >= sizeof(bytes_info)) {

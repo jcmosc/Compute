@@ -6,8 +6,11 @@
 #include "AGComparison.h"
 #include "Builder.h"
 #include "Compare.h"
+#include "Graph/Graph.h"
+#include "Graph/UpdateStack.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
+#include "Trace/Trace.h"
 #include "Utilities/HashTable.h"
 #include "ValueLayout.h"
 
@@ -300,11 +303,13 @@ ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mo
     AGComparisonMode equtable_minimum_mode =
         type.getValueWitnesses()->isPOD() ? AGComparisonModeEquatableAlways : AGComparisonModeEquatableUnlessPOD;
     if (equtable_minimum_mode <= builder.current_comparison_mode()) {
+
         if (auto equatable = type.equatable()) {
             size_t offset = builder.current_offset();
             size_t size = type.vw_size();
             Builder::EqualsItem item = {offset, size, &type, equatable};
             builder.get_items().push_back(item);
+
             return builder.commit(type);
         }
     }
@@ -327,9 +332,11 @@ size_t length(ValueLayout layout) {
             reader.skip(sizeof(void *));
             reader.skip(sizeof(void *));
             continue;
+
         case ValueLayoutEntryKind::Indirect:
             reader.skip(sizeof(void *));
             reader.skip(sizeof(void *));
+
             continue;
         case ValueLayoutEntryKind::Existential:
             reader.skip(sizeof(void *));
@@ -406,13 +413,13 @@ bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs,
     size_t failure_location = 0;
     bool result = compare_bytes(lhs, rhs, size, &failure_location);
     if ((options & AGComparisonOptionsReportFailures) && !result) {
-        //        for (auto update = Graph::current_update(); update != nullptr; update = update.get()->previous()) {
-        //            auto graph = update.get()->graph();
-        //            auto attribute = update.get()->frames().back().attribute;
-        //            graph->foreach_trace([&attribute, &lhs, &rhs, &failure_location](Trace &trace) {
-        //                trace.compare_failed(attribute, lhs, rhs, failure_location, 1, nullptr);
-        //            });
-        //        }
+        for (auto update = Graph::current_update(); update != nullptr; update = update.get()->previous()) {
+            auto graph = update.get()->graph();
+            auto attribute = update.get()->frames().back().attribute;
+            graph->foreach_trace([&attribute, &lhs, &rhs, &failure_location](Trace &trace) {
+                trace.compare_failed(attribute, lhs, rhs, failure_location, 1, nullptr);
+            });
+        }
     }
     return result;
 }
@@ -465,12 +472,14 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, AG
         return false;
     }
 
+    // TODO: should this be cast to a HeapObject struct?
     auto lhs_type = (const swift::metadata *)lhs;
     auto rhs_type = (const swift::metadata *)rhs;
     if (lhs_type != rhs_type) {
         return false;
     }
 
+    // only place where heap mode is set to non-zero?
     HeapMode heap_mode = is_function ? HeapMode::CaptureRef : HeapMode::Option1;
     AGComparisonOptions fetch_options =
         options & AGComparisonOptionsComparisonModeMask; // this has the effect of allowing async fetch
@@ -596,6 +605,7 @@ bool compare_partial(ValueLayout layout, const unsigned char *lhs, const unsigne
             Compare compare_object = Compare();
             return compare_object(partial.layout, lhs, rhs, partial.location, remaining_size, options);
         }
+        // TODO: no return here?
     }
 
     return compare_bytes_top_level(lhs, rhs, size, options);
@@ -693,6 +703,7 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
             }
             continue;
         }
+
         case ValueLayoutEntryKind::EnumStartVariadic:
         case ValueLayoutEntryKind::EnumStart0:
         case ValueLayoutEntryKind::EnumStart1:
@@ -706,6 +717,7 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
             reader.skip(length(reader.layout));
             continue;
         }
+
         case ValueLayoutEntryKind::EnumContinueVariadic:
         case ValueLayoutEntryKind::EnumContinue0:
         case ValueLayoutEntryKind::EnumContinue1:
@@ -796,6 +808,7 @@ void print(std::string &output, ValueLayout layout) {
             print_format("(== #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
+
         case ValueLayoutEntryKind::Indirect: {
             auto type = reader.read_bytes<const swift::metadata *>();
             reader.skip(sizeof(void *));
@@ -805,6 +818,7 @@ void print(std::string &output, ValueLayout layout) {
             print_format("(indirect #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
+
         case ValueLayoutEntryKind::Existential: {
             auto type = reader.read_bytes<const swift::metadata *>();
 

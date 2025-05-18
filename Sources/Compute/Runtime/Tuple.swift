@@ -3,7 +3,7 @@ public func withUnsafeTuple(of type: TupleType, count: Int, body: (UnsafeMutable
 }
 
 extension TupleType {
-    
+
     @_extern(c, "AGTupleWithBuffer")
     fileprivate static func withUnsafeTuple(of type: TupleType, count: Int, body: (UnsafeMutableTuple) -> Void)
 

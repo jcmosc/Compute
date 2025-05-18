@@ -8,8 +8,7 @@ extension AGComparisonOptions {
 
 }
 
-public func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: AGComparisonMode = .equatableAlways) -> Bool
-{
+public func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: AGComparisonMode = .equatableAlways) -> Bool {
     return compareValues(lhs, rhs, options: AGComparisonOptions(mode: mode))
 }
 

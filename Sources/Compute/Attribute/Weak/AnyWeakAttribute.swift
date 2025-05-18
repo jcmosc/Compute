@@ -1,50 +1,52 @@
 import ComputeCxx
 
-public struct AnyWeakAttribute {
+extension AnyWeakAttribute {
 
     public init<Value>(_ attribute: WeakAttribute<Value>) {
-        fatalError("not implemented")
+        self = attribute.base
     }
 
     public init(_ attribute: AnyAttribute?) {
-        fatalError("not implemented")
-    }
-
-    public func unsafeCast<Value>(to type: Value.Type) -> WeakAttribute<Value> {
-        fatalError("not implemented")
+        self = __AGCreateWeakAttribute(attribute ?? .nil)
     }
 
     public var attribute: AnyAttribute? {
         get {
-            fatalError("not implemented")
+            let attribute = __AGWeakAttributeGetAttribute(self)
+            return attribute == .nil ? nil : attribute
         }
         set {
-            fatalError("not implemented")
+            self = AnyWeakAttribute(newValue)
         }
     }
 
+    public func unsafeCast<Value>(to type: Value.Type) -> WeakAttribute<Value> {
+        return WeakAttribute<Value>(base: self)
+    }
+
 }
 
-extension AnyWeakAttribute: CustomStringConvertible {
+extension AnyWeakAttribute: @retroactive CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return attribute?.description ?? "nil"
     }
 
 }
 
-extension AnyWeakAttribute: Equatable {
-
-    public static func == (lhs: AnyWeakAttribute, rhs: AnyWeakAttribute) -> Bool {
-        fatalError("not implemented")
+extension AnyWeakAttribute: @retroactive Equatable {
+    
+    public static func ==(lhs: AnyWeakAttribute, rhs: AnyWeakAttribute) -> Bool {
+        return lhs.attribute == rhs.attribute && lhs.subgraph_id == rhs.subgraph_id
     }
-
+    
 }
 
-extension AnyWeakAttribute: Hashable {
-
+extension AnyWeakAttribute: @retroactive Hashable {
+    
     public func hash(into hasher: inout Hasher) {
-        fatalError("not implemented")
+        hasher.combine(attribute)
+        hasher.combine(subgraph_id)
     }
-
+    
 }

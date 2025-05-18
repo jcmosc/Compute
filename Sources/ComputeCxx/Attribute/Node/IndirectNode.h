@@ -4,6 +4,8 @@
 
 #include "Attribute/AttributeID.h"
 #include "Attribute/WeakAttributeID.h"
+#include "Data/Vector.h"
+#include "Edge.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -12,42 +14,80 @@ namespace AG {
 class MutableIndirectNode;
 
 class IndirectNode {
+  public:
+    // TODO: is there special treatment of lowest bit?
+    static constexpr uint16_t MaximumOffset = 0x3ffffffe; // 30 bits - 1
+
   private:
     struct Info {
         unsigned int is_mutable : 1;
-        unsigned int traverses_graph_contexts : 1;
+        unsigned int traverses_contexts : 1;
         unsigned int offset : 30;
-        unsigned int size : 32;
     };
-    static_assert(sizeof(Info) == 8);
-    static constexpr uint32_t InvalidSize = 0xffff;
+    static_assert(sizeof(Info) == 4);
+    static constexpr uint16_t InvalidSize = 0xffff;
 
     WeakAttributeID _source;
     Info _info;
+    uint16_t _size;
+    RelativeAttributeID _relative_offset;
 
   public:
-    bool is_mutable() const { return _info.is_mutable; };
-    const MutableIndirectNode &to_mutable() const;
-
-    bool traverses_graph_contexts() const { return _info.traverses_graph_contexts; };
-
-    uint32_t offset() const { return _info.offset; };
-    std::optional<size_t> size() const {
-        return _info.size != InvalidSize ? std::optional(size_t(_info.size)) : std::optional<size_t>();
-    };
+    IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size) : _source(source) {
+        _info.is_mutable = false;
+        _info.traverses_contexts = traverses_contexts;
+        _info.offset = offset;
+        _size = size;
+    }
 
     const WeakAttributeID &source() const { return _source; };
-    
-    void modify(WeakAttributeID source, size_t size);
+
+    bool is_mutable() const { return _info.is_mutable; };
+    MutableIndirectNode &to_mutable();
+    const MutableIndirectNode &to_mutable() const;
+
+    void set_traverses_contexts(bool value) { _info.traverses_contexts = value; };
+    bool traverses_contexts() const { return _info.traverses_contexts; };
+
+    uint32_t offset() const { return _info.offset; };
+    bool has_size() const { return _size != InvalidSize; };
+    std::optional<size_t> size() const {
+        return _size != InvalidSize ? std::optional(size_t(_size)) : std::optional<size_t>();
+    };
+
+    RelativeAttributeID relative_offset() const { return _relative_offset; };
+    void set_relative_offset(RelativeAttributeID relative_offset) { _relative_offset = relative_offset; };
+
+    void modify(WeakAttributeID source, uint32_t offset);
 };
+
+static_assert(sizeof(IndirectNode) == 0x10);
 
 class MutableIndirectNode : public IndirectNode {
   private:
     AttributeID _dependency;
+    data::vector<OutputEdge> _outputs;
+    WeakAttributeID _initial_source;
+    uint32_t _initial_offset;
 
   public:
+    MutableIndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, uint16_t size,
+                        WeakAttributeID initial_source, uint32_t initial_offset)
+        : IndirectNode(source, traverses_contexts, offset, size), _dependency(), _initial_source(initial_source),
+          _initial_offset(initial_offset) {
+
+          };
+
     const AttributeID &dependency() const { return _dependency; };
+    void set_dependency(const AttributeID &dependency) { _dependency = dependency; };
+
+    WeakAttributeID initial_source() { return _initial_source; };
+    uint32_t initial_offset() { return _initial_offset; };
+
+    data::vector<OutputEdge> outputs() const { return _outputs; };
 };
+
+static_assert(sizeof(MutableIndirectNode) == 0x28);
 
 } // namespace AG
 

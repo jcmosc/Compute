@@ -11,9 +11,15 @@
 
 namespace AG {
 
+AttributeID AttributeIDNil = AttributeID::from_storage(2);
+
+RelativeAttributeID AttributeID::to_relative() const {
+    return RelativeAttributeID(((_value & ~KindMask) - page_ptr().offset()) | kind());
+}
+
 std::optional<size_t> AttributeID::size() const {
     if (is_direct()) {
-        const AttributeType &attribute_type = subgraph()->graph().attribute_type(to_node().type_id());
+        const AttributeType &attribute_type = subgraph()->graph()->attribute_type(to_node().type_id());
         size_t size = attribute_type.value_metadata().vw_size();
         return std::optional<size_t>(size);
     }
@@ -27,7 +33,7 @@ bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
     if (!is_indirect()) {
         return *this == other;
     }
-    
+
     if (with_kind(Kind::Indirect) == other) {
         return true;
     }
@@ -56,7 +62,6 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
         }
 
         auto indirect_node = to_indirect_node();
-
         if (indirect_node.is_mutable()) {
             if (options & TraversalOptions::SkipMutableReference) {
                 return OffsetAttributeID(result, offset);
@@ -67,7 +72,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (dependency) {
                     auto subgraph = dependency.subgraph();
                     if (subgraph) {
-                        subgraph->graph().update_attribute(dependency, false);
+                        subgraph->graph()->update_attribute(dependency, false);
                     }
                 }
             }
@@ -78,7 +83,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (options & TraversalOptions::AssertNotNil) {
                     precondition_failure("invalid indirect ref: %u", _value);
                 }
-                return OffsetAttributeID(AttributeID::make_nil());
+                return OffsetAttributeID(AttributeIDNil);
             }
         }
 

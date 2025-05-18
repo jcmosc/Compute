@@ -1,6 +1,8 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <cstddef>
+#include <utility>
 #include <objc/runtime.h>
 
 CF_ASSUME_NONNULL_BEGIN

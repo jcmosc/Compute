@@ -6,10 +6,10 @@
 #include "AGComparison.h"
 #include "Builder.h"
 #include "Compare.h"
-#include "Controls.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
 #include "Utilities/HashTable.h"
+#include "ValueLayout.h"
 
 namespace AG {
 
@@ -317,104 +317,74 @@ ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mo
 }
 
 size_t length(ValueLayout layout) {
-    const unsigned char *c = layout;
+    ValueLayoutReader reader = ValueLayoutReader(layout);
     unsigned int enum_depth = 0;
     while (true) {
-        if (*c > LastControlCharacter) {
-            c += 1;
+        switch (reader.read_kind()) {
+        case ValueLayoutEntryKind::End:
+            return reader.layout - layout;
+        case ValueLayoutEntryKind::Equals:
+            reader.skip(sizeof(void *));
+            reader.skip(sizeof(void *));
             continue;
-        }
-        switch (*c) {
-        case 0:
-            c += 1;
-            return c - layout;
-        case Controls::EqualsItemBegin:
-            c += 1;
-            c += Controls::EqualsItemTypePointerSize;
-            c += Controls::EqualsItemEquatablePointerSize;
+        case ValueLayoutEntryKind::Indirect:
+            reader.skip(sizeof(void *));
+            reader.skip(sizeof(void *));
             continue;
-        case Controls::IndirectItemBegin:
-            c += 1;
-            c += Controls::IndirectItemTypePointerSize;
-            c += Controls::IndirectItemLayoutPointerSize;
+        case ValueLayoutEntryKind::Existential:
+            reader.skip(sizeof(void *));
             continue;
-        case Controls::ExistentialItemBegin:
-            c += 1;
-            c += Controls::ExistentialItemTypePointerSize;
+        case ValueLayoutEntryKind::HeapRef:
+        case ValueLayoutEntryKind::Function:
             continue;
-        case Controls::HeapRefItemBegin:
-        case Controls::FunctionItemBegin:
-            c += 1;
+        case ValueLayoutEntryKind::Nested:
+            reader.skip(sizeof(void *));
+            reader.skip_varint();
             continue;
-        case Controls::NestedItemBegin: {
-            c += 1;
-            c += Controls::NestedItemLayoutPointerSize;
-            while (*c & 0x80) {
-                c += 1;
-            }
-            c += 1;
+        case ValueLayoutEntryKind::CompactNested:
+            reader.skip(sizeof(uint32_t));
+            reader.skip(sizeof(uint16_t));
             continue;
-        }
-        case Controls::CompactNestedItemBegin: {
-            c += 1;
-            c += Controls::CompactNestedItemLayoutRelativePointerSize;
-            c += Controls::CompactNestedItemLayoutSize;
-            continue;
-        }
-        case Controls::EnumItemBeginVariadicCaseIndex: {
+        case ValueLayoutEntryKind::EnumStartVariadic:
             enum_depth += 1;
-            c += 1;
-            while (*c & 0x80) {
-                c += 1;
-            }
-            c += 1;
-            c += Controls::EnumItemTypePointerSize;
+            reader.skip_varint();
+            reader.skip(sizeof(void *));
             continue;
-        }
-        case Controls::EnumItemBeginCaseIndex0:
-        case Controls::EnumItemBeginCaseIndex1:
-        case Controls::EnumItemBeginCaseIndex2: {
+        case ValueLayoutEntryKind::EnumStart0:
+        case ValueLayoutEntryKind::EnumStart1:
+        case ValueLayoutEntryKind::EnumStart2:
             enum_depth += 1;
-            c += 1;
-            c += Controls::EnumItemTypePointerSize;
+            reader.skip(sizeof(void *));
             continue;
-        }
-        case Controls::EnumItemContinueVariadicCaseIndex: {
+        case ValueLayoutEntryKind::EnumContinueVariadic:
             if (enum_depth == 0) {
-                return c - layout;
+                return reader.layout - layout - 1;
             }
-            c += 1;
-            while (*c & 0x80) {
-                c += 1;
-            }
-            c += 1;
+            reader.skip_varint();
             continue;
-        }
-        case Controls::EnumItemContinueCaseIndex0:
-        case Controls::EnumItemContinueCaseIndex1:
-        case Controls::EnumItemContinueCaseIndex2:
-        case Controls::EnumItemContinueCaseIndex3:
-        case Controls::EnumItemContinueCaseIndex4:
-        case Controls::EnumItemContinueCaseIndex5:
-        case Controls::EnumItemContinueCaseIndex6:
-        case Controls::EnumItemContinueCaseIndex7:
-        case Controls::EnumItemContinueCaseIndex8: {
+        case ValueLayoutEntryKind::EnumContinue0:
+        case ValueLayoutEntryKind::EnumContinue1:
+        case ValueLayoutEntryKind::EnumContinue2:
+        case ValueLayoutEntryKind::EnumContinue3:
+        case ValueLayoutEntryKind::EnumContinue4:
+        case ValueLayoutEntryKind::EnumContinue5:
+        case ValueLayoutEntryKind::EnumContinue6:
+        case ValueLayoutEntryKind::EnumContinue7:
+        case ValueLayoutEntryKind::EnumContinue8:
             if (enum_depth == 0) {
-                return c - layout;
+                return reader.layout - layout - 1;
             }
-            c += 1;
             continue;
-        }
-        case Controls::EnumItemEnd: {
+        case ValueLayoutEntryKind::EnumEnd:
             if (enum_depth == 0) {
-                return c - layout;
+                return reader.layout - layout - 1;
             }
             enum_depth -= 1;
-            c += 1;
-        }
+            continue;
+        default:
+            continue;
         }
     }
-    return c - layout;
 }
 
 // MARK: Comparing values
@@ -436,13 +406,13 @@ bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs,
     size_t failure_location = 0;
     bool result = compare_bytes(lhs, rhs, size, &failure_location);
     if ((options & AGComparisonOptionsReportFailures) && !result) {
-//        for (auto update = Graph::current_update(); update != nullptr; update = update.get()->previous()) {
-//            auto graph = update.get()->graph();
-//            auto attribute = update.get()->frames().back().attribute;
-//            graph->foreach_trace([&attribute, &lhs, &rhs, &failure_location](Trace &trace) {
-//                trace.compare_failed(attribute, lhs, rhs, failure_location, 1, nullptr);
-//            });
-//        }
+        //        for (auto update = Graph::current_update(); update != nullptr; update = update.get()->previous()) {
+        //            auto graph = update.get()->graph();
+        //            auto attribute = update.get()->frames().back().attribute;
+        //            graph->foreach_trace([&attribute, &lhs, &rhs, &failure_location](Trace &trace) {
+        //                trace.compare_failed(attribute, lhs, rhs, failure_location, 1, nullptr);
+        //            });
+        //        }
     }
     return result;
 }
@@ -637,162 +607,133 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
         return {layout, 0};
     }
 
-    const unsigned char *c = layout;
+    ValueLayoutReader reader = ValueLayoutReader(layout);
     size_t accumulated_size = 0;
 
     const swift::metadata *enum_type = nullptr;
     while (accumulated_size < range_location) {
 
-        if (*c == '\0') {
+        auto kind = reader.peek_kind();
+        if (kind == ValueLayoutEntryKind::End) {
             return {nullptr, 0};
         }
 
-        if (*c >= 0x80) {
-            accumulated_size += *c & 0x7f + 1; // Convert 0-127 to 1-128
-            c += 1;
+        if ((uint8_t)kind >= 0x80) {
+            uint8_t data_size = reader.read_bytes<uint8_t>();
+            data_size = (data_size & 0x7f) + 1; // Convert 0-127 to 1-128
+            accumulated_size += data_size;
             continue;
         }
 
-        if (*c >= 0x40) {
-            accumulated_size += *c & 0x3f + 1; // Convert 0-63 to 1-64
-            c += 1;
+        if ((uint8_t)kind >= 0x40) {
+            uint8_t skip = reader.read_bytes<uint8_t>();
+            skip = (skip & 0x3f) + 1; // Convert 0-63 to 1-64
+            accumulated_size += skip;
             continue;
         }
 
-        switch (*c) {
-        case Controls::EqualsItemBegin: {
-            c += 1;
-            auto type = reinterpret_cast<const swift::metadata *>(c);
-            c += Controls::EqualsItemTypePointerSize;
-            c += Controls::EqualsItemEquatablePointerSize;
+        switch (reader.read_kind()) {
+        case ValueLayoutEntryKind::End: {
+            return {nullptr, 0};
+        }
+        case ValueLayoutEntryKind::Equals: {
+            auto type = reader.read_bytes<const swift::metadata *>();
+            reader.skip(sizeof(void *));
             accumulated_size += type->vw_size();
             continue;
         }
-        case Controls::IndirectItemBegin: {
-            c += 1;
-            auto type = reinterpret_cast<const swift::metadata *>(c);
-            c += Controls::IndirectItemTypePointerSize;
-            c += Controls::IndirectItemLayoutPointerSize;
+        case ValueLayoutEntryKind::Indirect: {
+            auto type = reader.read_bytes<const swift::metadata *>();
+            reader.skip(sizeof(void *));
             accumulated_size += type->vw_size();
             continue;
         }
-        case Controls::ExistentialItemBegin: {
-            c += 1;
-            auto type = reinterpret_cast<const swift::metadata *>(c);
-            c += Controls::ExistentialItemTypePointerSize;
+        case ValueLayoutEntryKind::Existential: {
+            auto type = reader.read_bytes<const swift::metadata *>();
             accumulated_size += type->vw_size();
             continue;
         }
-        case Controls::HeapRefItemBegin:
-        case Controls::FunctionItemBegin: {
-            c += 1;
+        case ValueLayoutEntryKind::HeapRef:
+        case ValueLayoutEntryKind::Function: {
             accumulated_size += sizeof(void *);
             continue;
         }
-        case Controls::NestedItemBegin: {
-            c += 1;
+        case ValueLayoutEntryKind::Nested: {
+            auto nested_layout = reader.read_bytes<ValueLayout>();
+            size_t nested_size = reader.read_varint();
 
-            auto item_layout = reinterpret_cast<ValueLayout>(c);
-            c += Controls::NestedItemLayoutPointerSize;
-
-            unsigned shift = 0;
-            size_t item_size = 0;
-            while (*c & 0x80) {
-                item_size = item_size | ((*c & 0x7f) << shift);
-                shift += 7;
-                c += 1;
-            }
-            item_size = item_size | ((*c & 0x7f) << shift);
-            c += 1;
-
-            if (accumulated_size + item_size > range_location &&
-                accumulated_size + item_size >= range_location + range_size) {
+            if (accumulated_size + nested_size > range_location &&
+                accumulated_size + nested_size >= range_location + range_size) {
                 // offset after applying nested layout exceeds range
                 // restart search from nested layout
                 range_location -= accumulated_size;
                 accumulated_size = 0;
-                c = item_layout;
+                reader = ValueLayoutReader(nested_layout);
             } else {
-                accumulated_size += item_size;
+                accumulated_size += nested_size;
             }
             continue;
         }
-        case Controls::CompactNestedItemBegin: {
-            c += 1;
+        case ValueLayoutEntryKind::CompactNested: {
+            uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
+            ValueLayout nested_layout =
+                reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
 
-            ValueLayout item_layout = reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + *(uint32_t *)c);
-            c += Controls::CompactNestedItemLayoutRelativePointerSize;
+            uint16_t nested_size = reader.read_bytes<uint16_t>();
 
-            size_t item_size = *(uint16_t *)(c);
-            c += Controls::CompactNestedItemLayoutSize;
-
-            if (accumulated_size + item_size > range_location &&
-                accumulated_size + item_size >= range_location + range_size) {
+            if (accumulated_size + nested_size > range_location &&
+                accumulated_size + nested_size >= range_location + range_size) {
                 // offset after applying nested layout exceeds range
                 // restart search from nested layout
                 range_location -= accumulated_size;
                 accumulated_size = 0;
-                c = item_layout;
+                reader = ValueLayoutReader(nested_layout);
             } else {
-                accumulated_size += item_size;
+                accumulated_size += nested_size;
             }
             continue;
         }
-        case Controls::EnumItemBeginVariadicCaseIndex:
-        case Controls::EnumItemBeginCaseIndex0:
-        case Controls::EnumItemBeginCaseIndex1:
-        case Controls::EnumItemBeginCaseIndex2: {
-            if (*c == Controls::EnumItemBeginVariadicCaseIndex) {
-                c += 1;
-                while (*c & 0x80) {
-                    c += 1;
-                }
-                c += 1;
-                enum_type = reinterpret_cast<const swift::metadata *>(c);
-                c += Controls::EnumItemTypePointerSize;
+        case ValueLayoutEntryKind::EnumStartVariadic:
+        case ValueLayoutEntryKind::EnumStart0:
+        case ValueLayoutEntryKind::EnumStart1:
+        case ValueLayoutEntryKind::EnumStart2: {
+            if (kind == ValueLayoutEntryKind::EnumStartVariadic) {
+                reader.skip_varint();
+                enum_type = reader.read_bytes<const swift::metadata *>();
             } else {
-                c += 1;
-                enum_type = reinterpret_cast<const swift::metadata *>(c);
-                c += Controls::EnumItemTypePointerSize;
+                enum_type = reader.read_bytes<const swift::metadata *>();
             }
-
-            c += length(c);
+            reader.skip(length(reader.layout));
+            continue;
         }
-        case Controls::EnumItemContinueVariadicCaseIndex:
-        case Controls::EnumItemContinueCaseIndex0:
-        case Controls::EnumItemContinueCaseIndex1:
-        case Controls::EnumItemContinueCaseIndex2:
-        case Controls::EnumItemContinueCaseIndex3:
-        case Controls::EnumItemContinueCaseIndex4:
-        case Controls::EnumItemContinueCaseIndex5:
-        case Controls::EnumItemContinueCaseIndex6:
-        case Controls::EnumItemContinueCaseIndex7:
-        case Controls::EnumItemContinueCaseIndex8: {
-            if (*c == Controls::EnumItemContinueVariadicCaseIndex) {
-                c += 1;
-                while (*c & 0x80) {
-                    c += 1;
-                }
-                c += 1;
-            } else {
-                c += 1;
+        case ValueLayoutEntryKind::EnumContinueVariadic:
+        case ValueLayoutEntryKind::EnumContinue0:
+        case ValueLayoutEntryKind::EnumContinue1:
+        case ValueLayoutEntryKind::EnumContinue2:
+        case ValueLayoutEntryKind::EnumContinue3:
+        case ValueLayoutEntryKind::EnumContinue4:
+        case ValueLayoutEntryKind::EnumContinue5:
+        case ValueLayoutEntryKind::EnumContinue6:
+        case ValueLayoutEntryKind::EnumContinue7:
+        case ValueLayoutEntryKind::EnumContinue8: {
+            if (kind == ValueLayoutEntryKind::EnumContinueVariadic) {
+                reader.skip_varint();
             }
-
-            c += length(c);
+            reader.skip(length(reader.layout));
+            continue;
         }
-        case Controls::EnumItemEnd: {
-            c += 1;
+        case ValueLayoutEntryKind::EnumEnd: {
             accumulated_size += enum_type->vw_size();
             enum_type = nullptr;
             continue;
         }
         default: {
-            c += 1;
+            continue;
         }
         }
     };
 
-    return {c, accumulated_size};
+    return {reader.layout, accumulated_size};
 }
 
 void print(std::string &output, ValueLayout layout) {
@@ -813,140 +754,107 @@ void print(std::string &output, ValueLayout layout) {
     print_format("(layout #:length %d #:address %p", length(layout), layout);
 
     unsigned int indent = 3;
-    const unsigned char *c = layout;
+    ValueLayoutReader reader = ValueLayoutReader(layout);
     while (true) {
-        if (*c == '\0') {
+        auto kind = reader.peek_kind();
+        if (kind == ValueLayoutEntryKind::End) {
             output.push_back(')');
             output.push_back('\n');
             return;
         }
 
-        if (*c >= 0x40 && *c < 0x80) {
-            size_t length = (*c & 0x3f) + 1; // Convert 0-63 to 1-64
-            c += 1;
+        if ((uint8_t)kind >= 0x40 && (uint8_t)kind < 0x80) {
+            uint8_t skip = reader.read_bytes<uint8_t>();
+            skip = (skip & 0x3f) + 1; // Convert 0-63 to 1-64
             output.push_back('\n');
             output.append(indent * 2, ' ');
-            print_format("(skip %u)", length);
+            print_format("(skip %u)", skip);
             continue;
         }
 
-        if (*c >= 0x80) {
-            size_t length = (*c & 0x7f) + 1; // Convert 0-127 to 1-128
-            c += 1;
+        if ((uint8_t)kind >= 0x80) {
+            uint8_t length = reader.read_bytes<uint8_t>();
+            length = (length & 0x7f) + 1; // Convert 0-127 to 1-128
             output.push_back('\n');
             output.append(indent * 2, ' ');
             print_format("(read %u)", length);
             continue;
         }
 
-        switch (*c) {
-        case Controls::EqualsItemBegin: {
-            c += 1;
-
-            auto type = *reinterpret_cast<const swift::metadata *const *>(c);
-            c += Controls::EqualsItemTypePointerSize;
-            c += Controls::EqualsItemEquatablePointerSize;
+        switch (reader.read_kind()) {
+        case ValueLayoutEntryKind::End: {
+            output.push_back(')');
+            output.push_back('\n');
+            return;
+        }
+        case ValueLayoutEntryKind::Equals: {
+            auto type = reader.read_bytes<const swift::metadata *>();
+            reader.skip(sizeof(void *));
 
             output.push_back('\n');
             output.append(indent * 2, ' ');
             print_format("(== #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
-        case Controls::IndirectItemBegin: {
-            c += 1;
-
-            auto type = *reinterpret_cast<const swift::metadata *const *>(c);
-            c += Controls::IndirectItemTypePointerSize;
-            c += Controls::IndirectItemLayoutPointerSize;
+        case ValueLayoutEntryKind::Indirect: {
+            auto type = reader.read_bytes<const swift::metadata *>();
+            reader.skip(sizeof(void *));
 
             output.push_back('\n');
             output.append(indent * 2, ' ');
             print_format("(indirect #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
-        case Controls::ExistentialItemBegin: {
-            c += 1;
-
-            auto type = *reinterpret_cast<const swift::metadata *const *>(c);
-            c += Controls::ExistentialItemTypePointerSize;
+        case ValueLayoutEntryKind::Existential: {
+            auto type = reader.read_bytes<const swift::metadata *>();
 
             output.push_back('\n');
             output.append(indent * 2, ' ');
             print_format("(existential #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
-        case Controls::HeapRefItemBegin:
-        case Controls::FunctionItemBegin: {
-            bool is_heap_ref = *c == Controls::HeapRefItemBegin;
-            c += 1;
+        case ValueLayoutEntryKind::HeapRef:
+        case ValueLayoutEntryKind::Function: {
+            bool is_heap_ref = kind == ValueLayoutEntryKind::HeapRef;
 
             output.push_back('\n');
             output.append(indent * 2, ' ');
             print_format("(%s)", is_heap_ref ? "heap-ref" : "capture-ref");
             continue;
         }
-        case Controls::NestedItemBegin: {
-            c += 1;
-
-            ValueLayout item_layout = *(ValueLayout *)c;
-            c += Controls::NestedItemLayoutPointerSize;
-
-            unsigned shift = 0;
-            size_t item_size = 0;
-            while (*c & 0x80) {
-                item_size = item_size | ((*c & 0x7f) << shift);
-                shift += 7;
-                c += 1;
-            }
-            item_size = item_size | ((*c & 0x7f) << shift);
-            c += 1;
+        case ValueLayoutEntryKind::Nested: {
+            ValueLayout nested_layout = reader.read_bytes<ValueLayout>();
+            size_t nested_size = reader.read_varint();
 
             output.push_back('\n');
             output.append(indent * 2, ' ');
-            print_format("(nested #:size %d #:layout %p)", item_size, item_layout);
+            print_format("(nested #:size %d #:layout %p)", nested_size, nested_layout);
             continue;
         }
-        case Controls::CompactNestedItemBegin: {
-            c += 1;
+        case ValueLayoutEntryKind::CompactNested: {
+            uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
+            ValueLayout nested_layout =
+                reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
 
-            ValueLayout item_layout = reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + *(uint32_t *)c);
-            c += Controls::CompactNestedItemLayoutRelativePointerSize;
-
-            size_t item_size = *(uint16_t *)(c);
-            c += Controls::CompactNestedItemLayoutSize;
+            uint16_t nested_size = reader.read_bytes<uint16_t>();
 
             output.push_back('\n');
             output.append(indent * 2, ' ');
-            print_format("(nested #:size %d #:layout %p)", item_size, item_layout);
+            print_format("(nested #:size %d #:layout %p)", nested_size, nested_layout);
             continue;
         }
-        case Controls::EnumItemBeginVariadicCaseIndex:
-        case Controls::EnumItemBeginCaseIndex0:
-        case Controls::EnumItemBeginCaseIndex1:
-        case Controls::EnumItemBeginCaseIndex2: {
-            size_t enum_tag;
+        case ValueLayoutEntryKind::EnumStartVariadic:
+        case ValueLayoutEntryKind::EnumStart0:
+        case ValueLayoutEntryKind::EnumStart1:
+        case ValueLayoutEntryKind::EnumStart2: {
+            uint64_t enum_tag;
             const swift::metadata *type;
-            if (*c == Controls::EnumItemBeginVariadicCaseIndex) {
-                c += 1;
-
-                unsigned shift = 0;
-                enum_tag = 0;
-                while (*c & 0x80) {
-                    enum_tag = enum_tag | ((*c & 0x7f) << shift);
-                    shift += 7;
-                    c += 1;
-                }
-                enum_tag = enum_tag | ((*c & 0x7f) << shift);
-                c += 1;
-
-                type = *reinterpret_cast<const swift::metadata *const *>(c);
-                c += Controls::EnumItemTypePointerSize;
+            if (kind == ValueLayoutEntryKind::EnumStartVariadic) {
+                enum_tag = reader.read_varint();
+                type = reader.read_bytes<const swift::metadata *>();
             } else {
-                enum_tag = *c - Controls::EnumItemBeginCaseIndexFirst;
-                c += 1;
-
-                type = *reinterpret_cast<const swift::metadata *const *>(c);
-                c += Controls::EnumItemTypePointerSize;
+                enum_tag = (uint64_t)kind - (uint64_t)ValueLayoutEntryKind::EnumStart0;
+                type = reader.read_bytes<const swift::metadata *>();
             }
 
             output.push_back('\n');
@@ -960,32 +868,21 @@ void print(std::string &output, ValueLayout layout) {
             indent += 4;
             continue;
         }
-        case Controls::EnumItemContinueVariadicCaseIndex:
-        case Controls::EnumItemContinueCaseIndex0:
-        case Controls::EnumItemContinueCaseIndex1:
-        case Controls::EnumItemContinueCaseIndex2:
-        case Controls::EnumItemContinueCaseIndex3:
-        case Controls::EnumItemContinueCaseIndex4:
-        case Controls::EnumItemContinueCaseIndex5:
-        case Controls::EnumItemContinueCaseIndex6:
-        case Controls::EnumItemContinueCaseIndex7:
-        case Controls::EnumItemContinueCaseIndex8: {
-            size_t enum_tag;
-            if (*c == Controls::EnumItemContinueVariadicCaseIndex) {
-                c += 1;
-
-                unsigned shift = 0;
-                enum_tag = 0;
-                while (*c & 0x80) {
-                    enum_tag = enum_tag | ((*c & 0x7f) << shift);
-                    shift += 7;
-                    c += 1;
-                }
-                enum_tag = enum_tag | ((*c & 0x7f) << shift);
-                c += 1;
+        case ValueLayoutEntryKind::EnumContinueVariadic:
+        case ValueLayoutEntryKind::EnumContinue0:
+        case ValueLayoutEntryKind::EnumContinue1:
+        case ValueLayoutEntryKind::EnumContinue2:
+        case ValueLayoutEntryKind::EnumContinue3:
+        case ValueLayoutEntryKind::EnumContinue4:
+        case ValueLayoutEntryKind::EnumContinue5:
+        case ValueLayoutEntryKind::EnumContinue6:
+        case ValueLayoutEntryKind::EnumContinue7:
+        case ValueLayoutEntryKind::EnumContinue8: {
+            uint64_t enum_tag;
+            if (kind == ValueLayoutEntryKind::EnumContinueVariadic) {
+                enum_tag = reader.read_varint();
             } else {
-                enum_tag = *c - Controls::EnumItemContinueCaseIndexFirst;
-                c += 1;
+                enum_tag = (uint64_t)kind - (uint64_t)ValueLayoutEntryKind::EnumContinue0;
             }
 
             output.push_back(')');
@@ -994,8 +891,7 @@ void print(std::string &output, ValueLayout layout) {
             print_format("(case %d", enum_tag);
             continue;
         }
-        case Controls::EnumItemEnd: {
-            c += 1;
+        case ValueLayoutEntryKind::EnumEnd: {
             indent -= 4;
             output.push_back(')');
             output.push_back(')');
@@ -1342,7 +1238,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Da
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const EqualsItem &item) {
     enter(item);
-    _data->push_back(Controls::EqualsItemBegin);
+    _data->push_back((unsigned char)ValueLayoutEntryKind::Equals);
     emit_value((void *)item.type);
     emit_value((void *)item.equatable);
     _emitted_size += item.size;
@@ -1350,7 +1246,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Eq
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const IndirectItem &item) {
     enter(item);
-    _data->push_back(Controls::IndirectItemBegin);
+    _data->push_back((unsigned char)ValueLayoutEntryKind::Indirect);
     emit_value((void *)item.type);
     emit_value(nullptr);
     _emitted_size += item.size;
@@ -1358,14 +1254,15 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const In
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const ExistentialItem &item) {
     enter(item);
-    _data->push_back(Controls::ExistentialItemBegin);
+    _data->push_back((unsigned char)ValueLayoutEntryKind::Existential);
     emit_value((void *)item.type);
     _emitted_size += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const HeapRefItem &item) {
     enter(item);
-    _data->push_back(item.is_function ? Controls::FunctionItemBegin : Controls::HeapRefItemBegin);
+    _data->push_back(item.is_function ? (unsigned char)ValueLayoutEntryKind::Function
+                                      : (unsigned char)ValueLayoutEntryKind::HeapRef);
     _emitted_size += item.size;
 }
 
@@ -1383,7 +1280,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Ne
     } else {
         uintptr_t layout_relative_address = (uintptr_t)item.layout - /* (uintptr_t)&base_address */ 0x1e3e6ab60;
         if ((uint32_t)layout_relative_address == layout_relative_address && item.size < 0xffff) {
-            _data->push_back(Controls::CompactNestedItemBegin);
+            _data->push_back((unsigned char)ValueLayoutEntryKind::CompactNested);
 
             // layout address in 4 bytes
             emit_value((uint32_t)layout_relative_address);
@@ -1391,7 +1288,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Ne
             // size in two bytes
             emit_value((uint16_t)item.size);
         } else {
-            _data->push_back(Controls::NestedItemBegin);
+            _data->push_back((unsigned char)ValueLayoutEntryKind::Nested);
 
             // full pointer to layout
             emit_value(item.layout);
@@ -1412,7 +1309,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
     enter(item);
 
     if (item.cases.empty()) {
-        _data->push_back(EnumItemBeginCaseIndexFirst);
+        _data->push_back((unsigned char)ValueLayoutEntryKind::EnumStart0);
         emit_value((void *)item.type);
     } else {
         bool is_first = true;
@@ -1428,17 +1325,16 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
              - 12 indicates the index is encoded in the following bytes
              */
 
-            uint64_t direct_encoded_index =
-                (is_first ? Controls::EnumItemBeginCaseIndexFirst : Controls::EnumItemContinueCaseIndexFirst) +
-                enum_case.item_index;
+            uint64_t direct_encoded_index = (is_first ? (uint64_t)ValueLayoutEntryKind::EnumStart0
+                                                      : (uint64_t)ValueLayoutEntryKind::EnumContinue0) +
+                                            enum_case.item_index;
             uint64_t last_direct =
-                is_first ? Controls::EnumItemBeginCaseIndexLast : Controls::EnumItemContinueCaseIndexLast;
+                is_first ? (uint64_t)ValueLayoutEntryKind::EnumStart2 : (uint64_t)ValueLayoutEntryKind::EnumContinue8;
             if (direct_encoded_index <= last_direct) {
                 _data->push_back(direct_encoded_index);
-
             } else {
-                _data->push_back(is_first ? Controls::EnumItemBeginVariadicCaseIndex
-                                          : Controls::EnumItemContinueVariadicCaseIndex);
+                _data->push_back(is_first ? (uint64_t)ValueLayoutEntryKind::EnumStartVariadic
+                                          : (uint64_t)ValueLayoutEntryKind::EnumContinueVariadic);
 
                 // Emit case.index 7 bits at a time, using the 8th bit as a "has more" flag
                 size_t number = enum_case.item_index;
@@ -1458,14 +1354,14 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
             }
 
             is_first = false;
-            
+
             if (!_invalid && !children_emitter.is_invalid()) {
                 _invalid = _emitted_size + item.type->vw_size() < children_emitter.emitted_size();
             }
         }
     }
 
-    _data->push_back(Controls::EnumItemEnd);
+    _data->push_back((unsigned char)ValueLayoutEntryKind::EnumEnd);
 
     _emitted_size += item.size;
 }

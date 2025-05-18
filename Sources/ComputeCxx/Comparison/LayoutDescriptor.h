@@ -23,10 +23,13 @@ extern const ValueLayout ValueLayoutTrivial;
 namespace LayoutDescriptor {
 
 enum class HeapMode : uint16_t {
-    Option0 = 0,
-    Option1 = 1,
-    CaptureRef = 2, // something to do with function
+    NonHeap = 0,
+    Class = 1 << 0,
+    Locals = 1 << 1,
+    GenericLocals = 1 << 2,
 };
+inline bool operator&(HeapMode a, HeapMode b) { return a & b; }
+inline HeapMode operator|(HeapMode a, HeapMode b) { return a | b; }
 
 extern unsigned char base_address;
 

@@ -4,6 +4,8 @@
 #include <SwiftEquatableSupport.h>
 #include <swift/Runtime/Metadata.h>
 
+#include "Comparison/LayoutDescriptor.h"
+
 CF_ASSUME_NONNULL_BEGIN
 
 namespace AG {
@@ -64,16 +66,8 @@ class metadata : public ::swift::Metadata {
 
     // Visiting
 
-    enum visit_options {
-        heap_class = 1 << 0,
-        heap_locals = 1 << 1, // visit captured refs
-        heap_generic_locals = 1 << 2,
-
-        heap_class_and_generic_locals = heap_class | heap_generic_locals,
-    };
-
     bool visit(metadata_visitor &visitor) const;
-    bool visit_heap(metadata_visitor &visitor, visit_options options) const;
+    bool visit_heap(metadata_visitor &visitor, LayoutDescriptor::HeapMode heap_mode) const;
 
   private:
     bool visit_heap_class(metadata_visitor &visitor) const;

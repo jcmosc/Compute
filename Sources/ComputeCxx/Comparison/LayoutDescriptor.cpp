@@ -89,7 +89,7 @@ void *TypeDescriptorCache::make_key(const swift::metadata *type, AGComparisonMod
                                     LayoutDescriptor::HeapMode heap_mode) {
     uintptr_t type_address = (uintptr_t)type;
     uintptr_t result =
-        heap_mode != LayoutDescriptor::HeapMode::Option0 ? (~type_address & 0xfffffffffffffffc) : type_address;
+        heap_mode != LayoutDescriptor::HeapMode::NonHeap ? (~type_address & 0xfffffffffffffffc) : type_address;
     result = result | comparison_mode;
     return (void *)result;
 }
@@ -266,14 +266,14 @@ ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mo
     AGComparisonMode comparison_mode = mode_for_type(&type, default_mode);
     Builder builder = Builder(comparison_mode, heap_mode);
 
-    if (heap_mode == HeapMode::CaptureRef) {
-        if (!type.visit_heap(builder, swift::metadata::visit_options::heap_locals)) {
+    if (heap_mode == HeapMode::Locals) {
+        if (!type.visit_heap(builder, HeapMode::Locals)) {
             return nullptr;
         }
         return builder.commit(type);
     }
 
-    if (heap_mode == HeapMode::Option1) {
+    if (heap_mode == HeapMode::Class) {
         if (type.isClassObject()) {
             AGComparisonMode equatable_minimum_mode = type.getValueWitnesses()->isPOD()
                                                           ? AGComparisonModeEquatableAlways
@@ -288,12 +288,12 @@ ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mo
                 }
             }
         }
-        if (!type.visit_heap(builder, swift::metadata::visit_options::heap_class_and_generic_locals)) {
+        if (!type.visit_heap(builder, HeapMode::Class | HeapMode::GenericLocals)) {
             return nullptr;
         }
     }
 
-    if (heap_mode != HeapMode::Option0) {
+    if (heap_mode != HeapMode::NonHeap) {
         return nullptr;
     }
 
@@ -471,7 +471,7 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, AG
         return false;
     }
 
-    HeapMode heap_mode = is_function ? HeapMode::CaptureRef : HeapMode::Option1;
+    HeapMode heap_mode = is_function ? HeapMode::Locals : HeapMode::Class;
     AGComparisonOptions fetch_options =
         options & AGComparisonOptionsComparisonModeMask; // this has the effect of allowing async fetch
     ValueLayout layout = TypeDescriptorCache::shared_cache().fetch(*lhs_type, fetch_options, heap_mode, 1);
@@ -1210,7 +1210,7 @@ bool Builder::visit_function(const swift::function_type_metadata &type) {
 }
 
 bool Builder::visit_native_object(const swift::metadata &type) {
-    if (_heap_mode != HeapMode::CaptureRef) {
+    if (_heap_mode != HeapMode::Locals) {
         return false;
     }
 

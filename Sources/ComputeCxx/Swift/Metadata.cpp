@@ -575,23 +575,23 @@ bool metadata::visit(metadata_visitor &visitor) const {
     }
 }
 
-bool metadata::visit_heap(metadata_visitor &visitor, visit_options options) const {
+bool metadata::visit_heap(metadata_visitor &visitor, LayoutDescriptor::HeapMode heap_mode) const {
     switch (getKind()) {
     case ::swift::MetadataKind::Class: {
-        if (options & visit_options::heap_class) {
+        if (heap_mode & LayoutDescriptor::HeapMode::Class) {
             return visit_heap_class(visitor);
         }
         return visitor.unknown_result();
     }
     case ::swift::MetadataKind::HeapLocalVariable: {
-        if (options & visit_options::heap_locals) {
+        if (heap_mode & LayoutDescriptor::HeapMode::Locals) {
             return visit_heap_locals(visitor);
         }
         return visitor.unknown_result();
     }
     case ::swift::MetadataKind::HeapGenericLocalVariable: {
         auto generic_heap_type = reinterpret_cast<const ::swift::GenericBoxHeapMetadata *>(this);
-        if (options & visit_options::heap_generic_locals && generic_heap_type->BoxedType) {
+        if (heap_mode & LayoutDescriptor::HeapMode::GenericLocals && generic_heap_type->BoxedType) {
             auto element_type = generic_heap_type->BoxedType;
             auto alignment_mask = element_type->getValueWitnesses()->getAlignmentMask();
             size_t offset = (generic_heap_type->Offset + alignment_mask) & ~alignment_mask;

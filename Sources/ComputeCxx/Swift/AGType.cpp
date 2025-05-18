@@ -154,7 +154,7 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
     switch (type->getKind()) {
     case ::swift::MetadataKind::Class:
         if (options & AGTypeApplyOptionsEnumerateClassFields) {
-            return type->visit_heap(visitor, AG::swift::metadata::visit_options::heap_class);
+            return type->visit_heap(visitor, AG::LayoutDescriptor::HeapMode::Class);
         }
         return false;
     case ::swift::MetadataKind::Struct:

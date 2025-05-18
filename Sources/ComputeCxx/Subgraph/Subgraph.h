@@ -6,12 +6,12 @@
 #include "Attribute/AttributeID.h"
 #include "Attribute/Node/Node.h"
 #include "Closure/ClosureFunction.h"
-#include "Containers/IndirectPointerVector.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
 #include "Graph/AGGraph.h"
 #include "Graph/Graph.h"
 #include "Private/CFRuntime.h"
+#include "Vector/IndirectPointerVector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

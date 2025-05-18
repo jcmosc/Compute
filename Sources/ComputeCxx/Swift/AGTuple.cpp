@@ -192,19 +192,20 @@ void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
                        void (*function)(const void *context AG_SWIFT_CONTEXT, const AGUnsafeMutableTuple mutable_tuple)
                            AG_SWIFT_CC(swift),
                        const void *context) {
-    // TODO: why didn't I call function from implementation?
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     auto buffer_size = metadata->vw_stride() * count;
     if (buffer_size <= 0x1000) {
-        char buffer[buffer_size]; // TODO: use alloca
-        memset(&buffer, 0, buffer_size);
-        //        function(tuple_type, buffer);
+        void *buffer = (unsigned char *)alloca(buffer_size);
+        bzero((void *)buffer, buffer_size);
+        AGUnsafeMutableTuple tuple = {tuple_type, buffer};
+        function(context, tuple);
     } else {
         void *buffer = malloc_type_malloc(buffer_size, 0x100004077774924);
         if (buffer == nullptr) {
             AG::precondition_failure("memory allocation failure");
         }
-        //        function(tuple_type, buffer);
+        AGUnsafeMutableTuple tuple = {tuple_type, buffer};
+        function(context, tuple);
         free(buffer);
     }
 }

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Array/ArrayRef.h"
 #include "Attribute/AttributeID.h"
-#include "Containers/ArrayRef.h"
 
 namespace AG {
 
@@ -15,7 +15,7 @@ struct InputEdge {
         Changed = 1 << 3, // set when node is dirty
         Unknown4 = 1 << 4,
     };
-    
+
     struct Comparator {
         AttributeID attribute;
         uint8_t flags_mask;
@@ -25,15 +25,17 @@ struct InputEdge {
 
     AttributeID value;
     uint8_t _flags;
-    
+
     bool is_unprefetched() { return _flags & Flags::Unprefetched; };
     void set_unprefetched(bool value) { _flags = (_flags & ~Flags::Unprefetched) | (value ? Flags::Unprefetched : 0); };
 
     bool is_unknown1() { return _flags & Flags::Unknown1; };
     void set_unknown1(bool value) { _flags = (_flags & ~Flags::Unknown1) | (value ? Flags::Unknown1 : 0); };
-    
+
     bool is_always_enabled() { return _flags & Flags::AlwaysEnabled; };
-    void set_always_enabled(bool value) { _flags = (_flags & ~Flags::AlwaysEnabled) | (value ? Flags::AlwaysEnabled : 0); };
+    void set_always_enabled(bool value) {
+        _flags = (_flags & ~Flags::AlwaysEnabled) | (value ? Flags::AlwaysEnabled : 0);
+    };
 
     bool is_changed() { return _flags & Flags::Changed; };
     void set_changed(bool value) { _flags = (_flags & ~Flags::Changed) | (value ? Flags::Changed : 0); };

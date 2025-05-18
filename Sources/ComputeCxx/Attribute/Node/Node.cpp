@@ -58,7 +58,7 @@ void Node::allocate_value(Graph &graph, data::zone &zone) {
 
     auto type = graph.attribute_type(_type_id);
     size_t size = type.value_metadata().vw_size();
-    size_t alignment = type.value_metadata().getValueWitnesses()->getAlignmentMask();
+    size_t alignment_mask = type.value_metadata().getValueWitnesses()->getAlignmentMask();
 
     if (_flags.has_indirect_value()) {
         _value = zone.alloc_bytes_recycle(sizeof(void *), sizeof(void *) - 1);
@@ -66,9 +66,9 @@ void Node::allocate_value(Graph &graph, data::zone &zone) {
         *_value.unsafe_cast<void *>().get() = persistent_buffer;
     } else {
         if (size <= 0x10) {
-            _value = zone.alloc_bytes_recycle(uint32_t(size), uint32_t(alignment));
+            _value = zone.alloc_bytes_recycle(uint32_t(size), uint32_t(alignment_mask));
         } else {
-            _value = zone.alloc_bytes(uint32_t(size), uint32_t(alignment));
+            _value = zone.alloc_bytes(uint32_t(size), uint32_t(alignment_mask));
         }
     }
 

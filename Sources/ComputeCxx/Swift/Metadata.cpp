@@ -497,10 +497,10 @@ bool metadata::visit(metadata_visitor &visitor) const {
                 auto field_offsets = struct_type->getFieldOffsets();
                 unsigned index = 0;
                 for (auto &field : struct_context->Fields->getFields()) {
-                    size_t offset = field_offsets[index];
+                    size_t field_offset = field_offsets[index];
                     size_t end_offset = index + 1 < struct_context->NumFields ? field_offsets[index + 1] : vw_size();
-                    size_t field_size = offset <= end_offset ? end_offset - offset : -1;
-                    if (!visitor.visit_field(*this, field, offset, field_size)) {
+                    size_t field_size = field_offset <= end_offset ? end_offset - field_offset : -1;
+                    if (!visitor.visit_field(*this, field, field_offset, field_size)) {
                         return false;
                     }
                     index += 1;
@@ -686,17 +686,16 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
         return visitor.unknown_result();
     } else {
         if (class_context->hasFieldOffsetVector()) {
-            const size_t *field_offsets = nullptr;
             auto offset = reinterpret_cast<const class_type_descriptor *>(class_context)->field_offset_vector_offset();
-            auto asWords = reinterpret_cast<const size_t *const *>(this);
-            field_offsets = reinterpret_cast<const size_t *>(asWords + offset);
+            auto asWords = *reinterpret_cast<const size_t *const *>(this);
+            const size_t *field_offsets = reinterpret_cast<const size_t *>(asWords + offset);
 
             unsigned index = 0;
             for (auto &field : class_context->Fields->getFields()) {
-                size_t offset = field_offsets[index];
+                size_t field_offset = field_offsets[index];
                 size_t end_offset = index + 1 < class_context->NumFields ? field_offsets[index + 1] : vw_size();
-                size_t field_size = offset <= end_offset ? end_offset - offset : -1;
-                if (!visitor.visit_field(*this, field, offset, field_size)) {
+                size_t field_size = field_offset <= end_offset ? end_offset - field_offset : -1;
+                if (!visitor.visit_field(*this, field, field_offset, field_size)) {
                     return false;
                 }
                 index += 1;

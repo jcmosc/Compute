@@ -32,11 +32,12 @@ class Node {
             UpdatingCyclic = 1 << 7,   // 0x80
 
         };
+
         uint8_t _data;
 
       public:
         explicit constexpr State(uint8_t data = 0) : _data(data) {};
-        uint8_t data() const { return _data; };
+        uint8_t data() const { return _data; }
 
         bool is_dirty() const { return _data & Dirty; }
         State with_dirty(bool value) const { return State((_data & ~Dirty) | (value ? Dirty : 0)); };

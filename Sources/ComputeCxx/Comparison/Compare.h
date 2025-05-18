@@ -2,7 +2,8 @@
 
 #include "LayoutDescriptor.h"
 
-#include "Containers/Vector.h"
+#include "AGComparison.h"
+#include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -29,7 +30,7 @@ class Compare {
 
         Enum()
             : type(nullptr), enum_tag(0), lhs(nullptr), rhs(nullptr), lhs_copy(nullptr), rhs_copy(nullptr), offset(0),
-              mode(Mode::Unmanaged), owns_copies(false){};
+              mode(Mode::Unmanaged), owns_copies(false) {};
         Enum(const swift::metadata *type, Mode mode, unsigned int enum_tag, size_t offset, const unsigned char *lhs,
              const unsigned char *lhs_copy, const unsigned char *rhs, const unsigned char *rhs_copy, bool owns_copies);
         ~Enum();
@@ -49,9 +50,9 @@ class Compare {
 
   public:
     bool operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset, size_t size,
-                    ComparisonOptions options);
+                    AGComparisonOptions options);
 
-    bool failed(ComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+    bool failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                 size_t size, const swift::metadata *_Nullable type);
 };
 

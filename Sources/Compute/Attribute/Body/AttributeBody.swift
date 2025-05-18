@@ -27,7 +27,7 @@ extension _AttributeBody {
     }
 
     public static var comparisonMode: AGComparisonMode {
-        return ._2
+        return .equatableUnlessPOD
     }
 
     public static var flags: AGAttributeTypeFlags {

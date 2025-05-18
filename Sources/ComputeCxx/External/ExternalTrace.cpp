@@ -1,8 +1,8 @@
 #include "ExternalTrace.h"
 
+#include "Comparison/AGComparison-Private.h"
 #include "Graph/Context.h"
 #include "Graph/Graph.h"
-#include "Layout/AGComparison-Private.h"
 
 void ExternalTrace::begin_trace(const AG::Graph &graph) {
     auto cf_graph = graph.main_context()->to_cf();

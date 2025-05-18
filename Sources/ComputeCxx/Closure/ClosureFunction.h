@@ -10,14 +10,14 @@ namespace AG {
 template <typename ReturnType, typename... Args> class ClosureFunction {
   public:
     using Context = const void *_Nullable;
-    using Callable = AG_SWIFT_CC(swift) ReturnType (*_Nullable)(Context AG_SWIFT_CONTEXT, Args...);
+    using Function = AG_SWIFT_CC(swift) ReturnType (*_Nullable)(Context AG_SWIFT_CONTEXT, Args...);
 
   private:
-    Callable _function;
+    Function _function;
     Context _context;
 
   public:
-    inline ClosureFunction(Callable function, Context context) noexcept : _function(function), _context(context) {
+    inline ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
         ::swift::swift_retain((::swift::HeapObject *)_context);
     }
     inline ClosureFunction() : _function(), _context() {}
@@ -29,7 +29,6 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
     const ReturnType operator()(Args... args) const noexcept {
         return _function(_context, std::forward<Args>(args)...);
     }
-    
 };
 
 template <typename ReturnType>

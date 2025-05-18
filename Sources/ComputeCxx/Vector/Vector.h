@@ -41,12 +41,12 @@ class vector {
     ~vector();
 
     // Non-copyable
-    
+
     vector(const vector &) = delete;
     vector &operator=(const vector &) = delete;
 
     // Move
-    
+
     vector(vector &&);
     vector &operator=(vector &&);
 
@@ -112,14 +112,14 @@ namespace details {
 
 template <typename size_type, unsigned int element_size_bytes>
     requires std::unsigned_integral<size_type>
-void *_Nullable realloc_vector(void *buffer, void *_inline_buffer, size_type stack_size, size_type *_Nonnull size,
-                               size_type preferred_new_size) {
-    // copy data from heap buffer buffer into stack buffer if possible
-    if (preferred_new_size <= stack_size) {
+void *_Nullable realloc_vector(void *_Nullable buffer, void *_inline_buffer, size_type inline_capacity,
+                               size_type *_Nonnull size, size_type preferred_new_size) {
+    // copy data from heap buffer into inline buffer if possible
+    if (preferred_new_size <= inline_capacity) {
         if (buffer) {
             memcpy(_inline_buffer, buffer, preferred_new_size * element_size_bytes);
             free(buffer);
-            *size = stack_size;
+            *size = inline_capacity;
         }
         return nullptr;
     }
@@ -179,8 +179,8 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::shrink_to_fit() {
     if (capacity() > _size) {
-        _buffer = reinterpret_cast<T *>(
-            details::realloc_vector<size_type, sizeof(T)>(_buffer, _inline_buffer, _inline_capacity, &_capacity, _size));
+        _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
+            _buffer, _inline_buffer, _inline_capacity, &_capacity, _size));
     }
 }
 
@@ -196,7 +196,7 @@ void vector<T, _inline_capacity, size_type>::clear() {
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos,
-                                                                                      const T &value) {
+                                                                                                const T &value) {
     reserve(_size + 1);
     iterator mutable_pos = begin() + (pos - begin());
     std::move_backward(mutable_pos, end(), end() + 1);
@@ -207,7 +207,8 @@ vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, siz
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
-vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos, T &&value) {
+vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos,
+                                                                                                T &&value) {
     reserve(_size + 1);
     iterator mutable_pos = begin() + (pos - begin());
     std::move_backward(mutable_pos, end(), end() + 1);
@@ -227,7 +228,8 @@ vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, siz
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
-vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::erase(iterator first, iterator last) {
+vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::erase(iterator first,
+                                                                                               iterator last) {
     auto count = last - first;
     if (count == 0) {
         return last;
@@ -325,12 +327,12 @@ class vector<T, 0, _size_type> {
     ~vector();
 
     // Non-copyable
-    
+
     vector(const vector &) = delete;
     vector &operator=(const vector &) = delete;
 
     // Move
-    
+
     vector(vector &&other) noexcept;
     vector &operator=(vector &&other) noexcept;
 
@@ -621,12 +623,12 @@ class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
     ~vector();
 
     // Non-copyable
-    
+
     vector(const vector &) = delete;
     vector &operator=(const vector &) = delete;
 
     // Move
-    
+
     vector(vector &&) noexcept;
     vector &operator=(vector &&) noexcept;
 

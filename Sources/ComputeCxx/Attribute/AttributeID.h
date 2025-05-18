@@ -55,7 +55,6 @@ class AttributeID {
     static constexpr uint32_t KindMask = 0x3;
 
     uint32_t _value;
-
     explicit constexpr AttributeID(uint32_t value) : _value(value) {};
 
   public:

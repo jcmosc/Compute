@@ -2,9 +2,10 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Containers/Vector.h"
+#include "AGComparison.h"
 #include "LayoutDescriptor.h"
 #include "Swift/MetadataVisitor.h"
+#include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -76,7 +77,7 @@ class Builder : public swift::metadata_visitor {
 
     template <> class Emitter<vector<unsigned char, 512, uint64_t>> {
       private:
-        vector<unsigned char, 512, uint64_t> *_Nonnull _data; // TODO: why didn't compiler check this was uninitialized?
+        vector<unsigned char, 512, uint64_t> *_Nonnull _data;
         size_t _emitted_size = 0;
         bool _invalid = false;
 
@@ -115,7 +116,7 @@ class Builder : public swift::metadata_visitor {
     static void lock() { os_unfair_lock_lock(&_lock); };
     static void unlock() { os_unfair_lock_unlock(&_lock); };
 
-    ComparisonMode _current_comparison_mode;
+    AGComparisonMode _current_comparison_mode;
     HeapMode _heap_mode;
     size_t _current_offset = 0;
     uint64_t _enum_case_depth = 0;
@@ -123,11 +124,11 @@ class Builder : public swift::metadata_visitor {
     vector<Item, 0, uint64_t> _items;
 
   public:
-    Builder(ComparisonMode comparison_mode, HeapMode heap_mode)
+    Builder(AGComparisonMode comparison_mode, HeapMode heap_mode)
         : _current_comparison_mode(comparison_mode), _heap_mode(heap_mode) {}
 
     size_t current_offset() { return _current_offset; };
-    ComparisonMode current_comparison_mode() { return _current_comparison_mode; };
+    AGComparisonMode current_comparison_mode() { return _current_comparison_mode; };
     vector<Item, 0, uint64_t> &get_items() {
         return _current_enum_case != nullptr ? _current_enum_case->children : _items;
     };

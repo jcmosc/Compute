@@ -3,8 +3,8 @@
 #include <CoreFoundation/CFBase.h>
 
 #include "Attribute/AGAttribute.h"
+#include "Comparison/AGComparison.h"
 #include "Graph/Context.h"
-#include "Layout/AGComparison.h"
 #include "Subgraph/Subgraph.h"
 #include "Swift/AGType.h"
 #include "Trace/Trace.h"
@@ -78,8 +78,8 @@ class ExternalTrace : public AG::Trace {
     void *_trace;
 
   public:
-    ExternalTrace(Interface *interface, void *trace) : _interface(interface), _trace(trace){};
-    ExternalTrace(uint64_t trace_id, Interface *interface, void *trace) : _interface(interface), _trace(trace){
+    ExternalTrace(Interface *interface, void *trace) : _interface(interface), _trace(trace) {};
+    ExternalTrace(uint64_t trace_id, Interface *interface, void *trace) : _interface(interface), _trace(trace) {
         _trace_id = trace_id;
     };
 

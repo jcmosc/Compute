@@ -3,7 +3,8 @@
 #include <CoreFoundation/CFBase.h>
 
 #include "Attribute/Node/Node.h"
-#include "Layout/LayoutDescriptor.h"
+#include "Comparison/AGComparison.h"
+#include "Comparison/LayoutDescriptor.h"
 #include "Swift/Metadata.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -69,12 +70,10 @@ class AttributeType {
 
     ValueLayout layout() const { return _layout; };
     void set_layout(ValueLayout layout) { _layout = layout; };
-    LayoutDescriptor::ComparisonMode comparison_mode() const {
-        return LayoutDescriptor::ComparisonMode(_flags & Flags::ComparisonModeMask);
-    };
+    AGComparisonMode comparison_mode() const { return AGComparisonMode(_flags & Flags::ComparisonModeMask); };
     void update_layout() {
         if (!_layout) {
-            auto comparison_mode = LayoutDescriptor::ComparisonMode(_flags & Flags::ComparisonModeMask);
+            auto comparison_mode = AGComparisonMode(_flags & Flags::ComparisonModeMask);
             _layout = LayoutDescriptor::fetch(value_metadata(), comparison_mode, 1);
         }
     };

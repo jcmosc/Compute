@@ -62,6 +62,7 @@ class zone {
     ptr<void> alloc_bytes(uint32_t size, uint32_t alignment_mask);
     ptr<void> alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask);
 
+
     // Persistent memory
     void *alloc_persistent(size_t size);
 

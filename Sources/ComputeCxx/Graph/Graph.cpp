@@ -14,6 +14,7 @@
 #include "Attribute/Node/Node.h"
 #include "Attribute/OffsetAttributeID.h"
 #include "Attribute/WeakAttributeID.h"
+#include "Comparison/AGComparison.h"
 #include "Context.h"
 #include "Debug/DebugServer.h"
 #include "Errors/Errors.h"
@@ -1064,9 +1065,8 @@ bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void 
         // already initialized
         void *value_dest = node.get_value();
 
-        LayoutDescriptor::ComparisonOptions comparison_options =
-            LayoutDescriptor::ComparisonOptions(type.comparison_mode()) |
-            LayoutDescriptor::ComparisonOptions::CopyOnWrite | LayoutDescriptor::ComparisonOptions::ReportFailures;
+        AGComparisonOptions comparison_options = AGComparisonOptions(type.comparison_mode()) |
+                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsReportFailures;
         if (type.layout() == nullptr) {
             type.set_layout(LayoutDescriptor::fetch(value_type, comparison_options, 0));
         }
@@ -1640,8 +1640,7 @@ bool Graph::compare_edge_values(InputEdge input_edge, const AttributeType *type,
         return false;
     }
 
-    LayoutDescriptor::ComparisonOptions options =
-        LayoutDescriptor::ComparisonOptions(type->comparison_mode()) | LayoutDescriptor::ComparisonOptions::CopyOnWrite;
+    AGComparisonOptions options = AGComparisonOptions(type->comparison_mode()) | AGComparisonOptionsCopyOnWrite;
 
     auto layout = type->layout();
     if (layout == nullptr) {

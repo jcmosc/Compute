@@ -686,10 +686,9 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
         return visitor.unknown_result();
     } else {
         if (class_context->hasFieldOffsetVector()) {
-            const size_t *field_offsets = nullptr;
             auto offset = reinterpret_cast<const class_type_descriptor *>(class_context)->field_offset_vector_offset();
-            auto asWords = reinterpret_cast<const size_t *const *>(this);
-            field_offsets = reinterpret_cast<const size_t *>(asWords + offset);
+            auto asWords = *reinterpret_cast<const size_t *const *>(this);
+            const size_t *field_offsets = reinterpret_cast<const size_t *>(asWords + offset);
 
             unsigned index = 0;
             for (auto &field : class_context->Fields->getFields()) {

@@ -1,7 +1,11 @@
-@_extern(c, "AGTupleWithBuffer")
-public func withUnsafeTuple(of type: TupleType, count: Int, _ body: (UnsafeMutableTuple) -> Void)
+public func withUnsafeTuple(of type: TupleType, count: Int, body: (UnsafeMutableTuple) -> Void) {
+    return TupleType.withUnsafeTuple(of: type, count: count, body: body)
+}
 
 extension TupleType {
+    
+    @_extern(c, "AGTupleWithBuffer")
+    fileprivate static func withUnsafeTuple(of type: TupleType, count: Int, body: (UnsafeMutableTuple) -> Void)
 
     public init(_ types: [Any.Type]) {
         self.init(count: UInt32(types.count), elements: types.map(Metadata.init))

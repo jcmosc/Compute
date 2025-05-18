@@ -1,21 +1,22 @@
-public enum ComparisonMode {
+import ComputeCxx
 
-}
+extension AGComparisonOptions {
 
-public struct ComparisonOptions {
-    
-    init(mode: ComparisonMode) {
-        fatalError("not implemented")
+    public init(mode: AGComparisonMode) {
+        self.init(rawValue: UInt32(mode.rawValue))
     }
-    
+
 }
 
-func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: ComparisonMode) -> Bool {
-    fatalError("not implemented")
+public func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: AGComparisonMode = .equatableAlways) -> Bool
+{
+    return compareValues(lhs, rhs, options: AGComparisonOptions(mode: mode))
 }
 
-func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: ComparisonOptions) -> Bool {
-    fatalError("not implemented")
+public func compareValues<Value>(_ lhs: Value, _ rhs: Value, options: AGComparisonOptions) -> Bool {
+    return withUnsafePointer(to: lhs) { lhsPointer in
+        return withUnsafePointer(to: rhs) { rhsPointer in
+            return __AGCompareValues(lhsPointer, rhsPointer, Metadata(Value.self), options.union(.copyOnWrite))
+        }
+    }
 }
-
-

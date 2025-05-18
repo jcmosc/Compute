@@ -28,7 +28,9 @@ uint64_t string_hash(char const *str) {
 
 constexpr uint32_t initial_bucket_mask_width = 4;
 
-std::shared_ptr<UntypedTable> UntypedTable::make_shared() { return std::make_shared<UntypedTable>(); }
+UntypedTable *UntypedTable::create() { return new UntypedTable(); }
+
+void UntypedTable::destroy(UntypedTable *value) { delete value; }
 
 UntypedTable::UntypedTable() {
     _hash = pointer_hash;

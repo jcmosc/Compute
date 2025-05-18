@@ -1,23 +1,16 @@
 import ComputeCxx
 import Foundation
 
-public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, Any.Type) -> Void) {
-    struct Context {
-        var body: (UnsafePointer<CChar>, Int, Any.Type) -> Void
-    }
+extension Metadata {
 
-    withoutActuallyEscaping(body) { escapingClosure in
-        var context = Context(body: escapingClosure)
-        withUnsafeMutablePointer(to: &context) { contextPointer in
-            __AGTypeApplyFields(
-                Metadata(type),
-                { name, offset, metadata, context in
-                    guard let context = context?.assumingMemoryBound(to: Context.self).pointee else {
-                        return
-                    }
-                    context.body(name, offset, metadata.type)
-                }, contextPointer)
-        }
+    @_extern(c, "AGTypeApplyFields")
+    static func applyFields(type: Metadata, body: (UnsafePointer<CChar>, Int, Metadata) -> Void)
+
+}
+
+public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, Any.Type) -> Void) {
+    Metadata.applyFields(type: Metadata(type)) { fieldName, fieldOffset, fieldType in
+        body(fieldName, fieldOffset, fieldType.type)
     }
 }
 
@@ -31,25 +24,19 @@ extension Metadata {
         return unsafeBitCast(rawValue, to: Any.Type.self)
     }
 
-    public func forEachField(options: ApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
+    @_extern(c, "AGTypeApplyFields2")
+    static func applyFields2(
+        type: Metadata,
+        options: AGTypeApplyOptions,
+        body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
+    )
+        -> Bool
+
+    public func forEachField(options: AGTypeApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
         -> Bool
     {
-        struct Context {
-            var body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool
-        }
-
-        return withoutActuallyEscaping(body) { escapingClosure in
-            var context = Context(body: escapingClosure)
-            return withUnsafeMutablePointer(to: &context) { contextPointer in
-                return __AGTypeApplyFields2(
-                    self, options,
-                    { name, offsetOrIndex, metadata, context in
-                        guard let context = context?.assumingMemoryBound(to: Context.self).pointee else {
-                            return false
-                        }
-                        return context.body(name, offsetOrIndex, metadata.type)
-                    }, contextPointer)
-            }
+        return Metadata.applyFields2(type: self, options: options) { fieldName, fieldOffset, fieldType in
+            return body(fieldName, fieldOffset, fieldType.type)
         }
     }
 

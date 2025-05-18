@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <memory>
 #include <swift/bridging>
 
 CF_ASSUME_NONNULL_BEGIN
@@ -51,7 +50,8 @@ class UntypedTable {
     void grow_buckets();
 
   public:
-    static std::shared_ptr<UntypedTable> make_shared();
+    static UntypedTable *create();
+    static void destroy(UntypedTable *value);
 
     UntypedTable();
     UntypedTable(hasher _Nullable custom_hasher, key_equal _Nullable custom_compare,
@@ -62,7 +62,7 @@ class UntypedTable {
     // non-copyable
     UntypedTable(const UntypedTable &) = delete;
     UntypedTable &operator=(const UntypedTable &) = delete;
-    
+
     // non-movable
     UntypedTable(UntypedTable &&) = delete;
     UntypedTable &operator=(UntypedTable &&) = delete;

@@ -194,9 +194,8 @@ void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
                        const void *context) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     auto buffer_size = metadata->vw_stride() * count;
-    void *buffer;
     if (buffer_size <= 0x1000) {
-        buffer = (unsigned char *)alloca(buffer_size);
+        void *buffer = (unsigned char *)alloca(buffer_size);
         bzero((void *)buffer, buffer_size);
         AGUnsafeMutableTuple tuple = {tuple_type, buffer};
         function(context, tuple);

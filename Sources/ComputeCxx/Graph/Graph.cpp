@@ -14,6 +14,8 @@ const AttributeType &Graph::attribute_type(uint32_t type_id) const {
     throw;
 }
 
+Graph::Graph() : _heap(nullptr, 0, 0), _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap) {}
+
 const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const {
     auto &type = attribute_type(attribute->type_id());
     if (ref_out) {

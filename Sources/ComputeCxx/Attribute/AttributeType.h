@@ -2,47 +2,73 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include "AGAttribute.h"
+#include "AGAttributeType.h"
+#include "Attribute/Node/Node.h"
+#include "Comparison/AGComparison.h"
+#include "Comparison/LayoutDescriptor.h"
 #include "Swift/Metadata.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
-class AttributeType;
+class AttributeType {
 
-class AttributeVTable {
+  private:
+    swift::metadata *_body_metadata;
+    swift::metadata *_value_metadata;
+    void (*_update)(const void *context, void *body, AGAttribute attribute);
+    void *_update_context;
+    const AGAttributeVTable *_callbacks;
+    AGAttributeTypeFlags _flags;
+
+    // set after construction
+    uint32_t _body_offset;
+    ValueLayout _layout;
+
   public:
-    enum Flags : uint8_t {
-        HasDestroySelf = 1 << 2,
+    class deleter {
+      public:
+        void operator()(AttributeType *ptr) {
+            if (ptr != nullptr) {
+                auto callbacks = ptr->callbacks();
+                callbacks.deallocate(reinterpret_cast<AGAttributeType *>(ptr));
+            }
+        }
     };
 
-    using Callback = void (*)(AttributeType *attribute_type, void *body);
-    Callback destroy_self;
-};
-
-class AttributeType {
-  private:
-    swift::metadata *_self_metadata;
-    swift::metadata *_value_metadata;
-    void *_field1;
-    void *_field2;
-    AttributeVTable *_v_table;
-    uint8_t _v_table_flags;
-    uint32_t _attribute_offset;
-
-  public:
-    const swift::metadata &self_metadata() const { return *_self_metadata; };
+    const swift::metadata &body_metadata() const { return *_body_metadata; };
     const swift::metadata &value_metadata() const { return *_value_metadata; };
+
+    void update(void *body, AGAttribute attribute) const { _update(_update_context, body, attribute); };
+
+    const AGAttributeVTable &callbacks() const { return *_callbacks; }
+    AGAttributeTypeFlags flags() const { return _flags; };
 
     /// Returns the offset in bytes from a Node to the attribute body,
     /// aligned to the body's alignment.
-    uint32_t attribute_offset() const { return _attribute_offset; };
+    uint32_t body_offset() const { return _body_offset; };
+    void init_body_offset() {
+        uint32_t alignment_mask = uint32_t(_body_metadata->getValueWitnesses()->getAlignmentMask());
+        _body_offset = (sizeof(Node) + alignment_mask) & ~alignment_mask;
+    }
 
-    // V table methods
-    void v_destroy_self(void *body) {
-        if (_v_table_flags & AttributeVTable::Flags::HasDestroySelf) {
-            _v_table->destroy_self(this, body);
+    void prefetch_layout() {
+        AGComparisonMode comparison_mode = AGComparisonMode(_flags & AGAttributeTypeFlagsComparisonModeMask);
+        _layout = LayoutDescriptor::fetch(value_metadata(), AGComparisonOptions(comparison_mode), 1);
+    };
+
+    void destroy_body(Node &node) const {
+        if (_flags & AGAttributeTypeFlagsHasDestroySelf) {
+            void *body = node.get_self(*this);
+            callbacks().destroySelf(reinterpret_cast<const AGAttributeType *>(this), body);
         }
+    }
+
+    void destroy(Node &node) {
+        void *body = node.get_self(*this);
+        body_metadata().vw_destroy(static_cast<swift::opaque_value *>(body));
     }
 };
 

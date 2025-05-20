@@ -31,4 +31,8 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
     }
 };
 
+template <typename ReturnType>
+    requires std::is_pointer_v<ReturnType>
+using ClosureFunctionVP = ClosureFunction<ReturnType>;
+
 } // namespace AG

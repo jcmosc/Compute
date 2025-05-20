@@ -16,7 +16,7 @@ extension External: _AttributeBody {
         fatalError("not implemented")
     }
 
-    public static var flags: AttributeTypeFlags {
+    public static var flags: AGAttributeTypeFlags {
         fatalError("not implemented")
     }
 

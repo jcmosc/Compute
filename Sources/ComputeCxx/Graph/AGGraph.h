@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 
 #include "AGSwiftSupport.h"
+#include "Attribute/AGAttributeType.h"
 #include "Swift/AGType.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -37,6 +38,15 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context)
     CF_SWIFT_NAME(getter:AGUnownedGraphContextRef.graph(self:));
+
+// MARK: Attribute types
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
+                                    const AGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(
+                                        const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                    const void *_Nullable make_attribute_type_context);
 
 CF_EXTERN_C_END
 

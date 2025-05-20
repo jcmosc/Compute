@@ -1,17 +1,21 @@
 import ComputeCxx
 
-@_extern(c, "AGTypeApplyEnumData")
-func applyEnumData(
-    type: Metadata,
-    value: UnsafeRawPointer,
-    body: (Int, Metadata, UnsafeRawPointer) -> Void
-) -> Bool
+extension Metadata {
+
+    @_extern(c, "AGTypeApplyEnumData")
+    static func applyEnumData(
+        type: Metadata,
+        value: UnsafeRawPointer,
+        body: (Int, Metadata, UnsafeRawPointer) -> Void
+    ) -> Bool
+
+}
 
 public func withUnsafePointerToEnumCase<Value>(
     of enumValue: UnsafeMutablePointer<Value>,
     do body: (Int, Any.Type, UnsafeRawPointer) -> Void
 ) -> Bool {
-    return applyEnumData(type: Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
+    return Metadata.applyEnumData(type: Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
         body(tag, fieldType.type, fieldValue)
     }
 }

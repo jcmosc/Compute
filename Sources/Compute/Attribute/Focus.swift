@@ -16,7 +16,7 @@ extension Focus: Rule {
         return root.value[keyPath: keyPath]
     }
 
-    public static var flags: AttributeTypeFlags {
+    public static var flags: AGAttributeTypeFlags {
         fatalError("not implemented")
     }
 

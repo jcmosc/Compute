@@ -16,7 +16,7 @@ extension Map: Rule {
         return body(arg.value)
     }
     
-    public static var flags: AttributeTypeFlags {
+    public static var flags: AGAttributeTypeFlags {
         fatalError("not implemented")
     }
     

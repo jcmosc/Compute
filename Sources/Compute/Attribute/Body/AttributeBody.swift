@@ -7,7 +7,7 @@ public protocol _AttributeBody {
 
     static var comparisonMode: AGComparisonMode { get }
     static var _hasDestroySelf: Bool { get }
-    static var flags: AttributeTypeFlags { get }
+    static var flags: AGAttributeTypeFlags { get }
 
 }
 
@@ -29,7 +29,7 @@ extension _AttributeBody {
         fatalError("not implemented")
     }
 
-    public static var flags: AttributeTypeFlags {
+    public static var flags: AGAttributeTypeFlags {
         fatalError("not implemented")
     }
 

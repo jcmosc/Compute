@@ -632,4 +632,119 @@ struct MetadataTests {
 
     }
 
+    @Suite
+    struct EnumTests {
+
+        @Test
+        func withUnsafeMutablePointerToBasicEnum() {
+            enum BasicEnum {
+                case first
+                case second
+            }
+
+            var value = BasicEnum.first
+            let finished = withUnsafePointerToEnumCase(of: &value) { _, _, _ in
+                #expect(Bool(false))
+            }
+
+            #expect(finished == false)
+        }
+
+        @Test
+        func withUnsafeMutablePointerToIntEnum() {
+            enum IntEnum: Int {
+                case first = 1
+                case second = 2
+            }
+
+            var value = IntEnum.first
+            let finished = withUnsafePointerToEnumCase(of: &value) { _, _, _ in
+                #expect(Bool(false))
+            }
+
+            #expect(finished == false)
+        }
+
+        @Test
+        func withUnsafeMutablePointerToTaggedUnionEnum() {
+            enum TaggedUnionEnum {
+                case first
+                case second(Int)
+                case third(String)
+            }
+
+            var value1 = TaggedUnionEnum.first
+            let finished1 = withUnsafePointerToEnumCase(of: &value1) { _, _, _ in
+                #expect(Bool(false))
+            }
+
+            #expect(finished1 == false)
+
+            var value2 = TaggedUnionEnum.second(1)
+            var field2: (Int, any Any.Type, UnsafeRawPointer)?
+            let finished2 = withUnsafePointerToEnumCase(of: &value2) { tag, fieldType, fieldValue in
+                field2 = (tag, fieldType, fieldValue)
+            }
+
+            #expect(finished2 == true)
+            #expect(field2 != nil)
+            #expect(field2?.0 == 0)
+            #expect(field2?.1 == Int.self)
+            #expect(field2?.2.assumingMemoryBound(to: Int.self).pointee == 1)
+
+            var value3 = TaggedUnionEnum.third("Test")
+
+            var field3: (Int, any Any.Type, UnsafeRawPointer)?
+            let finished3 = withUnsafePointerToEnumCase(of: &value3) { tag, fieldType, fieldValue in
+                field3 = (tag, fieldType, fieldValue)
+            }
+
+            #expect(finished3 == true)
+            #expect(field3 != nil)
+            #expect(field3?.0 == 1)
+            #expect(field3?.1 == String.self)
+            #expect(field3?.2.assumingMemoryBound(to: String.self).pointee == "Test")
+        }
+
+        @Test
+        func withUnsafeMutablePointerToIndirectEnum() {
+            indirect enum IndirectEnum {
+                case string(String)
+                case indirectEnum(child: IndirectEnum)
+            }
+
+            var value1 = IndirectEnum.string("Test")
+
+            var field1: (Int, any Any.Type, UnsafeRawPointer)?
+            let finished1 = withUnsafePointerToEnumCase(of: &value1) { tag, fieldType, fieldValue in
+                field1 = (tag, fieldType, fieldValue)
+            }
+
+            #expect(finished1 == true)
+            #expect(field1 != nil)
+            #expect(field1?.0 == 0)
+            #expect(field1?.1 == String.self)
+            #expect(field1?.2.assumingMemoryBound(to: String.self).pointee == "Test")
+
+            var value2 = IndirectEnum.indirectEnum(child: .string("Test"))
+
+            var field2: (Int, any Any.Type, UnsafeRawPointer)?
+            let finished2 = withUnsafePointerToEnumCase(of: &value2) { tag, fieldType, fieldValue in
+                field2 = (tag, fieldType, fieldValue)
+            }
+
+            #expect(finished2 == true)
+            #expect(field2 != nil)
+            #expect(field2?.0 == 1)
+            // Cannot create a single-element tuple with an element label
+            // #expect(field2?.1 == (child: IndirectEnum).self)
+            if case .string(let string) = field2?.2.assumingMemoryBound(to: IndirectEnum.self).pointee {
+                #expect(string == "Test")
+            } else {
+                #expect(Bool(false))
+            }
+        }
+
+    }
+
 }

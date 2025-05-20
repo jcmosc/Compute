@@ -29,7 +29,7 @@ public struct Attribute<Value> {
     }
 
     public init<Body: _AttributeBody>(
-        body: UnsafePointer<Body>, value: UnsafePointer<Value>?, flags: AttributeTypeFlags,
+        body: UnsafePointer<Body>, value: UnsafePointer<Value>?, flags: AGAttributeTypeFlags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) {
         fatalError("not implemented")

@@ -45,25 +45,32 @@ class Node {
     };
 
     State _state;
-    uint32_t _type_id;
-    uint8_t _field1;
-    uint8_t _field2;
+    unsigned int _type_id : 24;
+    uint16_t _relative_offset;
+    uint8_t _subgraph_flags;
     Flags _flags;
     data::ptr<void> _value;
+    
+    uint32_t _padding1;
+    uint16_t _padding2;
+    uint32_t _padding4;
+    uint16_t _padding5;
 
   public:
     uint32_t type_id() const { return _type_id; };
 
-    bool has_indirect_self() const { return _flags & Flags::HasIndirectSelf; };
+    void *get_self(const AttributeType &type);
     void update_self(const Graph &graph, void *new_self);
     void destroy_self(const Graph &graph);
 
-    bool has_indirect_value() const { return _flags * Flags::HasIndirectValue; };
+    void *get_value();
     void allocate_value(Graph &graph, data::zone &zone);
     void destroy_value(Graph &graph);
 
     void destroy(Graph &graph);
 };
+
+static_assert(sizeof(Node) == 0x1c);
 
 } // namespace AG
 

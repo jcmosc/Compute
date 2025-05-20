@@ -1,0 +1,37 @@
+#pragma once
+
+#include <CoreFoundation/CFBase.h>
+
+#include "Graph.h"
+#include "Private/CFRuntime.h"
+
+CF_ASSUME_NONNULL_BEGIN
+
+struct AGGraphStorage;
+
+namespace AG {
+
+class Graph::Context {
+  private:
+    Graph *_graph;
+    const void *_context_info;
+    uint64_t _unique_id;
+    
+    bool _invalidated;
+
+  public:
+    Context(Graph *graph);
+    ~Context();
+
+    AGGraphStorage *to_cf() const { return reinterpret_cast<AGGraphStorage *>((char *)this - sizeof(CFRuntimeBase)); };
+    static Context *from_cf(AGGraphStorage *storage);
+
+    Graph &graph() const { return *_graph; };
+
+    bool invalidated() const { return _invalidated; };
+    void set_invalidated(bool invalidated) { _invalidated = invalidated; };
+};
+
+} // namespace AG
+
+CF_ASSUME_NONNULL_END

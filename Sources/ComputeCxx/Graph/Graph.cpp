@@ -1,7 +1,7 @@
 #include "Graph.h"
 
-#include "Attribute/AttributeType.h"
-#include "Attribute/Node/Node.h"
+#include "Attribute/AttributeData/Node/Node.h"
+#include "Attribute/AttributeType/AttributeType.h"
 #include "Log/Log.h"
 
 namespace AG {

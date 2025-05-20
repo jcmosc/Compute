@@ -16,7 +16,7 @@ class Graph::Context {
     Graph *_graph;
     const void *_context_info;
     uint64_t _unique_id;
-    
+
     bool _invalidated;
 
   public:

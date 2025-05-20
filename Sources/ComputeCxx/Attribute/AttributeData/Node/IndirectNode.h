@@ -2,8 +2,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Attribute/AttributeID.h"
-#include "Attribute/WeakAttributeID.h"
+#include "Attribute/AttributeID/AttributeID.h"
+#include "Attribute/AttributeID/WeakAttributeID.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -37,7 +37,7 @@ class IndirectNode {
     };
 
     const WeakAttributeID &source() const { return _source; };
-    
+
     void modify(WeakAttributeID source, size_t size);
 };
 

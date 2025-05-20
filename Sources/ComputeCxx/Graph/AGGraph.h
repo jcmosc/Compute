@@ -3,7 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 
 #include "AGSwiftSupport.h"
-#include "Attribute/AGAttributeType.h"
+#include "Attribute/AttributeType/AGAttributeType.h"
 #include "Swift/AGType.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -18,7 +18,7 @@ typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFTypeID AGGraphGetTypeID() AG_SWIFT_NAME(getter:AGGraphRef.typeID());
+CFTypeID AGGraphGetTypeID() AG_SWIFT_NAME(getter : AGGraphRef.typeID());
 
 // MARK: Graph Context
 

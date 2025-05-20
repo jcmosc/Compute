@@ -50,7 +50,7 @@ class Node {
     uint8_t _subgraph_flags;
     Flags _flags;
     data::ptr<void> _value;
-    
+
     uint32_t _padding1;
     uint16_t _padding2;
     uint32_t _padding4;

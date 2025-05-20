@@ -12,7 +12,7 @@ struct AGAttributeType;
 typedef struct AGAttributeVTable {
     void (*callback0)(AGAttributeType *);
     void (*deallocate)(AGAttributeType *);
-    
+
     void (*destroySelf)(const AGAttributeType *, void *);
     CFStringRef _Nonnull (*_Nonnull selfDescription)(const AGAttributeType *, void *);
     CFStringRef _Nonnull (*_Nonnull valueDescription)(const AGAttributeType *, void *);

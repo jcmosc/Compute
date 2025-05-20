@@ -1,6 +1,6 @@
 #include "Node.h"
 
-#include "Attribute/AttributeType.h"
+#include "Attribute/AttributeType/AttributeType.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"

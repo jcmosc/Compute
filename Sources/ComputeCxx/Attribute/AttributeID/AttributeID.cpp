@@ -2,10 +2,10 @@
 
 #include "Errors/Errors.h"
 
-#include "AttributeType.h"
+#include "Attribute/AttributeData/Node/IndirectNode.h"
+#include "Attribute/AttributeData/Node/Node.h"
+#include "Attribute/AttributeType/AttributeType.h"
 #include "Graph/Graph.h"
-#include "Node/IndirectNode.h"
-#include "Node/Node.h"
 #include "OffsetAttributeID.h"
 #include "Subgraph/Subgraph.h"
 
@@ -27,7 +27,7 @@ bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
     if (!is_indirect()) {
         return *this == other;
     }
-    
+
     if (with_kind(Kind::Indirect) == other) {
         return true;
     }

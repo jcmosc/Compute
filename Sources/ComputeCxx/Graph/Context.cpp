@@ -1,7 +1,7 @@
 #include "Context.h"
 
 #include "AGGraph-Private.h"
-#include "Attribute/AttributeID.h"
+#include "Attribute/AttributeID/AttributeID.h"
 #include "Subgraph/Subgraph.h"
 #include "UniqueID/AGUniqueID.h"
 

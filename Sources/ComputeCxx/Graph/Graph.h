@@ -4,8 +4,8 @@
 #include <memory>
 #include <stdint.h>
 
-#include "Attribute/AttributeID.h"
-#include "Attribute/AttributeType.h"
+#include "Attribute/AttributeID/AttributeID.h"
+#include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
 #include "Swift/Metadata.h"
 #include "Utilities/HashTable.h"

@@ -1,4 +1,4 @@
-#include "Attribute/AGAttribute.h"
+#include "Attribute/AttributeID/AGAttribute.h"
 #include "Comparison/AGComparison.h"
 #include "Graph/AGGraph.h"
 #include "Subgraph/AGSubgraph.h"

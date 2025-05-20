@@ -2,9 +2,9 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "AGAttribute.h"
 #include "AGAttributeType.h"
-#include "Attribute/Node/Node.h"
+#include "Attribute/AttributeData/Node/Node.h"
+#include "Attribute/AttributeID/AGAttribute.h"
 #include "Comparison/AGComparison.h"
 #include "Comparison/LayoutDescriptor.h"
 #include "Swift/Metadata.h"

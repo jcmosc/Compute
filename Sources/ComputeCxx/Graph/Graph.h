@@ -32,10 +32,14 @@ class Graph {
     // Threads
     uint32_t _ref_count = 1;
 
+    uint64_t _id;
+
   public:
     static void trace_assertion_failure(bool all_stop_tracing, const char *format, ...);
 
     Graph();
+
+    uint64_t id() const { return _id; }
 
     // MARK: Context
 

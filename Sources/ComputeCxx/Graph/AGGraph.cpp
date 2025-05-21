@@ -91,6 +91,44 @@ void AGGraphSetContext(AGGraphRef graph, const void *context) {
     graph_context->set_context(context);
 }
 
+#pragma mark - Counter
+
+uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    switch (query) {
+        //    case AGGraphCounterQueryNodeCount:
+        //        return graph_context->graph().node_count();
+        //    case AGGraphCounterQueryTransactionCount:
+        //        return graph_context->graph().transaction_count();
+        //    case AGGraphCounterQueryUpdateCount:
+        //        return graph_context->graph().update_count();
+        //    case AGGraphCounterQueryChangeCount:
+        //        return graph_context->graph().change_count();
+    case AGGraphCounterQueryContextID:
+        return graph_context->id();
+    case AGGraphCounterQueryGraphID:
+        return graph_context->graph().id();
+        //    case AGGraphCounterQueryContextThreadUpdating:
+        //        return graph_context->is_thread_updating();
+        //    case AGGraphCounterQueryThreadUpdating:
+        //        return graph_context->graph().is_thread_updating();
+        //    case AGGraphCounterQueryContextNeedsUpdate:
+        //        return graph_context->needs_update();
+        //    case AGGraphCounterQueryNeedsUpdate:
+        //        return graph_context->graph().needs_update();
+        //    case AGGraphCounterQueryMainThreadUpdateCount:
+        //        return graph_context->graph().main_thread_update_count();
+        //    case AGGraphCounterQueryNodeTotalCount:
+        //        return graph_context->graph().total_node_count();
+        //    case AGGraphCounterQuerySubgraphCount:
+        //        return graph_context->graph().subgraph_count();
+        //    case AGGraphCounterQuerySubgraphTotalCount:
+        //        return graph_context->graph().total_subgraph_count();
+    default:
+        return 0;
+    }
+}
+
 #pragma mark - Attribute types
 
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,

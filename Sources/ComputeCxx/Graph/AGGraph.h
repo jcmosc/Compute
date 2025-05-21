@@ -50,6 +50,29 @@ CF_REFINED_FOR_SWIFT
 void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context)
     CF_SWIFT_NAME(setter:AGGraphRef.context(self:_:));
 
+// MARK: Counter
+
+typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
+//    AGGraphCounterQueryNodeCount,
+//    AGGraphCounterQueryTransactionCount,
+//    AGGraphCounterQueryUpdateCount,
+//    AGGraphCounterQueryChangeCount,
+    AGGraphCounterQueryContextID,
+    AGGraphCounterQueryGraphID,
+//    AGGraphCounterQueryContextThreadUpdating,
+//    AGGraphCounterQueryThreadUpdating,
+//    AGGraphCounterQueryContextNeedsUpdate,
+//    AGGraphCounterQueryNeedsUpdate,
+//    AGGraphCounterQueryMainThreadUpdateCount,
+//    AGGraphCounterQueryNodeTotalCount,
+//    AGGraphCounterQuerySubgraphCount,
+//    AGGraphCounterQuerySubgraphTotalCount,
+};
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) CF_SWIFT_NAME(AGGraphRef.counter(self:for:));
+
 // MARK: Attribute types
 
 CF_EXPORT

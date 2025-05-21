@@ -22,6 +22,33 @@ struct GraphTests {
     }
     
     @Suite
+    struct LifecycleTests {
+        
+        @Test
+        func createGraph() {
+            let graph = Graph()
+            
+            let graphID = graph.counter(for: .graphID)
+            #expect(graphID != 0)
+            
+            let contextID = graph.counter(for: .contextID)
+            #expect(contextID != 0)
+            
+            #expect(graphID != contextID)
+        }
+        
+        @Test
+        func createSharedGraph() async throws {
+            let firstGraph = Graph(shared: nil)
+            let secondGraph = Graph(shared: firstGraph)
+            
+            #expect(firstGraph.counter(for: .graphID) == secondGraph.counter(for: .graphID))
+            #expect(firstGraph.counter(for: .contextID) != secondGraph.counter(for: .contextID))
+        }
+        
+    }
+    
+    @Suite
     struct ContextTests {
         
         @Test

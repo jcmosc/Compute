@@ -15,13 +15,15 @@ class Graph::Context {
   private:
     Graph *_graph;
     const void *_context = nullptr;
-    uint64_t _unique_id;
+    uint64_t _id;
 
     bool _invalidated;
 
   public:
     Context(Graph *graph);
     ~Context();
+    
+    uint64_t id() const { return _id; }
 
     AGGraphStorage *to_cf() const { return reinterpret_cast<AGGraphStorage *>((char *)this - sizeof(CFRuntimeBase)); };
     static Context *from_cf(AGGraphStorage *storage);

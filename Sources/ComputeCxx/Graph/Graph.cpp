@@ -3,6 +3,7 @@
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Log/Log.h"
+#include "UniqueID/AGUniqueID.h"
 
 namespace AG {
 
@@ -12,7 +13,7 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
 
 Graph::Graph()
     : _heap(nullptr, 0, 0), _interned_types(nullptr, nullptr, nullptr, nullptr, &_heap),
-      _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap) {
+      _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _id(AGMakeUniqueID()) {
     _types.push_back(nullptr);
 }
 

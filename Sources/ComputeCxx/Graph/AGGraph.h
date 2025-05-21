@@ -18,7 +18,7 @@ typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFTypeID AGGraphGetTypeID() AG_SWIFT_NAME(getter : AGGraphRef.typeID());
+CFTypeID AGGraphGetTypeID() CF_SWIFT_NAME(getter:AGGraphRef.typeID());
 
 // MARK: Graph Context
 
@@ -38,6 +38,17 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context)
     CF_SWIFT_NAME(getter:AGUnownedGraphContextRef.graph(self:));
+
+// MARK: User context
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+const void *_Nullable AGGraphGetContext(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.context(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context)
+    CF_SWIFT_NAME(setter:AGGraphRef.context(self:_:));
 
 // MARK: Attribute types
 

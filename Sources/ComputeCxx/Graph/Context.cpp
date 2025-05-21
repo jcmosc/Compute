@@ -7,11 +7,7 @@
 
 namespace AG {
 
-Graph::Context::Context(Graph *graph) {
-    _graph = graph;
-    _context_info = nullptr;
-    _unique_id = AGMakeUniqueID();
-
+Graph::Context::Context(Graph *graph) : _graph(graph), _unique_id(AGMakeUniqueID()) {
     Graph::retain(graph);
     graph->_contexts_by_id.insert(_unique_id, this);
 }

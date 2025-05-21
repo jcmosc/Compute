@@ -20,6 +20,22 @@ struct GraphTests {
         }
 
     }
+    
+    @Suite
+    struct ContextTests {
+        
+        @Test
+        func storesContextPointer() {
+            let graph = Graph()
+            #expect(graph.context == nil)
+            
+            withUnsafePointer(to: "Value") { pointer in
+                graph.context = UnsafeRawPointer(pointer)
+                #expect(graph.context == UnsafeRawPointer(pointer))
+            }
+        }
+        
+    }
 
     @Suite
     struct InternAttributeTypeTests {

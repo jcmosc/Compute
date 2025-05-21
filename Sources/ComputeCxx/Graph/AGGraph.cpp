@@ -79,6 +79,18 @@ AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef storage) {
     return graph_context->to_cf();
 }
 
+#pragma mark - User context
+
+const void *AGGraphGetContext(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->context();
+}
+
+void AGGraphSetContext(AGGraphRef graph, const void *context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->set_context(context);
+}
+
 #pragma mark - Attribute types
 
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,

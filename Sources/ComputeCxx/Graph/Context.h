@@ -14,7 +14,7 @@ namespace AG {
 class Graph::Context {
   private:
     Graph *_graph;
-    const void *_context_info;
+    const void *_context = nullptr;
     uint64_t _unique_id;
 
     bool _invalidated;
@@ -27,6 +27,9 @@ class Graph::Context {
     static Context *from_cf(AGGraphStorage *storage);
 
     Graph &graph() const { return *_graph; };
+
+    const void *_Nullable context() const { return _context; };
+    void set_context(const void *_Nullable context) { _context = context; };
 
     bool invalidated() const { return _invalidated; };
     void set_invalidated(bool invalidated) { _invalidated = invalidated; };

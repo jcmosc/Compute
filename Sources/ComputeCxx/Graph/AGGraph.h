@@ -1,12 +1,14 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFDictionary.h>
 
 #include "AGSwiftSupport.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
 #include "Swift/AGType.h"
 
 CF_ASSUME_NONNULL_BEGIN
+CF_IMPLICIT_BRIDGING_ENABLED
 
 CF_EXTERN_C_BEGIN
 
@@ -53,20 +55,20 @@ void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context)
 // MARK: Counter
 
 typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
-//    AGGraphCounterQueryNodeCount,
-//    AGGraphCounterQueryTransactionCount,
-//    AGGraphCounterQueryUpdateCount,
-//    AGGraphCounterQueryChangeCount,
+    //    AGGraphCounterQueryNodeCount,
+    //    AGGraphCounterQueryTransactionCount,
+    //    AGGraphCounterQueryUpdateCount,
+    //    AGGraphCounterQueryChangeCount,
     AGGraphCounterQueryContextID,
     AGGraphCounterQueryGraphID,
-//    AGGraphCounterQueryContextThreadUpdating,
-//    AGGraphCounterQueryThreadUpdating,
-//    AGGraphCounterQueryContextNeedsUpdate,
-//    AGGraphCounterQueryNeedsUpdate,
-//    AGGraphCounterQueryMainThreadUpdateCount,
-//    AGGraphCounterQueryNodeTotalCount,
-//    AGGraphCounterQuerySubgraphCount,
-//    AGGraphCounterQuerySubgraphTotalCount,
+    //    AGGraphCounterQueryContextThreadUpdating,
+    //    AGGraphCounterQueryThreadUpdating,
+    //    AGGraphCounterQueryContextNeedsUpdate,
+    //    AGGraphCounterQueryNeedsUpdate,
+    //    AGGraphCounterQueryMainThreadUpdateCount,
+    //    AGGraphCounterQueryNodeTotalCount,
+    //    AGGraphCounterQuerySubgraphCount,
+    //    AGGraphCounterQuerySubgraphTotalCount,
 };
 
 CF_EXPORT
@@ -82,6 +84,14 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
                                         const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                     const void *_Nullable make_attribute_type_context);
 
+// MARK: Description
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+CFTypeRef _Nullable AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options)
+    CF_SWIFT_NAME(AGGraphRef.description(_:options:));
+
 CF_EXTERN_C_END
 
+CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END

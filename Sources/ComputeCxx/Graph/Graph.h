@@ -1,8 +1,13 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFDictionary.h>
 #include <memory>
 #include <stdint.h>
+
+#ifdef __OBJC__
+#import <Foundation/Foundation.h>
+#endif
 
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
@@ -62,6 +67,13 @@ class Graph {
     void did_destroy_node_value(size_t size);
 
     void update_attribute(AttributeID attribute, bool option);
+
+    // MARK: Description
+
+#ifdef __OBJC__
+    static NSObject *_Nullable description(Graph *_Nullable graph, NSDictionary *options);
+    static NSDictionary *description_graph(Graph *_Nullable graph, NSDictionary *options);
+#endif
 };
 
 } // namespace AG

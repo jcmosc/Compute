@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <CoreFoundation/CFDictionary.h>
 #include <memory>
+#include <os/lock.h>
 #include <stdint.h>
 
 #ifdef __OBJC__
@@ -25,6 +26,11 @@ class Graph {
     class Context;
 
   private:
+    static Graph *_Nullable _all_graphs;
+    static os_unfair_lock _all_graphs_lock;
+
+    Graph *_Nullable _next;
+    Graph *_Nullable _previous;
     util::Heap _heap;
 
     // Attribute types
@@ -39,10 +45,15 @@ class Graph {
 
     uint64_t _id;
 
+    static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
+    static bool all_try_lock() { return os_unfair_lock_trylock(&_all_graphs_lock); };
+    static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
+
   public:
     static void trace_assertion_failure(bool all_stop_tracing, const char *format, ...);
 
     Graph();
+    ~Graph();
 
     uint64_t id() const { return _id; }
 

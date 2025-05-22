@@ -48,6 +48,24 @@ Graph::~Graph() {
     all_unlock();
 }
 
+Graph::Context *Graph::primary_context() const {
+    struct Info {
+        Context *context;
+        uint64_t context_id;
+    };
+    Info info = {nullptr, UINT64_MAX};
+    _contexts_by_id.for_each(
+                             [](const uint64_t context_id, Context *const context, void *info_ref) {
+                                 auto typed_info_ref = (std::pair<Context *, uint64_t> *)info_ref;
+                                 if (context_id < ((Info *)info_ref)->context_id) {
+                                     ((Info *)info_ref)->context = context;
+                                     ((Info *)info_ref)->context_id = context_id;
+                                 }
+                             },
+                             &info);
+    return info.context;
+}
+
 const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const {
     auto &type = attribute_type(attribute->type_id());
     if (ref_out) {

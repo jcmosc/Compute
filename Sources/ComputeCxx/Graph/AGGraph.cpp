@@ -5,6 +5,7 @@
 #include "Context.h"
 #include "Graph.h"
 #include "Private/CFRuntime.h"
+#include "Trace/ExternalTrace.h"
 
 namespace {
 
@@ -182,4 +183,17 @@ CFStringRef AGGraphCopyTracePath(AGGraphRef graph) {
 
     auto graph_context = AG::Graph::Context::from_cf(graph);
     return graph_context->graph().copy_trace_path();
+}
+
+void AGGraphSetTrace(AGGraphRef graph, AGTrace *trace, void *context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(0);
+
+    auto external_trace = new ExternalTrace(0, trace, context);
+    graph_context->graph().add_trace(external_trace);
+}
+
+void AGGraphResetTrace(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(0);
 }

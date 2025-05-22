@@ -1,12 +1,16 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
 
 #include "AGSwiftSupport.h"
+#include "Attribute/AttributeID/AGAttribute.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
+#include "Comparison/AGComparison.h"
+#include "Subgraph/AGSubgraph.h"
 #include "Swift/AGType.h"
-#include "Trace/AGTrace.h"
+#include "Trace/AGTraceFlags.h"
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -18,6 +22,8 @@ CF_EXTERN_C_BEGIN
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
 typedef void *AGUnownedGraphRef AG_SWIFT_STRUCT;
 typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
+
+typedef struct AGTrace *AGTraceRef;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -115,6 +121,14 @@ void AGGraphSyncTracing(AGGraphRef graph);
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 CFStringRef AGGraphCopyTracePath(AGGraphRef graph);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetTrace(AGGraphRef graph, AGTraceRef trace, void *context);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphResetTrace(AGGraphRef graph);
 
 // MARK: Description
 

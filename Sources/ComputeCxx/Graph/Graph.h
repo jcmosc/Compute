@@ -69,6 +69,8 @@ class Graph {
 
     // MARK: Context
 
+    Context *_Nullable primary_context() const;
+
     inline static void retain(Graph *graph) { graph->_ref_count += 1; };
     inline static void release(Graph *graph) {
         graph->_ref_count -= 1;

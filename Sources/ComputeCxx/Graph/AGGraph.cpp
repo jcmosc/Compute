@@ -140,3 +140,46 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID ty
     return graph->intern_type(
         metadata, AG::ClosureFunctionVP<const AGAttributeType *>(make_attribute_type, make_attribute_type_context));
 }
+
+#pragma mark - Trace
+
+void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, 0); }
+
+void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, uint32_t unknown) {
+    if (graph == nullptr) {
+        AG::Graph::all_start_tracing(trace_flags, {});
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().start_tracing(trace_flags, {});
+}
+
+void AGGraphStopTracing(AGGraphRef graph) {
+    if (graph == nullptr) {
+        AG::Graph::all_stop_tracing();
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().stop_tracing();
+}
+
+void AGGraphSyncTracing(AGGraphRef graph) {
+    if (graph == nullptr) {
+        AG::Graph::all_sync_tracing();
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().sync_tracing();
+}
+
+CFStringRef AGGraphCopyTracePath(AGGraphRef graph) {
+    if (graph == nullptr) {
+        return AG::Graph::all_copy_trace_path();
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->graph().copy_trace_path();
+}

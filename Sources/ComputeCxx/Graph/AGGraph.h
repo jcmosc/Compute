@@ -6,6 +6,7 @@
 #include "AGSwiftSupport.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
 #include "Swift/AGType.h"
+#include "Trace/AGTrace.h"
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -92,6 +93,28 @@ typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {
     AGGraphUpdateStatusOption2 = 2,
     AGGraphUpdateStatusNeedsCallMainHandler = 3,
 };
+
+// MARK: Trace
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, uint32_t unknown);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStopTracing(AGGraphRef graph);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSyncTracing(AGGraphRef graph);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+CFStringRef AGGraphCopyTracePath(AGGraphRef graph);
 
 // MARK: Description
 

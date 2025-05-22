@@ -24,6 +24,7 @@ namespace AG {
 class Graph {
   public:
     class Context;
+    class UpdateStack;
 
   private:
     static Graph *_Nullable _all_graphs;

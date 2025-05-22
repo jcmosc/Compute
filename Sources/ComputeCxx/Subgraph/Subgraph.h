@@ -18,6 +18,7 @@ class Subgraph : public data::zone {
   private:
     SubgraphObject *_object;
     Graph *_graph;
+    uint64_t _context_id;
 
   public:
     AGSubgraphStorage *to_cf() const;

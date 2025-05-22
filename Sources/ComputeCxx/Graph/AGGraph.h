@@ -1,11 +1,17 @@
 #pragma once
 
+#include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
 
 #include "AGSwiftSupport.h"
+#include "Attribute/AttributeID/AGAttribute.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
+#include "Comparison/AGComparison.h"
+#include "Subgraph/AGSubgraph.h"
 #include "Swift/AGType.h"
+#include "Trace/AGTraceFlags.h"
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -17,6 +23,8 @@ CF_EXTERN_C_BEGIN
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
 typedef void *AGUnownedGraphRef AG_SWIFT_STRUCT;
 typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
+
+typedef struct AGTrace *AGTraceRef;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -92,6 +100,39 @@ typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {
     AGGraphUpdateStatusOption2 = 2,
     AGGraphUpdateStatusNeedsCallMainHandler = 3,
 };
+
+// MARK: Trace
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags)
+    CF_SWIFT_NAME(AGGraphRef.startTracing(self:flags:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef _Nullable subsystems)
+    CF_SWIFT_NAME(AGGraphRef.startTracing(self:flags:subsystems:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStopTracing(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.stopTracing(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSyncTracing(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.syncTracing(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+CFStringRef AGGraphCopyTracePath(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.tracePath(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context)
+    CF_SWIFT_NAME(AGGraphRef.setTrace(self:_:context:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphResetTrace(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.resetTrace(self:));
 
 // MARK: Description
 

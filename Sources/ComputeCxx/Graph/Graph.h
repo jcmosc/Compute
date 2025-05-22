@@ -4,6 +4,7 @@
 #include <CoreFoundation/CFDictionary.h>
 #include <memory>
 #include <os/lock.h>
+#include <span>
 #include <stdint.h>
 
 #ifdef __OBJC__
@@ -14,6 +15,7 @@
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
 #include "Swift/Metadata.h"
+#include "Trace/AGTrace.h"
 #include "Utilities/HashTable.h"
 #include "Utilities/Heap.h"
 
@@ -21,9 +23,13 @@ CF_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
+class Trace;
+
 class Graph {
   public:
     class Context;
+    class KeyTable;
+    class TraceRecorder;
     class UpdateStack;
 
   private:
@@ -41,6 +47,15 @@ class Graph {
     // Contexts
     util::Table<uint64_t, Context *> _contexts_by_id;
 
+    // Trace
+    vector<Trace *, 0, uint32_t> _traces;
+
+    // Trace recorder
+    TraceRecorder *_trace_recorder;
+    
+    // Keys
+    KeyTable *_Nullable _keys;
+
     // Threads
     uint32_t _ref_count = 1;
 
@@ -51,14 +66,14 @@ class Graph {
     static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
 
   public:
-    static void trace_assertion_failure(bool all_stop_tracing, const char *format, ...);
-
     Graph();
     ~Graph();
 
     uint64_t id() const { return _id; }
 
     // MARK: Context
+
+    Context *_Nullable primary_context() const;
 
     inline static void retain(Graph *graph) { graph->_ref_count += 1; };
     inline static void release(Graph *graph) {
@@ -79,6 +94,40 @@ class Graph {
     void did_destroy_node_value(size_t size);
 
     void update_attribute(AttributeID attribute, bool option);
+
+    // MARK: Trace
+
+    void start_tracing(AGTraceFlags trace_flags, std::span<const char *> subsystems);
+    void stop_tracing();
+    void sync_tracing();
+    CFStringRef copy_trace_path();
+
+    void prepare_trace(Trace &trace);
+
+    void add_trace(Trace *_Nullable trace);
+    void remove_trace(uint64_t trace_id);
+
+    static void all_start_tracing(AGTraceFlags trace_flags, std::span<const char *> span);
+    static void all_stop_tracing();
+    static void all_sync_tracing();
+    static CFStringRef all_copy_trace_path();
+
+    static void trace_assertion_failure(bool all_stop_tracing, const char *format, ...);
+
+    const vector<Trace *, 0, uint32_t> &traces() const { return _traces; };
+
+    template <typename T>
+        requires std::invocable<T, Trace &>
+    void foreach_trace(T body) {
+        for (auto trace = _traces.rbegin(), end = _traces.rend(); trace != end; ++trace) {
+            body(**trace);
+        }
+    };
+    
+    // MARK: Keys
+    
+    uint32_t intern_key(const char *key);
+    const char *key_name(uint32_t key_id) const;
 
     // MARK: Description
 

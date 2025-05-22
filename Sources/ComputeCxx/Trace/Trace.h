@@ -22,7 +22,9 @@ class Trace {
 
     Trace() : _id(AGMakeUniqueID()) {};
     Trace(uint64_t id) : _id(id) {};
-    virtual ~Trace() {};
+
+    virtual void graph_destroyed() {};
+    virtual void trace_removed() {};
 
     // Trace
     virtual void begin_trace(const Graph &graph) {};

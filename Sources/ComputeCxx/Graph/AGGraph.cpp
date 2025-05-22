@@ -1,10 +1,13 @@
 #include "AGGraph-Private.h"
 
+#include <CoreFoundation/CFString.h>
 #include <os/lock.h>
 
 #include "Context.h"
 #include "Graph.h"
 #include "Private/CFRuntime.h"
+#include "Trace/ExternalTrace.h"
+#include "Utilities/FreeDeleter.h"
 
 namespace {
 
@@ -139,4 +142,80 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID ty
     AG::Graph *graph = reinterpret_cast<AG::Graph *>(unowned_graph);
     return graph->intern_type(
         metadata, AG::ClosureFunctionVP<const AGAttributeType *>(make_attribute_type, make_attribute_type_context));
+}
+
+#pragma mark - Trace
+
+void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, NULL); }
+
+void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef subsystems) {
+    auto subsystems_vector = AG::vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>();
+    if (subsystems) {
+        auto subsystems_count = CFArrayGetCount(subsystems);
+        for (CFIndex index = 0; index < subsystems_count; ++index) {
+            CFTypeRef value = CFArrayGetValueAtIndex(subsystems, index);
+            if (CFGetTypeID(value) != CFStringGetTypeID()) {
+                continue;
+            }
+
+            char *subsystem;
+            if (CFStringGetCString((CFStringRef)value, subsystem, CFStringGetLength((CFStringRef)value),
+                                   kCFStringEncodingUTF8)) {
+                subsystems_vector.push_back(std::unique_ptr<const char, util::free_deleter>(subsystem));
+            }
+        }
+    }
+
+    std::span<const char *> subsystems_span =
+        std::span<const char *>((const char **)subsystems_vector.data(), subsystems_vector.size());
+
+    if (graph == nullptr) {
+        AG::Graph::all_start_tracing(trace_flags, subsystems_span);
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().start_tracing(trace_flags, subsystems_span);
+}
+
+void AGGraphStopTracing(AGGraphRef graph) {
+    if (graph == nullptr) {
+        AG::Graph::all_stop_tracing();
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().stop_tracing();
+}
+
+void AGGraphSyncTracing(AGGraphRef graph) {
+    if (graph == nullptr) {
+        AG::Graph::all_sync_tracing();
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().sync_tracing();
+}
+
+CFStringRef AGGraphCopyTracePath(AGGraphRef graph) {
+    if (graph == nullptr) {
+        return AG::Graph::all_copy_trace_path();
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->graph().copy_trace_path();
+}
+
+void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(0);
+
+    auto external_trace = new ExternalTrace(0, trace, context);
+    graph_context->graph().add_trace(external_trace);
+}
+
+void AGGraphResetTrace(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(0);
 }

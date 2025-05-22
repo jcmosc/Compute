@@ -7,6 +7,9 @@
 
 namespace AG {
 
+Graph *Graph::_all_graphs = nullptr;
+os_unfair_lock Graph::_all_graphs_lock = OS_UNFAIR_LOCK_INIT;
+
 void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, ...) {
     // TODO: Not implemented
 }
@@ -15,6 +18,32 @@ Graph::Graph()
     : _heap(nullptr, 0, 0), _interned_types(nullptr, nullptr, nullptr, nullptr, &_heap),
       _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _id(AGMakeUniqueID()) {
     _types.push_back(nullptr);
+
+    // Prepend this graph
+    all_lock();
+    _next = _all_graphs;
+    _previous = nullptr;
+    _all_graphs = this;
+    if (_next) {
+        _next->_previous = this;
+    }
+    all_unlock();
+}
+
+Graph::~Graph() {
+    all_lock();
+    if (_previous) {
+        _previous->_next = _next;
+        if (_next) {
+            _next->_previous = _previous;
+        }
+    } else {
+        _all_graphs = _next;
+        if (_next) {
+            _next->_previous = nullptr;
+        }
+    }
+    all_unlock();
 }
 
 const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const {

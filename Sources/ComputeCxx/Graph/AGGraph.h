@@ -84,6 +84,15 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
                                         const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                     const void *_Nullable make_attribute_type_context);
 
+// MARK: Update
+
+typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {
+    AGGraphUpdateStatusNoChange = 0,
+    AGGraphUpdateStatusChanged = 1,
+    AGGraphUpdateStatusOption2 = 2,
+    AGGraphUpdateStatusNeedsCallMainHandler = 3,
+};
+
 // MARK: Description
 
 CF_EXPORT

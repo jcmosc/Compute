@@ -182,6 +182,70 @@ struct GraphTests {
     }
 
     @Suite
+    struct TraceTests {
+
+        @Test
+        func setTrace() {
+            class Context {
+                var traceCalls: [(name: String, graph: Graph)] = []
+            }
+
+            var trace = AGTrace()
+            trace.beginTrace = { contextPointer, graph in
+                if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
+                    context.traceCalls.append((name: "beginTrace", graph: graph))
+                }
+            }
+            trace.endTrace = { contextPointer, graph in
+                if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
+                    context.traceCalls.append((name: "endTrace", graph: graph))
+                }
+            }
+
+            let graph = Graph()
+            var context = Context()
+
+            withUnsafeMutablePointer(to: &trace) { tracePointer in
+                withUnsafeMutablePointer(to: &context) { contextPointer in
+                    graph.setTrace(tracePointer, context: contextPointer)
+                }
+            }
+
+            #expect(context.traceCalls.count == 1)
+            #expect(context.traceCalls[0].name == "beginTrace")
+            #expect(context.traceCalls[0].graph == graph)
+
+            graph.resetTrace()
+
+            #expect(context.traceCalls.count == 2)
+            #expect(context.traceCalls[1].name == "endTrace")
+            #expect(context.traceCalls[1].graph == graph)
+        }
+
+        @Test
+        func namedEvents() throws {
+            let eventName = Graph.traceEventName(for: 0)
+            #expect(eventName == nil)
+
+            let eventID = "testname".utf8CString.withUnsafeBufferPointer { namePointer in
+                "testsubsystem".utf8CString.withUnsafeBufferPointer { subsystemPointer in
+                    return Graph.registerNamedTraceEvent(
+                        name: namePointer.baseAddress!,
+                        subsystem: subsystemPointer.baseAddress!
+                    )
+                }
+            }
+
+            let name = try #require(Graph.traceEventName(for: eventID))
+            #expect(String(utf8String: name) == "testname")
+            
+            let subsystem = try #require(Graph.traceEventSubsystem(for: eventID))
+            #expect(String(utf8String: subsystem) == "testsubsystem")
+        }
+
+    }
+
+    @Suite
     struct DescriptionTests {
 
         @Test

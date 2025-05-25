@@ -1,11 +1,17 @@
 #pragma once
 
+#include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFBase.h>
+#include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
 
 #include "AGSwiftSupport.h"
+#include "Attribute/AttributeID/AGAttribute.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
+#include "Comparison/AGComparison.h"
+#include "Subgraph/AGSubgraph.h"
 #include "Swift/AGType.h"
+#include "Trace/AGTraceFlags.h"
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -17,6 +23,8 @@ CF_EXTERN_C_BEGIN
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
 typedef void *AGUnownedGraphRef AG_SWIFT_STRUCT;
 typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
+
+typedef struct AGTrace *AGTraceRef;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -83,6 +91,76 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
                                     const AGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(
                                         const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                     const void *_Nullable make_attribute_type_context);
+
+// MARK: Update
+
+typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {
+    AGGraphUpdateStatusNoChange = 0,
+    AGGraphUpdateStatusChanged = 1,
+    AGGraphUpdateStatusOption2 = 2,
+    AGGraphUpdateStatusNeedsCallMainHandler = 3,
+};
+
+// MARK: Trace
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags)
+    CF_SWIFT_NAME(AGGraphRef.startTracing(self:flags:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef _Nullable subsystems)
+    CF_SWIFT_NAME(AGGraphRef.startTracing(self:flags:subsystems:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphStopTracing(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.stopTracing(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSyncTracing(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.syncTracing(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+CFStringRef AGGraphCopyTracePath(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.tracePath(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context)
+    CF_SWIFT_NAME(AGGraphRef.setTrace(self:_:context:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphResetTrace(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.resetTrace(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id)
+    CF_SWIFT_NAME(AGGraphRef.traceEventEnabled(self:for:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, const void *value, AGTypeID type)
+    CF_SWIFT_NAME(AGGraphRef.addTraceEvent(self:name:value:type:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+                               CFDataRef data, uint32_t arg6)
+    CF_SWIFT_NAME(AGGraphRef.addNamedTraceEvent(self:eventID:eventArgCount:eventArgs:data:arg6:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+const char *_Nullable AGGraphGetTraceEventName(uint32_t event_id) CF_SWIFT_NAME(AGGraphRef.traceEventName(for:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+const char *_Nullable AGGraphGetTraceEventSubsystem(uint32_t event_id) CF_SWIFT_NAME(AGGraphRef.traceEventSubsystem(for:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) CF_SWIFT_NAME(AGGraphRef.registerNamedTraceEvent(name:subsystem:));
 
 // MARK: Description
 

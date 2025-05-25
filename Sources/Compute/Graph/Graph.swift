@@ -88,7 +88,7 @@ extension Graph {
 extension Graph: @retroactive Equatable {
 
     public static func == (_ lhs: Graph, _ rhs: Graph) -> Bool {
-        fatalError("not implemented")
+        return lhs.counter(for: .contextID) == rhs.counter(for: .contextID)
     }
 
 }

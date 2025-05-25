@@ -1,10 +1,13 @@
 #include "AGGraph-Private.h"
 
+#include <CoreFoundation/CFString.h>
 #include <os/lock.h>
 
 #include "Context.h"
 #include "Graph.h"
 #include "Private/CFRuntime.h"
+#include "Trace/ExternalTrace.h"
+#include "Utilities/FreeDeleter.h"
 
 namespace {
 
@@ -139,4 +142,157 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID ty
     AG::Graph *graph = reinterpret_cast<AG::Graph *>(unowned_graph);
     return graph->intern_type(
         metadata, AG::ClosureFunctionVP<const AGAttributeType *>(make_attribute_type, make_attribute_type_context));
+}
+
+#pragma mark - Trace
+
+void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, NULL); }
+
+void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef subsystems) {
+    auto subsystems_vector = AG::vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>();
+    if (subsystems) {
+        auto subsystems_count = CFArrayGetCount(subsystems);
+        for (CFIndex index = 0; index < subsystems_count; ++index) {
+            CFTypeRef value = CFArrayGetValueAtIndex(subsystems, index);
+            if (CFGetTypeID(value) != CFStringGetTypeID()) {
+                continue;
+            }
+
+            char *subsystem;
+            if (CFStringGetCString((CFStringRef)value, subsystem, CFStringGetLength((CFStringRef)value),
+                                   kCFStringEncodingUTF8)) {
+                subsystems_vector.push_back(std::unique_ptr<const char, util::free_deleter>(subsystem));
+            }
+        }
+    }
+
+    std::span<const char *> subsystems_span =
+        std::span<const char *>((const char **)subsystems_vector.data(), subsystems_vector.size());
+
+    if (graph == nullptr) {
+        AG::Graph::all_start_tracing(trace_flags, subsystems_span);
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().start_tracing(trace_flags, subsystems_span);
+}
+
+void AGGraphStopTracing(AGGraphRef graph) {
+    if (graph == nullptr) {
+        AG::Graph::all_stop_tracing();
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().stop_tracing();
+}
+
+void AGGraphSyncTracing(AGGraphRef graph) {
+    if (graph == nullptr) {
+        AG::Graph::all_sync_tracing();
+        return;
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().sync_tracing();
+}
+
+CFStringRef AGGraphCopyTracePath(AGGraphRef graph) {
+    if (graph == nullptr) {
+        return AG::Graph::all_copy_trace_path();
+    }
+
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->graph().copy_trace_path();
+}
+
+void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(0);
+
+    auto external_trace = new ExternalTrace(0, trace, context);
+    graph_context->graph().add_trace(external_trace);
+}
+
+void AGGraphResetTrace(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(0);
+}
+
+bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    for (auto trace : graph_context->graph().traces()) {
+        if (trace->named_event_enabled(event_id)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, const void *value, AGTypeID type) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().foreach_trace([&graph_context, &event_name, &value, &type](AG::Trace &trace) {
+        trace.custom_event(*graph_context, event_name, value, *reinterpret_cast<const AG::swift::metadata *>(type));
+    });
+}
+
+void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+                               CFDataRef data, uint32_t arg6) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().foreach_trace(
+        [&graph_context, &event_id, &event_arg_count, &event_args, &data, &arg6](AG::Trace &trace) {
+            trace.named_event(*graph_context, event_id, event_arg_count, event_args, data, arg6);
+        });
+}
+
+namespace NamedEvents {
+
+static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+static AG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
+
+} // namespace NamedEvents
+
+const char *AGGraphGetTraceEventName(uint32_t event_id) {
+    const char *event_name = nullptr;
+
+    os_unfair_lock_lock(&NamedEvents::lock);
+    if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
+        event_name = (*NamedEvents::names)[event_id].second;
+    }
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_name;
+}
+
+const char *AGGraphGetTraceEventSubsystem(uint32_t event_id) {
+    const char *event_subsystem = nullptr;
+
+    os_unfair_lock_lock(&NamedEvents::lock);
+    if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
+        event_subsystem = (*NamedEvents::names)[event_id].first;
+    }
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_subsystem;
+}
+
+uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
+    os_unfair_lock_lock(&NamedEvents::lock);
+
+    if (!NamedEvents::names) {
+        NamedEvents::names = new AG::vector<std::pair<const char *, const char *>, 0, uint32_t>();
+        NamedEvents::names->push_back({0, 0}); // Disallow 0 as event ID
+    }
+
+    uint32_t event_id = NamedEvents::names->size();
+    if (event_subsystem != nullptr) {
+        event_subsystem = strdup(event_subsystem);
+    }
+    event_name = strdup(event_name);
+    NamedEvents::names->push_back({event_subsystem, event_name});
+
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_id;
 }

@@ -5,3 +5,4 @@
 #include "Subgraph/AGSubgraph.h"
 #include "Swift/AGTuple.h"
 #include "Swift/AGType.h"
+#include "Trace/AGTrace.h"

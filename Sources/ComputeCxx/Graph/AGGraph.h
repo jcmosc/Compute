@@ -134,6 +134,34 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGGraphResetTrace(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.resetTrace(self:));
 
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id)
+    CF_SWIFT_NAME(AGGraphRef.traceEventEnabled(self:for:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, const void *value, AGTypeID type)
+    CF_SWIFT_NAME(AGGraphRef.addTraceEvent(self:name:value:type:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+                               CFDataRef data, uint32_t arg6)
+    CF_SWIFT_NAME(AGGraphRef.addNamedTraceEvent(self:eventID:eventArgCount:eventArgs:data:arg6:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+const char *_Nullable AGGraphGetTraceEventName(uint32_t event_id) CF_SWIFT_NAME(AGGraphRef.traceEventName(for:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+const char *_Nullable AGGraphGetTraceEventSubsystem(uint32_t event_id) CF_SWIFT_NAME(AGGraphRef.traceEventSubsystem(for:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) CF_SWIFT_NAME(AGGraphRef.registerNamedTraceEvent(name:subsystem:));
+
 // MARK: Description
 
 CF_EXPORT

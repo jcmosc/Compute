@@ -219,3 +219,80 @@ void AGGraphResetTrace(AGGraphRef graph) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
 }
+
+bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    for (auto trace : graph_context->graph().traces()) {
+        if (trace->named_event_enabled(event_id)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void AGGraphAddTraceEvent(AGGraphRef graph, const char *event_name, const void *value, AGTypeID type) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().foreach_trace([&graph_context, &event_name, &value, &type](AG::Trace &trace) {
+        trace.custom_event(*graph_context, event_name, value, *reinterpret_cast<const AG::swift::metadata *>(type));
+    });
+}
+
+void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+                               CFDataRef data, uint32_t arg6) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().foreach_trace(
+        [&graph_context, &event_id, &event_arg_count, &event_args, &data, &arg6](AG::Trace &trace) {
+            trace.named_event(*graph_context, event_id, event_arg_count, event_args, data, arg6);
+        });
+}
+
+namespace NamedEvents {
+
+static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+static AG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
+
+} // namespace NamedEvents
+
+const char *AGGraphGetTraceEventName(uint32_t event_id) {
+    const char *event_name = nullptr;
+
+    os_unfair_lock_lock(&NamedEvents::lock);
+    if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
+        event_name = (*NamedEvents::names)[event_id].second;
+    }
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_name;
+}
+
+const char *AGGraphGetTraceEventSubsystem(uint32_t event_id) {
+    const char *event_subsystem = nullptr;
+
+    os_unfair_lock_lock(&NamedEvents::lock);
+    if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
+        event_subsystem = (*NamedEvents::names)[event_id].first;
+    }
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_subsystem;
+}
+
+uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
+    os_unfair_lock_lock(&NamedEvents::lock);
+
+    if (!NamedEvents::names) {
+        NamedEvents::names = new AG::vector<std::pair<const char *, const char *>, 0, uint32_t>();
+        NamedEvents::names->push_back({0, 0}); // Disallow 0 as event ID
+    }
+
+    uint32_t event_id = NamedEvents::names->size();
+    if (event_subsystem != nullptr) {
+        event_subsystem = strdup(event_subsystem);
+    }
+    event_name = strdup(event_name);
+    NamedEvents::names->push_back({event_subsystem, event_name});
+
+    os_unfair_lock_unlock(&NamedEvents::lock);
+
+    return event_id;
+}

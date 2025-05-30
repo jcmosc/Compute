@@ -127,12 +127,28 @@ CFStringRef AGGraphCopyTracePath(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphR
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
+uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context) CF_SWIFT_NAME(AGGraphRef.addTrace(self:_:context:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphRemoveTrace(AGGraphRef graph, uint64_t trace_id) CF_SWIFT_NAME(AGGraphRef.removeTrace(self:traceID:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
 void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context)
     CF_SWIFT_NAME(AGGraphRef.setTrace(self:_:context:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGGraphResetTrace(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.resetTrace(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphIsTracingActive(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.isTracingActive(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphPrepareTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

@@ -207,6 +207,18 @@ CFStringRef AGGraphCopyTracePath(AGGraphRef graph) {
     return graph_context->graph().copy_trace_path();
 }
 
+uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    auto external_trace = new ExternalTrace(trace, context);
+    graph_context->graph().add_trace(external_trace);
+    return external_trace->id();
+}
+
+void AGGraphRemoveTrace(AGGraphRef graph, uint64_t trace_id) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(trace_id);
+}
+
 void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
@@ -218,6 +230,17 @@ void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
 void AGGraphResetTrace(AGGraphRef graph) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
+}
+
+bool AGGraphIsTracingActive(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->graph().traces().size() > 0;
+}
+
+void AGGraphPrepareTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    auto external_trace = new ExternalTrace(trace, context);
+    graph_context->graph().prepare_trace(*external_trace);
 }
 
 bool AGGraphTraceEventEnabled(AGGraphRef graph, uint32_t event_id) {

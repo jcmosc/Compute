@@ -185,6 +185,50 @@ struct GraphTests {
     struct TraceTests {
 
         @Test
+        func addTrace() {
+            class Context {
+                var traceCalls: [(name: String, graph: Graph)] = []
+            }
+
+            var trace = AGTrace()
+            trace.beginTrace = { contextPointer, graph in
+                if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
+                    context.traceCalls.append((name: "beginTrace", graph: graph))
+                }
+            }
+            trace.endTrace = { contextPointer, graph in
+                if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
+                    context.traceCalls.append((name: "endTrace", graph: graph))
+                }
+            }
+
+            let graph = Graph()
+            var context = Context()
+
+            #expect(graph.isTracingActive == false)
+
+            let traceID = withUnsafeMutablePointer(to: &trace) { tracePointer in
+                withUnsafeMutablePointer(to: &context) { contextPointer in
+                    graph.addTrace(tracePointer, context: contextPointer)
+                }
+            }
+
+            #expect(graph.isTracingActive == true)
+
+            #expect(context.traceCalls.count == 1)
+            #expect(context.traceCalls[0].name == "beginTrace")
+            #expect(context.traceCalls[0].graph == graph)
+
+            graph.removeTrace(traceID: traceID)
+
+            #expect(context.traceCalls.count == 2)
+            #expect(context.traceCalls[1].name == "endTrace")
+            #expect(context.traceCalls[1].graph == graph)
+
+            #expect(graph.isTracingActive == false)
+        }
+
+        @Test
         func setTrace() {
             class Context {
                 var traceCalls: [(name: String, graph: Graph)] = []
@@ -238,7 +282,7 @@ struct GraphTests {
 
             let name = try #require(Graph.traceEventName(for: eventID))
             #expect(String(utf8String: name) == "testname")
-            
+
             let subsystem = try #require(Graph.traceEventSubsystem(for: eventID))
             #expect(String(utf8String: subsystem) == "testsubsystem")
         }

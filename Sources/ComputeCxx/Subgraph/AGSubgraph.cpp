@@ -64,6 +64,27 @@ void AGSubgraphSetCurrent(AGSubgraphRef subgraph) {
     }
 }
 
+#pragma mark - Observers
+
+uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
+                               void (*observer)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                               void *observer_context) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+
+    auto callback = AG::ClosureFunctionVV<void>(observer, observer_context);
+    return AG::Subgraph::from_cf(subgraph)->add_observer(callback);
+}
+
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+
+    AG::Subgraph::from_cf(subgraph)->remove_observer(observer_id);
+}
+
 #pragma mark - Graph context
 
 AGSubgraphRef AGSubgraphCreate(AGGraphRef graph) { return AGSubgraphCreate2(graph, AGAttributeNil); };
@@ -78,8 +99,7 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute) {
 
     AG::Graph::Context *context = AG::Graph::Context::from_cf(graph);
 
-    instance->subgraph =
-        new AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID(attribute));
+    instance->subgraph = new AG::Subgraph((AG::SubgraphObject *)instance, *context, AG::AttributeID(attribute));
     return instance;
 };
 

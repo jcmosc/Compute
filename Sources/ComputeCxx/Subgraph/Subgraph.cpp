@@ -16,7 +16,14 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
     context.graph().foreach_trace([this](Trace &trace) { trace.created(*this); });
 }
 
-Subgraph::~Subgraph() {}
+Subgraph::~Subgraph() {
+    if (auto observers_ptr = _observers.get()) {
+        auto observers = *observers_ptr;
+
+        notify_observers();
+        delete observers;
+    }
+}
 
 #pragma mark - CFType
 
@@ -46,6 +53,44 @@ void Subgraph::make_current_subgraph_key() { pthread_key_create(&_current_subgra
 Subgraph *Subgraph::current_subgraph() { return (Subgraph *)pthread_getspecific(_current_subgraph_key); }
 
 void Subgraph::set_current_subgraph(Subgraph *subgraph) { pthread_setspecific(_current_subgraph_key, subgraph); }
+
+#pragma mark - Observers
+
+uint64_t Subgraph::add_observer(ClosureFunctionVV<void> callback) {
+    if (!_observers) {
+        _observers =
+            alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
+        *_observers = new vector<Observer, 0, uint64_t>();
+        ;
+    }
+
+    auto observer_id = AGMakeUniqueID();
+    (*_observers)->push_back(Observer(callback, observer_id));
+    return observer_id;
+}
+
+void Subgraph::remove_observer(uint64_t observer_id) {
+    if (auto observers_ptr = _observers.get()) {
+        auto observers = *observers_ptr;
+        auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
+            if (observer.observer_id == observer_id) {
+                return true;
+            }
+            return false;
+        });
+        observers->erase(iter);
+    }
+}
+
+void Subgraph::notify_observers() {
+    if (auto observers_ptr = _observers.get()) {
+        auto observers = *observers_ptr;
+        while (!observers->empty()) {
+            observers->back().callback();
+            observers->pop_back();
+        }
+    }
+}
 
 #pragma mark - Graph
 

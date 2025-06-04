@@ -4,6 +4,7 @@
 
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
+#include "Closure/ClosureFunction.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
 
@@ -30,6 +31,12 @@ class Subgraph : public data::zone {
     Graph *_graph;
     uint64_t _context_id;
 
+    struct Observer {
+        ClosureFunctionVV<void> callback;
+        uint64_t observer_id;
+    };
+    data::ptr<vector<Observer, 0, uint64_t> *> _observers;
+
   public:
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
@@ -45,6 +52,12 @@ class Subgraph : public data::zone {
     static void make_current_subgraph_key();
     static Subgraph *_Nullable current_subgraph();
     static void set_current_subgraph(Subgraph *_Nullable subgraph);
+
+    // MARK: Observers
+
+    uint64_t add_observer(ClosureFunctionVV<void> callback);
+    void remove_observer(uint64_t observer_id);
+    void notify_observers();
 
     // MARK: Graph
 

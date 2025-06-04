@@ -27,6 +27,18 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphSetCurrent(AGSubgraphRef _Nullable subgraph) CF_SWIFT_NAME(setter:AGSubgraphRef.current(_:));
 
+// MARK: Observers
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
+                               void (*observer)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                               void *_Nullable observer_context);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id);
+
 // MARK: Graph Context
 
 CF_EXPORT

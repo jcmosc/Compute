@@ -2,8 +2,11 @@ import ComputeCxx
 
 extension Subgraph {
 
-    public func addObserver(_ observer: () -> Void) -> Int {
-        fatalError("not implemented")
+    @_extern(c, "AGSubgraphAddObserver")
+    static func addObserver(_ subgraph: UnsafeRawPointer, observer: @escaping () -> Void) -> Int
+
+    public func addObserver(_ observer: @escaping () -> Void) -> Int {
+        return Subgraph.addObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
     }
 
     public func apply<T>(_ body: () -> T) -> T {

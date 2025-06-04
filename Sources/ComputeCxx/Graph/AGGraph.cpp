@@ -135,9 +135,9 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
 #pragma mark - Attribute types
 
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,
-                                    const AGAttributeType *(*make_attribute_type)(const void *context AG_SWIFT_CONTEXT)
+                                    const AGAttributeType *(*make_attribute_type)(void *context AG_SWIFT_CONTEXT)
                                         AG_SWIFT_CC(swift),
-                                    const void *make_attribute_type_context) {
+                                    void *make_attribute_type_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     AG::Graph *graph = reinterpret_cast<AG::Graph *>(unowned_graph);
     return graph->intern_type(

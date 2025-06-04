@@ -88,8 +88,8 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
                                     const AGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(
-                                        const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                    const void *_Nullable make_attribute_type_context);
+                                        void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                    void *_Nullable make_attribute_type_context);
 
 // MARK: Update
 
@@ -126,7 +126,8 @@ CFStringRef AGGraphCopyTracePath(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphR
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context) CF_SWIFT_NAME(AGGraphRef.addTrace(self:_:context:));
+uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context)
+    CF_SWIFT_NAME(AGGraphRef.addTrace(self:_:context:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -171,11 +172,13 @@ const char *_Nullable AGGraphGetTraceEventName(uint32_t event_id) CF_SWIFT_NAME(
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-const char *_Nullable AGGraphGetTraceEventSubsystem(uint32_t event_id) CF_SWIFT_NAME(AGGraphRef.traceEventSubsystem(for:));
+const char *_Nullable AGGraphGetTraceEventSubsystem(uint32_t event_id)
+    CF_SWIFT_NAME(AGGraphRef.traceEventSubsystem(for:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) CF_SWIFT_NAME(AGGraphRef.registerNamedTraceEvent(name:subsystem:));
+uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem)
+    CF_SWIFT_NAME(AGGraphRef.registerNamedTraceEvent(name:subsystem:));
 
 // MARK: Description
 

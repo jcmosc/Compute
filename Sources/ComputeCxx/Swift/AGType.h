@@ -63,30 +63,30 @@ typedef CF_OPTIONS(uint32_t, AGTypeApplyOptions) {
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*apply)(const void *_Nullable context AG_SWIFT_CONTEXT, const char *field_name,
+                       void (*apply)(void *_Nullable context AG_SWIFT_CONTEXT, const char *field_name,
                                      size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
-                       const void *apply_context);
+                       void *apply_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*_Nonnull apply)(const void *context AG_SWIFT_CONTEXT, const char *field_name,
+                        bool (*_Nonnull apply)(void *context AG_SWIFT_CONTEXT, const char *field_name,
                                                size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
-                        const void *apply_context);
+                        void *apply_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
-                         void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
+                         void (*body)(void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
                                       const void *field_value) AG_SWIFT_CC(swift),
-                         const void *context);
+                         void *context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
-                                void (*body)(const void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
+                                void (*body)(void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
                                              void *field_value) AG_SWIFT_CC(swift),
-                                const void *context);
+                                void *context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

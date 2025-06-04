@@ -52,7 +52,7 @@ class Graph {
 
     // Trace recorder
     TraceRecorder *_trace_recorder;
-    
+
     // Keys
     KeyTable *_Nullable _keys;
 
@@ -73,6 +73,9 @@ class Graph {
 
     // MARK: Context
 
+    Context *_Nullable context_with_id(uint64_t context_id) const {
+        return _contexts_by_id.lookup(context_id, nullptr);
+    }
     Context *_Nullable primary_context() const;
 
     inline static void retain(Graph *graph) { graph->_ref_count += 1; };
@@ -123,9 +126,9 @@ class Graph {
             body(**trace);
         }
     };
-    
+
     // MARK: Keys
-    
+
     uint32_t intern_key(const char *key);
     const char *key_name(uint32_t key_id) const;
 

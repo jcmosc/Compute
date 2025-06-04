@@ -13,7 +13,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 struct AGSubgraphStorage {
     CFRuntimeBase base;
-    AG::Subgraph *subgraph;
+    AG::Subgraph *_Nullable subgraph;
 };
 
 CF_ASSUME_NONNULL_END

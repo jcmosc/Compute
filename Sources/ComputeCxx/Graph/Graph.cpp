@@ -6,6 +6,7 @@
 #include "Attribute/AttributeType/AttributeType.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
+#include "Subgraph/Subgraph.h"
 #include "Trace/AGTrace.h"
 #include "TraceRecorder.h"
 #include "UniqueID/AGUniqueID.h"
@@ -19,6 +20,9 @@ Graph::Graph()
     : _heap(nullptr, 0, 0), _interned_types(nullptr, nullptr, nullptr, nullptr, &_heap),
       _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _id(AGMakeUniqueID()) {
     _types.push_back(nullptr);
+
+    static dispatch_once_t make_keys;
+    dispatch_once_f(&make_keys, nullptr, [](void *context) { Subgraph::make_current_subgraph_key(); });
 
     // Prepend this graph
     all_lock();

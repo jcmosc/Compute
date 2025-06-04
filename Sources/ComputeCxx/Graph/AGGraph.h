@@ -9,7 +9,6 @@
 #include "Attribute/AttributeID/AGAttribute.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
 #include "Comparison/AGComparison.h"
-#include "Subgraph/AGSubgraph.h"
 #include "Swift/AGType.h"
 #include "Trace/AGTraceFlags.h"
 

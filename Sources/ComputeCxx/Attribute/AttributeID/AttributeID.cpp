@@ -78,7 +78,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (options & TraversalOptions::AssertNotNil) {
                     precondition_failure("invalid indirect ref: %u", _value);
                 }
-                return OffsetAttributeID(AttributeID::make_nil());
+                return OffsetAttributeID(AttributeID(AGAttributeNil));
             }
         }
 

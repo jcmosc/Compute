@@ -5,10 +5,10 @@
 #include <optional>
 #include <stdint.h>
 
+#include "AGAttribute.h"
 #include "Data/Page.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
-#include "Subgraph/Subgraph.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -24,7 +24,6 @@ class AttributeID {
     static constexpr uint32_t KindMask = 0x3;
 
     uint32_t _value;
-    AttributeID(uint32_t value) : _value(value) {};
 
   public:
     enum Kind : uint32_t {
@@ -54,11 +53,23 @@ class AttributeID {
         EvaluateWeakReferences = 1 << 4,
     };
 
+    explicit constexpr AttributeID() : _value(0) {};
     explicit AttributeID(data::ptr<Node> node) : _value(node.offset() | Kind::Direct) {};
     explicit AttributeID(data::ptr<IndirectNode> indirect_node) : _value(indirect_node.offset() | Kind::Indirect) {};
-    static AttributeID make_nil() { return AttributeID(Kind::NilAttribute); };
 
-    operator bool() const { return _value == 0; };
+    operator AGAttribute() const { return _value; }
+    explicit constexpr AttributeID(AGAttribute storage) : _value(storage) {}
+
+    // MARK: Operators
+
+    bool operator==(const AttributeID &other) const { return _value == other._value; }
+    bool operator!=(const AttributeID &other) const { return _value != other._value; }
+
+    bool operator<(const AttributeID &other) const { return _value < other._value; }
+
+    explicit operator bool() const { return _value != 0; }
+
+    // MARK: Accessing data
 
     Kind kind() const { return Kind(_value & KindMask); };
     AttributeID with_kind(Kind kind) const { return AttributeID((_value & ~KindMask) | kind); };
@@ -77,7 +88,7 @@ class AttributeID {
         return *data::ptr<IndirectNode>(_value & ~KindMask);
     };
 
-    Subgraph *_Nullable subgraph() const { return static_cast<Subgraph *_Nullable>(page_ptr()->zone); }
+    Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone); }
 
     data::ptr<data::page> page_ptr() const { return data::ptr<void>(_value).page_ptr(); };
 

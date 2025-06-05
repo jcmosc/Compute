@@ -123,10 +123,10 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
         //        return graph_context->graph().main_thread_update_count();
         //    case AGGraphCounterQueryNodeTotalCount:
         //        return graph_context->graph().total_node_count();
-        //    case AGGraphCounterQuerySubgraphCount:
-        //        return graph_context->graph().subgraph_count();
-        //    case AGGraphCounterQuerySubgraphTotalCount:
-        //        return graph_context->graph().total_subgraph_count();
+    case AGGraphCounterQuerySubgraphCount:
+        return graph_context->graph().num_subgraphs();
+    case AGGraphCounterQuerySubgraphTotalCount:
+        return graph_context->graph().num_subgraphs_total();
     default:
         return 0;
     }

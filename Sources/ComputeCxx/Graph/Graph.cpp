@@ -78,6 +78,22 @@ Graph::Context *Graph::primary_context() const {
     return info.context;
 }
 
+#pragma mark - Subgraphs
+
+void Graph::add_subgraph(Subgraph &subgraph) {
+    _subgraphs.push_back(&subgraph);
+
+    _num_subgraphs += 1;
+    _num_subgraphs_total += 1;
+}
+
+void Graph::remove_subgraph(Subgraph &subgraph) {
+    auto iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
+    _subgraphs.erase(iter);
+
+    _num_subgraphs -= 1;
+}
+
 const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const {
     auto &type = attribute_type(attribute->type_id());
     if (ref_out) {

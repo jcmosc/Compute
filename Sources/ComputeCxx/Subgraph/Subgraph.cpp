@@ -13,6 +13,8 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
     _graph = graph;
     _context_id = context.id();
 
+    graph->add_subgraph(*this);
+
     context.graph().foreach_trace([this](Trace &trace) { trace.created(*this); });
 }
 

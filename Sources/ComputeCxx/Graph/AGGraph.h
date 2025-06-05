@@ -74,8 +74,8 @@ typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
     //    AGGraphCounterQueryNeedsUpdate,
     //    AGGraphCounterQueryMainThreadUpdateCount,
     //    AGGraphCounterQueryNodeTotalCount,
-    //    AGGraphCounterQuerySubgraphCount,
-    //    AGGraphCounterQuerySubgraphTotalCount,
+    AGGraphCounterQuerySubgraphCount,
+    AGGraphCounterQuerySubgraphTotalCount,
 };
 
 CF_EXPORT

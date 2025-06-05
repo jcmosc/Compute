@@ -50,8 +50,15 @@ class Graph {
     // Trace
     vector<Trace *, 0, uint32_t> _traces;
 
+    // Metrics
+    uint64_t _num_subgraphs = 0;
+    uint64_t _num_subgraphs_total = 0;
+
     // Trace recorder
     TraceRecorder *_trace_recorder;
+
+    // Subgraphs
+    vector<Subgraph *, 0, uint32_t> _subgraphs;
 
     // Keys
     KeyTable *_Nullable _keys;
@@ -85,6 +92,16 @@ class Graph {
             delete graph;
         }
     };
+
+    // MARK: Subgraphs
+
+    void add_subgraph(Subgraph &subgraph);
+    void remove_subgraph(Subgraph &subgraph);
+
+    // MARK: Metrics
+
+    uint64_t num_subgraphs() const { return _num_subgraphs; };
+    uint64_t num_subgraphs_total() const { return _num_subgraphs_total; };
 
     // MARK: Attribute types
 

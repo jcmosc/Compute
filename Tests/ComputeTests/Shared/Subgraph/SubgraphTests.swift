@@ -26,10 +26,30 @@ struct SubgraphTests {
     struct LifecycleTests {
 
         @Test
-        func createSubgraph() {
+        func subgraphAddedToGraph() {
             let graph = Graph()
+
             let subgraph = Subgraph(graph: graph)
             #expect(subgraph.graph == graph)
+        }
+
+        @Test
+        func subgraphCounters() {
+            let graph = Graph()
+
+            #expect(graph.counter(for: .subgraphCount) == 0)
+            #expect(graph.counter(for: .subgraphTotalCount) == 0)
+
+            autoreleasepool {
+                let subgraph = Subgraph(graph: graph)
+                #expect(subgraph.graph == graph)
+
+                #expect(graph.counter(for: .subgraphCount) == 1)
+                #expect(graph.counter(for: .subgraphTotalCount) == 1)
+            }
+
+            #expect(graph.counter(for: .subgraphCount) == 0)
+            #expect(graph.counter(for: .subgraphTotalCount) == 1)
         }
 
     }

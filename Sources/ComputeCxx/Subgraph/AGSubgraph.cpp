@@ -143,3 +143,81 @@ void AGSubgraphInvalidate(AGSubgraphRef subgraph) {
 
     AG::Subgraph::from_cf(subgraph)->invalidate_and_delete_(false);
 }
+
+#pragma mark - Children
+
+void AGSubgraphAddChild(AGSubgraphRef subgraph, AGSubgraphRef child) { AGSubgraphAddChild2(subgraph, child, 0); }
+
+void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t flags) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+    if (AG::Subgraph::from_cf(child) == nullptr) {
+        return;
+    }
+
+    AG::Subgraph::from_cf(subgraph)->add_child(*AG::Subgraph::from_cf(child), flags);
+}
+
+void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+
+    if (child->subgraph) {
+        AG::Subgraph::from_cf(subgraph)->remove_child(*AG::Subgraph::from_cf(child), false);
+    }
+}
+
+AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index, uint8_t *flags_out) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+    if (index >= AG::Subgraph::from_cf(subgraph)->children().size()) {
+        AG::precondition_failure("invalid child index: %u", index);
+    }
+
+    AG::Subgraph::SubgraphChild &child = AG::Subgraph::from_cf(subgraph)->children()[index];
+    if (flags_out) {
+        *flags_out = child.flags();
+    }
+    return child.subgraph()->to_cf();
+}
+
+uint32_t AGSubgraphGetChildCount(AGSubgraphRef subgraph) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->children().size();
+}
+
+AGSubgraphRef AGSubgraphGetParent(AGSubgraphRef subgraph, int64_t index) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+    if (index >= AG::Subgraph::from_cf(subgraph)->parents().size()) {
+        AG::precondition_failure("invalid parent index: %u", index);
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->parents()[index]->to_cf();
+}
+
+uint64_t AGSubgraphGetParentCount(AGSubgraphRef subgraph) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return 0;
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->parents().size();
+}
+
+bool AGSubgraphIsAncestor(AGSubgraphRef subgraph, AGSubgraphRef other) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return false;
+    }
+    if (AG::Subgraph::from_cf(other) == nullptr) {
+        return false;
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->ancestor_of(*AG::Subgraph::from_cf(other));
+}

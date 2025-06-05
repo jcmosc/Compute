@@ -270,4 +270,157 @@ struct SubgraphTests {
 
     }
 
+    @Suite
+    struct ChildrenTests {
+
+        @Test
+        func child() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            #expect(subgraph.childCount == 0)
+
+            let child = Subgraph(graph: graph)
+            subgraph.addChild(child)
+
+            #expect(subgraph.childCount == 1)
+            #expect(subgraph.child(at: 0, flags: nil) == child)
+            #expect(subgraph.isAncestor(of: child) == true)
+            #expect(child.parentCount == 1)
+            #expect(child.parent(at: 0) == subgraph)
+
+            subgraph.removeChild(child)
+
+            #expect(subgraph.childCount == 0)
+            #expect(subgraph.isAncestor(of: child) == false)
+            #expect(child.parentCount == 0)
+        }
+
+        @Test
+        func multipleChildren() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            #expect(subgraph.childCount == 0)
+
+            let child1 = Subgraph(graph: graph)
+            subgraph.addChild(child1)
+
+            let child2 = Subgraph(graph: graph)
+            subgraph.addChild(child2)
+
+            #expect(subgraph.childCount == 2)
+            #expect(subgraph.child(at: 0, flags: nil) == child1)
+            #expect(subgraph.child(at: 1, flags: nil) == child2)
+            #expect(subgraph.isAncestor(of: child1) == true)
+            #expect(subgraph.isAncestor(of: child2) == true)
+            #expect(child1.parentCount == 1)
+            #expect(child1.parent(at: 0) == subgraph)
+            #expect(child2.parentCount == 1)
+            #expect(child2.parent(at: 0) == subgraph)
+
+            subgraph.removeChild(child1)
+
+            #expect(subgraph.childCount == 1)
+            #expect(subgraph.child(at: 0, flags: nil) == child2)
+            #expect(subgraph.isAncestor(of: child1) == false)
+            #expect(subgraph.isAncestor(of: child2) == true)
+            #expect(child1.parentCount == 0)
+            #expect(child2.parentCount == 1)
+            #expect(child2.parent(at: 0) == subgraph)
+
+            subgraph.removeChild(child2)
+
+            #expect(subgraph.childCount == 0)
+            #expect(subgraph.isAncestor(of: child1) == false)
+            #expect(subgraph.isAncestor(of: child2) == false)
+            #expect(child1.parentCount == 0)
+            #expect(child2.parentCount == 0)
+        }
+
+        @Test
+        func multipleParents() {
+            let graph = Graph()
+            let parent1 = Subgraph(graph: graph)
+            let parent2 = Subgraph(graph: graph)
+
+            let child = Subgraph(graph: graph)
+            parent1.addChild(child)
+            parent2.addChild(child)
+
+            #expect(parent1.childCount == 1)
+            #expect(parent1.child(at: 0, flags: nil) == child)
+            #expect(parent1.isAncestor(of: child) == true)
+            #expect(parent2.childCount == 1)
+            #expect(parent2.child(at: 0, flags: nil) == child)
+            #expect(parent2.isAncestor(of: child) == true)
+            #expect(child.parentCount == 2)
+            #expect(child.parent(at: 0) == parent1)
+            #expect(child.parent(at: 1) == parent2)
+
+            parent1.removeChild(child)
+
+            #expect(parent1.childCount == 0)
+            #expect(parent1.isAncestor(of: child) == false)
+            #expect(parent2.childCount == 1)
+            #expect(parent2.child(at: 0, flags: nil) == child)
+            #expect(parent2.isAncestor(of: child) == true)
+            #expect(child.parentCount == 1)
+            #expect(child.parent(at: 0) == parent2)
+
+            parent2.removeChild(child)
+
+            #expect(parent1.childCount == 0)
+            #expect(parent1.isAncestor(of: child) == false)
+            #expect(parent2.childCount == 0)
+            #expect(parent2.isAncestor(of: child) == false)
+            #expect(child.parentCount == 0)
+
+        }
+
+        @Test(arguments: [0, 1, 2, 3])
+        func childWithFlags(_ flags: Int) {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            let child = Subgraph(graph: graph)
+            subgraph.addChild(child, flags: UInt8(flags))
+
+            var storedFlags: Int = 0
+            subgraph.child(at: 0, flags: &storedFlags)
+            #expect(storedFlags == flags)
+        }
+
+        @Test
+        func childWithInvalidFlags() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            let child = Subgraph(graph: graph)
+            subgraph.addChild(child, flags: UInt8.max)
+
+            var storedFlags: Int = 0
+            subgraph.child(at: 0, flags: &storedFlags)
+            #expect(storedFlags == 3)  // Only lowest 2 bits stored
+        }
+
+        @Test
+        func invalidatingSubgraphInvalidatesChildren() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            let child = Subgraph(graph: graph)
+            subgraph.addChild(child)
+
+            #expect(subgraph.isValid == true)
+            #expect(child.isValid == true)
+
+            subgraph.invalidate()
+
+            #expect(subgraph.isValid == false)
+            #expect(child.isValid == false)
+        }
+
+    }
+
 }

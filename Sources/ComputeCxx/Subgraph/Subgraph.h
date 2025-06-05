@@ -7,6 +7,7 @@
 #include "Closure/ClosureFunction.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
+#include "Vector/IndirectPointerVector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -24,12 +25,31 @@ class SubgraphObject {
 };
 
 class Subgraph : public data::zone {
+  public:
+    class SubgraphChild {
+      private:
+        enum : uintptr_t {
+            mask = 0x3,
+        };
+
+        uintptr_t _data;
+
+      public:
+        SubgraphChild(Subgraph *subgraph, uint8_t flags) { _data = (uintptr_t)subgraph | (flags & mask); };
+
+        Subgraph *subgraph() const { return reinterpret_cast<Subgraph *>(_data & ~mask); };
+        uint8_t flags() const { return _data & mask; };
+    };
+
   private:
     static pthread_key_t _current_subgraph_key;
 
     SubgraphObject *_object;
     Graph *_graph;
     uint64_t _context_id;
+
+    indirect_pointer_vector<Subgraph> _parents;
+    vector<SubgraphChild, 0, uint32_t> _children;
 
     struct Observer {
         ClosureFunctionVV<void> callback;
@@ -43,7 +63,7 @@ class Subgraph : public data::zone {
         Completed = 2,
         GraphDestroyed = 3,
     };
-    
+
     InvalidationState _invalidation_state = InvalidationState::None;
 
   public:
@@ -82,6 +102,27 @@ class Subgraph : public data::zone {
     void invalidate_deferred(Graph &graph);
     void invalidate_now(Graph &graph);
     void graph_destroyed();
+
+    // MARK: Children
+
+    indirect_pointer_vector<Subgraph> &parents() { return _parents; };
+    vector<SubgraphChild, 0, uint32_t> &children() { return _children; };
+
+    void add_child(Subgraph &child, uint8_t flags);
+    void remove_child(Subgraph &child, bool suppress_trace);
+
+    bool ancestor_of(const Subgraph &other);
+
+    template <typename Callable>
+        requires std::invocable<Callable, Subgraph &> && std::same_as<std::invoke_result_t<Callable, Subgraph &>, bool>
+    void foreach_ancestor(Callable body) {
+        for (auto iter = _parents.rbegin(), end = _parents.rend(); iter != end; ++iter) {
+            auto parent = *iter;
+            if (body(*parent)) {
+                parent->foreach_ancestor(body);
+            }
+        }
+    }
 };
 
 } // namespace AG

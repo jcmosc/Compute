@@ -68,6 +68,46 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphInvalidate(AGSubgraphRef subgraph) CF_SWIFT_NAME(AGSubgraphRef.invalidate(self:));
 
+// MARK: Children
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphAddChild(AGSubgraphRef subgraph, AGSubgraphRef child) CF_SWIFT_NAME(AGSubgraphRef.addChild(self:_:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t flags)
+    CF_SWIFT_NAME(AGSubgraphRef.addChild(self:_:flags:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child)
+    CF_SWIFT_NAME(AGSubgraphRef.removeChild(self:_:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index,
+                                 uint8_t *_Nullable flags_out) CF_RETURNS_NOT_RETAINED
+    CF_SWIFT_NAME(AGSubgraphRef.child(self:at:flags:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGSubgraphGetChildCount(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.childCount(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGSubgraphRef AGSubgraphGetParent(AGSubgraphRef subgraph, int64_t index) CF_RETURNS_NOT_RETAINED
+    CF_SWIFT_NAME(AGSubgraphRef.parent(self:at:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint64_t AGSubgraphGetParentCount(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.parentCount(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGSubgraphIsAncestor(AGSubgraphRef subgraph, AGSubgraphRef other)
+    CF_SWIFT_NAME(AGSubgraphRef.isAncestor(self:of:));
+
 CF_EXTERN_C_END
 
 CF_IMPLICIT_BRIDGING_DISABLED

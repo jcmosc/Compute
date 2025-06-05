@@ -96,8 +96,93 @@ void Subgraph::notify_observers() {
 
 #pragma mark - Graph
 
-void Subgraph::invalidate_and_delete_(bool delete_subgraph) {
-    // TODO: not implemented
+void Subgraph::invalidate_and_delete_(bool delete_zone_data) {
+    if (delete_zone_data) {
+        mark_deleted();
+    }
+
+    if (!is_invalidating()) {
+        // TODO: parents
+
+        Graph &graph = *_graph;
+        if (!graph.is_deferring_subgraph_invalidation() && !graph.has_main_handler()) {
+            invalidate_now(graph);
+            graph.invalidate_subgraphs();
+            return;
+        }
+
+        invalidate_deferred(*_graph);
+    }
+}
+
+void Subgraph::invalidate_deferred(Graph &graph) {
+    auto old_invalidation_state = _invalidation_state;
+    if (old_invalidation_state != InvalidationState::Deferred) {
+        graph.defer_subgraph_invalidation(*this);
+        _invalidation_state = InvalidationState::Deferred;
+        if (old_invalidation_state == InvalidationState::None) {
+            graph.foreach_trace([this](Trace &trace) { trace.invalidate(*this); });
+        }
+    }
+}
+
+void Subgraph::invalidate_now(Graph &graph) {
+    graph.will_invalidate_subgraph();
+
+    auto removed_subgraphs = vector<Subgraph *, 16, uint64_t>();
+    auto invalidating_subgraphs = std::stack<Subgraph *, vector<Subgraph *, 16, uint64_t>>();
+
+    auto old_invalidation_state = _invalidation_state;
+    if (_invalidation_state != InvalidationState::Completed) {
+        _invalidation_state = InvalidationState::Completed;
+        if (old_invalidation_state == InvalidationState::None) {
+            graph.foreach_trace([this](Trace &trace) { trace.invalidate(*this); });
+        }
+
+        clear_object();
+
+        invalidating_subgraphs.push(this);
+        while (!invalidating_subgraphs.empty()) {
+            Subgraph *subgraph = invalidating_subgraphs.top();
+            invalidating_subgraphs.pop();
+
+            graph.foreach_trace([subgraph](Trace &trace) { trace.destroy(*subgraph); });
+
+            notify_observers();
+            graph.remove_subgraph(*subgraph);
+
+            subgraph->mark_deleted();
+            removed_subgraphs.push_back(subgraph);
+
+            // TODO: children
+        }
+    }
+
+    // TODO: remove nodes
+    // TODO: destroy nodes
+
+    for (Subgraph *removed_subgraph : removed_subgraphs) {
+        delete removed_subgraph;
+    }
+
+    graph.did_invalidate_subgraph();
+}
+
+void Subgraph::graph_destroyed() {
+    auto old_invalidation_state = _invalidation_state;
+    _invalidation_state = InvalidationState::GraphDestroyed;
+
+    if (old_invalidation_state == InvalidationState::None) {
+        graph()->foreach_trace([this](Trace &trace) { trace.invalidate(*this); });
+    }
+
+    notify_observers();
+
+    // TODO: destroy nodes
+    // TODO: parents
+    // TODO: children
+
+    clear();
 }
 
 } // namespace AG

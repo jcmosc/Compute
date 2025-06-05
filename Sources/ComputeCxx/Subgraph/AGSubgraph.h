@@ -37,7 +37,8 @@ uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id);
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id)
+    CF_SWIFT_NAME(AGSubgraphRef.removeObserver(self:observerID:));
 
 // MARK: Graph Context
 
@@ -58,6 +59,14 @@ AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext()
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.graph(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGSubgraphIsValid(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.isValid(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphInvalidate(AGSubgraphRef subgraph) CF_SWIFT_NAME(AGSubgraphRef.invalidate(self:));
 
 CF_EXTERN_C_END
 

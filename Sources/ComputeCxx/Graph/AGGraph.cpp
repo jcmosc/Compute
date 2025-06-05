@@ -132,6 +132,18 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
     }
 }
 
+#pragma mark - Subgraph
+
+bool AGGraphBeginDeferringSubgraphInvalidation(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->graph().begin_deferring_subgraph_invalidation();
+}
+
+void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferring) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().end_deferring_subgraph_invalidation(was_deferring);
+}
+
 #pragma mark - Attribute types
 
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,

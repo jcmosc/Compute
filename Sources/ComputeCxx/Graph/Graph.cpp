@@ -55,10 +55,16 @@ Graph::~Graph() {
     }
     all_unlock();
 
+    for (auto subgraph : _subgraphs) {
+        subgraph->graph_destroyed();
+    }
+
     if (_keys) {
         delete _keys;
     }
 }
+
+#pragma mark - Context
 
 Graph::Context *Graph::primary_context() const {
     struct Info {
@@ -93,6 +99,34 @@ void Graph::remove_subgraph(Subgraph &subgraph) {
 
     _num_subgraphs -= 1;
 }
+
+Graph::without_invalidating::without_invalidating(Graph *graph) {
+    _graph = graph;
+    _was_deferring = graph->begin_deferring_subgraph_invalidation();
+}
+
+Graph::without_invalidating::~without_invalidating() {
+    if (_graph) {
+        _graph->end_deferring_subgraph_invalidation(_was_deferring);
+    }
+}
+
+void Graph::invalidate_subgraphs() {
+    if (is_deferring_subgraph_invalidation()) {
+        return;
+    }
+
+    if (_main_handler == nullptr) {
+        while (!_invalidating_subgraphs.empty()) {
+            auto subgraph = _invalidating_subgraphs.back();
+            _invalidating_subgraphs.pop_back();
+
+            subgraph->invalidate_now(*this);
+        }
+    }
+}
+
+#pragma mark - Attribute type
 
 const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const {
     auto &type = attribute_type(attribute->type_id());

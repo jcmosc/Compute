@@ -18,6 +18,7 @@
 #include "Trace/AGTrace.h"
 #include "Utilities/HashTable.h"
 #include "Utilities/Heap.h"
+#include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -31,6 +32,9 @@ class Graph {
     class KeyTable;
     class TraceRecorder;
     class UpdateStack;
+
+    typedef void (*MainHandler)(void *_Nullable context AG_SWIFT_CONTEXT, void (*trampoline_thunk)(const void *),
+                                const void *trampoline) AG_SWIFT_CC(swift);
 
   private:
     static Graph *_Nullable _all_graphs;
@@ -50,6 +54,10 @@ class Graph {
     // Trace
     vector<Trace *, 0, uint32_t> _traces;
 
+    // Main thread handler
+    MainHandler _Nullable _main_handler;
+    const void *_Nullable _main_handler_context;
+
     // Metrics
     uint64_t _num_subgraphs = 0;
     uint64_t _num_subgraphs_total = 0;
@@ -59,6 +67,8 @@ class Graph {
 
     // Subgraphs
     vector<Subgraph *, 0, uint32_t> _subgraphs;
+    vector<Subgraph *, 2, uint32_t> _invalidating_subgraphs;
+    bool _deferring_subgraph_invalidation;
 
     // Keys
     KeyTable *_Nullable _keys;
@@ -97,6 +107,41 @@ class Graph {
 
     void add_subgraph(Subgraph &subgraph);
     void remove_subgraph(Subgraph &subgraph);
+
+    class without_invalidating {
+      private:
+        Graph *_graph;
+        bool _was_deferring;
+
+      public:
+        without_invalidating(Graph *graph);
+        ~without_invalidating();
+    };
+
+    bool is_deferring_subgraph_invalidation() const { return _deferring_subgraph_invalidation; }
+
+    bool begin_deferring_subgraph_invalidation() {
+        bool previous = _deferring_subgraph_invalidation;
+        _deferring_subgraph_invalidation = true;
+        return previous;
+    };
+
+    void end_deferring_subgraph_invalidation(bool was_deferring) {
+        if (!was_deferring) {
+            _deferring_subgraph_invalidation = false;
+            invalidate_subgraphs();
+        }
+    };
+
+    void defer_subgraph_invalidation(Subgraph &subgraph) { _invalidating_subgraphs.push_back(&subgraph); };
+
+    void invalidate_subgraphs();
+    void will_invalidate_subgraph() { _deferring_subgraph_invalidation = true; }
+    void did_invalidate_subgraph() { _deferring_subgraph_invalidation = false; }
+
+    // MARK: Main handler
+
+    bool has_main_handler() const { return _main_handler != nullptr; }
 
     // MARK: Metrics
 

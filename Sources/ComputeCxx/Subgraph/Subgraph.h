@@ -37,6 +37,15 @@ class Subgraph : public data::zone {
     };
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
 
+    enum class InvalidationState : uint8_t {
+        None = 0,
+        Deferred = 1,
+        Completed = 2,
+        GraphDestroyed = 3,
+    };
+    
+    InvalidationState _invalidation_state = InvalidationState::None;
+
   public:
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
@@ -64,7 +73,15 @@ class Subgraph : public data::zone {
     Graph *graph() const { return _graph; };
     uint64_t context_id() const { return _context_id; }
 
-    void invalidate_and_delete_(bool delete_subgraph);
+    bool is_valid() const { return _invalidation_state == InvalidationState::None; }
+    bool is_invalidating() const {
+        return _invalidation_state >= InvalidationState::Deferred &&
+               _invalidation_state <= InvalidationState::GraphDestroyed;
+    }
+    void invalidate_and_delete_(bool delete_zone_data);
+    void invalidate_deferred(Graph &graph);
+    void invalidate_now(Graph &graph);
+    void graph_destroyed();
 };
 
 } // namespace AG

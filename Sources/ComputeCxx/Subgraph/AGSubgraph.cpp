@@ -127,3 +127,19 @@ AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) {
 
     AG::precondition_failure("accessing invalidated context");
 }
+
+bool AGSubgraphIsValid(AGSubgraphRef subgraph) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return false;
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->is_valid();
+}
+
+void AGSubgraphInvalidate(AGSubgraphRef subgraph) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return;
+    }
+
+    AG::Subgraph::from_cf(subgraph)->invalidate_and_delete_(false);
+}

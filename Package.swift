@@ -69,7 +69,8 @@ let package = Package(
                 .product(name: "Algorithms", package: "swift-algorithms"),
             ],
             swiftSettings: [
-                .interoperabilityMode(.Cxx)
+                .interoperabilityMode(.Cxx),
+                .enableExperimentalFeature("Extern")
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
@@ -80,7 +81,8 @@ let package = Package(
                 .product(name: "Algorithms", package: "swift-algorithms"),
             ],
             swiftSettings: [
-                .interoperabilityMode(.Cxx)
+                .interoperabilityMode(.Cxx),
+                .enableExperimentalFeature("Extern")
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),

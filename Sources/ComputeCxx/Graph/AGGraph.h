@@ -82,6 +82,18 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) CF_SWIFT_NAME(AGGraphRef.counter(self:for:));
 
+// MARK: Subgraphs
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphBeginDeferringSubgraphInvalidation(AGGraphRef graph)
+    CF_SWIFT_NAME(AGGraphRef.beginDeferringSubgraphInvalidation(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferring)
+    CF_SWIFT_NAME(AGGraphRef.endDeferringSubgraphInvalidation(self:wasDeferring:));
+
 // MARK: Attribute types
 
 CF_EXPORT

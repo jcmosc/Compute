@@ -12,7 +12,7 @@ namespace AG {
 class WeakAttributeID {
   private:
     AttributeID _attribute;
-    uint32_t _zone_id;
+    uint32_t _subgraph_id;
 
   public:
     bool expired() const;

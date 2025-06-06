@@ -10,7 +10,7 @@
 namespace AG {
 namespace data {
 
-zone::zone() : _info(info().with_zone_id(table::shared().make_zone_id())) {}
+zone::zone() : _info(info(table::shared().make_zone_id())) {}
 
 zone::~zone() { clear(); }
 

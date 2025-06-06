@@ -76,6 +76,12 @@ class Subgraph : public data::zone {
     static Subgraph *from_cf(AGSubgraphStorage *storage);
     void clear_object();
 
+    // MARK: Graph
+
+    uint64_t subgraph_id() const { return zone_id(); }
+    Graph *graph() const { return _graph; };
+    uint64_t context_id() const { return _context_id; }
+
     // MARK: Current subgraph
 
     static void make_current_subgraph_key();
@@ -88,10 +94,7 @@ class Subgraph : public data::zone {
     void remove_observer(uint64_t observer_id);
     void notify_observers();
 
-    // MARK: Graph
-
-    Graph *graph() const { return _graph; };
-    uint64_t context_id() const { return _context_id; }
+    // MARK: Invalidating
 
     bool is_valid() const { return _invalidation_state == InvalidationState::None; }
     bool is_invalidating() const {

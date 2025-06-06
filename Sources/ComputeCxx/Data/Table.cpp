@@ -265,7 +265,7 @@ uint64_t table::raw_page_seed(ptr<page> page) {
 
     uint64_t result = 0;
     if (map_index < _page_metadata_maps.size() && _page_metadata_maps[map_index].test(page_index % page_size)) {
-        auto raw_zone_info = page->zone->info().to_raw_value();
+        auto raw_zone_info = page->zone->page_seed();
         result = raw_zone_info | (1 < 8);
     }
 

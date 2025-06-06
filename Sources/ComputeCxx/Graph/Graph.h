@@ -105,6 +105,8 @@ class Graph {
 
     // MARK: Subgraphs
 
+    vector<Subgraph *, 0, uint32_t> &subgraphs() { return _subgraphs; };
+
     void add_subgraph(Subgraph &subgraph);
     void remove_subgraph(Subgraph &subgraph);
 

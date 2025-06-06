@@ -17,19 +17,18 @@ class zone {
     class info {
       private:
         enum {
-            id_mask = 0x7fffffff,
+            zone_id_mask = 0x7fffffff,
             deleted = 0x80000000,
         };
         uint32_t _value;
-        info(uint32_t value) : _value(value) {};
 
       public:
-        uint32_t zone_id() { return _value & id_mask; };
-        info with_zone_id(uint32_t zone_id) const { return info((_value & ~id_mask) | (zone_id & id_mask)); };
+        info(uint32_t zone_id) : _value(zone_id & zone_id_mask) {};
 
+        uint32_t zone_id() const { return _value & zone_id_mask; };
         info with_deleted() const { return info(_value | deleted); };
 
-        uint32_t to_raw_value() { return _value; };
+        uint32_t to_raw_value() const { return _value; };
         static info from_raw_value(uint32_t value) { return info(value); };
     };
 
@@ -50,8 +49,9 @@ class zone {
     zone();
     ~zone();
 
-    info info() const { return _info; };
+    uint32_t zone_id() const { return _info.zone_id(); };
     void mark_deleted() { _info = _info.with_deleted(); };
+    uint32_t page_seed() const { return _info.to_raw_value(); };
 
     page_ptr_list pages() const { return page_ptr_list(_first_page); };
 
@@ -61,7 +61,6 @@ class zone {
     // Paged memory
     ptr<void> alloc_bytes(uint32_t size, uint32_t alignment_mask);
     ptr<void> alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask);
-    
 
     // Persistent memory
     void *alloc_persistent(size_t size);

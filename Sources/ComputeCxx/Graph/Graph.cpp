@@ -87,7 +87,8 @@ Graph::Context *Graph::primary_context() const {
 #pragma mark - Subgraphs
 
 void Graph::add_subgraph(Subgraph &subgraph) {
-    _subgraphs.push_back(&subgraph);
+    auto pos = std::lower_bound(_subgraphs.begin(), _subgraphs.end(), &subgraph);
+    _subgraphs.insert(pos, &subgraph);
 
     _num_subgraphs += 1;
     _num_subgraphs_total += 1;

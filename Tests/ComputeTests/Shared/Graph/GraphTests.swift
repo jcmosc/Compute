@@ -332,9 +332,17 @@ struct GraphTests {
                 )
             }
 
+            // FIXME:
+            // This sometimes fails because the subgraphs vector is sorted by pointer address,
+            // which we can't predict deterministically.
             @Test
             func graphDescription() throws {
                 let graph = Graph()
+                
+                let subgraph = Subgraph(graph: graph)
+                let child = Subgraph(graph: graph)
+                subgraph.addChild(child, flags: 1)
+                
                 let description =
                     try #require(
                         Graph.description(graph, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
@@ -359,7 +367,20 @@ struct GraphTests {
 
                               ],
                               "subgraphs" : [
-
+                                {
+                                  "children" : [
+                                    1
+                                  ],
+                                  "context_id" : 2,
+                                  "id" : 1
+                                },
+                                {
+                                  "context_id" : 2,
+                                  "id" : 2,
+                                  "parents" : [
+                                    0
+                                  ]
+                                }
                               ],
                               "transaction_count" : 0,
                               "types" : [

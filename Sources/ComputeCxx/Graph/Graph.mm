@@ -3,6 +3,7 @@
 #import <Foundation/Foundation.h>
 
 #include "AGDescription.h"
+#include "Subgraph/Subgraph.h"
 
 namespace {
 
@@ -59,7 +60,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
     while (!graph_stack.empty()) {
         Graph *graph = graph_stack.top();
         graph_stack.pop();
-        
+
         // Collect types to include in the result
         auto type_ids = vector<uint32_t, 0, uint64_t>();
 
@@ -90,6 +91,60 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
 
         // Build "subgraphs" array
         NSMutableArray *subgraph_dicts = [NSMutableArray array];
+
+        auto subgraph_indices = std::unordered_map<Subgraph *, uint64_t>();
+        for (uint32_t index = 0, iter = graph->subgraphs().size(); iter > 0; --iter, ++index) {
+            subgraph_indices.try_emplace(graph->subgraphs()[index], index);
+        }
+
+        for (auto subgraph : graph->subgraphs()) {
+            NSMutableDictionary *subgraph_dict = [NSMutableDictionary dictionary];
+            subgraph_dict[@"id"] = @(subgraph->subgraph_id());
+            subgraph_dict[@"context_id"] = @(subgraph->context_id());
+            if (!subgraph->is_valid()) {
+                subgraph_dict[@"invalid"] = @YES;
+            }
+
+            // Parents
+            NSMutableArray *parent_dicts = [NSMutableArray array];
+            for (Subgraph *parent : subgraph->parents()) {
+                NSObject *parent_description;
+                auto subgraph_index = subgraph_indices.find(parent);
+                if (subgraph_index != subgraph_indices.end()) {
+                    parent_description = @(subgraph_index->second);
+                } else {
+                    uint64_t parent_graph_index = push_graph(parent->graph());
+                    parent_description = @{@"graph" : @(parent_graph_index), @"subgraph_id" : @(parent->subgraph_id())};
+                }
+                [parent_dicts addObject:parent_description];
+            }
+            if ([parent_dicts count]) {
+                subgraph_dict[@"parents"] = parent_dicts;
+            }
+
+            // Children
+            NSMutableArray *child_dicts = [NSMutableArray array];
+            for (auto child : subgraph->children()) {
+                NSObject *child_description;
+                auto subgraph_index = subgraph_indices.find(child.subgraph());
+                if (subgraph_index != subgraph_indices.end()) {
+                    child_description = @(subgraph_index->second);
+                } else {
+                    uint64_t child_graph_index = push_graph(child.subgraph()->graph());
+                    child_description =
+                        @{@"graph" : @(child_graph_index),
+                          @"subgraph_id" : @(child.subgraph()->subgraph_id())};
+                }
+                [child_dicts addObject:child_description];
+            }
+            if ([child_dicts count]) {
+                subgraph_dict[@"children"] = child_dicts;
+            }
+
+            // TODO: nodes
+
+            [subgraph_dicts addObject:subgraph_dict];
+        }
 
         NSMutableDictionary *graph_dict = [NSMutableDictionary dictionary];
         graph_dict[@"id"] = [NSNumber numberWithUnsignedLong:graph->id()];

@@ -37,12 +37,12 @@ class indirect_pointer_vector {
 
     bool has_vector() const { return (_data & TagMask) == 1; };
 
-    vector_type *get_vector() {
+    vector_type *_Nonnull get_vector() {
         assert(has_vector());
         return reinterpret_cast<vector_type *>(_data & ~TagMask);
     };
 
-    const vector_type *get_vector() const {
+    const vector_type *_Nonnull get_vector() const {
         assert(has_vector());
         return reinterpret_cast<const vector_type *>(_data & ~TagMask);
     };

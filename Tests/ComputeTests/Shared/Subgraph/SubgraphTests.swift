@@ -284,7 +284,7 @@ struct SubgraphTests {
             subgraph.addChild(child)
 
             #expect(subgraph.childCount == 1)
-            #expect(subgraph.child(at: 0, flags: nil) == child)
+            #expect(subgraph.child(at: 0, tag: nil) == child)
             #expect(subgraph.isAncestor(of: child) == true)
             #expect(child.parentCount == 1)
             #expect(child.parent(at: 0) == subgraph)
@@ -310,8 +310,8 @@ struct SubgraphTests {
             subgraph.addChild(child2)
 
             #expect(subgraph.childCount == 2)
-            #expect(subgraph.child(at: 0, flags: nil) == child1)
-            #expect(subgraph.child(at: 1, flags: nil) == child2)
+            #expect(subgraph.child(at: 0, tag: nil) == child1)
+            #expect(subgraph.child(at: 1, tag: nil) == child2)
             #expect(subgraph.isAncestor(of: child1) == true)
             #expect(subgraph.isAncestor(of: child2) == true)
             #expect(child1.parentCount == 1)
@@ -322,7 +322,7 @@ struct SubgraphTests {
             subgraph.removeChild(child1)
 
             #expect(subgraph.childCount == 1)
-            #expect(subgraph.child(at: 0, flags: nil) == child2)
+            #expect(subgraph.child(at: 0, tag: nil) == child2)
             #expect(subgraph.isAncestor(of: child1) == false)
             #expect(subgraph.isAncestor(of: child2) == true)
             #expect(child1.parentCount == 0)
@@ -349,10 +349,10 @@ struct SubgraphTests {
             parent2.addChild(child)
 
             #expect(parent1.childCount == 1)
-            #expect(parent1.child(at: 0, flags: nil) == child)
+            #expect(parent1.child(at: 0, tag: nil) == child)
             #expect(parent1.isAncestor(of: child) == true)
             #expect(parent2.childCount == 1)
-            #expect(parent2.child(at: 0, flags: nil) == child)
+            #expect(parent2.child(at: 0, tag: nil) == child)
             #expect(parent2.isAncestor(of: child) == true)
             #expect(child.parentCount == 2)
             #expect(child.parent(at: 0) == parent1)
@@ -363,7 +363,7 @@ struct SubgraphTests {
             #expect(parent1.childCount == 0)
             #expect(parent1.isAncestor(of: child) == false)
             #expect(parent2.childCount == 1)
-            #expect(parent2.child(at: 0, flags: nil) == child)
+            #expect(parent2.child(at: 0, tag: nil) == child)
             #expect(parent2.isAncestor(of: child) == true)
             #expect(child.parentCount == 1)
             #expect(child.parent(at: 0) == parent2)
@@ -379,29 +379,29 @@ struct SubgraphTests {
         }
 
         @Test(arguments: [0, 1, 2, 3])
-        func childWithFlags(_ flags: Int) {
+        func childWithTag(_ tag: Int) {
             let graph = Graph()
             let subgraph = Subgraph(graph: graph)
 
             let child = Subgraph(graph: graph)
-            subgraph.addChild(child, flags: UInt8(flags))
+            subgraph.addChild(child, tag: UInt8(tag))
 
-            var storedFlags: Int = 0
-            subgraph.child(at: 0, flags: &storedFlags)
-            #expect(storedFlags == flags)
+            var storedTag: Int = 0
+            subgraph.child(at: 0, tag: &storedTag)
+            #expect(storedTag == tag)
         }
 
         @Test
-        func childWithInvalidFlags() {
+        func childWithInvalidTag() {
             let graph = Graph()
             let subgraph = Subgraph(graph: graph)
 
             let child = Subgraph(graph: graph)
-            subgraph.addChild(child, flags: UInt8.max)
+            subgraph.addChild(child, tag: UInt8.max)
 
-            var storedFlags: Int = 0
-            subgraph.child(at: 0, flags: &storedFlags)
-            #expect(storedFlags == 3)  // Only lowest 2 bits stored
+            var storedTag: Int = 0
+            subgraph.child(at: 0, tag: &storedTag)
+            #expect(storedTag == 3)  // Only lowest 2 bits stored
         }
 
         @Test

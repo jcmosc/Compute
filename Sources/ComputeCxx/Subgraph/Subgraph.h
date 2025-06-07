@@ -28,17 +28,17 @@ class Subgraph : public data::zone {
   public:
     class SubgraphChild {
       private:
-        enum : uintptr_t {
-            mask = 0x3,
+        enum {
+            TagMask = 0x3,
         };
 
         uintptr_t _data;
 
       public:
-        SubgraphChild(Subgraph *subgraph, uint8_t flags) { _data = (uintptr_t)subgraph | (flags & mask); };
+        SubgraphChild(Subgraph *subgraph, uint8_t tag) { _data = (uintptr_t)subgraph | (tag & TagMask); };
 
-        Subgraph *subgraph() const { return reinterpret_cast<Subgraph *>(_data & ~mask); };
-        uint8_t flags() const { return _data & mask; };
+        Subgraph *subgraph() const { return reinterpret_cast<Subgraph *>(_data & ~TagMask); };
+        uint8_t tag() const { return _data & TagMask; };
     };
 
   private:
@@ -56,6 +56,11 @@ class Subgraph : public data::zone {
         uint64_t observer_id;
     };
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
+
+    AGAttributeFlags _flags;
+    AGAttributeFlags _descendent_flags;
+    AGAttributeFlags _dirty_flags;
+    AGAttributeFlags _descendent_dirty_flags;
 
     enum class InvalidationState : uint8_t {
         None = 0,
@@ -111,7 +116,7 @@ class Subgraph : public data::zone {
     indirect_pointer_vector<Subgraph> &parents() { return _parents; };
     vector<SubgraphChild, 0, uint32_t> &children() { return _children; };
 
-    void add_child(Subgraph &child, uint8_t flags);
+    void add_child(Subgraph &child, uint8_t tag);
     void remove_child(Subgraph &child, bool suppress_trace);
 
     bool ancestor_of(const Subgraph &other);
@@ -126,6 +131,18 @@ class Subgraph : public data::zone {
             }
         }
     }
+
+    // MARK: Flags
+
+    void add_flags(AGAttributeFlags flags);
+    void propagate_flags();
+
+    void add_dirty_flags(AGAttributeFlags dirty_flags);
+    void propagate_dirty_flags();
+
+    bool intersects(AGAttributeFlags mask) const { return (_flags | _descendent_flags) & mask; }
+    bool is_dirty(AGAttributeFlags mask) const { return (_dirty_flags | _descendent_dirty_flags) & mask; }
+    
 };
 
 } // namespace AG

@@ -76,8 +76,8 @@ void AGSubgraphAddChild(AGSubgraphRef subgraph, AGSubgraphRef child) CF_SWIFT_NA
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t flags)
-    CF_SWIFT_NAME(AGSubgraphRef.addChild(self:_:flags:));
+void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t tag)
+    CF_SWIFT_NAME(AGSubgraphRef.addChild(self:_:tag:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -87,8 +87,8 @@ void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child)
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index,
-                                 uint8_t *_Nullable flags_out) CF_RETURNS_NOT_RETAINED
-    CF_SWIFT_NAME(AGSubgraphRef.child(self:at:flags:));
+                                 uint8_t *_Nullable tag_out) CF_RETURNS_NOT_RETAINED
+    CF_SWIFT_NAME(AGSubgraphRef.child(self:at:tag:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -107,6 +107,17 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGSubgraphIsAncestor(AGSubgraphRef subgraph, AGSubgraphRef other)
     CF_SWIFT_NAME(AGSubgraphRef.isAncestor(self:of:));
+
+// MARK: Flags
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGSubgraphIntersects(AGSubgraphRef subgraph, AGAttributeFlags mask)
+    CF_SWIFT_NAME(AGSubgraphRef.intersects(self:mask:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) CF_SWIFT_NAME(AGSubgraphRef.isDirty(self:mask:));
 
 CF_EXTERN_C_END
 

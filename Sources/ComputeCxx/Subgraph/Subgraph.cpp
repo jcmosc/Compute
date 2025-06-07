@@ -229,7 +229,7 @@ void Subgraph::graph_destroyed() {
 
 #pragma mark - Children
 
-void Subgraph::add_child(Subgraph &child, uint8_t flags) {
+void Subgraph::add_child(Subgraph &child, uint8_t tag) {
     if (child.graph() != graph()) {
         precondition_failure("child subgraph must have same graph");
     }
@@ -239,10 +239,19 @@ void Subgraph::add_child(Subgraph &child, uint8_t flags) {
         }
     }
     graph()->foreach_trace([this, &child](Trace &trace) { trace.add_child(*this, child); });
-    _children.push_back(SubgraphChild(&child, flags));
+    _children.push_back(SubgraphChild(&child, tag));
 
-    // TODO: propogate flags
-    // TODO: propogate dirty flags
+    AGAttributeFlags descendent_flags = child._flags | child._descendent_flags;
+    if (descendent_flags & ~_descendent_flags) {
+        _descendent_flags |= descendent_flags;
+        propagate_flags();
+    }
+    
+    AGAttributeFlags descendent_dirty_flags = child._dirty_flags | child._descendent_dirty_flags;
+    if (descendent_dirty_flags & ~_descendent_dirty_flags) {
+        _descendent_dirty_flags |= descendent_dirty_flags;
+        propagate_dirty_flags();
+    }
 
     child._parents.push_back(this);
 }
@@ -284,6 +293,50 @@ bool Subgraph::ancestor_of(const Subgraph &other) {
             untraversed_parents.push(parent);
         }
     }
+}
+
+#pragma mark - Flags
+
+void Subgraph::add_flags(AGAttributeFlags flags) {
+    if (!(flags & ~_flags)) {
+        return;
+    }
+
+    _flags |= flags;
+    propagate_flags();
+}
+
+void Subgraph::propagate_flags() {
+    uint8_t flags = _flags | _descendent_flags;
+    foreach_ancestor([&flags](Subgraph &ancestor) -> bool {
+        if (!(flags & ~ancestor._descendent_flags)) {
+            return false;
+        }
+
+        ancestor._descendent_flags |= flags;
+        return true;
+    });
+}
+
+void Subgraph::add_dirty_flags(AGAttributeFlags dirty_flags) {
+    if (!(dirty_flags & ~_dirty_flags)) {
+        return;
+    }
+
+    _dirty_flags |= dirty_flags;
+    propagate_dirty_flags();
+}
+
+void Subgraph::propagate_dirty_flags() {
+    uint8_t dirty_flags = _dirty_flags | _descendent_dirty_flags;
+    foreach_ancestor([&dirty_flags](Subgraph &ancestor) -> bool {
+        if (!(dirty_flags & ~ancestor._descendent_dirty_flags)) {
+            return false;
+        }
+
+        ancestor._descendent_dirty_flags |= dirty_flags;
+        return true;
+    });
 }
 
 } // namespace AG

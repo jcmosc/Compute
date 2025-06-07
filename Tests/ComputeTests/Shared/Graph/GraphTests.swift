@@ -341,7 +341,7 @@ struct GraphTests {
                 
                 let subgraph = Subgraph(graph: graph)
                 let child = Subgraph(graph: graph)
-                subgraph.addChild(child, flags: 1)
+                subgraph.addChild(child, tag: 1)
                 
                 let description =
                     try #require(

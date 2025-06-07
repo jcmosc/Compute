@@ -131,7 +131,7 @@ uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
-    
+
     auto callback = AG::ClosureFunctionVV<void>(observer, observer_context);
     return AG::Subgraph::from_cf(subgraph)->add_observer(callback);
 }
@@ -140,7 +140,7 @@ void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
-    
+
     AG::Subgraph::from_cf(subgraph)->remove_observer(observer_id);
 }
 
@@ -148,7 +148,7 @@ void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id) {
 
 void AGSubgraphAddChild(AGSubgraphRef subgraph, AGSubgraphRef child) { AGSubgraphAddChild2(subgraph, child, 0); }
 
-void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t flags) {
+void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t tag) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
@@ -156,7 +156,7 @@ void AGSubgraphAddChild2(AGSubgraphRef subgraph, AGSubgraphRef child, uint8_t fl
         return;
     }
 
-    AG::Subgraph::from_cf(subgraph)->add_child(*AG::Subgraph::from_cf(child), flags);
+    AG::Subgraph::from_cf(subgraph)->add_child(*AG::Subgraph::from_cf(child), tag);
 }
 
 void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child) {
@@ -169,7 +169,7 @@ void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child) {
     }
 }
 
-AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index, uint8_t *flags_out) {
+AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index, uint8_t *tag_out) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
@@ -178,8 +178,8 @@ AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index, uint8_t
     }
 
     AG::Subgraph::SubgraphChild &child = AG::Subgraph::from_cf(subgraph)->children()[index];
-    if (flags_out) {
-        *flags_out = child.flags();
+    if (tag_out) {
+        *tag_out = child.tag();
     }
     return child.subgraph()->to_cf();
 }
@@ -220,4 +220,22 @@ bool AGSubgraphIsAncestor(AGSubgraphRef subgraph, AGSubgraphRef other) {
     }
 
     return AG::Subgraph::from_cf(subgraph)->ancestor_of(*AG::Subgraph::from_cf(other));
+}
+
+#pragma mark - Flags
+
+bool AGSubgraphIntersects(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return false;
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->intersects(mask);
+}
+
+bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return false;
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->is_dirty(mask);
 }

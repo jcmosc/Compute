@@ -15,10 +15,12 @@ class OffsetAttributeID {
     uint32_t _offset;
 
   public:
-    OffsetAttributeID(const AttributeID &attribute, uint32_t offset = 0) : _attribute(attribute), _offset(offset) {};
+    OffsetAttributeID(AttributeID attribute, uint32_t offset = 0) : _attribute(attribute), _offset(offset) {};
 
-    const AttributeID &attribute() { return _attribute; };
-    uint32_t offset() { return _offset; };
+    // MARK: Accessing data
+
+    const AttributeID attribute() const { return _attribute; };
+    uint32_t offset() const { return _offset; };
 };
 
 } // namespace AG

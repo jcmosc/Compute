@@ -26,8 +26,8 @@ template <typename T> class ptr {
     template <typename U> friend class ptr;
 
   public:
-    ptr(difference_type offset = 0) : _offset(offset) {};
-    ptr(nullptr_t) {};
+    constexpr ptr(difference_type offset = 0) : _offset(offset) {};
+    constexpr ptr(nullptr_t) {};
 
     void assert_valid() const {
         if (_offset >= table::shared().ptr_max_offset()) {
@@ -41,6 +41,8 @@ template <typename T> class ptr {
         }
         return reinterpret_cast<element_type *>(table::shared().ptr_base() + _offset);
     }
+
+    // MARK: Page
 
     ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
 

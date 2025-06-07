@@ -18,8 +18,8 @@ struct page {
     uint32_t total;
     uint32_t in_use;
 
-    uint16_t first_child_1;
-    uint16_t first_child_2;
+    uint16_t bytes_list;
+    uint16_t const_bytes_list;
 };
 static_assert(sizeof(page) == 0x18);
 

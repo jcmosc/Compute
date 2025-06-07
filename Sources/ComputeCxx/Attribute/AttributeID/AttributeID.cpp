@@ -12,23 +12,23 @@
 namespace AG {
 
 std::optional<size_t> AttributeID::size() const {
-    if (is_direct()) {
+    if (is_node()) {
         const AttributeType &attribute_type = subgraph()->graph()->attribute_type(to_node().type_id());
         size_t size = attribute_type.value_metadata().vw_size();
         return std::optional<size_t>(size);
     }
-    if (is_indirect()) {
+    if (is_indirect_node()) {
         return to_indirect_node().size();
     }
     return std::optional<size_t>();
 }
 
 bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
-    if (!is_indirect()) {
+    if (!is_indirect_node()) {
         return *this == other;
     }
 
-    if (with_kind(Kind::Indirect) == other) {
+    if (with_kind(Kind::IndirectNode) == other) {
         return true;
     }
 
@@ -41,7 +41,7 @@ bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
 }
 
 OffsetAttributeID AttributeID::resolve(TraversalOptions options) const {
-    if (is_direct()) {
+    if (is_node()) {
         return OffsetAttributeID(*this);
     }
     return resolve_slow(options);
@@ -50,7 +50,7 @@ OffsetAttributeID AttributeID::resolve(TraversalOptions options) const {
 OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
     AttributeID result = *this;
     uint32_t offset = 0;
-    while (result.is_indirect()) {
+    while (result.is_indirect_node()) {
         if (offset == 0 && options & TraversalOptions::ReportIndirectionInOffset) {
             offset = 1;
         }
@@ -86,7 +86,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
         result = indirect_node.source().attribute();
     }
 
-    if (options & TraversalOptions::AssertNotNil && !is_direct()) {
+    if (options & TraversalOptions::AssertNotNil && !is_node()) {
         precondition_failure("invalid attribute id: %u", _value);
     }
 

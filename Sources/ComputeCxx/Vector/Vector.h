@@ -494,22 +494,30 @@ void vector<T, 0, size_type>::clear() {
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator pos, const T &value) {
-    reserve(_size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(value);
-    _size += 1;
+    if (pos == end()) {
+        push_back(value);
+    } else {
+        reserve(_size + 1);
+        iterator mutable_pos = begin() + (pos - begin());
+        std::move_backward(mutable_pos, end(), end() + 1);
+        new (mutable_pos) value_type(value);
+        _size += 1;
+    }
     return end();
 }
 
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator pos, T &&value) {
-    reserve(_size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(std::move(value));
-    _size += 1;
+    if (pos == end()) {
+        push_back(std::move(value));
+    } else {
+        reserve(_size + 1);
+        iterator mutable_pos = begin() + (pos - begin());
+        std::move_backward(mutable_pos, end(), end() + 1);
+        new (mutable_pos) value_type(std::move(value));
+        _size += 1;
+    }
     return end();
 }
 

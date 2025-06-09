@@ -20,19 +20,48 @@ public struct Attribute<Value> {
         fatalError("not implemented")
     }
 
-    public init(type: Value.Type) {
-        fatalError("not implemented")
+    public init(value: Value) {
+        self = withUnsafePointer(to: value) { valuePointer in
+            withUnsafePointer(to: External<Value>()) { bodyPointer in
+                Attribute(body: bodyPointer, value: valuePointer, flags: .external) {
+                    External<Value>._update
+                }
+            }
+        }
     }
 
-    public init(value: Value) {
-        fatalError("not implemented")
+    public init(type: Value.Type) {
+        self = withUnsafePointer(to: External<Value>()) { bodyPointer in
+            Attribute(body: bodyPointer, value: nil, flags: .external) {
+                External<Value>._update
+            }
+        }
     }
 
     public init<Body: _AttributeBody>(
-        body: UnsafePointer<Body>, value: UnsafePointer<Value>?, flags: AGAttributeTypeFlags,
+        body: UnsafePointer<Body>,
+        value: UnsafePointer<Value>?,
+        flags: AGAttributeTypeFlags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) {
-        fatalError("not implemented")
+        guard let graphContext = Subgraph.currentGraphContext else {
+            preconditionFailure("attempting to create attribute with no subgraph: \(Body.self)")
+        }
+
+        let typeID = graphContext.internAttributeType(
+            type: Metadata(Body.self)
+        ) {
+            let attributeType = AGAttributeType(
+                selfType: Body.self,
+                valueType: Value.self,
+                flags: flags,
+                update: update()
+            )
+            let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
+            pointer.initialize(to: attributeType)
+            return UnsafePointer(pointer)
+        }
+        identifier = AnyAttribute(type: typeID, body: body, value: value)
     }
 
     public func unsafeCast<T>(to type: T.Type) -> Attribute<T> {

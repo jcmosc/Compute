@@ -237,7 +237,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
     void *self = (uint8_t *)node_ptr.get() + type.body_offset();
     node_ptr->set_self_initialized(true);
 
-    if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsThreadSafe) {
+    if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsAsyncThread) {
         node_ptr->set_main_ref(false);
     } else {
         if (node_ptr->is_main_thread_only()) {
@@ -302,7 +302,7 @@ void Graph::update_main_refs(AttributeID attribute) {
                 this->attribute_type(node.type_id()); // TODO: should AttributeType have deleted copy constructor?
 
             bool main_ref = false;
-            if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsThreadSafe) {
+            if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsAsyncThread) {
                 main_ref = false;
             } else {
                 if (node.is_main_thread_only()) {

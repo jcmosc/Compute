@@ -32,7 +32,7 @@ class AttributeType {
       public:
         void operator()(AttributeType *ptr) {
             if (ptr != nullptr) {
-                auto callbacks = ptr->callbacks();
+                auto &callbacks = ptr->callbacks();
                 callbacks.deallocate(reinterpret_cast<AGAttributeType *>(ptr));
             }
         }
@@ -59,7 +59,7 @@ class AttributeType {
         _layout = LayoutDescriptor::fetch(value_metadata(), AGComparisonOptions(comparison_mode), 1);
     };
 
-    void destroy_body(Node &node) const {
+    void destroy_self(Node &node) const {
         if (_flags & AGAttributeTypeFlagsHasDestroySelf) {
             void *body = node.get_self(*this);
             callbacks().destroySelf(reinterpret_cast<const AGAttributeType *>(this), body);

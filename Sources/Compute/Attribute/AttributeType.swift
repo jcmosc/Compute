@@ -1,5 +1,10 @@
 import ComputeCxx
 
+struct ProtocolConformance {
+    var metadata: Metadata
+    var witnessTable: UnsafeRawPointer
+}
+
 extension AGUnownedGraphRef {
 
     @_extern(c, "AGGraphInternAttributeType")
@@ -23,29 +28,51 @@ extension AGUnownedGraphRef {
 
 extension AGAttributeType {
 
-    init(
-        selfType: Any.Type,
-        bodyType: _AttributeBody.Type,  // witness table
+    nonisolated(unsafe) static let callbacks: UnsafePointer<AGAttributeVTable> = {
+        let callbacks = UnsafeMutablePointer<AGAttributeVTable>.allocate(capacity: 1)
+        callbacks.pointee.allocate = nil
+        callbacks.pointee.deallocate = { pointer in
+            pointer.deallocate()
+        }
+        callbacks.pointee.destroySelf = { _, _ in
+            fatalError("not implemented")
+        }
+        callbacks.pointee.selfDescription = { _, _ in
+            fatalError("not implemented")
+        }
+        callbacks.pointee.valueDescription = { _, _ in
+            fatalError("not implemented")
+        }
+        callbacks.pointee.initializeValue = { _, _ in
+            fatalError("not implemented")
+        }
+        return UnsafePointer(callbacks)
+    }()
+
+    init<Body: _AttributeBody>(
+        selfType: Body.Type,
         valueType: Any.Type,
         flags: AGAttributeTypeFlags,
         update: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void,
     ) {
-        self.init()
-
         var flags = flags
-        flags.insert(bodyType.flags)
-        flags.insert(AGAttributeTypeFlags(rawValue: UInt32(bodyType.comparisonMode.rawValue)))
-        if bodyType._hasDestroySelf {
+        flags.insert(selfType.flags)
+        flags.insert(AGAttributeTypeFlags(rawValue: UInt32(selfType.comparisonMode.rawValue)))
+        if selfType._hasDestroySelf {
             flags.insert(.hasDestroySelf)
         }
 
-        self.selfType = Metadata(selfType)
-        self.valueType = Metadata(valueType)
-        self.update = unsafeBitCast(update, to: AGClosureStorage.self)
-        self.callbacks = nil
-        self.flags = flags
-
-        self.initialSelfType = Metadata(selfType)
-        self.initialAttributeBodyWitnessTable = unsafeBitCast(bodyType, to: UnsafeRawPointer.self)  // TODO: double check this
+        let conformance = unsafeBitCast(selfType as any _AttributeBody.Type, to: ProtocolConformance.self)
+        self.init(
+            selfType: Metadata(selfType),
+            valueType: Metadata(valueType),
+            update: unsafeBitCast(update, to: AGClosureStorage.self),
+            callbacks: AGAttributeType.callbacks,
+            flags: flags,
+            selfOffset: 0,
+            layout: nil,
+            attributeBodyType: conformance.metadata,
+            attributeBodyWitnessTable: conformance.witnessTable
+        )
     }
 }

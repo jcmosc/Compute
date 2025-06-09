@@ -41,6 +41,10 @@ typedef CF_ENUM(uint8_t, AGComparisonMode) {
 };
 
 typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
+    AGComparisonOptionsComparisonModeBitwise = 0,
+    AGComparisonOptionsComparisonModeIndirect = 1,
+    AGComparisonOptionsComparisonModeEquatableUnlessPOD = 2,
+    AGComparisonOptionsComparisonModeEquatableAlways = 3,
     AGComparisonOptionsComparisonModeMask = 0xff,
 
     AGComparisonOptionsCopyOnWrite = 1 << 8,
@@ -50,7 +54,7 @@ typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGCompareValues(const void *destination, const void *source, AGTypeID type_id, AGComparisonOptions options);
+bool AGCompareValues(const void *_Nonnull destination, const void *_Nonnull source, AGTypeID type_id, AGComparisonOptions options);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

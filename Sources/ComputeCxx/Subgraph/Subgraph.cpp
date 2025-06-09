@@ -3,6 +3,9 @@
 #include <ranges>
 
 #include "AGSubgraph-Private.h"
+#include "Attribute/AttributeData/Node/IndirectNode.h"
+#include "Attribute/AttributeData/Node/Node.h"
+#include "Attribute/AttributeView/AttributeView.h"
 #include "Graph/Context.h"
 #include "Trace/Trace.h"
 
@@ -246,7 +249,7 @@ void Subgraph::add_child(Subgraph &child, uint8_t tag) {
         _descendent_flags |= descendent_flags;
         propagate_flags();
     }
-    
+
     AGAttributeFlags descendent_dirty_flags = child._dirty_flags | child._descendent_dirty_flags;
     if (descendent_dirty_flags & ~_descendent_dirty_flags) {
         _descendent_dirty_flags |= descendent_dirty_flags;
@@ -297,6 +300,25 @@ bool Subgraph::ancestor_of(const Subgraph &other) {
 
 #pragma mark - Flags
 
+void Subgraph::set_flags(data::ptr<Node> node, AGAttributeFlags flags) {
+    if (node->subgraph_flags() == flags) {
+        return;
+    }
+    if (node->subgraph_flags() == AGAttributeFlagsDefault || flags == AGAttributeFlagsDefault) {
+        // unlink and reinsert to trigger a reorder
+        unlink_attribute(AttributeID(node));
+        node->set_subgraph_flags(flags);
+        insert_attribute(AttributeID(node), true);
+    } else {
+        node->set_subgraph_flags(flags);
+    }
+
+    add_flags(flags);
+    if (node->is_dirty()) {
+        add_dirty_flags(flags);
+    }
+}
+
 void Subgraph::add_flags(AGAttributeFlags flags) {
     if (!(flags & ~_flags)) {
         return;
@@ -339,4 +361,90 @@ void Subgraph::propagate_dirty_flags() {
     });
 }
 
+// MARK: Attributes
+
+void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
+    AttributeID previous_attribute = AttributeID(AGAttributeNil);
+
+    // sort attributes with flags before indirect attributes or attributes without flags
+    // the attribute will only be non-updatable if it is a non-mutable indirect node that does not traverse subgraphs
+    if (updatable && (!attribute.is_node() || attribute.to_node().subgraph_flags() == AGAttributeFlagsDefault)) {
+        for (auto other : attribute_view(attribute.page_ptr())) {
+            if (!other.is_node() || other.to_node().subgraph_flags() == AGAttributeFlagsDefault) {
+                break;
+            }
+            previous_attribute = other;
+        }
+    }
+
+    RelativeAttributeID next_attribute;
+    if (previous_attribute.is_node()) {
+        next_attribute = previous_attribute.to_node().next_attribute();
+        previous_attribute.to_node().set_next_attribute(RelativeAttributeID(attribute));
+    } else if (previous_attribute.is_indirect_node()) {
+        next_attribute = previous_attribute.to_indirect_node().next_attribute();
+        previous_attribute.to_indirect_node().set_next_attribute(RelativeAttributeID(attribute));
+    } else {
+        if (updatable) {
+            next_attribute = RelativeAttributeID(attribute.page_ptr()->bytes_list);
+            attribute.page_ptr()->bytes_list = RelativeAttributeID(attribute);
+        } else {
+            next_attribute = RelativeAttributeID(attribute.page_ptr()->const_bytes_list);
+            attribute.page_ptr()->const_bytes_list = RelativeAttributeID(attribute);
+        }
+    }
+
+    if (attribute.is_node()) {
+        attribute.to_node().set_next_attribute(next_attribute);
+    } else if (attribute.is_indirect_node()) {
+        attribute.to_indirect_node().set_next_attribute(next_attribute);
+    }
+}
+
+void Subgraph::unlink_attribute(AttributeID attribute) {
+    AttributeID previous_attribute;
+    for (auto other : attribute_view(attribute.page_ptr())) {
+        if (!other || other.is_nil()) {
+            break;
+        }
+        if (other == attribute) {
+            break;
+        }
+        previous_attribute = other;
+    }
+
+    RelativeAttributeID next_attribute = RelativeAttributeID(nullptr);
+    if (attribute.is_node()) {
+        next_attribute = attribute.to_node().next_attribute();
+        attribute.to_node().set_next_attribute(RelativeAttributeID(nullptr));
+    } else if (attribute.is_indirect_node()) {
+        next_attribute = attribute.to_indirect_node().next_attribute();
+        attribute.to_indirect_node().set_next_attribute(RelativeAttributeID(nullptr));
+    }
+
+    if (previous_attribute.is_node()) {
+        previous_attribute.to_node().set_next_attribute(next_attribute);
+    } else if (previous_attribute.is_indirect_node()) {
+        previous_attribute.to_indirect_node().set_next_attribute(next_attribute);
+    } else {
+        attribute.page_ptr()->bytes_list = next_attribute;
+    }
+}
+
+void Subgraph::add_node(data::ptr<Node> node) {
+    node->set_subgraph_flags(AGAttributeFlagsDefault);
+    insert_attribute(AttributeID(node), true);
+
+    //    if (_tree_root) {
+    //        graph()->add_tree_data_for_subgraph(this, _tree_root, node);
+    //    }
+
+    graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
+}
+
+void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
+    insert_attribute(AttributeID(node), flag); // make sure adds Indirect kind to node
+
+    graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
+}
 } // namespace AG

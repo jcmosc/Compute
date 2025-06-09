@@ -52,8 +52,8 @@ class Node {
     data::vector<OutputEdge> _output_edges;
 
   public:
-    Node(uint32_t type_id, bool main_thread, bool main_ref)
-        : _type_id(type_id), _main_thread(main_thread), _main_thread_only(main_thread), _main_ref(main_ref) {};
+    Node(uint32_t type_id, bool main_thread)
+        : _type_id(type_id), _main_thread(main_thread), _main_thread_only(main_thread) {};
 
     bool is_dirty() const { return _dirty; }
     void set_dirty(bool value) { _dirty = value; }

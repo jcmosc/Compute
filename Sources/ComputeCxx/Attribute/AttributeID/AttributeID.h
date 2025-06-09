@@ -62,7 +62,7 @@ class AttributeID {
 
   public:
     static constexpr uint32_t KindMask = 0x3;
-    
+
     explicit constexpr AttributeID() : _value(0) {};
     explicit AttributeID(data::ptr<class Node> node) : _value(node.offset() | Kind::Node) {};
     explicit AttributeID(data::ptr<class IndirectNode> indirect_node)
@@ -117,6 +117,7 @@ class AttributeID {
 
     bool is_node() const { return kind() == Kind::Node; };
     bool is_indirect_node() const { return kind() == Kind::IndirectNode; };
+    bool is_nil() const { return kind() == Kind::NilAttribute; };
 
     class Node &to_node() const { return *to_ptr<class Node>(); };
     class IndirectNode &to_indirect_node() const { return *to_ptr<class IndirectNode>(); };

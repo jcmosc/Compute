@@ -103,6 +103,38 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
                                         void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                     void *_Nullable make_attribute_type_context);
 
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) CF_SWIFT_NAME(AGAttribute.verifyType(self:type:));
+
+// MARK: Attributes
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value)
+    CF_SWIFT_NAME(AGAttribute.init(type:body:value:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.graph(self:));
+
+typedef struct AGAttributeInfo {
+    const AGAttributeType *type;
+    const void *body;
+} AGAttributeInfo;
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.info(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.flags(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) CF_SWIFT_NAME(setter:AGAttribute.flags(self:_:));
+
 // MARK: Update
 
 typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {

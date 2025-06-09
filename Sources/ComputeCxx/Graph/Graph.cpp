@@ -1,8 +1,11 @@
 #include "Graph.h"
 
 #include <CoreFoundation/CFString.h>
+#include <ranges>
 
+#include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
+#include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
@@ -179,6 +182,8 @@ uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<c
     return type_id;
 }
 
+#pragma mark - Attributes
+
 void Graph::did_allocate_node_value(size_t size) {
     // TODO: Not implemented
 }
@@ -187,7 +192,163 @@ void Graph::did_destroy_node_value(size_t size) {
     // TODO: Not implemented
 }
 
+data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *value) {
+    const AttributeType &type = attribute_type(type_id);
+
+    const void *initial_value = nullptr;
+    if (value == nullptr && type.value_metadata().vw_size() == 0) {
+        if (type.flags() & AGAttributeTypeFlagsExternal) {
+            initial_value = this;
+        }
+    } else {
+        initial_value = value;
+    }
+
+    // Allocate Node + body
+
+    void *indirect_body = nullptr;
+    size_t body_size = type.body_metadata().vw_size();
+    size_t alignment_mask = type.body_metadata().getValueWitnesses()->getAlignmentMask();
+    if (!type.body_metadata().getValueWitnesses()->isBitwiseTakable() || body_size > 0x80) {
+        indirect_body = subgraph.alloc_persistent(body_size);
+
+        body_size = sizeof(void *);
+        alignment_mask = 7;
+    }
+
+    size_t total_size = ((sizeof(Node) + alignment_mask) & ~alignment_mask) + body_size;
+
+    data::ptr<Node> node_ptr;
+    if (total_size <= 0x10) {
+        node_ptr = subgraph.alloc_bytes_recycle(uint32_t(total_size), uint32_t(alignment_mask | 3)).unsafe_cast<Node>();
+    } else {
+        node_ptr = (data::ptr<Node>)subgraph.alloc_bytes(uint32_t(total_size), uint32_t(alignment_mask | 3))
+                       .unsafe_cast<Node>();
+    }
+
+    bool main_thread = type.flags() & AGAttributeTypeFlagsMainThread;
+    *node_ptr = Node(type_id, main_thread);
+    node_ptr->set_main_ref(true);
+
+    if (type_id >= 0x100000) {
+        precondition_failure("too many node types allocated");
+    }
+
+    void *self = (uint8_t *)node_ptr.get() + type.body_offset();
+    node_ptr->set_self_initialized(true);
+
+    if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsThreadSafe) {
+        node_ptr->set_main_ref(false);
+    } else {
+        if (node_ptr->is_main_thread_only()) {
+            node_ptr->set_main_ref(true);
+        } else {
+            node_ptr->set_main_ref(false);
+        }
+    }
+
+    if (indirect_body != nullptr) {
+        node_ptr->set_has_indirect_self(true);
+        *(void **)self = indirect_body;
+    }
+    if (!type.value_metadata().getValueWitnesses()->isBitwiseTakable() || type.value_metadata().vw_size() > 0x80) {
+        node_ptr->set_has_indirect_value(true);
+    }
+
+    _num_nodes += 1;
+    _num_nodes_total += 1;
+
+    // Initialize body
+    if (type.body_metadata().vw_size() != 0) {
+        void *self_dest = self;
+        if (node_ptr->has_indirect_self()) {
+            self_dest = *(void **)self_dest;
+        }
+        type.body_metadata().vw_initializeWithCopy((swift::opaque_value *)self_dest, (swift::opaque_value *)body);
+    }
+
+    // Initialize value
+    if (initial_value != nullptr) {
+        value_set_internal(node_ptr, *node_ptr.get(), initial_value, type.value_metadata());
+    } else {
+        node_ptr->set_dirty(true);
+        node_ptr->set_pending(true);
+        subgraph.add_dirty_flags(node_ptr->subgraph_flags());
+    }
+
+    subgraph.add_node(node_ptr);
+    return node_ptr;
+}
+
 void Graph::update_attribute(AttributeID attribute, bool option) {
+    // TODO: Not implemented
+}
+
+void Graph::update_main_refs(AttributeID attribute) {
+    if (!attribute) {
+        return;
+    }
+
+    auto output_edge_arrays = vector<ConstOutputEdgeArrayRef, 64, uint64_t>();
+
+    auto update_main_ref = [this, &output_edge_arrays](const AttributeID &attribute) {
+        if (!attribute) {
+            return;
+        }
+
+        if (attribute.is_node()) {
+            auto &node = attribute.to_node();
+            auto &type =
+                this->attribute_type(node.type_id()); // TODO: should AttributeType have deleted copy constructor?
+
+            bool main_ref = false;
+            if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsThreadSafe) {
+                main_ref = false;
+            } else {
+                if (node.is_main_thread_only()) {
+                    main_ref = true;
+                } else {
+                    main_ref =
+                        std::any_of(node.input_edges().begin(), node.input_edges().end(), [](auto input_edge) -> bool {
+                            auto resolved = input_edge.attribute.resolve(TraversalOptions::EvaluateWeakReferences);
+                            if (resolved.attribute().is_node() && resolved.attribute().to_node().is_main_ref()) {
+                                return true;
+                            }
+                        });
+                }
+            }
+            if (node.is_main_ref() != main_ref) {
+                node.set_main_ref(main_ref);
+                output_edge_arrays.push_back({
+                    &node.output_edges().front(),
+                    node.output_edges().size(),
+                });
+            }
+        } else if (attribute.is_indirect_node() && attribute.to_indirect_node().is_mutable()) {
+            MutableIndirectNode &indirect_node = attribute.to_indirect_node().to_mutable();
+            output_edge_arrays.push_back({
+                &indirect_node.output_edges().front(),
+                indirect_node.output_edges().size(),
+            });
+        }
+    };
+
+    update_main_ref(attribute);
+
+    while (!output_edge_arrays.empty()) {
+        ConstOutputEdgeArrayRef array = output_edge_arrays.back();
+        output_edge_arrays.pop_back();
+
+        for (auto output_edge : std::ranges::reverse_view(array)) {
+            update_main_ref(output_edge.attribute);
+        }
+    }
+}
+
+#pragma mark - Value
+
+bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value,
+                               const swift::metadata &metadata) {
     // TODO: Not implemented
 }
 

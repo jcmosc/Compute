@@ -156,6 +156,85 @@ uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID ty
         metadata, AG::ClosureFunctionVP<const AGAttributeType *>(make_attribute_type, make_attribute_type_context));
 }
 
+void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    if (attribute_id.is_node()) {
+        auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+        auto attribute_type = subgraph->graph()->attribute_type(attribute_id.to_node().type_id());
+        if (&attribute_type.value_metadata() != metadata) {
+            AG::precondition_failure("type check failed: %u, expected %s, got %s", attribute, metadata->name(false),
+                                     attribute_type.value_metadata().name(false));
+        }
+    }
+}
+
+#pragma mark - Attributes
+
+AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value) {
+    auto subgraph = AG::Subgraph::current_subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no subgraph active while adding attribute");
+    }
+    auto node = subgraph->graph()->add_attribute(*subgraph, type_id, body, value);
+    return AGAttribute(AG::AttributeID(node));
+}
+
+AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    if (auto subgraph = attribute_id.subgraph()) {
+        if (auto context_id = subgraph->context_id()) {
+            if (auto context = subgraph->graph()->context_with_id(context_id)) {
+                return context->to_cf();
+            }
+        }
+    }
+    AG::precondition_failure("no graph: %u", attribute);
+}
+
+AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    if (!attribute_id.is_node()) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    const void *body = nullptr;
+    const AG::AttributeType &type = subgraph->graph()->attribute_ref(attribute_id.to_ptr<AG::Node>(), &body);
+    return AGAttributeInfo(reinterpret_cast<const AGAttributeType *>(&type), body);
+}
+
+AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    if (!attribute_id.is_node()) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+
+    return attribute_id.to_node().subgraph_flags();
+}
+
+void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
+    auto attribute_id = AG::AttributeID(attribute);
+    if (!attribute_id.is_node()) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+
+    attribute_id.subgraph()->set_flags(attribute_id.to_ptr<AG::Node>(), flags);
+}
+
 #pragma mark - Trace
 
 void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, NULL); }

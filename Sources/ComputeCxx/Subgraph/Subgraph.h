@@ -71,6 +71,10 @@ class Subgraph : public data::zone {
 
     InvalidationState _invalidation_state = InvalidationState::None;
 
+    // Attribute list
+    void insert_attribute(AttributeID attribute, bool updatable);
+    void unlink_attribute(AttributeID attribute);
+
   public:
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
@@ -134,6 +138,8 @@ class Subgraph : public data::zone {
 
     // MARK: Flags
 
+    void set_flags(data::ptr<Node> node, AGAttributeFlags flags);
+
     void add_flags(AGAttributeFlags flags);
     void propagate_flags();
 
@@ -142,7 +148,11 @@ class Subgraph : public data::zone {
 
     bool intersects(AGAttributeFlags mask) const { return (_flags | _descendent_flags) & mask; }
     bool is_dirty(AGAttributeFlags mask) const { return (_dirty_flags | _descendent_dirty_flags) & mask; }
-    
+
+    // MARK: Attributes
+
+    void add_node(data::ptr<Node> node);
+    void add_indirect(data::ptr<IndirectNode> node, bool updatable);
 };
 
 } // namespace AG

@@ -59,6 +59,8 @@ class Graph {
     const void *_Nullable _main_handler_context;
 
     // Metrics
+    uint64_t _num_nodes = 0;
+    uint64_t _num_nodes_total = 0;
     uint64_t _num_subgraphs = 0;
     uint64_t _num_subgraphs_total = 0;
 
@@ -157,10 +159,20 @@ class Graph {
 
     uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<const AGAttributeType *> make_type);
 
+    // MARK: Attributes
+
+    data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *_Nullable value);
+    void update_main_refs(AttributeID attribute);
+
     void did_allocate_node_value(size_t size);
     void did_destroy_node_value(size_t size);
 
     void update_attribute(AttributeID attribute, bool option);
+
+    // MARK: Value
+
+    bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value,
+                            const swift::metadata &metadata);
 
     // MARK: Trace
 

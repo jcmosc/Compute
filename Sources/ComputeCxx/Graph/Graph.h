@@ -29,9 +29,31 @@ class Trace;
 class Graph {
   public:
     class Context;
+    class TreeElement;
+    class TreeElementID;
+    class TreeValue;
+    class TreeValueID;
     class KeyTable;
-    class TraceRecorder;
     class UpdateStack;
+    class TraceRecorder;
+
+    class TreeDataElement {
+        using TreeElementNodePair = std::pair<data::ptr<TreeElement>, data::ptr<Node>>;
+
+      private:
+        vector<TreeElementNodePair, 0, uint64_t> _nodes;
+        bool _sorted;
+
+        void sort_nodes();
+
+      public:
+        vector<TreeElementNodePair, 0, uint64_t> &nodes() {
+            sort_nodes();
+            return _nodes;
+        };
+
+        void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
+    };
 
     typedef void (*MainHandler)(void *_Nullable context AG_SWIFT_CONTEXT, void (*trampoline_thunk)(const void *),
                                 const void *trampoline) AG_SWIFT_CC(swift);
@@ -67,13 +89,14 @@ class Graph {
     // Trace recorder
     TraceRecorder *_trace_recorder;
 
+    // Tree
+    std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph;
+    KeyTable *_Nullable _keys;
+
     // Subgraphs
     vector<Subgraph *, 0, uint32_t> _subgraphs;
     vector<Subgraph *, 2, uint32_t> _invalidating_subgraphs;
     bool _deferring_subgraph_invalidation;
-
-    // Keys
-    KeyTable *_Nullable _keys;
 
     // Threads
     uint32_t _ref_count = 1;
@@ -103,6 +126,30 @@ class Graph {
         if (graph->_ref_count == 0) {
             delete graph;
         }
+    };
+
+    // MARK: Tree
+
+    TreeDataElement *_Nullable tree_data_element_for_subgraph(Subgraph *subgraph) {
+        if (!_tree_data_elements_by_subgraph) {
+            return nullptr;
+        }
+
+        auto iter = _tree_data_elements_by_subgraph->find(subgraph);
+        if (iter == _tree_data_elements_by_subgraph->end()) {
+            return nullptr;
+        }
+
+        return &iter->second;
+    };
+
+    Graph::TreeDataElement &add_tree_data_for_subgraph(Subgraph *subgraph, data::ptr<TreeElement> tree_element,
+                                                       data::ptr<Node> node) {
+        if (!_tree_data_elements_by_subgraph) {
+            _tree_data_elements_by_subgraph.reset(new std::unordered_map<Subgraph *, TreeDataElement>());
+        }
+        auto &tree_data_element = _tree_data_elements_by_subgraph->try_emplace(subgraph).first->second;
+        tree_data_element.push_back({tree_element, node});
     };
 
     // MARK: Subgraphs

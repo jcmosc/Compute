@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 
 #include "Graph/AGGraph.h"
+#include "Graph/Tree/AGTreeElement.h"
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -133,6 +134,39 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
                      void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context);
+
+// MARK: Tree
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.treeRoot(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags)
+    CF_SWIFT_NAME(AGSubgraphRef.beginTreeElement(value:type:flags:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphEndTreeElement(AGAttribute value) CF_SWIFT_NAME(AGSubgraphRef.endTreeElement(value:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner)
+    CF_SWIFT_NAME(setter:AGSubgraphRef.treeOwner(self:_:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags)
+    CF_SWIFT_NAME(AGSubgraphRef.addTreeValue(value:type:forKey:flags:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGSubgraphShouldRecordTree() CF_SWIFT_NAME(getter:AGSubgraphRef.shouldRecordTree());
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphSetShouldRecordTree() CF_SWIFT_NAME(AGSubgraphRef.setShouldRecordTree());
 
 CF_EXTERN_C_END
 

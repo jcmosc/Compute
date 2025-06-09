@@ -7,6 +7,7 @@
 #include "Closure/ClosureFunction.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
+#include "Graph/Tree/TreeElement.h"
 #include "Vector/IndirectPointerVector.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -57,6 +58,8 @@ class Subgraph : public data::zone {
     };
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
     uint32_t _traversal_seed;
+
+    Graph::TreeElementID _tree_root;
 
     AGAttributeFlags _flags;
     AGAttributeFlags _descendent_flags;
@@ -158,6 +161,19 @@ class Subgraph : public data::zone {
     static std::atomic<uint32_t> _last_traversal_seed;
 
     void apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body);
+
+    // MARK: Tree
+
+    Graph::TreeElementID tree_root() { return _tree_root; };
+
+    void begin_tree(AttributeID value, const swift::metadata *_Nullable type, uint32_t flags);
+    void end_tree();
+
+    void set_tree_owner(AttributeID owner);
+    void add_tree_value(AttributeID value, const swift::metadata *type, const char *key, uint32_t flags);
+
+    AttributeID tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index);
+    Graph::TreeElementID tree_subgraph_child(Graph::TreeElementID tree_element);
 };
 
 } // namespace AG

@@ -272,3 +272,71 @@ void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
     AG::Subgraph::from_cf(subgraph)->apply(options, AG::ClosureFunctionAV<void, unsigned int>(body, body_context));
 }
 
+#pragma mark - Tree
+
+AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return AGTreeElement();
+    }
+
+    auto tree_root = AG::Subgraph::from_cf(subgraph)->tree_root();
+    return AGTreeElement(tree_root);
+}
+
+void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+    AG::Subgraph::from_cf(subgraph)->set_tree_owner(AG::AttributeID(owner));
+}
+
+void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags) {
+    AG::Subgraph *current_subgraph = AG::Subgraph::current_subgraph();
+    if (current_subgraph == nullptr) {
+        return;
+    }
+
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    current_subgraph->add_tree_value(AG::AttributeID(value), metadata, key, flags);
+}
+
+void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags) {
+    AG::Subgraph *current_subgraph = AG::Subgraph::current_subgraph();
+    if (current_subgraph == nullptr) {
+        return;
+    }
+
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    current_subgraph->begin_tree(AG::AttributeID(value), metadata, flags);
+}
+
+void AGSubgraphEndTreeElement(AGAttribute value) {
+    AG::Subgraph *current_subgraph = AG::Subgraph::current_subgraph();
+    if (current_subgraph == nullptr) {
+        return;
+    }
+
+    current_subgraph->end_tree();
+}
+
+static dispatch_once_t should_record_tree_once = 0;
+static bool should_record_tree = true;
+
+void init_should_record_tree(void *context) {
+    char *result = getenv("AG_TREE");
+    if (result) {
+        should_record_tree = atoi(result) != 0;
+    } else {
+        should_record_tree = false;
+    }
+}
+
+bool AGSubgraphShouldRecordTree() {
+    dispatch_once_f(&should_record_tree_once, nullptr, init_should_record_tree);
+    return should_record_tree;
+}
+
+void AGSubgraphSetShouldRecordTree() {
+    dispatch_once_f(&should_record_tree_once, nullptr, init_should_record_tree);
+    should_record_tree = true;
+}

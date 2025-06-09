@@ -5,6 +5,7 @@
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
+#include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Attribute/AttributeView/AttributeView.h"
 #include "Graph/Context.h"
 #include "Trace/Trace.h"
@@ -19,6 +20,13 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
     _context_id = context.id();
 
     graph->add_subgraph(*this);
+
+    if (AGSubgraphShouldRecordTree()) {
+        if (!attribute || attribute.is_nil()) {
+            // TODO: get currently updating attribute
+        }
+        begin_tree(attribute, nullptr, 0);
+    }
 
     context.graph().foreach_trace([this](Trace &trace) { trace.created(*this); });
 }
@@ -517,4 +525,142 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
         }
     }
 }
+
+#pragma mark - Tree
+
+void Subgraph::begin_tree(AttributeID value, const swift::metadata *type, uint32_t flags) {
+    data::ptr<Graph::TreeElement> tree = alloc_bytes(sizeof(Graph::TreeElement), 7).unsafe_cast<Graph::TreeElement>();
+    tree->type = type;
+    tree->value = value;
+    tree->flags = flags;
+    tree->parent = _tree_root;
+    tree->next_sibling = Graph::TreeElementID();
+
+    auto old_root = _tree_root;
+    _tree_root = Graph::TreeElementID(tree);
+
+    if (old_root) {
+        _tree_root->next_sibling = old_root->first_child;
+        old_root->first_child = _tree_root;
+    }
+}
+
+void Subgraph::end_tree() {
+    if (_tree_root && _tree_root->parent) {
+        _tree_root = _tree_root->parent;
+    }
+}
+
+void Subgraph::set_tree_owner(AttributeID owner) {
+    if (!_tree_root) {
+        return;
+    }
+    if (_tree_root->parent) {
+        precondition_failure("setting owner of non-root tree");
+    }
+    _tree_root->value = owner;
+}
+
+void Subgraph::add_tree_value(AttributeID value, const swift::metadata *type, const char *key, uint32_t flags) {
+    if (!_tree_root) {
+        return;
+    }
+
+    auto key_id = graph()->intern_key(key);
+
+    data::ptr<Graph::TreeValue> tree_value = alloc_bytes(sizeof(Graph::TreeValue), 7).unsafe_cast<Graph::TreeValue>();
+    tree_value->type = type;
+    tree_value->value = value;
+    tree_value->key_id = key_id;
+    tree_value->flags = flags;
+    tree_value->next = _tree_root->first_value;
+
+    _tree_root->first_value = Graph::TreeValueID(tree_value);
+}
+
+AttributeID Subgraph::tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index) {
+    if (auto tree_data_element = graph()->tree_data_element_for_subgraph(this)) {
+        auto &nodes = tree_data_element->nodes();
+
+        auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
+                                      [](auto iter, auto value) { return iter.first < value; });
+
+        // Find the element that is `index` places after the first given tree element,
+        // stopping if we reach the next tree element before `index` places.
+        uint64_t i = index;
+        for (auto iter = found; iter != nodes.end(); ++iter) {
+            if (iter->first != tree_element) {
+                break;
+            }
+            if (i == 0) {
+                return AttributeID(iter->second);
+            }
+            --i;
+        }
+    }
+    return AttributeID(AGAttributeNil);
+}
+
+Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_element) {
+    auto tree_data_element = graph()->tree_data_element_for_subgraph(this);
+    if (!tree_data_element) {
+        return Graph::TreeElementID(nullptr);
+    }
+
+    auto &nodes = tree_data_element->nodes();
+    if (nodes.empty()) {
+        return Graph::TreeElementID(nullptr);
+    }
+
+    auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
+                                  [](auto iter, auto value) -> bool { return iter.first < value; });
+    if (found == nodes.end()) {
+        return;
+    }
+
+    auto subgraph_children = vector<Subgraph *, 32, uint64_t>();
+
+    for (auto subgraph : _graph->subgraphs()) {
+        if (!subgraph->is_valid()) {
+            continue;
+        }
+        if (subgraph->_tree_root == nullptr) {
+            continue;
+        }
+        AttributeID attribute = subgraph->_tree_root->value;
+        if (!attribute || attribute.is_nil()) {
+            continue;
+        }
+
+        attribute = attribute.resolve(TraversalOptions::None).attribute();
+        if (!attribute.is_node()) {
+            continue;
+        }
+
+        for (auto iter = found; iter != nodes.end(); ++iter) {
+            if (iter->first != tree_element) {
+                break;
+            }
+            if (iter->second == attribute.to_ptr<Node>()) {
+                subgraph_children.push_back(subgraph);
+                break;
+            }
+        }
+    }
+
+    std::sort(subgraph_children.begin(), subgraph_children.end());
+
+    auto first_tree_child = Graph::TreeElementID();
+
+    // Link all tree roots of child subgraphs together as siblings
+    auto old_first_tree_child = Graph::TreeElementID();
+    for (auto subgraph : subgraph_children) {
+        first_tree_child = subgraph->_tree_root;
+        first_tree_child->next_sibling = old_first_tree_child;
+        old_first_tree_child = first_tree_child;
+    }
+
+    return first_tree_child;
+}
+
 } // namespace AG

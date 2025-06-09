@@ -23,18 +23,13 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
 
     inline ~ClosureFunction() { ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(_context)); }
 
-    // Copy and move constructors
+    // Copyable
 
     ClosureFunction(const ClosureFunction &other) noexcept : _function(other._function), _context(other._context) {
         if (_context) {
             ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(_context));
         }
     };
-
-    ClosureFunction(ClosureFunction &&other) noexcept
-        : _function(std::exchange(other._function, nullptr)), _context(std::exchange(other._context, nullptr)) {};
-
-    // Copy and move assignment operators
 
     ClosureFunction &operator=(const ClosureFunction &other) noexcept {
         if (this != &other) {
@@ -49,6 +44,11 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
         }
         return *this;
     };
+
+    // Move
+
+    ClosureFunction(ClosureFunction &&other) noexcept
+        : _function(std::exchange(other._function, nullptr)), _context(std::exchange(other._context, nullptr)) {};
 
     ClosureFunction &operator=(ClosureFunction &&other) noexcept {
         if (this != &other) {
@@ -77,5 +77,9 @@ using ClosureFunctionVP = ClosureFunction<ReturnType>;
 template <typename ReturnType>
     requires std::same_as<ReturnType, void>
 using ClosureFunctionVV = ClosureFunction<ReturnType>;
+
+template <typename ReturnType, typename Arg>
+    requires std::same_as<ReturnType, void> && std::unsigned_integral<Arg>
+using ClosureFunctionAV = ClosureFunction<ReturnType, Arg>;
 
 } // namespace AG

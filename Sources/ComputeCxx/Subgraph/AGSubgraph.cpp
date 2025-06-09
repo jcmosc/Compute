@@ -239,3 +239,36 @@ bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) {
 
     return AG::Subgraph::from_cf(subgraph)->is_dirty(mask);
 }
+
+#pragma mark - Graph
+
+AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) {
+    auto subgraph = AGGraphGetAttributeSubgraph2(attribute);
+    if (subgraph == nullptr) {
+        AG::precondition_failure("no subgraph");
+    }
+
+    return subgraph;
+}
+
+AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (subgraph == nullptr) {
+        AG::precondition_failure("internal error");
+    }
+
+    return subgraph->to_cf();
+}
+
+void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
+                     void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return;
+    }
+
+    AG::Subgraph::from_cf(subgraph)->apply(options, AG::ClosureFunctionAV<void, unsigned int>(body, body_context));
+}
+

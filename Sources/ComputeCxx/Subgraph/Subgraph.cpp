@@ -447,4 +447,74 @@ void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
 
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
+
+std::atomic<uint32_t> Subgraph::_last_traversal_seed = {};
+
+void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body) {
+    if (!is_valid()) {
+        return;
+    }
+
+    AGAttributeFlags flags = options & AGAttributeFlagsMask;
+    if (!intersects(flags)) {
+        return;
+    }
+
+    // Defer subgraph invalidation until the end of this method's scope
+    auto without_invalidating = Graph::without_invalidating(graph());
+    _last_traversal_seed += 1;
+
+    auto subgraphs = std::stack<Subgraph *, vector<Subgraph *, 32, uint64_t>>();
+    subgraphs.push(this);
+    _traversal_seed = _last_traversal_seed;
+
+    while (!subgraphs.empty()) {
+        auto subgraph = subgraphs.top();
+        subgraphs.pop();
+
+        if (!subgraph->is_valid()) {
+            continue;
+        }
+
+        if ((options >> 0x18) & 0x1 || subgraph->context_id() == _context_id) {
+            if (!options || (subgraph->_flags & flags)) {
+                for (auto page : subgraph->pages()) {
+                    for (auto attribute : attribute_view(page)) {
+                        if (!attribute) { // TODO: nil or null
+                            break;
+                        }
+                        if (attribute.is_node()) {
+                            if (options) {
+                                if (attribute.to_node().subgraph_flags() == AGAttributeFlagsDefault) {
+                                    // we know this attribute is sorted after all nodes with flags
+                                    // so we aren't going to match any more attributes after this
+                                    break;
+                                }
+                                if (!(attribute.to_node().subgraph_flags() & flags)) {
+                                    continue;
+                                }
+                            }
+
+                            body(attribute);
+                        } else if (attribute.is_indirect_node()) {
+                            if (options) {
+                                // we know this attribute is sorted after all nodes with flags
+                                // so we aren't going to match any more attributes after this
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (auto child : subgraph->children()) {
+                if (child.subgraph()->intersects(flags) && child.subgraph()->_traversal_seed != _last_traversal_seed) {
+
+                    subgraphs.push(child.subgraph());
+                    child.subgraph()->_traversal_seed = _last_traversal_seed;
+                }
+            }
+        }
+    }
+}
 } // namespace AG

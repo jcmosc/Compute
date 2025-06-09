@@ -119,6 +119,21 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) CF_SWIFT_NAME(AGSubgraphRef.isDirty(self:mask:));
 
+// MARK: Attributes
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.subgraph(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
+                     void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context);
+
 CF_EXTERN_C_END
 
 CF_IMPLICIT_BRIDGING_DISABLED

@@ -19,6 +19,8 @@ typedef CF_OPTIONS(uint8_t, AGAttributeFlags) {
     AGAttributeFlagsActive = 1 << 0,
     AGAttributeFlagsRemovable = 1 << 1,
     AGAttributeFlagsInvalidatable = 1 << 2,
+    
+    AGAttributeFlagsMask = 0xFF,
 };
 
 CF_EXTERN_C_END

@@ -56,6 +56,7 @@ class Subgraph : public data::zone {
         uint64_t observer_id;
     };
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
+    uint32_t _traversal_seed;
 
     AGAttributeFlags _flags;
     AGAttributeFlags _descendent_flags;
@@ -153,6 +154,10 @@ class Subgraph : public data::zone {
 
     void add_node(data::ptr<Node> node);
     void add_indirect(data::ptr<IndirectNode> node, bool updatable);
+
+    static std::atomic<uint32_t> _last_traversal_seed;
+
+    void apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body);
 };
 
 } // namespace AG

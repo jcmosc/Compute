@@ -56,6 +56,16 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphInvalidate(AGSubgraphRef subgraph) CF_SWIFT_NAME(AGSubgraphRef.invalidate(self:));
 
+// MARK: Index
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGSubgraphGetIndex(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.index(self:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) CF_SWIFT_NAME(setter:AGSubgraphRef.index(self:_:));
+
 // MARK: Observers
 
 CF_EXPORT

@@ -58,6 +58,7 @@ class Subgraph : public data::zone {
     };
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
     uint32_t _traversal_seed;
+    uint32_t _index;
 
     Graph::TreeElementID _tree_root;
 
@@ -100,6 +101,11 @@ class Subgraph : public data::zone {
     static void make_current_subgraph_key();
     static Subgraph *_Nullable current_subgraph();
     static void set_current_subgraph(Subgraph *_Nullable subgraph);
+
+    // MARK: Index
+
+    uint32_t index() const { return _index; };
+    void set_index(uint32_t index) { _index = index; };
 
     // MARK: Observers
 

@@ -123,6 +123,24 @@ void AGSubgraphInvalidate(AGSubgraphRef subgraph) {
     AG::Subgraph::from_cf(subgraph)->invalidate_and_delete_(false);
 }
 
+#pragma mark - Index
+
+uint32_t AGSubgraphGetIndex(AGSubgraphRef subgraph) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+
+    return AG::Subgraph::from_cf(subgraph)->index();
+}
+
+void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        AG::precondition_failure("accessing invalidated subgraph");
+    }
+
+    AG::Subgraph::from_cf(subgraph)->set_index(index);
+}
+
 #pragma mark - Observers
 
 uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,

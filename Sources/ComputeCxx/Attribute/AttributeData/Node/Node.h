@@ -54,6 +54,14 @@ class Node {
   public:
     Node(uint32_t type_id, bool main_thread)
         : _type_id(type_id), _main_thread(main_thread), _main_thread_only(main_thread) {};
+    
+    // Non-copyable
+    Node(const Node &) = delete;
+    Node &operator=(const Node &) = delete;
+    
+    // Non-movabe
+    Node(Node &&) = delete;
+    Node &operator=(Node &&) = delete;
 
     bool is_dirty() const { return _dirty; }
     void set_dirty(bool value) { _dirty = value; }

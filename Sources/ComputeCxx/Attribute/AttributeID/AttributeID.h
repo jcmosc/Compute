@@ -19,6 +19,7 @@ class Node;
 class IndirectNode;
 class MutableIndirectNode;
 class OffsetAttributeID;
+class RelativeAttributeID;
 
 enum TraversalOptions : uint32_t {
     None = 0,
@@ -49,6 +50,8 @@ inline TraversalOptions operator|(TraversalOptions lhs, TraversalOptions rhs) { 
 
 class AttributeID {
   public:
+    friend RelativeAttributeID;
+
     enum Kind : uint32_t {
         Node = 0,
         IndirectNode = 1 << 0,
@@ -59,6 +62,9 @@ class AttributeID {
     uint32_t _value;
 
     OffsetAttributeID resolve_slow(TraversalOptions options) const;
+
+    Kind kind() const { return Kind(_value & KindMask); };
+    AttributeID with_kind(Kind kind) const { return AttributeID((_value & ~KindMask) | kind); };
 
   public:
     static constexpr uint32_t KindMask = 0x3;
@@ -73,9 +79,6 @@ class AttributeID {
     operator AGAttribute() const { return _value; }
     explicit constexpr AttributeID(AGAttribute storage) : _value(storage) {}
 
-    Kind kind() const { return Kind(_value & KindMask); };
-    AttributeID with_kind(Kind kind) const { return AttributeID((_value & ~KindMask) | kind); };
-
     // MARK: Operators
 
     bool operator==(const AttributeID &other) const { return _value == other._value; }
@@ -84,23 +87,8 @@ class AttributeID {
     bool operator<(const AttributeID &other) const { return _value < other._value; }
 
     explicit operator bool() const { return _value != 0; }
-    //    bool has_value() const { return (_value & ~KindMask) != 0; }
 
     // MARK: Accessing zone data
-
-    template <typename T> data::ptr<T> to_ptr() const { return data::ptr<T>(_value & ~KindMask); }
-    template <> data::ptr<class Node> to_ptr() const {
-        assert(is_node());
-        return data::ptr<class Node>(_value & ~KindMask);
-    }
-    template <> data::ptr<class IndirectNode> to_ptr() const {
-        assert(is_indirect_node());
-        return data::ptr<class IndirectNode>(_value & ~KindMask);
-    }
-    template <> data::ptr<class MutableIndirectNode> to_ptr() const {
-        assert(is_indirect_node());
-        return data::ptr<class MutableIndirectNode>(_value & ~KindMask);
-    }
 
     data::page &page() const {
         assert(_value);
@@ -119,9 +107,21 @@ class AttributeID {
     bool is_indirect_node() const { return kind() == Kind::IndirectNode; };
     bool is_nil() const { return kind() == Kind::NilAttribute; };
 
-    class Node &to_node() const { return *to_ptr<class Node>(); };
-    class IndirectNode &to_indirect_node() const { return *to_ptr<class IndirectNode>(); };
+    data::ptr<class Node> get_node() const {
+        if (!is_node()) {
+            return nullptr;
+        }
+        return data::ptr<class Node>(_value & ~KindMask);
+    };
 
+    data::ptr<class IndirectNode> get_indirect_node() const {
+        if (!is_indirect_node()) {
+            return nullptr;
+        }
+        return data::ptr<class IndirectNode>(_value & ~KindMask);
+    };
+
+    bool has_subgraph_flags() const;
     Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page().zone); }
 
     // MARK: Graph traversal

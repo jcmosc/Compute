@@ -227,7 +227,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
     }
 
     bool main_thread = type.flags() & AGAttributeTypeFlagsMainThread;
-    *node_ptr = Node(type_id, main_thread);
+    new (node_ptr.get()) Node(type_id, main_thread);
     node_ptr->set_main_ref(true);
 
     if (type_id >= 0x100000) {
@@ -296,40 +296,44 @@ void Graph::update_main_refs(AttributeID attribute) {
             return;
         }
 
-        if (attribute.is_node()) {
-            auto &node = attribute.to_node();
+        if (auto node = attribute.get_node()) {
             auto &type =
-                this->attribute_type(node.type_id()); // TODO: should AttributeType have deleted copy constructor?
+                this->attribute_type(node->type_id()); // TODO: should AttributeType have deleted copy constructor?
 
             bool main_ref = false;
             if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsAsyncThread) {
                 main_ref = false;
             } else {
-                if (node.is_main_thread_only()) {
+                if (node->is_main_thread_only()) {
                     main_ref = true;
                 } else {
-                    main_ref =
-                        std::any_of(node.input_edges().begin(), node.input_edges().end(), [](auto input_edge) -> bool {
+                    main_ref = std::any_of(
+                        node->input_edges().begin(), node->input_edges().end(), [](auto input_edge) -> bool {
                             auto resolved = input_edge.attribute.resolve(TraversalOptions::EvaluateWeakReferences);
-                            if (resolved.attribute().is_node() && resolved.attribute().to_node().is_main_ref()) {
-                                return true;
+                            if (auto resolved_node = resolved.attribute().get_node()) {
+                                if (resolved_node->is_main_ref()) {
+                                    return true;
+                                }
                             }
+                            return false;
                         });
                 }
             }
-            if (node.is_main_ref() != main_ref) {
-                node.set_main_ref(main_ref);
+            if (node->is_main_ref() != main_ref) {
+                node->set_main_ref(main_ref);
                 output_edge_arrays.push_back({
-                    &node.output_edges().front(),
-                    node.output_edges().size(),
+                    &node->output_edges().front(),
+                    node->output_edges().size(),
                 });
             }
-        } else if (attribute.is_indirect_node() && attribute.to_indirect_node().is_mutable()) {
-            MutableIndirectNode &indirect_node = attribute.to_indirect_node().to_mutable();
-            output_edge_arrays.push_back({
-                &indirect_node.output_edges().front(),
-                indirect_node.output_edges().size(),
-            });
+        } else if (auto indirect_node = attribute.get_indirect_node()) {
+            if (indirect_node->is_mutable()) {
+                MutableIndirectNode &mutable_indirect_node = indirect_node->to_mutable();
+                output_edge_arrays.push_back({
+                    &mutable_indirect_node.output_edges().front(),
+                    mutable_indirect_node.output_edges().size(),
+                });
+            }
         }
     };
 

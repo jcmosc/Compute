@@ -28,6 +28,14 @@ class IndirectNode {
     RelativeAttributeID _next_attribute;
 
   public:
+    // Non-copyable
+    IndirectNode(const IndirectNode &) = delete;
+    IndirectNode &operator=(const IndirectNode &) = delete;
+
+    // Non-movabe
+    IndirectNode(IndirectNode &&) = delete;
+    IndirectNode &operator=(IndirectNode &&) = delete;
+
     const WeakAttributeID &source() const { return _source; };
 
     bool is_mutable() const { return _mutable; };

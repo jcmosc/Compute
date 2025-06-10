@@ -376,9 +376,9 @@ void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
 
     // sort attributes with flags before indirect attributes or attributes without flags
     // the attribute will only be non-updatable if it is a non-mutable indirect node that does not traverse subgraphs
-    if (updatable && (!attribute.is_node() || attribute.to_node().subgraph_flags() == AGAttributeFlagsDefault)) {
+    if (updatable && !attribute.has_subgraph_flags()) {
         for (auto other : attribute_view(attribute.page_ptr())) {
-            if (!other.is_node() || other.to_node().subgraph_flags() == AGAttributeFlagsDefault) {
+            if (!other.has_subgraph_flags()) {
                 break;
             }
             previous_attribute = other;
@@ -386,12 +386,12 @@ void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
     }
 
     RelativeAttributeID next_attribute;
-    if (previous_attribute.is_node()) {
-        next_attribute = previous_attribute.to_node().next_attribute();
-        previous_attribute.to_node().set_next_attribute(RelativeAttributeID(attribute));
-    } else if (previous_attribute.is_indirect_node()) {
-        next_attribute = previous_attribute.to_indirect_node().next_attribute();
-        previous_attribute.to_indirect_node().set_next_attribute(RelativeAttributeID(attribute));
+    if (auto previous_node = previous_attribute.get_node()) {
+        next_attribute = previous_node->next_attribute();
+        previous_node->set_next_attribute(RelativeAttributeID(attribute));
+    } else if (auto previous_indirect_node = previous_attribute.get_indirect_node()) {
+        next_attribute = previous_indirect_node->next_attribute();
+        previous_indirect_node->set_next_attribute(RelativeAttributeID(attribute));
     } else {
         if (updatable) {
             next_attribute = RelativeAttributeID(attribute.page_ptr()->bytes_list);
@@ -402,10 +402,10 @@ void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
         }
     }
 
-    if (attribute.is_node()) {
-        attribute.to_node().set_next_attribute(next_attribute);
-    } else if (attribute.is_indirect_node()) {
-        attribute.to_indirect_node().set_next_attribute(next_attribute);
+    if (auto node = attribute.get_node()) {
+        node->set_next_attribute(next_attribute);
+    } else if (auto indirect_node = attribute.get_indirect_node()) {
+        indirect_node->set_next_attribute(next_attribute);
     }
 }
 
@@ -422,18 +422,18 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
     }
 
     RelativeAttributeID next_attribute = RelativeAttributeID(nullptr);
-    if (attribute.is_node()) {
-        next_attribute = attribute.to_node().next_attribute();
-        attribute.to_node().set_next_attribute(RelativeAttributeID(nullptr));
-    } else if (attribute.is_indirect_node()) {
-        next_attribute = attribute.to_indirect_node().next_attribute();
-        attribute.to_indirect_node().set_next_attribute(RelativeAttributeID(nullptr));
+    if (auto node = attribute.get_node()) {
+        next_attribute = node->next_attribute();
+        node->set_next_attribute(RelativeAttributeID(nullptr));
+    } else if (auto indirect_node = attribute.get_indirect_node()) {
+        next_attribute = indirect_node->next_attribute();
+        indirect_node->set_next_attribute(RelativeAttributeID(nullptr));
     }
 
-    if (previous_attribute.is_node()) {
-        previous_attribute.to_node().set_next_attribute(next_attribute);
-    } else if (previous_attribute.is_indirect_node()) {
-        previous_attribute.to_indirect_node().set_next_attribute(next_attribute);
+    if (auto previous_node = previous_attribute.get_node()) {
+        previous_node->set_next_attribute(next_attribute);
+    } else if (auto previous_indirect_node = previous_attribute.get_indirect_node()) {
+        previous_indirect_node->set_next_attribute(next_attribute);
     } else {
         attribute.page_ptr()->bytes_list = next_attribute;
     }
@@ -491,14 +491,14 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
                         if (!attribute) { // TODO: nil or null
                             break;
                         }
-                        if (attribute.is_node()) {
+                        if (auto node = attribute.get_node()) {
                             if (options) {
-                                if (attribute.to_node().subgraph_flags() == AGAttributeFlagsDefault) {
+                                if (node->subgraph_flags() == AGAttributeFlagsDefault) {
                                     // we know this attribute is sorted after all nodes with flags
                                     // so we aren't going to match any more attributes after this
                                     break;
                                 }
-                                if (!(attribute.to_node().subgraph_flags() & flags)) {
+                                if (!(node->subgraph_flags() & flags)) {
                                     continue;
                                 }
                             }
@@ -633,17 +633,15 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
         }
 
         attribute = attribute.resolve(TraversalOptions::None).attribute();
-        if (!attribute.is_node()) {
-            continue;
-        }
-
-        for (auto iter = found; iter != nodes.end(); ++iter) {
-            if (iter->first != tree_element) {
-                break;
-            }
-            if (iter->second == attribute.to_ptr<Node>()) {
-                subgraph_children.push_back(subgraph);
-                break;
+        if (auto node = attribute.get_node()) {
+            for (auto iter = found; iter != nodes.end(); ++iter) {
+                if (iter->first != tree_element) {
+                    break;
+                }
+                if (iter->second == node) {
+                    subgraph_children.push_back(subgraph);
+                    break;
+                }
             }
         }
     }

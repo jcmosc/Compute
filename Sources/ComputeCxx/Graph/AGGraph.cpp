@@ -165,9 +165,9 @@ void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) {
         AG::precondition_failure("no graph: %u", attribute);
     }
 
-    if (attribute_id.is_node()) {
+    if (auto node = attribute_id.get_node()) {
         auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-        auto attribute_type = subgraph->graph()->attribute_type(attribute_id.to_node().type_id());
+        auto attribute_type = subgraph->graph()->attribute_type(node->type_id());
         if (&attribute_type.value_metadata() != metadata) {
             AG::precondition_failure("type check failed: %u, expected %s, got %s", attribute, metadata->name(false),
                                      attribute_type.value_metadata().name(false));
@@ -202,37 +202,38 @@ AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
 
 AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (!attribute_id.is_node()) {
-        AG::precondition_failure("non-direct attribute id: %u", attribute);
-    }
-    attribute_id.validate_data_offset();
+    if (auto node = attribute_id.get_node()) {
+        node.assert_valid();
 
-    auto subgraph = attribute_id.subgraph();
-    if (!subgraph) {
-        AG::precondition_failure("no graph: %u", attribute);
+        auto subgraph = attribute_id.subgraph();
+        if (!subgraph) {
+            AG::precondition_failure("no graph: %u", attribute);
+        }
+
+        const void *body = nullptr;
+        const AG::AttributeType &type = subgraph->graph()->attribute_ref(node, &body);
+        return AGAttributeInfo(reinterpret_cast<const AGAttributeType *>(&type), body);
     }
 
-    const void *body = nullptr;
-    const AG::AttributeType &type = subgraph->graph()->attribute_ref(attribute_id.to_ptr<AG::Node>(), &body);
-    return AGAttributeInfo(reinterpret_cast<const AGAttributeType *>(&type), body);
+    AG::precondition_failure("non-direct attribute id: %u", attribute);
 }
 
 AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (!attribute_id.is_node()) {
-        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    if (auto node = attribute_id.get_node()) {
+        return node->subgraph_flags();
     }
 
-    return attribute_id.to_node().subgraph_flags();
+    AG::precondition_failure("non-direct attribute id: %u", attribute);
 }
 
 void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (!attribute_id.is_node()) {
-        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    if (auto node = attribute_id.get_node()) {
+        attribute_id.subgraph()->set_flags(node, flags);
     }
 
-    attribute_id.subgraph()->set_flags(attribute_id.to_ptr<AG::Node>(), flags);
+    AG::precondition_failure("non-direct attribute id: %u", attribute);
 }
 
 #pragma mark - Trace

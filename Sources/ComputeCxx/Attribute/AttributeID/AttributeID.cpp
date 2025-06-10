@@ -11,33 +11,35 @@
 
 namespace AG {
 
+bool AttributeID::has_subgraph_flags() const {
+    if (auto node = get_node()) {
+        return node->subgraph_flags() != AGAttributeFlagsDefault;
+    }
+    return false;
+}
+
 std::optional<size_t> AttributeID::size() const {
-    if (is_node()) {
-        const AttributeType &attribute_type = subgraph()->graph()->attribute_type(to_node().type_id());
+    if (auto node = get_node()) {
+        const AttributeType &attribute_type = subgraph()->graph()->attribute_type(node->type_id());
         size_t size = attribute_type.value_metadata().vw_size();
         return std::optional<size_t>(size);
     }
-    if (is_indirect_node()) {
-        return to_indirect_node().size();
+    if (auto indirect_node = get_indirect_node()) {
+        return indirect_node->size();
     }
     return std::optional<size_t>();
 }
 
 bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
-    if (!is_indirect_node()) {
-        return *this == other;
+    if (auto indirect_node = get_indirect_node()) {
+        if (AttributeID(indirect_node) == other) {
+            return true;
+        }
+        if (!(options & TraversalOptions::SkipMutableReference) || !indirect_node->is_mutable()) {
+            return indirect_node->source().attribute().traverses(other, options);
+        }
     }
-
-    if (with_kind(Kind::IndirectNode) == other) {
-        return true;
-    }
-
-    auto indirect_node = to_indirect_node();
-    if (options & TraversalOptions::SkipMutableReference && indirect_node.is_mutable()) {
-        return *this == other;
-    }
-
-    return indirect_node.source().attribute().traverses(other, options);
+    return *this == other;
 }
 
 OffsetAttributeID AttributeID::resolve(TraversalOptions options) const {
@@ -50,20 +52,18 @@ OffsetAttributeID AttributeID::resolve(TraversalOptions options) const {
 OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
     AttributeID result = *this;
     uint32_t offset = 0;
-    while (result.is_indirect_node()) {
+    while (auto indirect_node = result.get_indirect_node()) {
         if (offset == 0 && options & TraversalOptions::ReportIndirectionInOffset) {
             offset = 1;
         }
 
-        auto indirect_node = to_indirect_node();
-
-        if (indirect_node.is_mutable()) {
+        if (indirect_node->is_mutable()) {
             if (options & TraversalOptions::SkipMutableReference) {
                 return OffsetAttributeID(result, offset);
             }
 
             if (options & TraversalOptions::UpdateDependencies) {
-                AttributeID dependency = indirect_node.to_mutable().dependency();
+                AttributeID dependency = indirect_node->to_mutable().dependency();
                 if (dependency) {
                     auto subgraph = dependency.subgraph();
                     if (subgraph) {
@@ -74,7 +74,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
         }
 
         if (options && TraversalOptions::EvaluateWeakReferences) {
-            if (indirect_node.source().expired()) {
+            if (indirect_node->source().expired()) {
                 if (options & TraversalOptions::AssertNotNil) {
                     precondition_failure("invalid indirect ref: %u", _value);
                 }
@@ -82,8 +82,8 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
             }
         }
 
-        offset += indirect_node.offset();
-        result = indirect_node.source().attribute();
+        offset += indirect_node->offset();
+        result = indirect_node->source().attribute();
     }
 
     if (options & TraversalOptions::AssertNotNil && !is_node()) {

@@ -26,10 +26,10 @@ class attribute_iterator {
         assert(_page);
 
         AttributeID attribute_id = _next.resolve(_page);
-        if (attribute_id.is_node()) {
-            _next = attribute_id.to_node().next_attribute();
-        } else if (attribute_id.is_indirect_node()) {
-            _next = attribute_id.to_indirect_node().next_attribute();
+        if (auto node = attribute_id.get_node()) {
+            _next = node->next_attribute();
+        } else if (auto indirect_node = attribute_id.get_indirect_node()) {
+            _next = indirect_node->next_attribute();
         } else {
             _next = RelativeAttributeID(nullptr); // end
         }

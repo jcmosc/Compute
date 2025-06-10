@@ -1,19 +1,16 @@
 #pragma once
 
+#include "Attribute/AttributeData/Edge/AGInputOptions.h"
 #include "Attribute/AttributeID/AttributeID.h"
 
 namespace AG {
 
 struct InputEdge {
-    enum class Flags : uint8_t {
-
-    };
-
     AttributeID attribute;
-    Flags flags;
+    AGInputOptions options;
 
     bool operator<(const InputEdge &other) const noexcept {
-        return attribute != other.attribute ? attribute < other.attribute : flags < other.flags;
+        return attribute != other.attribute ? attribute < other.attribute : options < other.options;
     }
 };
 

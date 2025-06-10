@@ -69,7 +69,7 @@ template <typename T> class vector {
     reference operator[](size_type pos) { return data()[pos]; };
     const_reference operator[](size_type pos) const { return data()[pos]; };
 
-    reference front() { return &data()[0]; };
+    reference front() { return *&data()[0]; };
     const_reference front() const { return *&data()[0]; };
     reference back() { return *&data()[_metadata.size - 1]; };
     const_reference back() const { return *&data()[_metadata.size - 1]; };

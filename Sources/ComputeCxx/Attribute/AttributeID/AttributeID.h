@@ -69,7 +69,7 @@ class AttributeID {
   public:
     static constexpr uint32_t KindMask = 0x3;
 
-    explicit constexpr AttributeID() : _value(0) {};
+    explicit constexpr AttributeID(nullptr_t) : _value(0) {};
     explicit AttributeID(data::ptr<class Node> node) : _value(node.offset() | Kind::Node) {};
     explicit AttributeID(data::ptr<class IndirectNode> indirect_node)
         : _value(indirect_node.offset() | Kind::IndirectNode) {};
@@ -91,7 +91,7 @@ class AttributeID {
     // MARK: Accessing zone data
 
     data::page &page() const {
-        assert(_value);
+        assert(_value > KindMask);
         return *data::ptr<void>(_value).page_ptr();
     };
 

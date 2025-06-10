@@ -68,7 +68,7 @@ class MutableIndirectNode : public IndirectNode {
     WeakAttributeID initial_source() { return _initial_source; };
     uint32_t initial_offset() { return _initial_offset; };
 
-    const data::vector<OutputEdge> &output_edges() const { return _output_edges; };
+    data::vector<OutputEdge> &output_edges() { return _output_edges; };
 };
 
 } // namespace AG

@@ -70,7 +70,7 @@ void Node::allocate_value(Graph &graph, data::zone &zone) {
         }
     }
 
-    graph.did_allocate_node_value(size);
+    graph.did_allocate_value(size);
 }
 
 void Node::destroy_value(Graph &graph) {
@@ -93,7 +93,7 @@ void Node::destroy(Graph &graph) {
         type.value_metadata().vw_destroy(static_cast<swift::opaque_value *>(value));
     }
     if (_value) {
-        graph.did_destroy_node_value(type.value_metadata().vw_size());
+        graph.did_destroy_value(type.value_metadata().vw_size());
     }
 
     if (_self_initialized) {

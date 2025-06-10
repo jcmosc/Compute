@@ -120,6 +120,9 @@ class Subgraph : public data::zone {
         return _invalidation_state >= InvalidationState::Deferred &&
                _invalidation_state <= InvalidationState::GraphDestroyed;
     }
+    bool is_invalidated() const {
+        return _invalidation_state == InvalidationState::Completed;
+    }
     void invalidate_and_delete_(bool delete_zone_data);
     void invalidate_deferred(Graph &graph);
     void invalidate_now(Graph &graph);

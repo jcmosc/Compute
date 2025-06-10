@@ -202,38 +202,64 @@ AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) {
 
 AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (auto node = attribute_id.get_node()) {
-        node.assert_valid();
-
-        auto subgraph = attribute_id.subgraph();
-        if (!subgraph) {
-            AG::precondition_failure("no graph: %u", attribute);
-        }
-
-        const void *body = nullptr;
-        const AG::AttributeType &type = subgraph->graph()->attribute_ref(node, &body);
-        return AGAttributeInfo(reinterpret_cast<const AGAttributeType *>(&type), body);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
 
-    AG::precondition_failure("non-direct attribute id: %u", attribute);
+    node.assert_valid();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    const void *body = nullptr;
+    const AG::AttributeType &type = subgraph->graph()->attribute_ref(node, &body);
+    return AGAttributeInfo(reinterpret_cast<const AGAttributeType *>(&type), body);
 }
 
 AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (auto node = attribute_id.get_node()) {
-        return node->subgraph_flags();
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
 
-    AG::precondition_failure("non-direct attribute id: %u", attribute);
+    return node->subgraph_flags();
 }
 
 void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (auto node = attribute_id.get_node()) {
-        attribute_id.subgraph()->set_flags(node, flags);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
 
-    AG::precondition_failure("non-direct attribute id: %u", attribute);
+    attribute_id.subgraph()->set_flags(node, flags);
+}
+
+uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    node.assert_valid();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    auto input_attribute_id = AG::AttributeID(input);
+    input_attribute_id.validate_data_offset();
+
+    if (input_attribute_id.subgraph() != nullptr && input_attribute_id.subgraph()->graph() != subgraph->graph()) {
+        AG::precondition_failure("accessing attribute in a different namespace: %u", input);
+    }
+
+    return subgraph->graph()->add_input(node, input_attribute_id, false, options);
 }
 
 #pragma mark - Trace

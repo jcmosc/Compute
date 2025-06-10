@@ -85,6 +85,7 @@ class Graph {
     uint64_t _num_nodes_total = 0;
     uint64_t _num_subgraphs = 0;
     uint64_t _num_subgraphs_total = 0;
+    uint64_t _num_value_bytes = 0;
 
     // Trace recorder
     TraceRecorder *_trace_recorder;
@@ -106,6 +107,28 @@ class Graph {
     static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
     static bool all_try_lock() { return os_unfair_lock_trylock(&_all_graphs_lock); };
     static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
+
+    // Attributes utility methods
+
+    void remove_removed_input(AttributeID attribute, AttributeID input);
+    bool remove_removed_output(AttributeID attribute, AttributeID output, bool option);
+
+    void remove_input(data::ptr<Node> node, uint32_t index);
+    void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index);
+    void remove_all_inputs(data::ptr<Node> node);
+    void all_inputs_removed(data::ptr<Node> node);
+
+    template <typename T> void add_output_edge(data::ptr<T> node, AttributeID output);
+    template <> void add_output_edge<Node>(data::ptr<Node> node, AttributeID output);
+    template <> void add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
+
+    template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
+    template <> void remove_output_edge<Node>(data::ptr<Node> node, AttributeID output);
+    template <> void remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
+
+    void add_input_dependencies(AttributeID attribute, AttributeID input);
+    void remove_input_dependencies(AttributeID attribute, AttributeID input);
+    void update_main_refs(AttributeID attribute);
 
   public:
     Graph();
@@ -209,17 +232,21 @@ class Graph {
     // MARK: Attributes
 
     data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *_Nullable value);
-    void update_main_refs(AttributeID attribute);
+    void remove_node(data::ptr<Node> node);
 
-    void did_allocate_node_value(size_t size);
-    void did_destroy_node_value(size_t size);
-
-    void update_attribute(AttributeID attribute, bool option);
+    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
 
     // MARK: Value
 
-    bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value,
-                            const swift::metadata &metadata);
+    bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
+
+    void did_allocate_value(size_t size) { _num_value_bytes += size; };
+    void did_destroy_value(size_t size) { _num_value_bytes -= size; };
+
+    // MARK: Update
+
+    void update_attribute(AttributeID attribute, bool option);
+    void reset_update(data::ptr<Node> node);
 
     // MARK: Trace
 

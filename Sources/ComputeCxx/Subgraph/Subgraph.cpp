@@ -410,7 +410,7 @@ void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
 }
 
 void Subgraph::unlink_attribute(AttributeID attribute) {
-    AttributeID previous_attribute;
+    AttributeID previous_attribute = AttributeID(nullptr);
     for (auto other : attribute_view(attribute.page_ptr())) {
         if (!other || other.is_nil()) {
             break;

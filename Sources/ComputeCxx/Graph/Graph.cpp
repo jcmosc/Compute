@@ -184,14 +184,6 @@ uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<c
 
 #pragma mark - Attributes
 
-void Graph::did_allocate_node_value(size_t size) {
-    // TODO: Not implemented
-}
-
-void Graph::did_destroy_node_value(size_t size) {
-    // TODO: Not implemented
-}
-
 data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *value) {
     const AttributeType &type = attribute_type(type_id);
 
@@ -280,8 +272,230 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
     return node_ptr;
 }
 
-void Graph::update_attribute(AttributeID attribute, bool option) {
-    // TODO: Not implemented
+void Graph::remove_node(data::ptr<Node> node) {
+    if (node->is_updating()) {
+        precondition_failure("deleting updating attribute: %u\n", node);
+    }
+
+    for (auto input_edge : node->input_edges()) {
+        this->remove_removed_input(AttributeID(node), input_edge.attribute);
+    }
+    for (auto output_edge : node->output_edges()) {
+        this->remove_removed_output(AttributeID(node), output_edge.attribute, false);
+    }
+
+    //    if (_profile_data != nullptr) {
+    //        _profile_data->remove_node(node, node->type_id());
+    //    }
+}
+
+void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
+    auto resolved_input =
+        input.resolve(TraversalOptions::SkipMutableReference | TraversalOptions::EvaluateWeakReferences).attribute();
+    if (auto input_node = resolved_input.get_node()) {
+        if (!resolved_input.subgraph()->is_invalidated()) {
+            remove_output_edge(input_node, attribute);
+        }
+    } else if (auto input_indirect_node = resolved_input.get_indirect_node()) {
+        if (!resolved_input.subgraph()->is_invalidated()) {
+            if (input_indirect_node->is_mutable()) {
+                remove_output_edge(input_indirect_node, attribute);
+            }
+        }
+    }
+}
+
+bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, bool option) {
+    if (output.subgraph()->is_invalidated()) {
+        return false;
+    }
+
+    if (auto output_node = output.get_node()) {
+        uint32_t index = 0;
+        for (auto input_edge : output_node->input_edges()) {
+            if (input_edge.attribute.traverses(attribute, TraversalOptions::SkipMutableReference)) {
+                remove_input_edge(output_node, *output_node.get(), index);
+                return true;
+            }
+            index += 1;
+        }
+        return false;
+    }
+
+    if (auto output_indirect_node = output.get_indirect_node()) {
+        if (output_indirect_node->source().attribute() != attribute) {
+
+            // clear dependency
+            assert(output_indirect_node->is_mutable());
+            auto dependency = output_indirect_node->to_mutable().dependency();
+            if (dependency && dependency == attribute) {
+                foreach_trace([&output_indirect_node](Trace &trace) {
+                    trace.set_dependency(output_indirect_node, AttributeID(AGAttributeNil));
+                });
+                output_indirect_node->to_mutable().set_dependency(AttributeID(nullptr));
+                return true;
+            }
+
+            return false;
+        }
+
+        // reset source
+        WeakAttributeID new_source = {AttributeID(AGAttributeNil), 0};
+        uint32_t new_offset = 0;
+        if (output_indirect_node->is_mutable()) {
+            auto &mutable_output_indirect_node = output_indirect_node->to_mutable();
+            auto initial_source = mutable_output_indirect_node.initial_source();
+            if (initial_source.attribute() && !initial_source.attribute().is_nil() && !initial_source.expired()) {
+                new_source = initial_source;
+                new_offset = mutable_output_indirect_node.initial_offset();
+            }
+        }
+
+        foreach_trace([&output_indirect_node, &new_source](Trace &trace) {
+            trace.set_source(output_indirect_node, new_source.attribute());
+        });
+
+        output_indirect_node->modify(new_source, new_offset);
+
+        if (new_source.attribute() && !new_source.attribute().is_nil() && !new_source.expired()) {
+            add_input_dependencies(output, new_source.attribute());
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options) {
+    auto resolved_input = input.resolve(TraversalOptions::EvaluateWeakReferences).attribute();
+    if (!resolved_input || resolved_input.is_nil()) {
+        if (allow_nil) {
+            return UINT32_MAX;
+        }
+        precondition_failure("reading from invalid source attribute: %u", input);
+    }
+    if (resolved_input == AttributeID(node)) {
+        precondition_failure("cyclic edge: %u -> %u", resolved_input, node);
+    }
+
+    foreach_trace([&node, &resolved_input, &options](Trace &trace) { trace.add_edge(node, resolved_input, options); });
+
+    auto subgraph = AttributeID(node).subgraph();
+    auto context_id = subgraph ? subgraph->context_id() : 0;
+
+    auto input_subgraph = resolved_input.subgraph();
+    auto input_context_id = input_subgraph ? input_subgraph->context_id() : 0;
+
+    if (context_id != input_context_id) {
+        node->set_input_edges_traverse_contexts(true);
+    }
+
+    InputEdge new_input_edge = {
+        resolved_input,
+        static_cast<AGInputOptions>(AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled |
+                                    (node->is_dirty() ? AGInputOptionsChanged : AGInputOptionsNone)),
+    };
+
+    uint32_t index = -1;
+    if (node->needs_sort_input_edges()) {
+        node->add_input_edge(subgraph, new_input_edge);
+        index = node->input_edges().size() - 1;
+    } else {
+        auto pos = std::lower_bound(node->input_edges().begin(), node->input_edges().end(), new_input_edge);
+        node->input_edges().insert(subgraph, pos, new_input_edge);
+        index = (uint32_t)(pos - node->input_edges().begin());
+    }
+
+    add_input_dependencies(AttributeID(node), resolved_input);
+
+    if (node->is_updating()) {
+        reset_update(node);
+    }
+    if (node->is_dirty()) {
+        foreach_trace([&node, &index](Trace &trace) { trace.set_edge_pending(node, index, true); });
+    }
+
+    return index;
+}
+
+void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
+    remove_input_dependencies(AttributeID(node), node->input_edges()[index].attribute);
+    remove_input_edge(node, *node.get(), index);
+}
+
+void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index) {
+    foreach_trace([&node_ptr, &index](Trace &trace) { trace.remove_edge(node_ptr, index); });
+
+    node.input_edges().erase(node.input_edges().begin() + index);
+    if (node.input_edges().size() == 0) {
+        all_inputs_removed(node_ptr);
+    }
+    reset_update(node_ptr);
+}
+
+void Graph::remove_all_inputs(data::ptr<Node> node) {
+    for (auto index = node->input_edges().size() - 1; index >= 0; --index) {
+        remove_input(node, index);
+    }
+    all_inputs_removed(node);
+}
+
+void Graph::all_inputs_removed(data::ptr<Node> node) {
+    node->set_input_edges_traverse_contexts(false);
+    node->set_needs_sort_input_edges(false);
+    if (node->is_main_thread_only() && !attribute_type(node->type_id()).flags() && AGAttributeTypeFlagsMainThread) {
+        node->set_main_thread_only(false);
+    }
+}
+
+template <> void Graph::add_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
+    node->output_edges().push_back(node.page_ptr()->zone, OutputEdge(output));
+}
+
+template <> void Graph::add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
+    node->output_edges().push_back(node.page_ptr()->zone, OutputEdge(output));
+}
+
+template <> void Graph::remove_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
+    auto iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
+                             [&output](auto iter) -> bool { return iter.attribute == output; });
+    if (iter != node->output_edges().end()) {
+        node->output_edges().erase(iter);
+    }
+
+    //    if (node->outputs().empty() && node->flags().cacheable()) {
+    //        AttributeID(node).subgraph()->cache_insert(node);
+    //    }
+}
+
+template <>
+void Graph::remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
+    auto iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
+                             [&output](auto iter) -> bool { return iter.attribute == output; });
+    if (iter != node->output_edges().end()) {
+        node->output_edges().erase(iter);
+    }
+}
+
+void Graph::add_input_dependencies(AttributeID attribute, AttributeID input) {
+    auto resolved_input = input.resolve(TraversalOptions::SkipMutableReference).attribute();
+    if (auto input_node = resolved_input.get_node()) {
+        add_output_edge(input_node, attribute);
+    } else if (auto input_indirect_node = resolved_input.get_indirect_node()) {
+        add_output_edge(input_indirect_node, attribute);
+    }
+    update_main_refs(attribute);
+}
+
+void Graph::remove_input_dependencies(AttributeID attribute, AttributeID input) {
+    auto resolved_input = input.resolve(TraversalOptions::SkipMutableReference).attribute();
+    if (auto input_node = resolved_input.get_node()) {
+        remove_output_edge(input_node, attribute);
+    } else if (auto input_indirect_node = resolved_input.get_indirect_node()) {
+        remove_output_edge(input_indirect_node, attribute);
+    }
+    update_main_refs(attribute);
 }
 
 void Graph::update_main_refs(AttributeID attribute) {
@@ -347,6 +561,16 @@ void Graph::update_main_refs(AttributeID attribute) {
             update_main_ref(output_edge.attribute);
         }
     }
+}
+
+#pragma mark - Updates
+
+void Graph::update_attribute(AttributeID attribute, bool option) {
+    // TODO: Not implemented
+}
+
+void Graph::reset_update(data::ptr<Node> node) {
+    // TODO: Not implemented
 }
 
 #pragma mark - Value

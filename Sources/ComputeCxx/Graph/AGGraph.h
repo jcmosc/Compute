@@ -6,6 +6,7 @@
 #include <CoreFoundation/CFDictionary.h>
 
 #include "AGSwiftSupport.h"
+#include "Attribute/AttributeData/Edge/AGInputOptions.h"
 #include "Attribute/AttributeID/AGAttribute.h"
 #include "Attribute/AttributeType/AGAttributeType.h"
 #include "Comparison/AGComparison.h"
@@ -134,6 +135,11 @@ AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) CF_SWIFT_NAME(getter:AGA
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) CF_SWIFT_NAME(setter:AGAttribute.flags(self:_:));
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options)
+    CF_SWIFT_NAME(AGAttribute.addInput(self:_:options:));
 
 // MARK: Update
 

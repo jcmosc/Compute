@@ -63,7 +63,7 @@ void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context)
 // MARK: Counter
 
 typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
-    //    AGGraphCounterQueryNodeCount,
+    AGGraphCounterQueryNodeCount,
     //    AGGraphCounterQueryTransactionCount,
     //    AGGraphCounterQueryUpdateCount,
     //    AGGraphCounterQueryChangeCount,
@@ -74,7 +74,7 @@ typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
     //    AGGraphCounterQueryContextNeedsUpdate,
     //    AGGraphCounterQueryNeedsUpdate,
     //    AGGraphCounterQueryMainThreadUpdateCount,
-    //    AGGraphCounterQueryNodeTotalCount,
+    AGGraphCounterQueryNodeTotalCount,
     AGGraphCounterQuerySubgraphCount,
     AGGraphCounterQuerySubgraphTotalCount,
 };

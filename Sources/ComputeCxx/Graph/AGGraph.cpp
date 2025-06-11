@@ -99,8 +99,8 @@ void AGGraphSetContext(AGGraphRef graph, const void *context) {
 uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     switch (query) {
-        //    case AGGraphCounterQueryNodeCount:
-        //        return graph_context->graph().node_count();
+    case AGGraphCounterQueryNodeCount:
+        return graph_context->graph().num_nodes();
         //    case AGGraphCounterQueryTransactionCount:
         //        return graph_context->graph().transaction_count();
         //    case AGGraphCounterQueryUpdateCount:
@@ -121,8 +121,8 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
         //        return graph_context->graph().needs_update();
         //    case AGGraphCounterQueryMainThreadUpdateCount:
         //        return graph_context->graph().main_thread_update_count();
-        //    case AGGraphCounterQueryNodeTotalCount:
-        //        return graph_context->graph().total_node_count();
+    case AGGraphCounterQueryNodeTotalCount:
+        return graph_context->graph().num_nodes_total();
     case AGGraphCounterQuerySubgraphCount:
         return graph_context->graph().num_subgraphs();
     case AGGraphCounterQuerySubgraphTotalCount:

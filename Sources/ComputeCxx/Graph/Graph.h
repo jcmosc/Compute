@@ -219,6 +219,8 @@ class Graph {
 
     // MARK: Metrics
 
+    uint64_t num_nodes() const { return _num_nodes; };
+    uint64_t num_nodes_total() const { return _num_nodes_total; };
     uint64_t num_subgraphs() const { return _num_subgraphs; };
     uint64_t num_subgraphs_total() const { return _num_subgraphs_total; };
 

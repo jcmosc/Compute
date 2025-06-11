@@ -3,6 +3,7 @@
 #include <CoreFoundation/CFString.h>
 #include <os/lock.h>
 
+#include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Context.h"
 #include "Graph.h"
 #include "Private/CFRuntime.h"
@@ -260,6 +261,44 @@ uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOption
     }
 
     return subgraph->graph()->add_input(node, input_attribute_id, false, options);
+}
+
+#pragma mark - Offset attributes
+
+namespace {
+
+AG::AttributeID create_offset_attribute(AG::AttributeID attribute_id, uint32_t offset, std::optional<uint32_t> size) {
+    if (offset == 0) {
+        if (size.has_value() && attribute_id.is_indirect_node()) {
+            auto calculated_size = attribute_id.size();
+            if (calculated_size.has_value() && calculated_size.value() == size.value()) {
+                return attribute_id;
+            }
+        }
+    } else if (offset > AG::IndirectNode::MaximumOffset) {
+        AG::precondition_failure("invalid offset: %u, %lu", offset, size.value());
+    }
+
+    auto current_subgraph = AG::Subgraph::current_subgraph();
+    if (!current_subgraph) {
+        AG::precondition_failure("no subgraph active while adding attribute");
+    }
+
+    AG::data::ptr<AG::IndirectNode> indirect_node =
+        current_subgraph->graph()->add_indirect_attribute(*current_subgraph, attribute_id, offset, size, false);
+    return AG::AttributeID(indirect_node);
+}
+
+} // namespace
+
+AGAttribute AGGraphCreateOffsetAttribute(AGAttribute attribute, uint32_t offset) {
+    auto attribute_id = AG::AttributeID(attribute);
+    return create_offset_attribute(attribute_id, offset, std::optional<size_t>());
+}
+
+AGAttribute AGGraphCreateOffsetAttribute2(AGAttribute attribute, uint32_t offset, size_t size) {
+    auto attribute_id = AG::AttributeID(attribute);
+    return create_offset_attribute(attribute_id, offset, std::optional<size_t>(size));
 }
 
 #pragma mark - Search

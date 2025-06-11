@@ -141,6 +141,16 @@ CF_REFINED_FOR_SWIFT
 uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options)
     CF_SWIFT_NAME(AGAttribute.addInput(self:_:options:));
 
+// MARK: Offset attributes
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphCreateOffsetAttribute(AGAttribute attribute, uint32_t offset);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphCreateOffsetAttribute2(AGAttribute attribute, uint32_t offset, size_t size);
+
 // MARK: Search
 
 typedef CF_OPTIONS(uint32_t, AGSearchOptions) {

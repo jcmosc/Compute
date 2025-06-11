@@ -2,6 +2,7 @@
 
 #include <CoreFoundation/CFString.h>
 #include <ranges>
+#include <set>
 
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
@@ -786,6 +787,94 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_n
             }
         }
     }
+}
+
+#pragma mark - Search
+
+bool Graph::breadth_first_search(AttributeID attribute, AGSearchOptions options,
+                                 ClosureFunctionAB<bool, AGAttribute> predicate) const {
+    auto resolved = attribute.resolve(TraversalOptions::SkipMutableReference);
+    if (!resolved.attribute() || resolved.attribute().is_nil()) {
+        return false;
+    }
+
+    auto seen = std::set<AttributeID>();
+
+    auto queue = std::deque<AttributeID>();
+    queue.push_back(resolved.attribute());
+
+    while (!queue.empty()) {
+        AttributeID candidate = queue.front();
+        queue.pop_front();
+
+        if (candidate.is_nil()) {
+            continue;
+        }
+
+        if (candidate.is_node() && predicate(candidate)) {
+            return true;
+        }
+
+        if (options & AGSearchOptionsSearchInputs) {
+            if (auto candidate_node = candidate.get_node()) {
+                for (auto input_edge : candidate_node->input_edges()) {
+                    auto input = input_edge.attribute.resolve(TraversalOptions::SkipMutableReference).attribute();
+                    if (seen.contains(input)) {
+                        continue;
+                    }
+
+                    if (options & AGSearchOptionsTraverseGraphContexts ||
+                        candidate.subgraph()->context_id() == input.subgraph()->context_id()) {
+                        seen.insert(input);
+                        queue.push_back(input);
+                    }
+                }
+            } else if (auto candidate_indirect_node = candidate.get_indirect_node()) {
+                AttributeID source = candidate_indirect_node->source()
+                                         .attribute()
+                                         .resolve(TraversalOptions::SkipMutableReference)
+                                         .attribute();
+                if (!seen.contains(source)) {
+                    if (options & AGSearchOptionsTraverseGraphContexts ||
+                        candidate.subgraph()->context_id() == source.subgraph()->context_id()) {
+                        seen.insert(source);
+                        queue.push_back(source);
+                    }
+                }
+            }
+        }
+
+        if (options & AGSearchOptionsSearchOutputs) {
+            if (auto candidate_node = candidate.get_node()) {
+                for (auto output_edge : candidate_node->output_edges()) {
+                    if (seen.contains(output_edge.attribute)) {
+                        continue;
+                    }
+
+                    if (options & AGSearchOptionsTraverseGraphContexts ||
+                        candidate.subgraph()->context_id() == output_edge.attribute.subgraph()->context_id()) {
+                        seen.insert(output_edge.attribute);
+                        queue.push_back(output_edge.attribute);
+                    }
+                }
+            } else if (auto candidate_indirect_node = candidate.get_indirect_node()) {
+                assert(candidate_indirect_node->is_mutable());
+                for (auto output_edge : candidate_indirect_node->to_mutable().output_edges()) {
+                    if (seen.contains(output_edge.attribute)) {
+                        continue;
+                    }
+
+                    if (options & AGSearchOptionsTraverseGraphContexts ||
+                        candidate.subgraph()->context_id() == output_edge.attribute.subgraph()->context_id()) {
+                        seen.insert(output_edge.attribute);
+                        queue.push_back(output_edge.attribute);
+                    }
+                }
+            }
+        }
+    }
+
+    return false;
 }
 
 #pragma mark - Updates

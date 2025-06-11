@@ -141,6 +141,20 @@ CF_REFINED_FOR_SWIFT
 uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options)
     CF_SWIFT_NAME(AGAttribute.addInput(self:_:options:));
 
+// MARK: Search
+
+typedef CF_OPTIONS(uint32_t, AGSearchOptions) {
+    AGSearchOptionsSearchInputs = 1 << 0,
+    AGSearchOptionsSearchOutputs = 1 << 1,
+    AGSearchOptionsTraverseGraphContexts = 1 << 2,
+};
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
+                   bool (*predicate)(void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
+                   void *predicate_context);
+
 // MARK: Update
 
 typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {

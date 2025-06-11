@@ -262,6 +262,23 @@ uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOption
     return subgraph->graph()->add_input(node, input_attribute_id, false, options);
 }
 
+#pragma mark - Search
+
+bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
+                   bool (*predicate)(void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
+                   void *predicate_context) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    return subgraph->graph()->breadth_first_search(
+        attribute_id, options, AG::ClosureFunctionAB<bool, AGAttribute>(predicate, predicate_context));
+}
+
 #pragma mark - Trace
 
 void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, NULL); }

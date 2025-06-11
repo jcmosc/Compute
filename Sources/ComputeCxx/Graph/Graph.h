@@ -247,6 +247,11 @@ class Graph {
 
     AttributeID indirect_attribute_dependency(data::ptr<IndirectNode> indirect_node);
     void indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency);
+    
+    // MARK: Search
+
+    bool breadth_first_search(AttributeID attribute, AGSearchOptions options,
+                              ClosureFunctionAB<bool, AGAttribute> predicate) const;
 
     // MARK: Value
 

@@ -210,8 +210,52 @@ void Subgraph::invalidate_now(Graph &graph) {
         }
     }
 
-    // TODO: remove nodes
+    for (auto removed_subgraph : removed_subgraphs) {
+        for (auto page : removed_subgraph->pages()) {
+            bool found_nil_attribute = false;
+            for (auto attribute : attribute_view(page)) {
+                if (auto node = attribute.get_node()) {
+                    graph.remove_node(node);
+                } else if (auto indirect_node = attribute.get_indirect_node()) {
+                    graph.remove_indirect_node(indirect_node);
+                } else if (attribute.is_nil()) {
+                    found_nil_attribute = true;
+                    break;
+                }
+            }
+            if (found_nil_attribute) {
+                break;
+            }
+        }
+    }
+
     // TODO: destroy nodes
+    for (auto removed_subgraph : removed_subgraphs) {
+        for (auto page : removed_subgraph->pages()) {
+            // store previous node so we can iterate past it before destroying it
+            data::ptr<Node> previous_node = nullptr;
+            bool found_nil_attribute = false;
+            for (auto attribute : attribute_view(page)) {
+                if (previous_node) {
+                    previous_node->destroy(*_graph);
+                    _graph->did_destroy_node();
+                }
+                if (auto node = attribute.get_node()) {
+                    previous_node = node;
+                } else if (attribute.is_nil()) {
+                    found_nil_attribute = true;
+                    break;
+                }
+            }
+            if (previous_node) {
+                previous_node->destroy(*_graph);
+                _graph->did_destroy_node();
+            }
+            if (found_nil_attribute) {
+                break;
+            }
+        }
+    }
 
     for (Subgraph *removed_subgraph : removed_subgraphs) {
         delete removed_subgraph;
@@ -230,7 +274,29 @@ void Subgraph::graph_destroyed() {
 
     notify_observers();
 
-    // TODO: destroy nodes
+    for (auto page : pages()) {
+        // store previous node so we can iterate past it before destroying it
+        data::ptr<Node> previous_node = nullptr;
+        bool found_nil_attribute = false;
+        for (auto attribute : attribute_view(page)) {
+            if (previous_node) {
+                previous_node->destroy(*_graph);
+                _graph->did_destroy_node();
+            }
+            if (auto node = attribute.get_node()) {
+                previous_node = node;
+            } else if (attribute.is_nil()) {
+                found_nil_attribute = true;
+            }
+        }
+        if (previous_node) {
+            previous_node->destroy(*_graph);
+            _graph->did_destroy_node();
+        }
+        if (found_nil_attribute) {
+            break;
+        }
+    }
 
     _parents.clear();
     _children.clear();

@@ -151,6 +151,36 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGAttribute AGGraphCreateOffsetAttribute2(AGAttribute attribute, uint32_t offset, size_t size);
 
+// MARK: Indirect attributes
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphCreateIndirectAttribute(AGAttribute attribute);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetIndirectAttribute(AGAttribute attribute, AGAttribute source);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphResetIndirectAttribute(AGAttribute attribute, bool non_nil);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGAttribute AGGraphGetIndirectDependency(AGAttribute attribute);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphSetIndirectDependency(AGAttribute attribute, AGAttribute dependency);
+
 // MARK: Search
 
 typedef CF_OPTIONS(uint32_t, AGSearchOptions) {

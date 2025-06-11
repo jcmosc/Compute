@@ -301,6 +301,87 @@ AGAttribute AGGraphCreateOffsetAttribute2(AGAttribute attribute, uint32_t offset
     return create_offset_attribute(attribute_id, offset, std::optional<size_t>(size));
 }
 
+#pragma mark - Indirect attributes
+
+namespace {
+
+AG::AttributeID create_indirect_attribute(AG::AttributeID attribute_id, std::optional<uint32_t> size) {
+    auto current_subgraph = AG::Subgraph::current_subgraph();
+    if (!current_subgraph) {
+        AG::precondition_failure("no subgraph active while making indirection");
+    }
+
+    AG::data::ptr<AG::IndirectNode> indirect_node =
+        current_subgraph->graph()->add_indirect_attribute(*current_subgraph, attribute_id, 0, size, true);
+    return AG::AttributeID(indirect_node);
+}
+
+} // namespace
+
+AGAttribute AGGraphCreateIndirectAttribute(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    return create_indirect_attribute(attribute_id, std::optional<size_t>());
+}
+
+AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size) {
+    auto attribute_id = AG::AttributeID(attribute);
+    return create_indirect_attribute(attribute_id, std::optional<size_t>(size));
+}
+
+AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    if (auto indirect_node = attribute_id.get_indirect_node()) {
+        return indirect_node->source().attribute();
+    }
+    return attribute_id;
+}
+
+void AGGraphSetIndirectAttribute(AGAttribute attribute, AGAttribute source) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto indirect_node = attribute_id.get_indirect_node();
+    if (!indirect_node || !attribute_id.subgraph()) {
+        AG::precondition_failure("invalid indirect attribute: %u", attribute);
+    }
+
+    auto source_id = AG::AttributeID(source);
+    if (source_id.is_nil()) {
+        attribute_id.subgraph()->graph()->indirect_attribute_reset(indirect_node, false);
+    } else {
+        attribute_id.subgraph()->graph()->indirect_attribute_set(indirect_node, source_id);
+    }
+}
+
+void AGGraphResetIndirectAttribute(AGAttribute attribute, bool non_nil) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto indirect_node = attribute_id.get_indirect_node();
+    if (!indirect_node || !attribute_id.subgraph()) {
+        AG::precondition_failure("invalid indirect attribute: %u", attribute);
+    }
+
+    attribute_id.subgraph()->graph()->indirect_attribute_reset(indirect_node, non_nil);
+}
+
+AGAttribute AGGraphGetIndirectDependency(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto indirect_node = attribute_id.get_indirect_node();
+    if (!indirect_node || !attribute_id.subgraph()) {
+        AG::precondition_failure("invalid indirect attribute: %u", attribute);
+    }
+
+    return attribute_id.subgraph()->graph()->indirect_attribute_dependency(indirect_node);
+}
+
+void AGGraphSetIndirectDependency(AGAttribute attribute, AGAttribute dependency) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto indirect_node = attribute_id.get_indirect_node();
+    if (!indirect_node || !attribute_id.subgraph()) {
+        AG::precondition_failure("invalid indirect attribute: %u", attribute);
+    }
+
+    return attribute_id.subgraph()->graph()->indirect_attribute_set_dependency(indirect_node,
+                                                                               AG::AttributeID(dependency));
+}
+
 #pragma mark - Search
 
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,

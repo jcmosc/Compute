@@ -272,6 +272,53 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
     return node_ptr;
 }
 
+data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,
+                                                      std::optional<size_t> size, bool is_mutable) {
+    if (subgraph.graph() != attribute.subgraph()->graph()) {
+        precondition_failure("attribute references can't cross graph namespaces");
+    }
+
+    auto offset_attribute = attribute.resolve(TraversalOptions::SkipMutableReference);
+    attribute = offset_attribute.attribute();
+    if (__builtin_add_overflow(offset, offset_attribute.offset(), &offset) ||
+        offset + offset_attribute.offset() > 0x3ffffffe) {
+        precondition_failure("indirect attribute overflowed: %lu + %lu", offset, offset_attribute.offset());
+    }
+
+    if (size.has_value()) {
+        auto attribute_size = attribute.size();
+        if (attribute_size.has_value() && attribute_size.value() < offset + size.value()) {
+            precondition_failure("invalid size for indirect attribute: %d vs %u", attribute_size.value(),
+                                 offset_attribute.offset());
+        }
+    }
+
+    if (is_mutable) {
+        data::ptr<MutableIndirectNode> indirect_node_ptr =
+            subgraph.alloc_bytes(sizeof(MutableIndirectNode), 3).unsafe_cast<MutableIndirectNode>();
+
+        uint64_t subgraph_id = attribute && !attribute.is_nil() ? attribute.subgraph()->subgraph_id() : 0;
+        auto source = WeakAttributeID(attribute, uint32_t(subgraph_id));
+        bool traverses_contexts = subgraph.context_id() != attribute.subgraph()->context_id();
+        new (indirect_node_ptr.get()) MutableIndirectNode(source, traverses_contexts, offset, size, source, offset);
+
+        add_input_dependencies(AttributeID(indirect_node_ptr), attribute);
+        subgraph.add_indirect(indirect_node_ptr.unsafe_cast<IndirectNode>(), true);
+        return indirect_node_ptr.unsafe_cast<IndirectNode>();
+    } else {
+        data::ptr<IndirectNode> indirect_node_ptr =
+            subgraph.alloc_bytes_recycle(sizeof(IndirectNode), 3).unsafe_cast<IndirectNode>();
+
+        uint64_t subgraph_id = attribute && !attribute.is_nil() ? attribute.subgraph()->subgraph_id() : 0;
+        auto source = WeakAttributeID(attribute, uint32_t(subgraph_id));
+        bool traverses_contexts = subgraph.context_id() != attribute.subgraph()->context_id();
+        new (indirect_node_ptr.get()) IndirectNode(source, traverses_contexts, offset, size);
+
+        subgraph.add_indirect(indirect_node_ptr, &subgraph != attribute.subgraph());
+        return indirect_node_ptr;
+    }
+}
+
 void Graph::remove_node(data::ptr<Node> node) {
     if (node->is_updating()) {
         precondition_failure("deleting updating attribute: %u\n", node);
@@ -287,6 +334,65 @@ void Graph::remove_node(data::ptr<Node> node) {
     //    if (_profile_data != nullptr) {
     //        _profile_data->remove_node(node, node->type_id());
     //    }
+}
+
+void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
+    if (indirect_node->is_mutable()) {
+        remove_removed_input(AttributeID(indirect_node), indirect_node->source().attribute());
+        AttributeID dependency = indirect_node->to_mutable().dependency();
+        if (dependency) {
+            remove_removed_input(AttributeID(indirect_node), dependency);
+        }
+        for (auto output_edge : indirect_node->to_mutable().output_edges()) {
+            remove_removed_output(AttributeID(indirect_node), output_edge.attribute, false);
+        }
+        return;
+    }
+
+    if (indirect_node->source().expired()) {
+        return;
+    }
+
+    AttributeID source = indirect_node->source().attribute();
+    while (true) {
+        if (source.subgraph()->is_invalidated()) {
+            break;
+        }
+
+        if (auto source_node = source.get_node()) {
+            auto removed_outputs = vector<AttributeID, 8, uint64_t>();
+            for (auto output_edge : source_node->output_edges()) {
+                if (remove_removed_output(AttributeID(indirect_node), output_edge.attribute, false)) {
+                    removed_outputs.push_back(output_edge.attribute);
+                }
+            }
+            for (auto output : removed_outputs) {
+                remove_removed_input(output, AttributeID(indirect_node));
+            }
+            break;
+        } else if (auto source_indirect_node = source.get_indirect_node()) {
+            if (source_indirect_node->is_mutable()) {
+                auto removed_outputs = vector<AttributeID, 8, uint64_t>();
+                for (auto output_edge : source_indirect_node->to_mutable().output_edges()) {
+                    if (remove_removed_output(AttributeID(indirect_node), output_edge.attribute, false)) {
+                        removed_outputs.push_back(output_edge.attribute);
+                    }
+                }
+                for (auto output : removed_outputs) {
+                    remove_removed_input(output, AttributeID(indirect_node));
+                }
+                break;
+            } else {
+                if (source_indirect_node->source().expired()) {
+                    break;
+                }
+
+                source = source_indirect_node->source().attribute();
+            }
+        } else {
+            break;
+        }
+    }
 }
 
 void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
@@ -559,6 +665,125 @@ void Graph::update_main_refs(AttributeID attribute) {
 
         for (auto output_edge : std::ranges::reverse_view(array)) {
             update_main_ref(output_edge.attribute);
+        }
+    }
+}
+
+void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source) {
+    if (!indirect_node->is_mutable()) {
+        precondition_failure("not an indirect attribute: %u", indirect_node);
+    }
+
+    if (AttributeID(indirect_node).subgraph()->graph() != source.subgraph()->graph()) {
+        precondition_failure("attribute references can't cross graph namespaces");
+    }
+
+    foreach_trace([&indirect_node, &source](Trace &trace) { trace.set_source(indirect_node, source); });
+
+    OffsetAttributeID resolved_source = source.resolve(TraversalOptions::SkipMutableReference);
+    source = resolved_source.attribute();
+    uint32_t offset = resolved_source.offset();
+
+    AttributeID old_source = indirect_node->source().attribute();
+    if (resolved_source.attribute() == old_source) {
+        if (resolved_source.offset() == indirect_node.offset()) {
+            return;
+        }
+    } else {
+        remove_input_dependencies(AttributeID(indirect_node), old_source);
+    }
+
+    indirect_node->modify(WeakAttributeID(resolved_source.attribute(), 0), resolved_source.offset());
+    indirect_node->set_traverses_contexts(AttributeID(indirect_node).subgraph()->context_id() !=
+                                          resolved_source.attribute().subgraph()->context_id());
+
+    if (old_source != resolved_source.attribute()) {
+        add_input_dependencies(AttributeID(indirect_node), resolved_source.attribute());
+    }
+
+    mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);
+    propagate_dirty(AttributeID(indirect_node));
+}
+
+bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool non_nil) {
+    if (!indirect_node->is_mutable()) {
+        precondition_failure("not an indirect attribute: %u", indirect_node);
+    }
+
+    WeakAttributeID new_source = {AttributeID(AGAttributeNil), 0};
+    uint32_t new_offset = 0;
+
+    auto initial_source = indirect_node->to_mutable().initial_source();
+    auto initial_offset = indirect_node->to_mutable().initial_offset();
+    if (!initial_source.expired()) {
+        new_source = initial_source;
+        new_offset = initial_offset;
+    } else {
+        if (non_nil) {
+            return false;
+        }
+    }
+
+    AttributeID old_source_or_nil = indirect_node->source().evaluate();
+    AttributeID new_source_or_nil = new_source.evaluate();
+
+    foreach_trace(
+        [&indirect_node, &new_source_or_nil](Trace &trace) { trace.set_source(indirect_node, new_source_or_nil); });
+
+    if (old_source_or_nil != new_source_or_nil) {
+        remove_input_dependencies(AttributeID(indirect_node), old_source_or_nil);
+    }
+
+    indirect_node->modify(new_source, new_offset);
+    indirect_node->set_traverses_contexts(AttributeID(indirect_node).subgraph()->context_id() !=
+                                          new_source_or_nil.subgraph()->context_id());
+
+    if (old_source_or_nil != new_source_or_nil) {
+        add_input_dependencies(AttributeID(indirect_node), new_source_or_nil);
+    }
+
+    mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);
+    propagate_dirty(AttributeID(indirect_node));
+
+    return true;
+}
+
+AttributeID Graph::indirect_attribute_dependency(data::ptr<IndirectNode> indirect_node) {
+    if (!indirect_node->is_mutable()) {
+        precondition_failure("not an indirect attribute: %u", indirect_node);
+    }
+    return indirect_node->to_mutable().dependency();
+}
+
+void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency) {
+    if (dependency && !dependency.is_nil()) {
+        if (!dependency.is_node()) {
+            precondition_failure("indirect dependencies must be attributes");
+        }
+        if (dependency.subgraph() != AttributeID(indirect_node).subgraph()) {
+            precondition_failure("indirect dependencies must share a subgraph with their attribute");
+        }
+    } else {
+        dependency = AttributeID(nullptr);
+    }
+    if (!indirect_node->is_mutable()) {
+        precondition_failure("not an indirect attribute: %u", indirect_node);
+    }
+
+    foreach_trace([&indirect_node, &dependency](Trace &trace) { trace.set_dependency(indirect_node, dependency); });
+
+    AttributeID old_dependency = indirect_node->to_mutable().dependency();
+    if (old_dependency != dependency) {
+        AttributeID indirect_attribute = AttributeID(indirect_node);
+        if (old_dependency) {
+            remove_output_edge(old_dependency.get_node(), indirect_attribute);
+        }
+        indirect_node->to_mutable().set_dependency(dependency);
+        if (dependency) {
+            add_output_edge(dependency.get_node(), indirect_attribute);
+            if (dependency.get_node()->is_dirty()) {
+                propagate_dirty(indirect_attribute);
+            }
         }
     }
 }

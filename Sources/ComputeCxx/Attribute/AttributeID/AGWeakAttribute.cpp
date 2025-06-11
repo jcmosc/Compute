@@ -7,7 +7,7 @@
 
 AGWeakAttribute AGCreateWeakAttribute(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
-    if (!attribute_id) {
+    if (!attribute_id || attribute_id.is_nil()) {
         return AGWeakAttribute(attribute_id, 0);
     }
 
@@ -15,6 +15,7 @@ AGWeakAttribute AGCreateWeakAttribute(AGAttribute attribute) {
     return AGWeakAttribute(attribute_id, uint32_t(subgraph_id));
 }
 
+// TODO: add test that evaluate checks deleted bit in zone id
 AGAttribute AGWeakAttributeGetAttribute(AGWeakAttribute weak_attribute) {
     auto weak_attribute_id = AG::WeakAttributeID(weak_attribute);
     return weak_attribute_id.evaluate();

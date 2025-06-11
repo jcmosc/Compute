@@ -28,6 +28,10 @@ class IndirectNode {
     RelativeAttributeID _next_attribute;
 
   public:
+    IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, std::optional<size_t> size)
+        : _source(source), _traverses_contexts(traverses_contexts), _offset(offset),
+          _size(size.has_value() && size.value() < InvalidSize ? uint16_t(size.value()) : InvalidSize) {}
+
     // Non-copyable
     IndirectNode(const IndirectNode &) = delete;
     IndirectNode &operator=(const IndirectNode &) = delete;
@@ -42,6 +46,9 @@ class IndirectNode {
     MutableIndirectNode &to_mutable();
     const MutableIndirectNode &to_mutable() const;
 
+    bool traverses_contexts() const { return _traverses_contexts; };
+    void set_traverses_contexts(bool value) { _traverses_contexts = value; }
+
     uint32_t offset() const { return _offset; };
     std::optional<size_t> size() const {
         return _size != InvalidSize ? std::optional(size_t(_size)) : std::optional<size_t>();
@@ -55,13 +62,18 @@ class IndirectNode {
 
 class MutableIndirectNode : public IndirectNode {
   private:
-    AttributeID _dependency;
+    AttributeID _dependency = AttributeID(nullptr);
     data::vector<OutputEdge> _output_edges;
 
     WeakAttributeID _initial_source;
     uint32_t _initial_offset;
 
   public:
+    MutableIndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, std::optional<size_t> size,
+                        WeakAttributeID initial_source, uint32_t initial_offset)
+        : IndirectNode(source, traverses_contexts, offset, size), _initial_source(initial_source),
+          _initial_offset(initial_offset) {}
+
     const AttributeID &dependency() const { return _dependency; };
     void set_dependency(const AttributeID &dependency) { _dependency = dependency; };
 

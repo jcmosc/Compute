@@ -28,7 +28,7 @@ class WeakAttributeID {
     uint32_t subgraph_id() const { return _subgraph_id; }
 
     bool expired() const;
-    
+
     /// Returns the attribute it is has not expired, otherwise returns the nil attribute.
     const AttributeID evaluate() const;
 };

@@ -232,9 +232,19 @@ class Graph {
     // MARK: Attributes
 
     data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *_Nullable value);
+    data::ptr<IndirectNode> add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,
+                                                   std::optional<size_t> size, bool is_mutable);
+
     void remove_node(data::ptr<Node> node);
+    void remove_indirect_node(data::ptr<IndirectNode> node);
 
     uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
+
+    void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);
+    bool indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool non_nil);
+
+    AttributeID indirect_attribute_dependency(data::ptr<IndirectNode> indirect_node);
+    void indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency);
 
     // MARK: Value
 
@@ -242,8 +252,16 @@ class Graph {
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };
     void did_destroy_value(size_t size) { _num_value_bytes -= size; };
+    void did_destroy_node() { _num_nodes -= 1; };
 
     // MARK: Update
+
+    void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
+                      const void *_Nullable source_value);
+    void mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
+                      const void *_Nullable source_value, uint32_t start_output_index);
+
+    void propagate_dirty(AttributeID attribute);
 
     void update_attribute(AttributeID attribute, bool option);
     void reset_update(data::ptr<Node> node);

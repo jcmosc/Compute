@@ -3,6 +3,7 @@
 #import <Foundation/Foundation.h>
 
 #include "AGDescription.h"
+#include "Attribute/AttributeView/AttributeView.h"
 #include "Subgraph/Subgraph.h"
 
 namespace {
@@ -27,7 +28,12 @@ NSObject *Graph::description(Graph *graph, NSDictionary *options) {
 }
 
 NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
-
+    NSNumber *include_values_number = options[(__bridge NSString *)AGDescriptionIncludeValues];
+    bool include_values = false;
+    if (include_values_number) {
+        include_values = [include_values_number boolValue];
+    }
+    
     NSNumber *truncation_limit_number = options[(__bridge NSString *)AGDescriptionTruncationLimit];
     uint64_t truncation_limit = 1024;
     if (truncation_limit_number) {
@@ -62,7 +68,59 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
         graph_stack.pop();
 
         // Collect types to include in the result
+        auto type_indices_by_id = std::unordered_map<uint32_t, uint64_t>();
         auto type_ids = vector<uint32_t, 0, uint64_t>();
+
+        // Build "nodes" array
+        auto node_indices_by_id = std::unordered_map<data::ptr<Node>, uint64_t>();
+        NSMutableArray *node_dicts = [NSMutableArray array];
+        for (auto subgraph : graph->subgraphs()) {
+            for (auto page : subgraph->pages()) {
+                for (auto attribute : attribute_view(page)) {
+                    if (auto node = attribute.get_node()) {
+                        uint64_t index = node_indices_by_id.size() + 1;
+                        node_indices_by_id.emplace(node, index);
+                        
+                        uint32_t type_id = node->type_id();
+                        uint64_t type_index;
+                        auto found = type_indices_by_id.find(type_id);
+                        if (found != type_indices_by_id.end()) {
+                            type_index = found->second;
+                        } else {
+                            type_index = type_ids.size();
+                            type_ids.push_back(type_id);
+                            type_indices_by_id.emplace(type_id, index);
+                        }
+                        
+                        NSMutableDictionary *node_dict = [NSMutableDictionary dictionary];
+                        node_dict[@"type"] = @(type_index);
+                        node_dict[@"id"] = @(node.offset());
+                        
+                        const AttributeType &attribute_type = graph->attribute_type(type_id);
+                        if (node->is_self_initialized()) {
+                            void *body = node->get_self(attribute_type);
+                            if (auto desc = attribute_type.body_description(body)) {
+                                node_dict[@"desc"] = escaped_string((__bridge NSString *)desc, truncation_limit);
+                            }
+                        }
+                        
+                        if (include_values && node->is_value_initialized()) {
+                            void *value = node->get_value();
+                            if (auto value_desc = attribute_type.value_description(value)) {
+                                node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
+                            }
+                        }
+                        
+                        auto flags = node->value_state();
+                        if (flags) {
+                            node_dict[@"flags"] = [NSNumber numberWithUnsignedInt:flags];
+                        }
+                        
+                        [node_dicts addObject:node_dict];
+                    }
+                }
+            }
+        }
 
         // Build "types" array
         NSMutableArray *type_dicts = [NSMutableArray array];
@@ -82,9 +140,6 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
 
             [type_dicts addObject:type_dict];
         }
-
-        // Build "nodes" array
-        NSMutableArray *node_dicts = [NSMutableArray array];
 
         // Build "edges" array
         NSMutableArray *edge_dicts = [NSMutableArray array];

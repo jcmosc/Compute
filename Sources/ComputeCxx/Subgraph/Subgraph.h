@@ -45,7 +45,7 @@ class Subgraph : public data::zone {
   private:
     static pthread_key_t _current_subgraph_key;
 
-    SubgraphObject *_object;
+    SubgraphObject *_Nullable _object;
     Graph *_graph;
     uint64_t _context_id;
 

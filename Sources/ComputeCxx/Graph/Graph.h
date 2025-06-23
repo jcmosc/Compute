@@ -103,6 +103,9 @@ class Graph {
     uint32_t _ref_count = 1;
 
     uint64_t _id;
+    
+    // Counters
+    uint64_t _version = 0;
 
     static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
     static bool all_try_lock() { return os_unfair_lock_trylock(&_all_graphs_lock); };
@@ -255,13 +258,22 @@ class Graph {
 
     // MARK: Value
 
+    void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
+                    uint8_t *_Nonnull state_out);
+    
+    bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
+    
+    bool value_exists(data::ptr<Node> node);
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };
     void did_destroy_value(size_t size) { _num_value_bytes -= size; };
     void did_destroy_node() { _num_nodes -= 1; };
 
     // MARK: Update
+    
+    void update_attribute(AttributeID attribute, bool option);
+    void reset_update(data::ptr<Node> node);
 
     void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value);
@@ -270,8 +282,7 @@ class Graph {
 
     void propagate_dirty(AttributeID attribute);
 
-    void update_attribute(AttributeID attribute, bool option);
-    void reset_update(data::ptr<Node> node);
+    
 
     // MARK: Trace
 

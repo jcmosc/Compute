@@ -11,6 +11,12 @@ CF_EXPORT
 const CFStringRef AGDescriptionFormat;
 
 CF_EXPORT
+const CFStringRef AGDescriptionMaxFrames;
+
+CF_EXPORT
+const CFStringRef AGDescriptionIncludeValues;
+
+CF_EXPORT
 const CFStringRef AGDescriptionTruncationLimit;
 
 CF_EXTERN_C_END

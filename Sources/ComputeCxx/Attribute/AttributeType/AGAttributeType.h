@@ -15,8 +15,8 @@ typedef struct AGAttributeVTable {
     void (*_Nonnull deallocate)(AGAttributeType *);
 
     void (*_Nonnull destroySelf)(const AGAttributeType *, void *);
-    CFStringRef _Nonnull (*_Nonnull selfDescription)(const AGAttributeType *, const void *);
-    CFStringRef _Nonnull (*_Nonnull valueDescription)(const AGAttributeType *, const void *);
+    CFStringRef _Nullable (*_Nonnull bodyDescription)(const AGAttributeType *, const void *);
+    CFStringRef _Nullable (*_Nonnull valueDescription)(const AGAttributeType *, const void *);
     void (*_Nullable initializeValue)(const AGAttributeType *, void *);
 } AGAttributeVTable;
 

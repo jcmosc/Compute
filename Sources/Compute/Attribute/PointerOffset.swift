@@ -1,23 +1,29 @@
 public struct PointerOffset<Base, Member> {
-
+    
     public var byteOffset: Int
-
+    
     public init(byteOffset: Int) {
         self.byteOffset = byteOffset
     }
-
+    
     public static func of(_ member: inout Member) -> PointerOffset<Base, Member> {
-        fatalError("not implemented")
+        return withUnsafePointer(to: &member) { memberPointer in
+            let offset = UnsafeRawPointer(memberPointer) - UnsafeRawPointer(invalidScenePointer())
+            return PointerOffset(byteOffset: offset)
+        }
     }
-
+    
     public static func offset(_ body: (inout Base) -> PointerOffset<Base, Member>) -> PointerOffset<Base, Member> {
-        fatalError("not implemented")
+        guard MemoryLayout<Member>.size != 0 else {
+            return PointerOffset(byteOffset: 0)
+        }
+        return body(&invalidScenePointer().pointee)
     }
-
+    
     public static func invalidScenePointer() -> UnsafeMutablePointer<Base> {
-        fatalError("not implemented")
+        return UnsafeMutablePointer(bitPattern: MemoryLayout<Base>.stride)!
     }
-
+    
 }
 
 extension PointerOffset where Base == Member {

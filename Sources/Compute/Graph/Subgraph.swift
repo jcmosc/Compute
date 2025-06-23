@@ -13,7 +13,7 @@ extension Subgraph {
         fatalError("not implemented")
     }
 
-    public func forEach(_ flags: AttributeFlags, _ body: (AnyAttribute) -> Void) {
+    public func forEach(_ flags: AGAttributeFlags, _ body: (AnyAttribute) -> Void) {
         fatalError("not implemented")
     }
 

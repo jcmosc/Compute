@@ -134,11 +134,12 @@ bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) CF_SWIFT_N
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute);
+AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.subgraph(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.subgraph(self:));
+AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute)
+    CF_SWIFT_NAME(getter:AGAttribute.subgraphOrNil(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

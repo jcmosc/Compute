@@ -26,6 +26,12 @@ class IndirectNode {
     uint16_t _size;
     RelativeAttributeID _next_attribute;
 
+  protected:
+    IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, std::optional<size_t> size,
+                 bool is_mutable)
+        : _source(source), _mutable(is_mutable), _traverses_contexts(traverses_contexts), _offset(offset),
+          _size(size.has_value() && size.value() < InvalidSize ? uint16_t(size.value()) : InvalidSize) {}
+
   public:
     static constexpr uint16_t MaximumOffset = 0x3ffffffe; // 30 bits - 1
 
@@ -72,7 +78,7 @@ class MutableIndirectNode : public IndirectNode {
   public:
     MutableIndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, std::optional<size_t> size,
                         WeakAttributeID initial_source, uint32_t initial_offset)
-        : IndirectNode(source, traverses_contexts, offset, size), _initial_source(initial_source),
+        : IndirectNode(source, traverses_contexts, offset, size, true), _initial_source(initial_source),
           _initial_offset(initial_offset) {}
 
     const AttributeID &dependency() const { return _dependency; };

@@ -9,15 +9,15 @@ public struct WeakAttribute<Value> {
     }
     
     public init() {
-        fatalError("not implemented")
+        base = AnyWeakAttribute(attribute: AnyAttribute(rawValue: 0), subgraph_id: 0)
     }
     
     public init(_ attribute: Attribute<Value>) {
-        fatalError("not implemented")
+        base = AnyWeakAttribute(attribute.identifier)
     }
     
     public init(_ attribute: Attribute<Value>?) {
-        fatalError("not implemented")
+        base = AnyWeakAttribute(attribute?.identifier)
     }
 
     public func changedValue(options: ValueOptions) -> (value: Value, changed: Bool)? {
@@ -30,10 +30,10 @@ public struct WeakAttribute<Value> {
 
     public var attribute: Attribute<Value>? {
         get {
-            fatalError("not implemented")
+            return base.attribute?.unsafeCast(to: Value.self)
         }
         set {
-            fatalError("not implemented")
+            base.attribute = newValue?.identifier
         }
     }
     
@@ -43,15 +43,15 @@ public struct WeakAttribute<Value> {
     
     public var projectedValue: Attribute<Value>? {
         get {
-            fatalError("not implemented")
+            return attribute
         }
         set {
-            fatalError("not implemented")
+            attribute = newValue
         }
     }
     
     public subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Attribute<Member>? {
-        fatalError("not implemented")
+        return attribute?[keyPath: keyPath]
     }
 
 }
@@ -59,7 +59,7 @@ public struct WeakAttribute<Value> {
 extension WeakAttribute: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return base.description
     }
 
 }

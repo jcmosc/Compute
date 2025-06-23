@@ -1,4 +1,5 @@
 import ComputeCxx
+import Foundation
 
 struct ProtocolConformance {
     var metadata: Metadata
@@ -26,6 +27,14 @@ extension AGUnownedGraphRef {
 
 }
 
+extension CustomStringConvertible {
+
+    static func _description(for self: UnsafeRawPointer) -> String {
+        return self.assumingMemoryBound(to: Self.self).pointee.description
+    }
+
+}
+
 extension AGAttributeType {
 
     nonisolated(unsafe) static let callbacks: UnsafePointer<AGAttributeVTable> = {
@@ -34,14 +43,26 @@ extension AGAttributeType {
         callbacks.pointee.deallocate = { pointer in
             pointer.deallocate()
         }
-        callbacks.pointee.destroySelf = { _, _ in
-            fatalError("not implemented")
+        callbacks.pointee.destroySelf = { attributeType, body in
+            attributeType.pointee.attributeBody._destroySelf(body)
         }
-        callbacks.pointee.selfDescription = { _, _ in
-            fatalError("not implemented")
+        callbacks.pointee.bodyDescription = { attributeType, body in
+            let description: String
+            if let selfType = attributeType.pointee.selfType.type as? any CustomStringConvertible.Type {
+                description = selfType._description(for: body)
+            } else {
+                description = attributeType.pointee.selfType.description
+            }
+            return Unmanaged<CFString>.passRetained(description as NSString).autorelease()
         }
-        callbacks.pointee.valueDescription = { _, _ in
-            fatalError("not implemented")
+        callbacks.pointee.valueDescription = { attributeType, value in
+            let description: String
+            if let valueType = attributeType.pointee.valueType.type as? any CustomStringConvertible.Type {
+                description = valueType._description(for: value)
+            } else {
+                description = attributeType.pointee.valueType.description
+            }
+            return Unmanaged<CFString>.passRetained(description as NSString).autorelease()
         }
         callbacks.pointee.initializeValue = { _, _ in
             fatalError("not implemented")
@@ -75,4 +96,10 @@ extension AGAttributeType {
             attributeBodyWitnessTable: conformance.witnessTable
         )
     }
+
+    var attributeBody: any _AttributeBody.Type {
+        let conformance = ProtocolConformance(metadata: attributeBodyType, witnessTable: attributeBodyWitnessTable)
+        return unsafeBitCast(conformance, to: (any _AttributeBody.Type).self)
+    }
+
 }

@@ -24,8 +24,8 @@ template <typename T> class vector {
   private:
     struct Metadata {
         // capacity can be calculated via 1 << capacity_exponent
-        unsigned int capacity_exponent : 5;
-        unsigned int size : 27;
+        unsigned int capacity_exponent : 5 = 0;
+        unsigned int size : 27 = 0;
     };
 
     Metadata _metadata;
@@ -141,20 +141,28 @@ template <typename T> vector<T> &vector<T>::operator=(vector &&other) noexcept {
 }
 
 template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, const T &value) {
-    reserve(zone, _metadata.size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(value);
-    _metadata.size += 1;
+    if (pos == end()) {
+        push_back(zone, value);
+    } else {
+        reserve(zone, _metadata.size + 1);
+        iterator mutable_pos = begin() + (pos - begin());
+        std::move_backward(mutable_pos, end(), end() + 1);
+        new (mutable_pos) value_type(value);
+        _metadata.size += 1;
+    }
     return end();
 }
 
 template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, T &&value) {
-    reserve(zone, _metadata.size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (pos) value_type(std::move(value));
-    _metadata.size += 1;
+    if (pos == end()) {
+        push_back(zone, value);
+    } else {
+        reserve(zone, _metadata.size + 1);
+        iterator mutable_pos = begin() + (pos - begin());
+        std::move_backward(mutable_pos, end(), end() + 1);
+        new (pos) value_type(std::move(value));
+        _metadata.size += 1;
+    }
     return end();
 }
 
@@ -188,7 +196,7 @@ template <typename T> void vector<T>::push_back(zone *zone, const T &value) {
 
 template <typename T> void vector<T>::push_back(zone *zone, T &&value) {
     reserve(zone, _metadata.size + 1);
-    new (&_data.get()[_metadata.size]) value_type(std::move(value));
+    new (&data()[_metadata.size]) value_type(std::move(value));
     _metadata.size += 1;
 }
 

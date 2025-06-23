@@ -395,6 +395,133 @@ struct GraphTests {
                 )
             }
         }
+        
+        @Suite
+        struct BodyDescriptionTests {
+            
+            @Test
+            func customBodyDescription() throws {
+                struct TestBody: _AttributeBody, CustomStringConvertible {
+                    var description: String {
+                        return "Custom Description"
+                    }
+                }
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
+                
+                let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
+                    Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                        return { _, _ in }
+                    }
+                }
+                
+                let description =
+                try #require(
+                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
+                    as? NSDictionary
+                )
+                let data = try JSONSerialization.data(
+                    withJSONObject: description,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
+                
+                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                #expect(graphDescription.graphs[0].nodes[0].desc == "Custom Description")
+            }
+            
+            @Test
+            func defaultBodyDescription() throws {
+                struct TestBody: _AttributeBody {
+                    
+                }
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
+                
+                let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
+                    Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                        return { _, _ in }
+                    }
+                }
+                
+                let description =
+                try #require(
+                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
+                    as? NSDictionary
+                )
+                let data = try JSONSerialization.data(
+                    withJSONObject: description,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
+                
+                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                #expect(graphDescription.graphs[0].nodes[0].desc == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody")
+            }
+            
+        }
+        
+        @Suite
+        struct ValueDescriptionTests {
+            
+            @Test
+            func customValueDescription() throws {
+                struct TestValue: CustomStringConvertible {
+                    var field: Int = 0
+                    var description: String {
+                        return "Custom Value"
+                    }
+                }
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
+                
+                let _ = Attribute(value: TestValue())
+                
+                let description =
+                try #require(
+                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict", AGDescriptionIncludeValues: true] as NSDictionary)
+                    as? NSDictionary
+                )
+                let data = try JSONSerialization.data(
+                    withJSONObject: description,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
+                
+                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                #expect(graphDescription.graphs[0].nodes[0].value == "Custom Value")
+            }
+            
+            @Test
+            func defaultValueDescription() throws {
+                struct TestValue {
+                    var field: Int = 0
+                }
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
+                
+                let _ = Attribute(value: TestValue())
+                
+                let description =
+                try #require(
+                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict", AGDescriptionIncludeValues: true] as NSDictionary)
+                    as? NSDictionary
+                )
+                let data = try JSONSerialization.data(
+                    withJSONObject: description,
+                    options: [.prettyPrinted, .sortedKeys]
+                )
+                
+                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                #expect(graphDescription.graphs[0].nodes[0].desc == "GraphTests.DescriptionTests.ValueDescriptionTests.TestValue")
+            }
+            
+        }
 
     }
 

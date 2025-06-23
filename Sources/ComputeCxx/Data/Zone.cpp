@@ -25,26 +25,31 @@ void zone::clear() {
 }
 
 void zone::realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask) {
-    if (new_size > size && *buffer) {
-        auto page = buffer->page_ptr();
-        uint32_t buffer_offset_from_page = buffer->offset() - page.offset();
-        if ((page->in_use == buffer_offset_from_page + size && page->total >= buffer_offset_from_page + new_size)) {
-            page->in_use += new_size - size;
-        } else {
-            ptr<void> new_buffer = alloc_bytes_recycle(new_size, alignment_mask);
-            if (*buffer) {
-                memcpy(new_buffer.get(), (*buffer).get(), size);
-
-                ptr<bytes_info> old_bytes = (*buffer).aligned<bytes_info>();
-                uint32_t remaining_size = size + (*buffer - old_bytes);
-                if (remaining_size >= sizeof(bytes_info)) {
-                    old_bytes->next = _free_bytes;
-                    old_bytes->size = remaining_size;
-                    _free_bytes = old_bytes;
-                }
+    if (new_size > size) {
+        // check if we don't have to reallocate any memory
+        if (*buffer) {
+            auto page = buffer->page_ptr();
+            uint32_t buffer_offset_from_page = buffer->offset() - page.offset();
+            if ((page->in_use == buffer_offset_from_page + size && page->total >= buffer_offset_from_page + new_size)) {
+                // reuse the same buffer pointer, just update the used bytes
+                page->in_use += new_size - size;
+                return;
             }
-            *buffer = new_buffer;
         }
+
+        ptr<void> new_buffer = alloc_bytes_recycle(new_size, alignment_mask);
+        if (*buffer) {
+            memcpy(new_buffer.get(), (*buffer).get(), size);
+
+            ptr<bytes_info> old_bytes = (*buffer).aligned<bytes_info>();
+            uint32_t remaining_size = size + (*buffer - old_bytes);
+            if (remaining_size >= sizeof(bytes_info)) {
+                old_bytes->next = _free_bytes;
+                old_bytes->size = remaining_size;
+                _free_bytes = old_bytes;
+            }
+        }
+        *buffer = new_buffer;
     }
 }
 

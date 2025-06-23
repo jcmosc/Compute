@@ -27,6 +27,9 @@ class AttributeType {
     uint32_t _body_offset;
     ValueLayout _layout;
 
+    swift::metadata *_attribute_body_type;
+    const void *_attribute_body_witness_table;
+
   public:
     class deleter {
       public:
@@ -54,10 +57,22 @@ class AttributeType {
         _body_offset = (sizeof(Node) + alignment_mask) & ~alignment_mask;
     }
 
-    void prefetch_layout() {
+    void fetch_layout() {
         AGComparisonMode comparison_mode = AGComparisonMode(_flags & AGAttributeTypeFlagsComparisonModeMask);
         _layout = LayoutDescriptor::fetch(value_metadata(), AGComparisonOptions(comparison_mode), 1);
     };
+
+    bool compare_values(const void *lhs, const void *rhs) {
+        AGComparisonOptions comparison_options = AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) |
+                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsReportFailures;
+        if (_layout == nullptr) {
+            _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
+        }
+
+        ValueLayout layout = _layout == ValueLayoutTrivial ? nullptr : _layout;
+        return LayoutDescriptor::compare(layout, (const unsigned char *)lhs, (const unsigned char *)rhs,
+                                         value_metadata().vw_size(), comparison_options);
+    }
 
     void destroy_self(Node &node) const {
         if (_flags & AGAttributeTypeFlagsHasDestroySelf) {
@@ -69,6 +84,20 @@ class AttributeType {
     void destroy(Node &node) {
         void *body = node.get_self(*this);
         body_metadata().vw_destroy(static_cast<swift::opaque_value *>(body));
+    }
+
+    CFStringRef _Nullable body_description(void *body) const {
+        if (auto bodyDescription = callbacks().bodyDescription) {
+            return bodyDescription(reinterpret_cast<const AGAttributeType *>(this), body);
+        }
+        return nullptr;
+    }
+
+    CFStringRef _Nullable value_description(void *value) const {
+        if (auto valueDescription = callbacks().valueDescription) {
+            return valueDescription(reinterpret_cast<const AGAttributeType *>(this), value);
+        }
+        return nullptr;
     }
 };
 

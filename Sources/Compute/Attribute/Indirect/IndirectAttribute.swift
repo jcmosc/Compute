@@ -7,32 +7,32 @@ public struct IndirectAttribute<Value> {
     public var identifier: AnyAttribute
 
     public init(source: Attribute<Value>) {
-        fatalError("not implemented")
-    }
-
-    public var attribute: Attribute<Value> {
-        fatalError("not implemented")
+        identifier = __AGGraphCreateIndirectAttribute2(source.identifier, MemoryLayout<Value>.size)
     }
 
     public var source: Attribute<Value> {
         get {
-            fatalError("not implemented")
+            return Attribute(identifier:  identifier.indirectSource)
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            identifier.indirectSource = newValue.identifier
         }
+    }
+    
+    public var attribute: Attribute<Value> {
+        return Attribute(identifier: identifier)
     }
 
     public func resetSource() {
-        fatalError("not implemented")
+        __AGGraphResetIndirectAttribute(identifier, false)
     }
 
     public var dependency: AnyAttribute? {
         get {
-            fatalError("not implemented")
+            return identifier.indirectDependency
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            identifier.indirectDependency = newValue
         }
     }
 

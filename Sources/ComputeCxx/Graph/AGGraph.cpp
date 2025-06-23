@@ -399,6 +399,79 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
         attribute_id, options, AG::ClosureFunctionAB<bool, AGAttribute>(predicate, predicate_context));
 }
 
+#pragma mark - Value
+
+namespace {
+
+inline AGValue get_value(AG::AttributeID attribute_id, uint32_t subgraph_id, AGValueOptions options,
+                         const AG::swift::metadata &metadata) {
+    // TODO: input_value_ref
+    
+    attribute_id.validate_data_offset();
+    
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute_id);
+    }
+    
+    uint8_t state = 0;
+    void *value = subgraph->graph()->value_ref(attribute_id, subgraph_id, metadata, &state);
+    
+    return {value, state & 1 ? true : false};
+}
+
+} // namespace
+
+AGValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AGTypeID type) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    return get_value(attribute_id, 0, options, *metadata);
+}
+
+AGValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type) {
+    auto weak_attribute_id = AG::WeakAttributeID(attribute);
+    auto attribute_id = weak_attribute_id.evaluate();
+    if (attribute_id.is_nil()) {
+        return {nullptr, false};
+    }
+    
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    return get_value(attribute_id, weak_attribute_id.subgraph_id(), options, *metadata);
+}
+
+bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+    
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+    
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    return subgraph->graph()->value_set(attribute_id.get_node(), *metadata, value);
+}
+
+bool AGGraphHasValue(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+    
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+    
+    return subgraph->graph()->value_exists(attribute_id.get_node());
+}
+
 #pragma mark - Trace
 
 void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, NULL); }

@@ -200,6 +200,9 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
     new_page->next = nullptr;
     new_page->total = (needed_size + page_alignment_mask) & ~page_alignment_mask;
     new_page->in_use = sizeof(page);
+    
+    new_page->bytes_list = 0;
+    new_page->const_bytes_list = 0;
 
     unlock();
 
@@ -266,7 +269,7 @@ uint64_t table::raw_page_seed(ptr<page> page) {
     uint64_t result = 0;
     if (map_index < _page_metadata_maps.size() && _page_metadata_maps[map_index].test(page_index % page_size)) {
         auto raw_zone_info = page->zone->page_seed();
-        result = raw_zone_info | (1 < 8);
+        result = (uint64_t)raw_zone_info | ((uint64_t)0x01 << 32);
     }
 
     unlock();

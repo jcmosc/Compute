@@ -1,10 +1,11 @@
 import ComputeCxx
 
-public struct InputOptions {}
+extension Graph {
 
-public struct SearchOptions {}
+    @_extern(c, "AGGraphSearch")
+    static func search(attribute: AnyAttribute, options: AGSearchOptions, predicate: (AnyAttribute) -> Bool) -> Bool
 
-public struct AttributeFlags {}
+}
 
 extension AnyAttribute {
 
@@ -13,60 +14,65 @@ extension AnyAttribute {
     }
 
     public init<Value>(_ attribute: Attribute<Value>) {
-        fatalError("not implemented")
-    }
-
-    public func unsafeOffset(at offset: Int) -> AnyAttribute {
-        fatalError("not implemented")
+        self = attribute.identifier
     }
 
     public func unsafeCast<Value>(to type: Value.Type) -> Attribute<Value> {
-        fatalError("not implemented")
-    }
-
-    public var _bodyType: Any.Type {
-        fatalError("not implemented")
-    }
-
-    public var _bodyPointer: UnsafeRawPointer {
-        fatalError("not implemented")
+        return Attribute<Value>(identifier: self)
     }
 
     public func visitBody<Visitor: AttributeBodyVisitor>(_ visitor: inout Visitor) {
-        fatalError("not implemented")
+        info.type.pointee.attributeBody._visitSelf(info.body, visitor: &visitor)
     }
 
     public func mutateBody<Body>(as type: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
         fatalError("not implemented")
     }
 
-    public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
-        fatalError("not implemented")
+    // Node
+
+    public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
+        flags = flags.subtracting(mask).union(newFlags.intersection(mask))
     }
 
-    public var valueType: Any.Type {
-        fatalError("not implemented")
+    public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {
+        addInput(input, options: options)
     }
 
-    public func setFlags(_ newFlags: AttributeFlags, mask: AttributeFlags) {
-        fatalError("not implemented")
+    public func addInput<T>(_ input: Attribute<T>, options: AGInputOptions, token: Int) {
+        addInput(input.identifier, options: options, token: token)
     }
 
-    public func addInput(_ input: AnyAttribute, options: InputOptions, token: Int) {
-        fatalError("not implemented")
-    }
+    // Indirect Node
 
-    public func addInput<T>(_ input: Attribute<T>, options: InputOptions, token: Int) {
-        fatalError("not implemented")
+    public func unsafeOffset(at offset: Int) -> AnyAttribute {
+        return __AGGraphCreateOffsetAttribute(self, UInt32(offset))
     }
 
     public var indirectDependency: AnyAttribute? {
         get {
-            fatalError("not implemented")
+            let indirectDependency = __AGGraphGetIndirectDependency(self)
+            return indirectDependency == .nil ? nil : indirectDependency
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            __AGGraphSetIndirectDependency(self, newValue ?? .nil)
         }
+    }
+
+    public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
+        return Graph.search(attribute: self, options: options, predicate: predicate)
+    }
+
+    public var _bodyType: Any.Type {
+        return info.type.pointee.selfType.type
+    }
+
+    public var _bodyPointer: UnsafeRawPointer {
+        return info.body
+    }
+
+    public var valueType: Any.Type {
+        return info.type.pointee.valueType.type
     }
 
 }
@@ -74,23 +80,11 @@ extension AnyAttribute {
 extension AnyAttribute: @retroactive CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return "#\(rawValue)"
     }
 
 }
 
-extension AnyAttribute: @retroactive Equatable {
+extension AnyAttribute: @retroactive Equatable {}
 
-    public static func == (_ lhs: AnyAttribute, _ rhs: AnyAttribute) -> Bool {
-        fatalError("not implemented")
-    }
-
-}
-
-extension AnyAttribute: @retroactive Hashable {
-
-    public func hash(into hasher: inout Hasher) {
-        fatalError("not implemented")
-    }
-
-}
+extension AnyAttribute: @retroactive Hashable {}

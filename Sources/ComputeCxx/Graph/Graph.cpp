@@ -158,7 +158,7 @@ uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<c
         return false;
     }();
     if (prefetch_layouts) {
-        type->prefetch_layout();
+        type->fetch_layout();
     }
 
     type_id = _types.size();
@@ -406,7 +406,7 @@ void Graph::remove_removed_input(AttributeID attribute, AttributeID input) {
     } else if (auto input_indirect_node = resolved_input.get_indirect_node()) {
         if (!resolved_input.subgraph()->is_invalidated()) {
             if (input_indirect_node->is_mutable()) {
-                remove_output_edge(input_indirect_node, attribute);
+                remove_output_edge(input_indirect_node.unsafe_cast<MutableIndirectNode>(), attribute);
             }
         }
     }
@@ -500,7 +500,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
 
     InputEdge new_input_edge = {
         resolved_input,
-        static_cast<AGInputOptions>(AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled |
+        static_cast<AGInputOptions>((options & (AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled)) |
                                     (node->is_dirty() ? AGInputOptionsChanged : AGInputOptionsNone)),
     };
 
@@ -590,7 +590,8 @@ void Graph::add_input_dependencies(AttributeID attribute, AttributeID input) {
     if (auto input_node = resolved_input.get_node()) {
         add_output_edge(input_node, attribute);
     } else if (auto input_indirect_node = resolved_input.get_indirect_node()) {
-        add_output_edge(input_indirect_node, attribute);
+        assert(input_indirect_node->is_mutable());
+        add_output_edge(input_indirect_node.unsafe_cast<MutableIndirectNode>(), attribute);
     }
     update_main_refs(attribute);
 }
@@ -600,7 +601,8 @@ void Graph::remove_input_dependencies(AttributeID attribute, AttributeID input) 
     if (auto input_node = resolved_input.get_node()) {
         remove_output_edge(input_node, attribute);
     } else if (auto input_indirect_node = resolved_input.get_indirect_node()) {
-        remove_output_edge(input_indirect_node, attribute);
+        assert(input_indirect_node->is_mutable());
+        remove_output_edge(input_indirect_node.unsafe_cast<MutableIndirectNode>(), attribute);
     }
     update_main_refs(attribute);
 }
@@ -736,8 +738,10 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool
     }
 
     indirect_node->modify(new_source, new_offset);
-    indirect_node->set_traverses_contexts(AttributeID(indirect_node).subgraph()->context_id() !=
-                                          new_source_or_nil.subgraph()->context_id());
+    if (new_source_or_nil && !new_source_or_nil.is_nil()) {
+        indirect_node->set_traverses_contexts(AttributeID(indirect_node).subgraph()->context_id() !=
+                                              new_source_or_nil.subgraph()->context_id());
+    }
 
     if (old_source_or_nil != new_source_or_nil) {
         add_input_dependencies(AttributeID(indirect_node), new_source_or_nil);
@@ -887,12 +891,101 @@ void Graph::reset_update(data::ptr<Node> node) {
     // TODO: Not implemented
 }
 
+void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
+                         const void *_Nullable source_value) {
+    // TODO: Not implemented
+}
+
+void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
+                         const void *_Nullable source_value, uint32_t start_output_index) {
+    // TODO: Not implemented
+}
+
+void Graph::propagate_dirty(AttributeID attribute) {
+    // TODO: Not implemented
+}
+
 #pragma mark - Value
+
+void *Graph::value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
+                       uint8_t *_Nonnull state_out) {
+    _version += 1;
+
+    OffsetAttributeID resolved = attribute.resolve(
+        TraversalOptions::UpdateDependencies | TraversalOptions::ReportIndirectionInOffset |
+        (subgraph_id != 0 ? TraversalOptions::EvaluateWeakReferences : TraversalOptions::AssertNotNil));
+
+    if (subgraph_id != 0 && (!resolved.attribute() || !resolved.attribute().is_node())) {
+        return nullptr;
+    }
+
+    auto node = resolved.attribute().get_node();
+    const AttributeType &type = attribute_type(node->type_id());
+
+    // TODO: update attribute
+
+    if (resolved.offset() == 0 && (&type.value_metadata() != &value_type)) {
+        precondition_failure("invalid value type for attribute: %u (saw %s, expected %s)", resolved.attribute(),
+                             type.value_metadata().name(false), value_type.name(false));
+    }
+    if (!node->is_value_initialized()) {
+        precondition_failure("attribute being read has no value: %u", resolved.attribute());
+    }
+
+    void *value = node->get_value();
+    if (resolved.offset() != 0) {
+        value = (uint8_t *)value + (resolved.offset() - 1);
+    }
+    return value;
+}
+
+bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value) {
+    if (!node->input_edges().empty() && node->is_value_initialized()) {
+        precondition_failure("can only set initial value of computed attributes: %u", node);
+    }
+
+    // TODO: check update
+
+    bool changed = value_set_internal(node, *node.get(), value, value_type);
+    if (changed) {
+        propagate_dirty(AttributeID(node));
+    }
+    return changed;
+}
 
 bool Graph::value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value,
                                const swift::metadata &metadata) {
-    // TODO: Not implemented
+    foreach_trace([&node_ptr, &value](Trace &trace) { trace.set_value(node_ptr, value); });
+
+    AttributeType &type = *_types[node.type_id()];
+    if (&type.value_metadata() != &metadata) {
+        precondition_failure("invalid value type for attribute: %u (saw %s, expected %s)", node_ptr,
+                             type.value_metadata().name(false), metadata.name(false));
+    }
+
+    if (node.is_value_initialized()) {
+        void *value_dest = node.get_value();
+        if (type.compare_values(value_dest, value)) {
+            return false;
+        }
+
+        mark_changed(node_ptr, &type, value_dest, value);
+
+        metadata.vw_assignWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value);
+        return true;
+    } else {
+        node.allocate_value(*this, *AttributeID(node_ptr).subgraph());
+
+        node.set_value_initialized(true);
+        mark_changed(node_ptr, nullptr, nullptr, nullptr);
+
+        void *value_dest = node.get_value();
+        metadata.vw_initializeWithCopy((swift::opaque_value *)value_dest, (swift::opaque_value *)value);
+        return true;
+    }
 }
+
+bool Graph::value_exists(data::ptr<Node> node) { return node->is_value_initialized(); }
 
 #pragma mark - Trace
 

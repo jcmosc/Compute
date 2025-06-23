@@ -163,11 +163,12 @@ AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute);
+AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.indirectSource(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphSetIndirectAttribute(AGAttribute attribute, AGAttribute source);
+void AGGraphSetIndirectAttribute(AGAttribute attribute, AGAttribute source)
+    CF_SWIFT_NAME(setter:AGAttribute.indirectSource(self:_:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -203,6 +204,29 @@ typedef CF_ENUM(uint32_t, AGGraphUpdateStatus) {
     AGGraphUpdateStatusOption2 = 2,
     AGGraphUpdateStatusNeedsCallMainHandler = 3,
 };
+
+// MARK: Value
+
+typedef struct AGValue {
+    const void *value;
+    bool changed;
+} AGValue;
+
+typedef CF_OPTIONS(uint32_t, AGValueOptions) {
+    AGValueOptionsNone = 0,
+};
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+AGValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AGTypeID type);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+bool AGGraphHasValue(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.hasValue(self:));
 
 // MARK: Trace
 

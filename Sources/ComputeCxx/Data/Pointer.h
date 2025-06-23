@@ -27,7 +27,7 @@ template <typename T> class ptr {
 
   public:
     constexpr ptr(difference_type offset = 0) : _offset(offset) {};
-    constexpr ptr(nullptr_t) {};
+    constexpr ptr(nullptr_t): _offset(0) {};
 
     void assert_valid() const {
         if (_offset >= table::shared().ptr_max_offset()) {

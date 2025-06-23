@@ -86,7 +86,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
         result = indirect_node->source().attribute();
     }
 
-    if (options & TraversalOptions::AssertNotNil && !is_node()) {
+    if (options & TraversalOptions::AssertNotNil && !result.is_node()) {
         precondition_failure("invalid attribute id: %u", _value);
     }
 

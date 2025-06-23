@@ -22,29 +22,29 @@ class Graph;
 class Node {
   private:
     // Value state
-    unsigned int _dirty : 1;
-    unsigned int _pending : 1;
-    unsigned int _main_thread : 1;
-    unsigned int _main_thread_only : 1;
+    unsigned int _dirty : 1 = 0;
+    unsigned int _pending : 1 = 0;
+    unsigned int _main_thread : 1 = 0;
+    unsigned int _main_thread_only : 1 = 0;
 
     // Node state
-    unsigned int _value_initialized : 1;
-    unsigned int _self_initialized : 1;
-    unsigned int _update_count : 2;
-    unsigned int _type_id : 24;
+    unsigned int _value_initialized : 1 = 0;
+    unsigned int _self_initialized : 1 = 0;
+    unsigned int _update_count : 2 = 0;
+    unsigned int _type_id : 24 = 0;
 
     // Subgraph
     RelativeAttributeID _next_attribute;
-    AGAttributeFlags _subgraph_flags;
+    AGAttributeFlags _subgraph_flags = AGAttributeFlags(0);
 
     // Data flags
-    unsigned int _has_indirect_self : 1;
-    unsigned int _has_indirect_value : 1;
-    unsigned int _input_edges_traverse_contexts : 1;
-    unsigned int _needs_sort_input_edges : 1;
-    unsigned int _cacheable : 1;
-    unsigned int _main_ref : 1;
-    unsigned int _self_modified : 1;
+    unsigned int _has_indirect_self : 1 = 0;
+    unsigned int _has_indirect_value : 1 = 0;
+    unsigned int _input_edges_traverse_contexts : 1 = 0;
+    unsigned int _needs_sort_input_edges : 1 = 0;
+    unsigned int _cacheable : 1 = 0;
+    unsigned int _main_ref : 1 = 0;
+    unsigned int _self_modified : 1 = 0;
 
     // Data
     data::ptr<void> _value;
@@ -70,11 +70,14 @@ class Node {
     void set_pending(bool value) { _pending = value; }
 
     bool is_main_thread() const { return _main_thread; }
-    
+
     bool is_main_thread_only() const { return _main_thread_only; }
     void set_main_thread_only(bool value) { _main_thread_only = value; }
 
+    bool is_value_initialized() const { return _value_initialized; }
     void set_value_initialized(bool value) { _value_initialized = value; }
+
+    bool is_self_initialized() const { return _self_initialized; }
     void set_self_initialized(bool value) { _self_initialized = value; }
 
     bool is_updating() const { return _update_count > 0; };

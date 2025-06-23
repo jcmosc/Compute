@@ -17,7 +17,7 @@ public struct Attribute<Value> {
     }
 
     public init(_ attribute: Attribute<Value>) {
-        fatalError("not implemented")
+        self = attribute
     }
 
     public init(value: Value) {
@@ -64,49 +64,78 @@ public struct Attribute<Value> {
         identifier = AnyAttribute(type: typeID, body: body, value: value)
     }
 
-    public func unsafeCast<T>(to type: T.Type) -> Attribute<T> {
-        fatalError("not implemented")
+    public var graph: Graph {
+        return identifier.graph
     }
 
-    public func unsafeOffset<T>(at offset: Int, as type: T) -> Attribute<T> {
-        fatalError("not implemented")
+    public var subgraph: Subgraph {
+        return identifier.subgraph
+    }
+
+    public var subgraphOrNil: Subgraph? {
+        return identifier.subgraphOrNil
+    }
+    
+    public func visitBody<Visitor: AttributeBodyVisitor>(_ visitor: inout Visitor) {
+        identifier.visitBody(&visitor)
+    }
+    
+    public var flags: AGAttributeFlags {
+        get {
+            return identifier.flags
+        }
+        nonmutating set {
+            identifier.flags = newValue
+        }
+    }
+    
+    public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
+        identifier.setFlags(newFlags, mask: mask)
     }
 
     public func applying<Member>(offset: PointerOffset<Value, Member>) -> Attribute<Member> {
-        fatalError("not implemented")
-    }
-
-    public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
-        fatalError("not implemented")
-    }
-
-    public func visitBody<Visitor: AttributeBodyVisitor>(_ visitor: inout Visitor) {
-        fatalError("not implemented")
+        return unsafeOffset(at: offset.byteOffset, as: Member.self)
     }
 
     public func mutateBody<Body>(as bodyType: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
-        fatalError("not implemented")
+        identifier.mutateBody(as: bodyType, invalidating: invalidating, mutator)
+    }
+
+    public func addInput<T>(_ input: Attribute<T>, options: AGInputOptions, token: Int) {
+        identifier.addInput(input, options: options, token: token)
+    }
+
+    public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {
+        identifier.addInput(input, options: options, token: token)
+    }
+    
+    public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
+        return identifier.breadthFirstSearch(options: options, predicate)
     }
 
     public func validate() {
-        fatalError("not implemented")
+        identifier.verifyType(type: Metadata(Value.self))
     }
 
     public var value: Value {
         unsafeAddress {
-            fatalError("not implemented")
+            return __AGGraphGetValue(identifier, [], Metadata(Value.self))
+                .value
+                .assumingMemoryBound(to: Value.self)
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            _ = setValue(newValue)
         }
     }
 
     public func setValue(_ value: Value) -> Bool {
-        fatalError("not implemented")
+        return withUnsafePointer(to: value) { valuePointer in
+            return __AGGraphSetValue(identifier, valuePointer, Metadata(Value.self))
+        }
     }
 
     public var hasValue: Bool {
-        fatalError("not implemented")
+        return identifier.hasValue
     }
 
     public var valueState: ValueState {
@@ -129,40 +158,7 @@ public struct Attribute<Value> {
         fatalError("not implemented")
     }
 
-    public var flags: AttributeFlags {
-        get {
-            fatalError("not implemented")
-        }
-        set {
-            fatalError("not implemented")
-        }
-    }
-
-    public func setFlags(_ flags: AttributeFlags, mask: AttributeFlags) {
-        fatalError("not implemented")
-    }
-
     public func valueAndFlags(options: ValueOptions) -> (value: Value, flags: ChangedValueFlags) {
-        fatalError("not implemented")
-    }
-
-    public func addInput<T>(_ input: Attribute<T>, options: InputOptions, token: Int) {
-        fatalError("not implemented")
-    }
-
-    public func addInput(_ input: AnyAttribute, options: InputOptions, token: Int) {
-        fatalError("not implemented")
-    }
-
-    public var graph: Graph {
-        fatalError("not implemented")
-    }
-
-    public var subgraph: Subgraph {
-        fatalError("not implemented")
-    }
-
-    public var subgraphOrNil: Subgraph? {
         fatalError("not implemented")
     }
 
@@ -177,19 +173,37 @@ public struct Attribute<Value> {
 
     public var projectedValue: Attribute<Value> {
         get {
-            fatalError("not implemented")
+            return self
         }
         set {
-            fatalError("not implemented")
+            self = newValue
         }
     }
 
-    public subscript<Member>(offset: (inout Value) -> PointerOffset<Value, Member>) -> Attribute<Member> {
-        fatalError("not implemented")
+    public subscript<Member>(offset body: (inout Value) -> PointerOffset<Value, Member>) -> Attribute<Member> {
+        return unsafeOffset(at: PointerOffset.offset(body).byteOffset, as: Member.self)
+    }
+
+    public subscript<Member>(keyPath keyPath: KeyPath<Value, Member>) -> Attribute<Member> {
+        if let offset = MemoryLayout<Value>.offset(of: keyPath) {
+            return unsafeOffset(at: offset, as: Member.self)
+        } else {
+            return Attribute<Member>(Focus(root: self, keyPath: keyPath))
+        }
     }
 
     public subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Attribute<Member> {
-        fatalError("not implemented")
+        return self[keyPath: keyPath]
+    }
+
+    public func unsafeCast<T>(to type: T.Type) -> Attribute<T> {
+        return identifier.unsafeCast(to: type)
+    }
+
+    public func unsafeOffset<Member>(at offset: Int, as type: Member.Type) -> Attribute<Member> {
+        return Attribute<Member>(
+            identifier: __AGGraphCreateOffsetAttribute2(identifier, UInt32(offset), MemoryLayout<Member>.size)
+        )
     }
 
 }
@@ -197,7 +211,7 @@ public struct Attribute<Value> {
 extension Attribute: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return identifier.description
     }
 
 }

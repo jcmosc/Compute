@@ -212,6 +212,14 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
                    bool (*predicate)(void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
                    void *predicate_context);
 
+// MARK: Body
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
+                            void (*modify)(void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
+                            void *modify_context);
+
 // MARK: Value
 
 typedef CF_OPTIONS(uint32_t, AGValueOptions) {

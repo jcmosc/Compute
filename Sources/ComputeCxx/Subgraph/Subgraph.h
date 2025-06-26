@@ -83,6 +83,14 @@ class Subgraph : public data::zone {
   public:
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
+    
+    // Non-copyable
+    Subgraph(const Subgraph &) = delete;
+    Subgraph &operator=(const Subgraph &) = delete;
+    
+    // Non-movable
+    Subgraph(Subgraph &&) = delete;
+    Subgraph &operator=(Subgraph &&) = delete;
 
     // MARK: CFType
 
@@ -170,6 +178,8 @@ class Subgraph : public data::zone {
     static std::atomic<uint32_t> _last_traversal_seed;
 
     void apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body);
+    
+    void update(AGAttributeFlags mask);
 
     // MARK: Tree
 

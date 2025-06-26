@@ -110,8 +110,8 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                                 node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
                             }
                         }
-
-                        auto flags = node->value_state();
+                        
+                        auto flags = node->flags();
                         if (flags) {
                             node_dict[@"flags"] = [NSNumber numberWithUnsignedInt:flags];
                         }

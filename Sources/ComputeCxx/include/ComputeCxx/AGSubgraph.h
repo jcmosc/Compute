@@ -146,6 +146,10 @@ CF_REFINED_FOR_SWIFT
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
                      void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context);
 
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags mask);
+
 // MARK: Tree
 
 CF_EXPORT

@@ -8,6 +8,7 @@
 #include "ComputeCxx/AGAttribute.h"
 #include "Data/Pointer.h"
 #include "Data/Vector.h"
+#include "Graph/AGGraph.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -30,7 +31,8 @@ class Node {
     // Node state
     unsigned int _value_initialized : 1 = 0;
     unsigned int _self_initialized : 1 = 0;
-    unsigned int _update_count : 2 = 0;
+    unsigned int _updating : 1 = 0;
+    unsigned int _updating_cyclic : 1 = 0;
     unsigned int _type_id : 24 = 0;
 
     // Subgraph
@@ -59,7 +61,7 @@ class Node {
     Node(const Node &) = delete;
     Node &operator=(const Node &) = delete;
 
-    // Non-movabe
+    // Non-movable
     Node(Node &&) = delete;
     Node &operator=(Node &&) = delete;
 
@@ -80,12 +82,16 @@ class Node {
     bool is_self_initialized() const { return _self_initialized; }
     void set_self_initialized(bool value) { _self_initialized = value; }
 
-    bool is_updating() const { return _update_count > 0; };
+    bool is_updating() const { return _updating || _updating_cyclic; };
+    bool set_updating(bool value) { _updating = value; };
 
     // TODO: test this
-    uint8_t value_state() const {
-        return _dirty << 0 | _pending << 1 | (_update_count > 0 ? 1 : 0) << 2 | _value_initialized << 3 |
-               _main_thread << 4 | _main_ref << 5 | _main_thread_only << 6 | _self_modified << 7;
+    AGValueState flags() const {
+        return (_dirty ? AGValueStateDirty : 0) | (_pending ? AGValueStatePending : 0) |
+               (_updating || _updating_cyclic ? AGValueStateUpdating : 0) |
+               (_value_initialized ? AGValueStateValueExists : 0) | (_main_thread ? AGValueStateMainThread : 0) |
+               (_main_ref ? AGValueStateMainRef : 0) | (_main_thread_only ? AGValueStateMainThreadOnly : 0) |
+               (_self_modified ? AGValueStateSelfModified : 0);
     };
 
     uint32_t type_id() const { return _type_id; };
@@ -117,6 +123,9 @@ class Node {
 
     bool is_main_ref() const { return _main_ref; }
     void set_main_ref(bool value) { _main_ref = value; }
+
+    bool is_self_modified() const { return _self_modified; }
+    void set_self_modified(bool value) { _self_modified = value; }
 
     data::vector<InputEdge> &input_edges() { return _input_edges; }; // TODO: delete whole vector accessor
     void add_input_edge(data::zone *subgraph, InputEdge &input_edge) {

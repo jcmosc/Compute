@@ -12,7 +12,7 @@ typedef CF_OPTIONS(uint8_t, AGInputOptions) {
     AGInputOptionsUnknown1 = 1 << 1,
     AGInputOptionsAlwaysEnabled = 1 << 2,
     AGInputOptionsChanged = 1 << 3,
-    AGInputOptionsUnknown4 = 1 << 4,
+    AGInputOptionsEnabled = 1 << 4,
 };
 
 CF_EXTERN_C_END

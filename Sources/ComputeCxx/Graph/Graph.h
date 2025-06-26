@@ -13,6 +13,7 @@
 
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
+#include <Utilities/TaggedPointer.h>
 
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
@@ -56,7 +57,14 @@ class Graph {
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
 
-    typedef void (*MainHandler)(void *_Nullable context AG_SWIFT_CONTEXT, void (*trampoline_thunk)(const void *),
+    enum class UpdateStatus : uint32_t {
+        Unchanged = 0,
+        Changed = 1,
+        Aborted = 2,
+        NeedsCallMainHandler = 3,
+    };
+
+    typedef void (*MainHandler)(const void *_Nullable context AG_SWIFT_CONTEXT, void (*trampoline_thunk)(const void *),
                                 const void *trampoline) AG_SWIFT_CC(swift);
 
   private:
@@ -101,11 +109,15 @@ class Graph {
     bool _deferring_subgraph_invalidation;
 
     // Threads
+    bool _needs_update;
     uint32_t _ref_count = 1;
+    pthread_t _current_update_thread = 0;
 
     uint64_t _id;
+    uint64_t _deadline = UINT64_MAX;
 
     // Counters
+    uint64_t _transaction_count = 0;
     uint64_t _version = 0;
 
     static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
@@ -134,6 +146,15 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
+    uint32_t index_of_input_slow(Node &node, InputEdge::Comparator comparator);
+
+    // Update methods
+
+    static pthread_key_t _current_update_key;
+
+    bool passed_deadline_slow();
+    void collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes);
+
   public:
     Graph();
     ~Graph();
@@ -147,6 +168,8 @@ class Graph {
     }
     Context *_Nullable primary_context() const;
 
+    bool is_context_updating(uint64_t context_id);
+
     inline static void retain(Graph *graph) { graph->_ref_count += 1; };
     inline static void release(Graph *graph) {
         graph->_ref_count -= 1;
@@ -154,6 +177,15 @@ class Graph {
             delete graph;
         }
     };
+
+    // MARK: Main handler
+
+    bool has_main_handler() const { return _main_handler != nullptr; }
+
+    void with_main_handler(ClosureFunctionVV<void> body, MainHandler _Nullable main_handler,
+                           const void *_Nullable main_handler_context);
+
+    void call_main_handler(const void *context, void (*body)(const void *context));
 
     // MARK: Tree
 
@@ -216,10 +248,6 @@ class Graph {
     void will_invalidate_subgraph() { _deferring_subgraph_invalidation = true; }
     void did_invalidate_subgraph() { _deferring_subgraph_invalidation = false; }
 
-    // MARK: Main handler
-
-    bool has_main_handler() const { return _main_handler != nullptr; }
-
     // MARK: Metrics
 
     uint64_t num_nodes() const { return _num_nodes; };
@@ -245,6 +273,8 @@ class Graph {
 
     uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
 
+    uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
+
     void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);
     bool indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool non_nil);
 
@@ -258,13 +288,28 @@ class Graph {
 
     // MARK: Value
 
+    bool value_exists(data::ptr<Node> node);
+    AGValueState value_state(AttributeID attribute);
+
     void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
-                    uint8_t *_Nonnull state_out);
+                    AGChangedValueFlags *_Nonnull flags_out);
+
+    void *input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32_t subgraph_id,
+                          AGInputOptions input_options, const swift::metadata &value_type,
+                          AGChangedValueFlags *_Nonnull flags_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
 
-    bool value_exists(data::ptr<Node> node);
+    void value_mark(data::ptr<Node> node);
+    void value_mark_all();
+
+    void propagate_dirty(AttributeID attribute);
+
+    bool any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_attributes,
+                            uint64_t exclude_attributes_count);
+
+    void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type);
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };
     void did_destroy_value(size_t size) { _num_value_bytes -= size; };
@@ -272,15 +317,43 @@ class Graph {
 
     // MARK: Update
 
-    void update_attribute(AttributeID attribute, bool option);
+    static util::tagged_ptr<UpdateStack> current_update() {
+        return util::tagged_ptr<UpdateStack>((UpdateStack *)pthread_getspecific(_current_update_key));
+    }
+
+    static void set_current_update(util::tagged_ptr<UpdateStack> current_update) {
+        pthread_setspecific(_current_update_key, (void *)current_update.value());
+    }
+
+    void set_deadline(uint64_t deadline) { _deadline = deadline; };
+    bool passed_deadline();
+
+    bool thread_is_updating();
+    
+    uint64_t transaction_count() const { return _transaction_count; };
+    void increment_transaction_count_if_needed() {
+        if (!thread_is_updating()) {
+            _transaction_count += 1;
+        }
+    };
+
+    bool needs_update() { return _needs_update; };
+    void set_needs_update(bool needs_update) { _needs_update = needs_update; };
+
+    void call_update();
+
+    void with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body);
+    static void without_update(ClosureFunctionVV<void> body);
+
+    
+
+    UpdateStatus update_attribute(AttributeID attribute, AGGraphUpdateOptions options);
     void reset_update(data::ptr<Node> node);
 
     void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value);
     void mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value, uint32_t start_output_index);
-
-    void propagate_dirty(AttributeID attribute);
 
     // MARK: Trace
 

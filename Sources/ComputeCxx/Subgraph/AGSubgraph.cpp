@@ -290,6 +290,14 @@ void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
     AG::Subgraph::from_cf(subgraph)->apply(options, AG::ClosureFunctionAV<void, unsigned int>(body, body_context));
 }
 
+void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return;
+    }
+
+    AG::Subgraph::from_cf(subgraph)->update(mask);
+}
+
 #pragma mark - Tree
 
 AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {

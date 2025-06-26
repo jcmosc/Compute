@@ -1,6 +1,7 @@
 #include "Subgraph.h"
 
 #include <ranges>
+#include <stack>
 
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeData/Node/IndirectNode.h"
@@ -9,6 +10,7 @@
 #include "Attribute/AttributeView/AttributeView.h"
 #include "Graph/Context.h"
 #include "Trace/Trace.h"
+#include "Utilities/CFPointer.h"
 
 namespace AG {
 
@@ -590,6 +592,104 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
             }
         }
     }
+}
+
+void Subgraph::update(AGAttributeFlags mask) {
+    if (_graph->needs_update() && _graph->thread_is_updating()) {
+        _graph->call_update();
+    }
+
+    if (!is_valid() || !is_dirty(mask)) {
+        _graph->invalidate_subgraphs();
+        return;
+    }
+
+    _graph->foreach_trace([this, &mask](Trace &trace) { trace.begin_update(*this, mask); });
+    _last_traversal_seed += 1;
+
+    auto subgraph_objects =
+        std::stack<util::cf_ptr<AGSubgraphRef>, vector<util::cf_ptr<AGSubgraphRef>, 32, uint64_t>>();
+    auto dirty_nodes = vector<data::ptr<Node>, 256, uint64_t>();
+
+    subgraph_objects.push(util::cf_ptr(to_cf()));
+    _traversal_seed = _last_traversal_seed;
+
+    while (!subgraph_objects.empty()) {
+        bool created_transaction = false;
+
+        util::cf_ptr<AGSubgraphRef> subgraph_object = subgraph_objects.top();
+        subgraph_objects.pop();
+
+        Subgraph *subgraph = Subgraph::from_cf(subgraph_object.get());
+        if (!subgraph) {
+            continue;
+        }
+
+        if (subgraph->is_valid() && subgraph->_dirty_flags & mask) {
+            subgraph->_dirty_flags &= ~mask;
+
+            if (mask == 0 || intersects(mask)) {
+                for (auto page : subgraph->pages()) {
+                    for (auto attribute : attribute_view(page)) {
+                        if (!attribute || attribute.is_nil()) {
+                            break;
+                        }
+                        if (auto node = attribute.get_node()) {
+                            if (mask) {
+                                if (node->subgraph_flags() == AGAttributeFlagsDefault) {
+                                    // we know this attribute is sorted after all nodes with flags
+                                    // so we aren't going to match any more attributes after this
+                                    break;
+                                }
+                                if (!(node->subgraph_flags() & mask)) {
+                                    continue;
+                                }
+                            }
+
+                            if (node->is_dirty()) {
+                                dirty_nodes.push_back(node);
+                            }
+                        } else if (attribute.is_indirect_node()) {
+                            if (mask) {
+                                // we know this attribute is sorted after all nodes with flags
+                                // so we aren't going to match any more attributes after this
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (auto node : dirty_nodes) {
+                if (!created_transaction) {
+                    _graph->increment_transaction_count_if_needed();
+                }
+                _graph->update_attribute(AttributeID(node), AGGraphUpdateOptionsInTransaction);
+                created_transaction = true;
+                if (!subgraph->is_valid()) {
+                    break;
+                }
+            }
+            dirty_nodes.clear();
+        }
+
+        if (subgraph->is_valid() && subgraph->_descendent_dirty_flags & mask) {
+            subgraph->_descendent_dirty_flags &= ~mask;
+
+            for (auto child : subgraph->children()) {
+                Subgraph *child_subgraph = child.subgraph();
+                if (child_subgraph->is_dirty(mask) && child_subgraph->_traversal_seed != _traversal_seed) {
+                    subgraph_objects.push(util::cf_ptr(child_subgraph->to_cf()));
+                    child_subgraph->_traversal_seed = _traversal_seed;
+                }
+            }
+        }
+
+        _graph->invalidate_subgraphs();
+    }
+
+    _graph->invalidate_subgraphs();
+    _graph->foreach_trace([this](Trace &trace) { trace.end_update(*this); });
 }
 
 #pragma mark - Tree

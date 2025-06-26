@@ -67,7 +67,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (dependency) {
                     auto subgraph = dependency.subgraph();
                     if (subgraph) {
-                        subgraph->graph()->update_attribute(dependency, false);
+                        subgraph->graph()->update_attribute(dependency, AGGraphUpdateOptionsNone);
                     }
                 }
             }

@@ -111,7 +111,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                             }
                         }
                         
-                        auto flags = node->value_state();
+                        auto flags = node->flags();
                         if (flags) {
                             node_dict[@"flags"] = [NSNumber numberWithUnsignedInt:flags];
                         }

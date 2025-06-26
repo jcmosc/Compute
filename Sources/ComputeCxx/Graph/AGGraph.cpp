@@ -423,6 +423,27 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
         attribute_id, options, AG::ClosureFunctionAB<bool, AGAttribute>(predicate, predicate_context));
 }
 
+#pragma mark - Body
+
+void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
+                            void (*modify)(void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
+                            void *modify_context) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    subgraph->graph()->attribute_modify(node, *reinterpret_cast<const AG::swift::metadata *>(type),
+                                        AG::ClosureFunctionPV<void, void *>(modify, modify_context), invalidating);
+}
+
 #pragma mark - Value
 
 namespace {

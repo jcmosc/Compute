@@ -148,6 +148,8 @@ class Graph {
 
     uint32_t index_of_input_slow(Node &node, InputEdge::Comparator comparator);
 
+    void mark_pending(data::ptr<Node> node_ptr, Node *node);
+
     // Update methods
 
     static pthread_key_t _current_update_key;
@@ -285,6 +287,11 @@ class Graph {
 
     bool breadth_first_search(AttributeID attribute, AGSearchOptions options,
                               ClosureFunctionAB<bool, AGAttribute> predicate) const;
+
+    // MARK: Body
+
+    void attribute_modify(data::ptr<Node> node, const swift::metadata &type, ClosureFunctionPV<void, void *> modify,
+                          bool invalidating);
 
     // MARK: Value
 

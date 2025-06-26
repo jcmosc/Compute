@@ -1076,6 +1076,51 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
     // TODO: Not implemented
 }
 
+#pragma mark - Body
+
+void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metadata,
+                             ClosureFunctionPV<void, void *> modify, bool invalidating) {
+    if (!node->is_self_initialized()) {
+        precondition_failure("no self data: %u", node);
+    }
+
+    const AttributeType &type = attribute_type(node->type_id());
+    if (&type.body_metadata() != &metadata) {
+        precondition_failure("self type mismatch: %u", node);
+    }
+
+    foreach_trace([&node](Trace &trace) { trace.begin_modify(node); });
+
+    void *body = node->get_self(type);
+    modify(body);
+
+    foreach_trace([&node](Trace &trace) { trace.end_modify(node); });
+
+    if (invalidating) {
+        node->set_self_modified(true);
+        mark_pending(node, node.get());
+    }
+}
+
+void Graph::mark_pending(data::ptr<Node> node_ptr, Node *node) {
+    if (!node->is_pending()) {
+        foreach_trace([&node_ptr](Trace &trace) { trace.set_pending(node_ptr, true); });
+        node->set_pending(true);
+    }
+    if (!node->is_dirty()) {
+        foreach_trace([&node_ptr](Trace &trace) { trace.set_dirty(node_ptr, true); });
+        node->set_dirty(true);
+
+        AGAttributeFlags subgraph_flags = node->subgraph_flags();
+        Subgraph *subgraph = AttributeID(node_ptr).subgraph();
+        if (subgraph_flags && subgraph != nullptr) {
+            subgraph->add_dirty_flags(subgraph_flags);
+        }
+
+        propagate_dirty(AttributeID(node_ptr));
+    }
+}
+
 #pragma mark - Value
 
 bool Graph::value_exists(data::ptr<Node> node) { return node->is_value_initialized(); }

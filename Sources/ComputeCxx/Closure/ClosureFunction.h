@@ -86,4 +86,8 @@ template <typename ReturnType, typename Arg>
     requires std::same_as<ReturnType, bool> && std::unsigned_integral<Arg>
 using ClosureFunctionAB = ClosureFunction<ReturnType, Arg>;
 
+template <typename ReturnType, typename Arg>
+    requires std::same_as<ReturnType, void>
+using ClosureFunctionPV = ClosureFunction<ReturnType, Arg>;
+
 } // namespace AG

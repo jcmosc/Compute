@@ -304,7 +304,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
     if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsAsyncThread) {
         node_ptr->set_main_ref(false);
     } else {
-        if (node_ptr->is_main_thread_only()) {
+        if (node_ptr->requires_main_thread()) {
             node_ptr->set_main_ref(true);
         } else {
             node_ptr->set_main_ref(false);
@@ -622,8 +622,8 @@ void Graph::remove_all_inputs(data::ptr<Node> node) {
 void Graph::all_inputs_removed(data::ptr<Node> node) {
     node->set_input_edges_traverse_contexts(false);
     node->set_needs_sort_input_edges(false);
-    if (node->is_main_thread_only() && !attribute_type(node->type_id()).flags() && AGAttributeTypeFlagsMainThread) {
-        node->set_main_thread_only(false);
+    if (node->requires_main_thread() && !attribute_type(node->type_id()).flags() && AGAttributeTypeFlagsMainThread) {
+        node->set_requires_main_thread(false);
     }
 }
 
@@ -698,7 +698,7 @@ void Graph::update_main_refs(AttributeID attribute) {
             if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsAsyncThread) {
                 main_ref = false;
             } else {
-                if (node->is_main_thread_only()) {
+                if (node->requires_main_thread()) {
                     main_ref = true;
                 } else {
                     main_ref = std::any_of(
@@ -1396,7 +1396,7 @@ void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32
                              AGInputOptions input_options, const swift::metadata &value_type,
                              AGChangedValueFlags *_Nonnull flags_out) {
     auto comparator = InputEdge::Comparator(
-        input, AGInputOptionsUnprefetched | AGInputOptionsUnknown1 | AGInputOptionsAlwaysEnabled, input_options);
+        input, AGInputOptionsUnprefetched | AGInputOptionsSyncMainRef | AGInputOptionsAlwaysEnabled, input_options);
     uint32_t index = index_of_input(*node.get(), comparator);
 
     if (index < UINT32_MAX) {
@@ -1427,8 +1427,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, u
                                   AGInputOptions input_options, const swift::metadata &value_type,
                                   AGChangedValueFlags *_Nonnull flags_out, uint32_t index) {
 
-    // TODO: rename Unknown1 with different mask
-    if (input_options & AGInputOptionsUnknown1) {
+    if (input_options & AGInputOptionsSyncMainRef) {
         auto comparator = InputEdge::Comparator(input, AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled,
                                                 input_options & AGInputOptionsUnprefetched);
         index = index_of_input(*node.get(), comparator);
@@ -1479,10 +1478,10 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, u
     if (input_edge.options & AGInputOptionsPending) {
         *flags_out |= AGChangedValueFlagsChanged;
     }
-    if (input_options & AGInputOptionsUnknown1 && input_node->is_main_ref() &&
+    if (input_options & AGInputOptionsSyncMainRef && input_node->is_main_ref() &&
         !value_type.getValueWitnesses()->isPOD()) {
-        input_node->set_main_thread_only(true);
-        *flags_out |= 1;
+        input_node->set_requires_main_thread(true);
+        *flags_out |= AGChangedValueFlagsRequiresMainThread;
     }
 
     return value_ref_checked(input_node, resolved.offset(), input_type, value_type);

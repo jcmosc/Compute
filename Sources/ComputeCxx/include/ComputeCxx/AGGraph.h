@@ -237,12 +237,13 @@ typedef CF_OPTIONS(uint8_t, AGValueState) {
     AGValueStateValueExists = 1 << 3,
     AGValueStateMainThread = 1 << 4,
     AGValueStateMainRef = 1 << 5,
-    AGValueStateMainThreadOnly = 1 << 6,
+    AGValueStateRequiresMainThread = 1 << 6,
     AGValueStateSelfModified = 1 << 7,
 };
 
 typedef CF_OPTIONS(uint8_t, AGChangedValueFlags) {
-    AGChangedValueFlagsChanged = 1,
+    AGChangedValueFlagsChanged = 1 << 0,
+    AGChangedValueFlagsRequiresMainThread = 1 << 1,
 };
 
 typedef struct AGChangedValue {

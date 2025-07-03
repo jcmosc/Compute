@@ -1741,6 +1741,21 @@ bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_
     return false;
 }
 
+void Graph::input_value_add(data::ptr<Node> node, AttributeID input, AGInputOptions options) {
+    input.validate_data_offset();
+
+    auto comparator = InputEdge::Comparator(input, options & AGInputOptionsUnprefetched,
+                                            AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled);
+    auto index = index_of_input(*node.get(), comparator);
+    if (index == UINT32_MAX) {
+        index = add_input(node, input, false, options & AGInputOptionsUnprefetched);
+    }
+    if (index >= 0) {
+        auto &input_edge = node->input_edges()[index];
+        input_edge.options |= AGInputOptionsEnabled;
+    }
+}
+
 void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) {
     if (!node->is_updating()) {
         precondition_failure("attribute is not evaluating: %u", node);

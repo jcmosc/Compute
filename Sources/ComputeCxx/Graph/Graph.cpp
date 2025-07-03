@@ -1490,9 +1490,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
                                 if (attribute.subgraph() == nullptr ||
                                     context_id != attribute.subgraph()->context_id()) {
                                     if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
-                                        if (context->graph_version() != context->graph()._version) {
-                                            context->call_invalidation(attribute);
-                                        }
+                                        context->call_invalidation_if_needed(attribute);
                                     }
                                 }
                             }
@@ -1514,9 +1512,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
                                 if (attribute.subgraph() == nullptr ||
                                     context_id != attribute.subgraph()->context_id()) {
                                     if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
-                                        if (context->graph_version() != context->graph()._version) {
-                                            context->call_invalidation(attribute);
-                                        }
+                                        context->call_invalidation_if_needed(attribute);
                                     }
                                 }
                             }

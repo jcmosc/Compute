@@ -25,6 +25,8 @@ class Graph::Context {
     bool _needs_update;
     bool _invalidated;
 
+    void call_invalidation(AttributeID attribute);
+
   public:
     Context(Graph *graph);
     ~Context();
@@ -46,7 +48,7 @@ class Graph::Context {
 
     uint64_t deadline() const { return _deadline; };
     void set_deadline(uint64_t deadline);
-    
+
     uint64_t graph_version() const { return _graph_version; }; // controls invalidation callback
 
     bool needs_update() const { return _needs_update; };
@@ -57,7 +59,12 @@ class Graph::Context {
 
     bool thread_is_updating();
 
-    void call_invalidation(AttributeID attribute);
+    void call_invalidation_if_needed(AttributeID attribute) {
+        if (graph_version() == graph().version()) {
+            return;
+        }
+        call_invalidation(attribute);
+    }
     void call_update();
 };
 

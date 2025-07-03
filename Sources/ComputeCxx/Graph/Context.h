@@ -20,7 +20,8 @@ class Graph::Context {
     ClosureFunctionAV<void, AGAttribute> _invalidation_callback = {nullptr, nullptr};
     ClosureFunctionVV<void> _update_callback = {nullptr, nullptr};
 
-    uint64_t _deadline;
+    uint64_t _deadline = UINT64_MAX;
+    uint64_t _graph_version;
     bool _needs_update;
     bool _invalidated;
 
@@ -45,6 +46,8 @@ class Graph::Context {
 
     uint64_t deadline() const { return _deadline; };
     void set_deadline(uint64_t deadline);
+    
+    uint64_t graph_version() const { return _graph_version; }; // controls invalidation callback
 
     bool needs_update() const { return _needs_update; };
     void set_needs_update();
@@ -52,6 +55,9 @@ class Graph::Context {
     bool invalidated() const { return _invalidated; };
     void set_invalidated(bool invalidated) { _invalidated = invalidated; };
 
+    bool thread_is_updating();
+
+    void call_invalidation(AttributeID attribute);
     void call_update();
 };
 

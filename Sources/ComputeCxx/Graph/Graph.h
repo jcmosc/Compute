@@ -146,11 +146,19 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
+    void *input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, uint32_t subgraph_id,
+                               AGInputOptions input_options, const swift::metadata &value_type,
+                               AGChangedValueFlags *_Nonnull flags_out, uint32_t index);
+
+    uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
     uint32_t index_of_input_slow(Node &node, InputEdge::Comparator comparator);
 
     void mark_pending(data::ptr<Node> node_ptr, Node *node);
 
     // Update methods
+
+    inline bool update_attribute_checked(AttributeID attribute, uint32_t subgraph_id, AGGraphUpdateOptions options,
+                                         AGChangedValueFlags *_Nullable flags_out);
 
     static pthread_key_t _current_update_key;
 
@@ -275,8 +283,6 @@ class Graph {
 
     uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
 
-    uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
-
     void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);
     bool indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool non_nil);
 
@@ -336,7 +342,7 @@ class Graph {
     bool passed_deadline();
 
     bool thread_is_updating();
-    
+
     uint64_t transaction_count() const { return _transaction_count; };
     void increment_transaction_count_if_needed() {
         if (!thread_is_updating()) {
@@ -351,8 +357,6 @@ class Graph {
 
     void with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body);
     static void without_update(ClosureFunctionVV<void> body);
-
-    
 
     UpdateStatus update_attribute(AttributeID attribute, AGGraphUpdateOptions options);
     void reset_update(data::ptr<Node> node);

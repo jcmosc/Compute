@@ -128,14 +128,14 @@ void Graph::with_main_handler(ClosureFunctionVV<void> body, MainHandler _Nullabl
     _main_handler_context = old_main_handler_context;
 }
 
-void Graph::call_main_handler(const void *context, void (*body)(const void *)) {
+void Graph::call_main_handler(void *context, void (*body)(void *)) {
     assert(_main_handler);
 
     struct MainTrampoline {
         Graph *graph;
         pthread_t thread;
-        const void *context;
-        void (*handler)(const void *);
+        void *context;
+        void (*handler)(void *);
 
         static void thunk(const void *arg) {
             auto trampoline = reinterpret_cast<const MainTrampoline *>(arg);
@@ -1063,8 +1063,49 @@ void Graph::collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes) {
     }
 }
 
-Graph::UpdateStatus Graph::update_attribute(AttributeID attribute, AGGraphUpdateOptions options) {
-    // TODO: Not implemented
+Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, AGGraphUpdateOptions options) {
+    if (!(options & AGGraphUpdateOptionsInTransaction) && _needs_update) {
+        if (!thread_is_updating()) {
+            call_update();
+        }
+    }
+
+    if (node->is_value_initialized() && !node->is_dirty()) {
+        return UpdateStatus::Unchanged;
+    }
+
+    _update_count += 1;
+    if (node->is_main_thread()) {
+        _update_on_main_count += 1;
+    }
+
+    UpdateStack current_update = UpdateStack(this, options);
+
+    foreach_trace(
+        [&current_update, &node, &options](Trace &trace) { trace.begin_update(current_update, node, options); });
+
+    UpdateStatus status = UpdateStatus::Changed;
+    if (current_update.push(node, *node.get(), false, !(options & AGGraphUpdateOptionsInTransaction))) {
+        status = current_update.update();
+        if (status == UpdateStatus::NeedsCallMainHandler) {
+            std::pair<UpdateStack *, UpdateStatus> context = {&current_update, UpdateStatus::NeedsCallMainHandler};
+            call_main_handler(&context, [](void *void_context) {
+                auto inner_context = reinterpret_cast<std::pair<UpdateStack *, UpdateStatus> *>(void_context);
+                util::tagged_ptr<UpdateStack> previous = Graph::current_update();
+                inner_context->second = inner_context->first->update();
+                Graph::set_current_update(previous);
+            });
+            status = context.second;
+
+            _update_on_main_count += 1;
+        }
+    }
+
+    foreach_trace([&current_update, &node, &status](Trace &trace) {
+        trace.end_update(current_update, node, AGGraphUpdateStatus(status));
+    });
+
+    // ~UpdateStatus called
 }
 
 void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
@@ -1156,14 +1197,14 @@ inline void *value_ref_checked(data::ptr<Node> node, uint32_t offset, const Attr
 
 } // namespace
 
-bool Graph::update_attribute_checked(AttributeID attribute, uint32_t subgraph_id, AGGraphUpdateOptions options,
+bool Graph::update_attribute_checked(data::ptr<Node> node, uint32_t subgraph_id, AGGraphUpdateOptions options,
                                      AGChangedValueFlags *flags_out) {
     uint64_t page_seed_before_update = 0;
     if (subgraph_id != 0) {
-        page_seed_before_update = data::table::shared().raw_page_seed(attribute.page_ptr());
+        page_seed_before_update = data::table::shared().raw_page_seed(node.page_ptr());
     }
 
-    UpdateStatus status = update_attribute(attribute, options);
+    UpdateStatus status = update_attribute(node, options);
     if (status != UpdateStatus::Unchanged) {
         if (flags_out) {
             *flags_out |= AGChangedValueFlagsChanged;
@@ -1172,7 +1213,7 @@ bool Graph::update_attribute_checked(AttributeID attribute, uint32_t subgraph_id
 
     // check new page seed is same as old and zone is not deleted
     if ((page_seed_before_update >> 32) & 0xff) {
-        uint64_t page_seed_after_update = data::table::shared().raw_page_seed(attribute.page_ptr());
+        uint64_t page_seed_after_update = data::table::shared().raw_page_seed(node.page_ptr());
         if ((page_seed_after_update >> 32) & 0xff) {
             if ((page_seed_before_update & 0x7fffffff) != (page_seed_after_update & 0xffffffff)) {
                 return false;
@@ -1199,7 +1240,7 @@ void *Graph::value_ref(AttributeID attribute, uint32_t subgraph_id, const swift:
 
     if ((type.flags() & AGAttributeTypeFlagsExternal) == 0) {
         increment_transaction_count_if_needed();
-        if (!update_attribute_checked(resolved.attribute(), subgraph_id, AGGraphUpdateOptionsNone, flags_out)) {
+        if (!update_attribute_checked(node, subgraph_id, AGGraphUpdateOptionsNone, flags_out)) {
             return nullptr;
         }
     }
@@ -1262,7 +1303,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, u
                 return nullptr;
             }
 
-            update_attribute(resolved.attribute(), AGGraphUpdateOptionsNone);
+            update_attribute(resolved.attribute().get_node(), AGGraphUpdateOptionsNone);
         }
 
         index = add_input(node, input, subgraph_id != 0, input_options & AGInputOptionsUnprefetched);
@@ -1286,7 +1327,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, u
     const AttributeType &input_type = attribute_type(input_node->type_id());
 
     if (!input_node->is_value_initialized() || input_node->is_dirty()) {
-        if (!update_attribute_checked(resolved.attribute(), subgraph_id, AGGraphUpdateOptionsNone, nullptr)) {
+        if (!update_attribute_checked(input_node, subgraph_id, AGGraphUpdateOptionsNone, nullptr)) {
             return nullptr;
         }
     }

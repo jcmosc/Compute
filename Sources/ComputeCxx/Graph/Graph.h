@@ -118,11 +118,17 @@ class Graph {
 
     // Counters
     uint64_t _transaction_count = 0;
+    uint64_t _update_count = 0;
+    uint64_t _update_on_main_count = 0;
     uint64_t _version = 0;
 
     static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
     static bool all_try_lock() { return os_unfair_lock_trylock(&_all_graphs_lock); };
     static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
+
+    // Main handler
+
+    void call_main_handler(void *context, void (*body)(void *context));
 
     // Attributes utility methods
 
@@ -146,7 +152,7 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
-    void *input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, uint32_t subgraph_id,
+    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id,
                                AGInputOptions input_options, const swift::metadata &value_type,
                                AGChangedValueFlags *_Nonnull flags_out, uint32_t index);
 
@@ -157,7 +163,7 @@ class Graph {
 
     // Update methods
 
-    inline bool update_attribute_checked(AttributeID attribute, uint32_t subgraph_id, AGGraphUpdateOptions options,
+    inline bool update_attribute_checked(data::ptr<Node> node, uint32_t subgraph_id, AGGraphUpdateOptions options,
                                          AGChangedValueFlags *_Nullable flags_out);
 
     static pthread_key_t _current_update_key;
@@ -194,8 +200,6 @@ class Graph {
 
     void with_main_handler(ClosureFunctionVV<void> body, MainHandler _Nullable main_handler,
                            const void *_Nullable main_handler_context);
-
-    void call_main_handler(const void *context, void (*body)(const void *context));
 
     // MARK: Tree
 
@@ -307,9 +311,8 @@ class Graph {
     void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
                     AGChangedValueFlags *_Nonnull flags_out);
 
-    void *input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32_t subgraph_id,
-                          AGInputOptions input_options, const swift::metadata &value_type,
-                          AGChangedValueFlags *_Nonnull flags_out);
+    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id, AGInputOptions input_options,
+                          const swift::metadata &value_type, AGChangedValueFlags *_Nonnull flags_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
@@ -357,10 +360,10 @@ class Graph {
 
     void call_update();
 
-    void with_update(data::ptr<AG::Node> node, ClosureFunctionVV<void> body);
+    void with_update(data::ptr<Node> node, ClosureFunctionVV<void> body);
     static void without_update(ClosureFunctionVV<void> body);
 
-    UpdateStatus update_attribute(AttributeID attribute, AGGraphUpdateOptions options);
+    UpdateStatus update_attribute(data::ptr<Node> node, AGGraphUpdateOptions options);
     void reset_update(data::ptr<Node> node);
 
     void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,

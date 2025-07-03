@@ -581,7 +581,7 @@ void AGGraphUpdateValue(AGAttribute attribute, AGGraphUpdateOptions options) {
         AG::precondition_failure("no graph: %u", attribute);
     }
 
-    subgraph->graph()->update_attribute(attribute_id, options);
+    subgraph->graph()->update_attribute(node, options);
 }
 
 uint32_t AGGraphPrefetchValue(AGAttribute attribute) {
@@ -599,7 +599,7 @@ uint32_t AGGraphPrefetchValue(AGAttribute attribute) {
 
     auto resolved = attribute_id.resolve(AG::TraversalOptions::AssertNotNil);
     return (uint32_t)subgraph->graph()->update_attribute(
-        resolved.attribute(),
+        resolved.attribute().get_node(),
         AGGraphUpdateOptions(AGGraphUpdateOptionsAbortIfCancelled | AGGraphUpdateOptionsCancelIfPassedDeadline));
 }
 

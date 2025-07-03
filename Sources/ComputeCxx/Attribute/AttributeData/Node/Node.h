@@ -20,19 +20,29 @@ class zone;
 class AttributeType;
 class Graph;
 
+enum class NodeState : uint8_t {
+    Dirty = 1 << 0,
+    Pending = 1 << 1,
+    MainThread = 1 << 2,
+    MainThreadOnly = 1 << 3,
+    ValueInitialized = 1 << 4,
+    SelfInitialized = 1 << 5,
+    Updating = 1 << 6,
+    UpdatingCyclic = 1 << 7,
+};
+inline NodeState operator|(NodeState a, NodeState b) {
+    return static_cast<NodeState>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+inline NodeState operator&(NodeState a, NodeState b) {
+    return static_cast<NodeState>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+}
+inline NodeState operator~(NodeState a) { return static_cast<NodeState>(~static_cast<uint8_t>(a)); }
+
 class Node {
   private:
-    // Value state
-    unsigned int _dirty : 1 = 0;
-    unsigned int _pending : 1 = 0;
-    unsigned int _main_thread : 1 = 0;
-    unsigned int _main_thread_only : 1 = 0;
+    NodeState _state;
 
-    // Node state
-    unsigned int _value_initialized : 1 = 0;
-    unsigned int _self_initialized : 1 = 0;
-    unsigned int _updating : 1 = 0;
-    unsigned int _updating_cyclic : 1 = 0;
+    // Attribute type
     unsigned int _type_id : 24 = 0;
 
     // Subgraph
@@ -55,7 +65,7 @@ class Node {
 
   public:
     Node(uint32_t type_id, bool main_thread)
-        : _type_id(type_id), _main_thread(main_thread), _main_thread_only(main_thread) {};
+        : _type_id(type_id), _state(main_thread ? NodeState::MainThread | NodeState::MainThreadOnly : (NodeState)0) {};
 
     // Non-copyable
     Node(const Node &) = delete;
@@ -65,32 +75,43 @@ class Node {
     Node(Node &&) = delete;
     Node &operator=(Node &&) = delete;
 
-    bool is_dirty() const { return _dirty; }
-    void set_dirty(bool value) { _dirty = value; }
+    NodeState state() const { return _state; }
 
-    bool is_pending() const { return _pending; }
-    void set_pending(bool value) { _pending = value; }
+    bool is_dirty() const { return (_state & NodeState::Dirty) != (NodeState)0; }
+    void set_dirty(bool value) { _state = value ? _state | NodeState::Dirty : _state & ~NodeState::Dirty; }
 
-    bool is_main_thread() const { return _main_thread; }
+    bool is_pending() const { return (_state & NodeState::Pending) != (NodeState)0; }
+    void set_pending(bool value) { _state = value ? _state | NodeState::Pending : _state & ~NodeState::Pending; }
 
-    bool is_main_thread_only() const { return _main_thread_only; }
-    void set_main_thread_only(bool value) { _main_thread_only = value; }
+    bool is_main_thread() const { return (_state & NodeState::MainThread) != (NodeState)0; }
+    void set_main_thread(bool value) {
+        _state = value ? _state | NodeState::MainThread : _state & ~NodeState::MainThread;
+    }
 
-    bool is_value_initialized() const { return _value_initialized; }
-    void set_value_initialized(bool value) { _value_initialized = value; }
+    bool is_main_thread_only() const { return (_state & NodeState::MainThreadOnly) != (NodeState)0; }
+    void set_main_thread_only(bool value) {
+        _state = value ? _state | NodeState::MainThreadOnly : _state & ~NodeState::MainThreadOnly;
+    }
 
-    bool is_self_initialized() const { return _self_initialized; }
-    void set_self_initialized(bool value) { _self_initialized = value; }
+    bool is_value_initialized() const { return (_state & NodeState::ValueInitialized) != (NodeState)0; }
+    void set_value_initialized(bool value) {
+        _state = value ? _state | NodeState::ValueInitialized : _state & ~NodeState::ValueInitialized;
+    }
 
-    bool is_updating() const { return _updating || _updating_cyclic; };
-    bool set_updating(bool value) { _updating = value; };
+    bool is_self_initialized() const { return (_state & NodeState::SelfInitialized) != (NodeState)0; }
+    void set_self_initialized(bool value) {
+        _state = value ? _state | NodeState::SelfInitialized : _state & ~NodeState::SelfInitialized;
+    }
+
+    bool is_updating() const { return (_state & (NodeState::Updating | NodeState::UpdatingCyclic)) != (NodeState)0; };
+    void set_updating(bool value) { _state = value ? _state | NodeState::Updating : _state & ~NodeState::Updating; }
 
     // TODO: test this
     AGValueState flags() const {
-        return (_dirty ? AGValueStateDirty : 0) | (_pending ? AGValueStatePending : 0) |
-               (_updating || _updating_cyclic ? AGValueStateUpdating : 0) |
-               (_value_initialized ? AGValueStateValueExists : 0) | (_main_thread ? AGValueStateMainThread : 0) |
-               (_main_ref ? AGValueStateMainRef : 0) | (_main_thread_only ? AGValueStateMainThreadOnly : 0) |
+        return (is_dirty() ? AGValueStateDirty : 0) | (is_pending() ? AGValueStatePending : 0) |
+               (is_updating() ? AGValueStateUpdating : 0) | (is_value_initialized() ? AGValueStateValueExists : 0) |
+               (is_main_thread() ? AGValueStateMainThread : 0) | (_main_ref ? AGValueStateMainRef : 0) |
+               (is_main_thread_only() ? AGValueStateMainThreadOnly : 0) |
                (_self_modified ? AGValueStateSelfModified : 0);
     };
 
@@ -110,6 +131,7 @@ class Node {
     bool has_indirect_value() const { return _has_indirect_value; }
     void set_has_indirect_value(bool value) { _has_indirect_value = value; }
 
+    bool input_edges_traverse_contexts() const { return _input_edges_traverse_contexts; }
     void set_input_edges_traverse_contexts(bool value) { _input_edges_traverse_contexts = value; }
 
     bool needs_sort_input_edges() { return _needs_sort_input_edges; }

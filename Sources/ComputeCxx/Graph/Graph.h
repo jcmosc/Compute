@@ -377,6 +377,9 @@ class Graph {
     void mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
                       const void *_Nullable source_value, uint32_t start_output_index);
 
+    static void compare_failed(const void *lhs, const void *rhs, size_t range_offset, size_t range_size,
+                               const swift::metadata *_Nullable type);
+
     // MARK: Trace
 
     void start_tracing(AGTraceFlags trace_flags, std::span<const char *> subsystems);

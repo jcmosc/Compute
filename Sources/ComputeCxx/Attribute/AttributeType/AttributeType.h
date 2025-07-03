@@ -64,7 +64,7 @@ class AttributeType {
 
     bool compare_values(const void *lhs, const void *rhs) {
         AGComparisonOptions comparison_options = AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) |
-                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsReportFailures;
+                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsTraceCompareFailed;
         if (_layout == nullptr) {
             _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
         }

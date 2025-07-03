@@ -572,7 +572,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
     InputEdge new_input_edge = {
         resolved_input,
         static_cast<AGInputOptions>((options & (AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled)) |
-                                    (node->is_dirty() ? AGInputOptionsChanged : AGInputOptionsNone)),
+                                    (node->is_dirty() ? AGInputOptionsPending : AGInputOptionsNone)),
     };
 
     uint32_t index = -1;
@@ -1110,12 +1110,142 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, AGGraphUpdateO
 
 void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
                          const void *_Nullable source_value) {
-    // TODO: Not implemented
+    if (!_traces.empty()) {
+        mark_changed(AttributeID(node), type, destination_value, source_value, 0);
+        return;
+    }
+
+    uint32_t output_index = 0;
+    for (auto output_edge : node->output_edges()) {
+        if (!output_edge.attribute.is_node()) {
+            mark_changed(AttributeID(node), type, destination_value, source_value, output_index);
+            return;
+        }
+        for (InputEdge &input_edge : output_edge.attribute.get_node()->input_edges()) {
+            if (input_edge.attribute.resolve(TraversalOptions::None).attribute() != AttributeID(node)) {
+                continue;
+            }
+            if (input_edge.options & AGInputOptionsPending) {
+                continue;
+            }
+            if (!input_edge.attribute.is_node()) {
+                if (compare_edge_values(input_edge, type, destination_value, source_value)) {
+                    continue;
+                }
+            }
+            input_edge.options |= AGInputOptionsPending;
+            break;
+        }
+        output_index += 1;
+    }
+
+    _change_count += 1;
 }
 
 void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, const void *_Nullable destination_value,
                          const void *_Nullable source_value, uint32_t start_output_index) {
-    // TODO: Not implemented
+    if (attribute.is_nil()) {
+        return;
+    }
+
+    struct Frame {
+        ConstOutputEdgeArrayRef output_edges;
+        AttributeID attribute;
+    };
+
+    auto heap = util::InlineHeap<0x2000>();
+    auto frames = util::ForwardList<Frame>(&heap);
+
+    ConstOutputEdgeArrayRef initial_output_edges = {};
+    if (auto node = attribute.get_node()) {
+        initial_output_edges = {
+            &node->output_edges().front(),
+            node->output_edges().size(),
+        };
+    } else if (auto indirect_node = attribute.get_indirect_node()) {
+        // TODO: how to make sure indirect is mutable?
+        assert(indirect_node->is_mutable());
+        initial_output_edges = {
+            &indirect_node->to_mutable().output_edges().front(),
+            indirect_node->to_mutable().output_edges().size(),
+        };
+    } else {
+        return;
+    }
+    frames.emplace_front(initial_output_edges, attribute);
+
+    while (!frames.empty()) {
+        auto output_edges = frames.front().output_edges;
+        auto attribute = frames.front().attribute;
+        frames.pop_front();
+
+        for (auto output_edge = output_edges.begin() + start_output_index, end = output_edges.end(); output_edge != end;
+             ++output_edge) {
+
+            if (auto output_node = output_edge->attribute.get_node()) {
+                auto &input_edges = output_node->input_edges();
+                for (uint32_t input_index = 0, num_inputs = input_edges.size(); input_index < num_inputs;
+                     ++input_index) {
+                    auto input_edge = input_edges[input_index];
+                    if (input_edge.attribute.resolve(TraversalOptions::SkipMutableReference).attribute() != attribute) {
+                        continue;
+                    }
+                    if (input_edge.options & AGInputOptionsPending) {
+                        continue;
+                    }
+                    if (!input_edge.attribute.is_node()) {
+                        if (compare_edge_values(input_edge, type, destination_value, source_value)) {
+                            continue;
+                        }
+                    }
+                    foreach_trace([&output_node, &input_index](Trace &trace) {
+                        trace.set_edge_pending(output_node, input_index, true);
+                    });
+                    input_edge.options |= AGInputOptionsPending;
+                }
+            } else if (auto output_indirect_node = output_edge->attribute.get_indirect_node()) {
+                if (output_indirect_node->to_mutable().dependency() != attribute) {
+                    auto &mutable_node = output_indirect_node->to_mutable();
+                    frames.emplace_front(ConstOutputEdgeArrayRef(&mutable_node.output_edges().front(),
+                                                                 mutable_node.output_edges().size()),
+                                         output_edge->attribute);
+                }
+            }
+        }
+
+        start_output_index = 0;
+    }
+
+    _change_count += 1;
+}
+
+bool Graph::compare_edge_values(InputEdge input_edge, AttributeType *type, const void *destination_value,
+                                const void *source_value) {
+    if (type == nullptr) {
+        return false;
+    }
+
+    if (!input_edge.attribute.is_indirect_node()) {
+        return false;
+    }
+
+    auto indirect_node = input_edge.attribute.get_indirect_node();
+    auto optional_size = indirect_node->size();
+    if (!optional_size.has_value()) {
+        return false;
+    }
+
+    auto size = optional_size.value();
+    if (size == 0) {
+        return true;
+    }
+
+    auto offset = input_edge.attribute.resolve(TraversalOptions::None).offset();
+    if (offset == 0 && type->value_metadata().vw_size() == size) {
+        return false;
+    }
+
+    return type->compare_values_partial(destination_value, source_value, offset, size);
 }
 
 #pragma mark - Body
@@ -1265,7 +1395,7 @@ void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32
             InputEdge &input_edge = node->input_edges()[index];
             input_edge.options |= AGInputOptionsEnabled;
 
-            if (input_edge.options & AGInputOptionsChanged) {
+            if (input_edge.options & AGInputOptionsPending) {
                 *flags_out |= AGChangedValueFlagsChanged;
             }
 
@@ -1332,7 +1462,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, u
         }
     }
 
-    if (input_edge.options & AGInputOptionsChanged) {
+    if (input_edge.options & AGInputOptionsPending) {
         *flags_out |= AGChangedValueFlagsChanged;
     }
     if (input_options & AGInputOptionsUnknown1 && input_node->is_main_ref() &&
@@ -1447,7 +1577,7 @@ void Graph::value_mark_all() {
                         subgraph->add_dirty_flags(node->subgraph_flags());
                     }
                     for (auto &input_edge : node->input_edges()) {
-                        input_edge.options |= AGInputOptionsChanged;
+                        input_edge.options |= AGInputOptionsPending;
                     }
                 }
             }
@@ -1491,11 +1621,11 @@ void Graph::propagate_dirty(AttributeID attribute) {
     frames.emplace_front(initial_output_edges, initial_state);
 
     while (!frames.empty()) {
-        auto &outputs = frames.front().output_edges;
+        auto &output_edges = frames.front().output_edges;
         auto state = frames.front().state;
         frames.pop_front();
 
-        for (auto output_edge : std::ranges::reverse_view(outputs)) {
+        for (auto output_edge : std::ranges::reverse_view(output_edges)) {
             AttributeID output = output_edge.attribute;
 
             ConstOutputEdgeArrayRef dirty_output_edges = {};
@@ -1601,7 +1731,7 @@ bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_
                                uint64_t exclude_attributes_count) {
     for (auto input_edge : node->input_edges()) {
         input_edge.options |= AGInputOptionsEnabled;
-        if (input_edge.options & AGInputOptionsChanged) {
+        if (input_edge.options & AGInputOptionsPending) {
             if (find_attribute(exclude_attributes, input_edge.attribute, exclude_attributes_count) ==
                 exclude_attributes_count) {
                 return true;

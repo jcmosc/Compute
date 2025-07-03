@@ -664,7 +664,7 @@ void Subgraph::update(AGAttributeFlags mask) {
                 if (!created_transaction) {
                     _graph->increment_transaction_count_if_needed();
                 }
-                _graph->update_attribute(AttributeID(node), AGGraphUpdateOptionsInTransaction);
+                _graph->update_attribute(node, AGGraphUpdateOptionsInTransaction);
                 created_transaction = true;
                 if (!subgraph->is_valid()) {
                     break;

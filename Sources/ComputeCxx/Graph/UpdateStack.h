@@ -42,6 +42,9 @@ class Graph::UpdateStack {
 
     static void cancel();
     bool cancelled();
+    
+    bool push(data::ptr<Node> node_ptr, Node &node, bool ignore_cycles, bool treat_no_value_as_pending);
+    Graph::UpdateStatus update();
 };
 
 } // namespace AG

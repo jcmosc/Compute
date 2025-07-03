@@ -329,6 +329,8 @@ class Graph {
     bool any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_attributes,
                             uint64_t exclude_attributes_count);
 
+    void input_value_add(data::ptr<Node> node, AttributeID input, AGInputOptions options);
+
     void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type);
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };

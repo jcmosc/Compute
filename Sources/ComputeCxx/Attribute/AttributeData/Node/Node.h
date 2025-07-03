@@ -24,7 +24,7 @@ enum class NodeState : uint8_t {
     Dirty = 1 << 0,
     Pending = 1 << 1,
     MainThread = 1 << 2,
-    MainThreadOnly = 1 << 3,
+    RequiresMainThread = 1 << 3,
     ValueInitialized = 1 << 4,
     SelfInitialized = 1 << 5,
     Updating = 1 << 6,
@@ -65,7 +65,8 @@ class Node {
 
   public:
     Node(uint32_t type_id, bool main_thread)
-        : _type_id(type_id), _state(main_thread ? NodeState::MainThread | NodeState::MainThreadOnly : (NodeState)0) {};
+        : _type_id(type_id),
+          _state(main_thread ? NodeState::MainThread | NodeState::RequiresMainThread : (NodeState)0) {};
 
     // Non-copyable
     Node(const Node &) = delete;
@@ -88,9 +89,9 @@ class Node {
         _state = value ? _state | NodeState::MainThread : _state & ~NodeState::MainThread;
     }
 
-    bool is_main_thread_only() const { return (_state & NodeState::MainThreadOnly) != (NodeState)0; }
-    void set_main_thread_only(bool value) {
-        _state = value ? _state | NodeState::MainThreadOnly : _state & ~NodeState::MainThreadOnly;
+    bool requires_main_thread() const { return (_state & NodeState::RequiresMainThread) != (NodeState)0; }
+    void set_requires_main_thread(bool value) {
+        _state = value ? _state | NodeState::RequiresMainThread : _state & ~NodeState::RequiresMainThread;
     }
 
     bool is_value_initialized() const { return (_state & NodeState::ValueInitialized) != (NodeState)0; }
@@ -111,7 +112,7 @@ class Node {
         return (is_dirty() ? AGValueStateDirty : 0) | (is_pending() ? AGValueStatePending : 0) |
                (is_updating() ? AGValueStateUpdating : 0) | (is_value_initialized() ? AGValueStateValueExists : 0) |
                (is_main_thread() ? AGValueStateMainThread : 0) | (_main_ref ? AGValueStateMainRef : 0) |
-               (is_main_thread_only() ? AGValueStateMainThreadOnly : 0) |
+               (requires_main_thread() ? AGValueStateRequiresMainThread : 0) |
                (_self_modified ? AGValueStateSelfModified : 0);
     };
 

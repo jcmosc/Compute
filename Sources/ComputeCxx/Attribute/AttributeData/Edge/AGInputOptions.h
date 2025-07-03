@@ -9,7 +9,7 @@ CF_EXTERN_C_BEGIN
 typedef CF_OPTIONS(uint8_t, AGInputOptions) {
     AGInputOptionsNone = 0,
     AGInputOptionsUnprefetched = 1 << 0,
-    AGInputOptionsUnknown1 = 1 << 1,
+    AGInputOptionsSyncMainRef = 1 << 1,
     AGInputOptionsAlwaysEnabled = 1 << 2,
     AGInputOptionsPending = 1 << 3,
     AGInputOptionsEnabled = 1 << 4,

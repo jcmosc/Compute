@@ -1248,6 +1248,20 @@ bool Graph::compare_edge_values(InputEdge input_edge, AttributeType *type, const
     return type->compare_values_partial(destination_value, source_value, offset, size);
 }
 
+void Graph::compare_failed(const void *lhs, const void *rhs, size_t range_offset, size_t range_size,
+                           const swift::metadata *_Nullable type) {
+    auto update = current_update();
+    if (update.tag() != 0 || update.get() == nullptr) {
+        return;
+    }
+
+    auto graph = update.get()->graph();
+    auto attribute = update.get()->frames().back().attribute;
+    graph->foreach_trace([&attribute, &lhs, &rhs, &range_offset, &range_size](Trace &trace) {
+        trace.compare_failed(attribute, lhs, rhs, range_offset, range_size, nullptr);
+    });
+}
+
 #pragma mark - Body
 
 void Graph::attribute_modify(data::ptr<Node> node, const swift::metadata &metadata,

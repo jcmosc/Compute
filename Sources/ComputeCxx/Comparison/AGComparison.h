@@ -49,7 +49,7 @@ typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
 
     AGComparisonOptionsCopyOnWrite = 1 << 8,
     AGComparisonOptionsFetchLayoutsSynchronously = 1 << 9,
-    AGComparisonOptionsReportFailures = 1ul << 31, // -1 signed int
+    AGComparisonOptionsTraceCompareFailed = 1ul << 31, // -1 signed int
 };
 
 CF_EXPORT

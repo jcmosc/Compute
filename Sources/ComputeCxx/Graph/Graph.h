@@ -350,6 +350,8 @@ class Graph {
         }
     };
 
+    uint64_t version() const { return _version; }
+
     bool needs_update() { return _needs_update; };
     void set_needs_update(bool needs_update) { _needs_update = needs_update; };
 

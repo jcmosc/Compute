@@ -120,6 +120,7 @@ class Graph {
     uint64_t _transaction_count = 0;
     uint64_t _update_count = 0;
     uint64_t _update_on_main_count = 0;
+    uint64_t _change_count = 0;
     uint64_t _version = 0;
 
     static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
@@ -162,6 +163,9 @@ class Graph {
     void mark_pending(data::ptr<Node> node_ptr, Node *node);
 
     // Update methods
+
+    bool compare_edge_values(InputEdge input_edge, AttributeType *_Nullable type, const void *destination_value,
+                             const void *source_value);
 
     inline bool update_attribute_checked(data::ptr<Node> node, uint32_t subgraph_id, AGGraphUpdateOptions options,
                                          AGChangedValueFlags *_Nullable flags_out);

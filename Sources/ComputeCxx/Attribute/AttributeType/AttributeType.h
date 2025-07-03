@@ -74,6 +74,18 @@ class AttributeType {
                                          value_metadata().vw_size(), comparison_options);
     }
 
+    bool compare_values_partial(const void *lhs, const void *rhs, size_t offset, size_t size) {
+        AGComparisonOptions comparison_options =
+            AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) | AGComparisonOptionsCopyOnWrite;
+        if (_layout == nullptr) {
+            _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
+        }
+
+        ValueLayout layout = _layout == ValueLayoutTrivial ? nullptr : _layout;
+        return LayoutDescriptor::compare_partial(layout, (const unsigned char *)lhs + offset,
+                                                 (const unsigned char *)rhs + offset, offset, size, comparison_options);
+    }
+
     void destroy_self(Node &node) const {
         if (_flags & AGAttributeTypeFlagsHasDestroySelf) {
             void *body = node.get_self(*this);

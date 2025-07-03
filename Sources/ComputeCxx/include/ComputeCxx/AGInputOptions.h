@@ -11,7 +11,7 @@ typedef CF_OPTIONS(uint8_t, AGInputOptions) {
     AGInputOptionsUnprefetched = 1 << 0,
     AGInputOptionsUnknown1 = 1 << 1,
     AGInputOptionsAlwaysEnabled = 1 << 2,
-    AGInputOptionsChanged = 1 << 3,
+    AGInputOptionsPending = 1 << 3,
     AGInputOptionsEnabled = 1 << 4,
 };
 

@@ -3,46 +3,50 @@ import ComputeCxx
 public struct AnyOptionalAttribute {
 
     public static var current: AnyOptionalAttribute? {
-        fatalError("not implemented")
+        return AnyOptionalAttribute(AnyAttribute.current)
     }
 
     public var identifier: AnyAttribute
 
     public init() {
-        fatalError("not implemented")
+        identifier = .nil
     }
 
     public init(_ weakAttribute: AnyWeakAttribute) {
-        fatalError("not implemented")
+        identifier = __AGWeakAttributeGetAttribute(weakAttribute)
     }
 
     public init(_ attribute: AnyAttribute?) {
-        fatalError("not implemented")
+        identifier = attribute ?? .nil
     }
 
     public init(_ attribute: AnyAttribute) {
-        fatalError("not implemented")
+        identifier = attribute
     }
 
     public init<Value>(_ optionalAttribute: OptionalAttribute<Value>) {
-        fatalError("not implemented")
+        self = optionalAttribute.base
     }
 
     public func unsafeCast<Value>(to _: Value.Type) -> OptionalAttribute<Value> {
-        fatalError("not implemented")
+        return OptionalAttribute<Value>(base: self)
     }
 
     public var attribute: AnyAttribute? {
         get {
-            fatalError("not implemented")
+            return identifier == .nil ? nil : identifier
         }
         set {
-            fatalError("not implemented")
+            identifier = newValue ?? .nil
         }
     }
 
     public func map<T>(_ transform: (AnyAttribute) -> T) -> T? {
-        fatalError("not implemented")
+        if let attribute = attribute {
+            return transform(attribute)
+        } else {
+            return nil
+        }
     }
 
 }
@@ -50,7 +54,7 @@ public struct AnyOptionalAttribute {
 extension AnyOptionalAttribute: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return attribute?.description ?? "nil"
     }
 
 }

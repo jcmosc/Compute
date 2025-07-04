@@ -5,12 +5,21 @@ extension Graph {
     @_extern(c, "AGGraphSearch")
     static func search(attribute: AnyAttribute, options: AGSearchOptions, predicate: (AnyAttribute) -> Bool) -> Bool
 
+    @_extern(c, "AGGraphMutateAttribute")
+    static func mutateAttribute(
+        _ attribute: AnyAttribute,
+        type: Metadata,
+        invalidating: Bool,
+        modify: (UnsafeMutableRawPointer) -> Void
+    )
+
 }
 
 extension AnyAttribute {
 
     public static var current: AnyAttribute? {
-        fatalError("not implemented")
+        let attribute = __AGGraphGetCurrentAttribute()
+        return attribute == .nil ? nil : attribute
     }
 
     public init<Value>(_ attribute: Attribute<Value>) {
@@ -26,7 +35,9 @@ extension AnyAttribute {
     }
 
     public func mutateBody<Body>(as type: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
-        fatalError("not implemented")
+        Graph.mutateAttribute(self, type: Metadata(type), invalidating: invalidating) { pointer in
+            mutator(&pointer.assumingMemoryBound(to: Body.self).pointee)
+        }
     }
 
     // Node

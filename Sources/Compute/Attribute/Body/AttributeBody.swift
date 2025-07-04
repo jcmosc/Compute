@@ -35,7 +35,7 @@ extension _AttributeBody {
 extension _AttributeBody {
 
     public var updateWasCancelled: Bool {
-        fatalError("not implemented")
+        return Graph.updateWasCancelled()
     }
 
 }

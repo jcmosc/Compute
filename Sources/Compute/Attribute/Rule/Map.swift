@@ -11,21 +11,21 @@ public struct Map<Arg, Value> {
 }
 
 extension Map: Rule {
-    
+
     public var value: Value {
         return body(arg.value)
     }
-    
+
     public static var flags: AGAttributeTypeFlags {
-        fatalError("not implemented")
+        return []
     }
-    
+
 }
 
 extension Map: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return "λ \(Value.self)"
     }
 
 }

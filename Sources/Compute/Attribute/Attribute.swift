@@ -1,11 +1,5 @@
 import ComputeCxx
 
-public struct ValueState {}
-
-public struct ValueOptions {}
-
-public struct ChangedValueFlags {}
-
 @propertyWrapper
 @dynamicMemberLookup
 public struct Attribute<Value> {
@@ -75,11 +69,11 @@ public struct Attribute<Value> {
     public var subgraphOrNil: Subgraph? {
         return identifier.subgraphOrNil
     }
-    
+
     public func visitBody<Visitor: AttributeBodyVisitor>(_ visitor: inout Visitor) {
         identifier.visitBody(&visitor)
     }
-    
+
     public var flags: AGAttributeFlags {
         get {
             return identifier.flags
@@ -88,7 +82,7 @@ public struct Attribute<Value> {
             identifier.flags = newValue
         }
     }
-    
+
     public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
         identifier.setFlags(newFlags, mask: mask)
     }
@@ -108,7 +102,7 @@ public struct Attribute<Value> {
     public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {
         identifier.addInput(input, options: options, token: token)
     }
-    
+
     public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
         return identifier.breadthFirstSearch(options: options, predicate)
     }
@@ -138,36 +132,46 @@ public struct Attribute<Value> {
         return identifier.hasValue
     }
 
-    public var valueState: ValueState {
-        fatalError("not implemented")
+    public var valueState: AGValueState {
+        return identifier.valueState
     }
 
     public func prefetchValue() {
-        fatalError("not implemented")
+        identifier.prefetchValue()
     }
 
     public func updateValue() {
-        fatalError("not implemented")
+        identifier.updateValue(options: [])
     }
 
     public func invalidateValue() {
-        fatalError("not implemented")
+        identifier.invalidateValue()
     }
 
-    public func changedValue(options: ValueOptions) -> (value: Value, changed: Bool) {
-        fatalError("not implemented")
+    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool) {
+        let value = __AGGraphGetValue(identifier, options, Metadata(Value.self))
+        return (
+            value.value.assumingMemoryBound(to: Value.self).pointee,
+            value.flags.contains(.changed)
+        )
     }
 
-    public func valueAndFlags(options: ValueOptions) -> (value: Value, flags: ChangedValueFlags) {
-        fatalError("not implemented")
+    public func valueAndFlags(options: AGValueOptions) -> (value: Value, flags: AGChangedValueFlags) {
+        let value = __AGGraphGetValue(identifier, options, Metadata(Value.self))
+        return (
+            value.value.assumingMemoryBound(to: Value.self).pointee,
+            value.flags
+        )
     }
 
     public var wrappedValue: Value {
         unsafeAddress {
-            fatalError("not implemented")
+            __AGGraphGetValue(identifier, [], Metadata(Value.self))
+                .value
+                .assumingMemoryBound(to: Value.self)
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            _ = setValue(newValue)
         }
     }
 
@@ -234,12 +238,40 @@ extension Attribute: Hashable {
 
 extension Attribute {
 
-    public init<Body: Rule>(_ body: Body, initialValue: Value? = nil) where Body.Value == Value {
-        fatalError("not implemented")
+    public init<Body: Rule>(_ body: Body) where Body.Value == Value {
+        self = withUnsafePointer(to: body) { bodyPointer in
+            return Attribute(body: bodyPointer, value: nil, flags: []) {
+                return Body._update
+            }
+        }
+    }
+    
+    public init<Body: Rule>(_ body: Body, initialValue: Value) where Body.Value == Value {
+        self = withUnsafePointer(to: body) { bodyPointer in
+            return withUnsafePointer(to: initialValue) { initialValuePointer in
+                return Attribute(body: bodyPointer, value: initialValuePointer, flags: []) {
+                    return Body._update
+                }
+            }
+        }
     }
 
-    public init<Body: StatefulRule>(_ body: Body, initialValue: Value? = nil) where Body.Value == Value {
-        fatalError("not implemented")
+    public init<Body: StatefulRule>(_ body: Body) where Body.Value == Value {
+        self = withUnsafePointer(to: body) { bodyPointer in
+            return Attribute(body: bodyPointer, value: nil, flags: []) {
+                return Body._update
+            }
+        }
+    }
+    
+    public init<Body: StatefulRule>(_ body: Body, initialValue: Value) where Body.Value == Value {
+        self = withUnsafePointer(to: body) { bodyPointer in
+            return withUnsafePointer(to: initialValue) { initialValuePointer in
+                return Attribute(body: bodyPointer, value: initialValuePointer, flags: []) {
+                    return Body._update
+                }
+            }
+        }
     }
 
 }

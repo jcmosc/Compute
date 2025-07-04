@@ -827,4 +827,34 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
     return first_tree_child;
 }
 
+#pragma mark - Printing
+
+void Subgraph::print(uint32_t indent_level) {
+    uint64_t indent_length = 2 * indent_level;
+    char *indent_string = (char *)alloca(indent_length + 1);
+    memset(indent_string, ' ', indent_length);
+    indent_string[indent_length] = '\0';
+
+    fprintf(stdout, "%s+ %p: %u in %lu [", indent_string, this, (uint32_t)subgraph_id(), (unsigned long)_context_id);
+
+    bool first = true;
+    for (auto page : pages()) {
+        for (auto attribute : attribute_view(page)) {
+            if (auto node = attribute.get_node()) {
+                fprintf(stdout, "%s%u", first ? "" : " ", AGAttribute(attribute));
+                if (auto subgraph_flags = node->subgraph_flags()) {
+                    fprintf(stdout, "(%u)", subgraph_flags);
+                }
+                first = false;
+            }
+        }
+    }
+
+    fwrite("]\n", 2, 1, stdout);
+
+    for (auto child : _children) {
+        child.subgraph()->print(indent_level + 1);
+    }
+}
+
 } // namespace AG

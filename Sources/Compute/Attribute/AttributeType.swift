@@ -64,8 +64,8 @@ extension AGAttributeType {
             }
             return Unmanaged<CFString>.passRetained(description as NSString).autorelease()
         }
-        callbacks.pointee.initializeValue = { _, _ in
-            fatalError("not implemented")
+        callbacks.pointee.updateDefault = { attributeType, body in
+            attributeType.pointee.attributeBody._updateDefault(body)
         }
         return UnsafePointer(callbacks)
     }()

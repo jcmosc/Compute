@@ -560,7 +560,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
                             break;
                         }
                         if (auto node = attribute.get_node()) {
-                            if (options) {
+                            if (options) { // TODO: options or mask?
                                 if (node->subgraph_flags() == AGAttributeFlagsDefault) {
                                     // we know this attribute is sorted after all nodes with flags
                                     // so we aren't going to match any more attributes after this
@@ -573,7 +573,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
 
                             body(attribute);
                         } else if (attribute.is_indirect_node()) {
-                            if (options) {
+                            if (options) { // TODO: options or mask?
                                 // we know this attribute is sorted after all nodes with flags
                                 // so we aren't going to match any more attributes after this
                                 break;

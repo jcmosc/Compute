@@ -135,7 +135,7 @@ class Node {
     bool input_edges_traverse_contexts() const { return _input_edges_traverse_contexts; }
     void set_input_edges_traverse_contexts(bool value) { _input_edges_traverse_contexts = value; }
 
-    bool needs_sort_input_edges() { return _needs_sort_input_edges; }
+    
     void set_needs_sort_input_edges(bool value) { _needs_sort_input_edges = value; }
     void sort_input_edges_if_needed() {
         if (_needs_sort_input_edges) {
@@ -150,11 +150,18 @@ class Node {
     bool is_self_modified() const { return _self_modified; }
     void set_self_modified(bool value) { _self_modified = value; }
 
-    data::vector<InputEdge> &input_edges() { return _input_edges; }; // TODO: delete whole vector accessor
-    void add_input_edge(data::zone *subgraph, InputEdge &input_edge) {
-        _input_edges.push_back(subgraph, input_edge);
-        _needs_sort_input_edges = true;
+    data::vector<InputEdge> &input_edges() { return _input_edges; };
+    uint32_t insert_input_edge(data::zone *subgraph, InputEdge &input_edge) {
+        if (_needs_sort_input_edges) {
+            _input_edges.push_back(subgraph, input_edge);
+            return _input_edges.size() - 1;
+        } else {
+            auto pos = std::lower_bound(_input_edges.begin(), _input_edges.end(), input_edge);
+            _input_edges.insert(subgraph, pos, input_edge);
+            return (uint32_t)(pos - _input_edges.begin());
+        }
     }
+    void remove_input_edge(uint32_t index) { _input_edges.erase(_input_edges.begin() + index); }
 
     data::vector<OutputEdge> &output_edges() { return _output_edges; };
 

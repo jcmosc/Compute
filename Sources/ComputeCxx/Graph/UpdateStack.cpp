@@ -202,7 +202,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
         for (auto input_index = frame.num_pushed_inputs, num_inputs = node->input_edges().size();
              input_index != num_inputs; ++input_index) {
-            InputEdge &input_edge = node->input_edges()[input_index];
+            const InputEdge &input_edge = node->input_edges()[input_index];
 
             AttributeID input_attribute = input_edge.attribute;
             while (input_attribute.is_indirect_node()) {

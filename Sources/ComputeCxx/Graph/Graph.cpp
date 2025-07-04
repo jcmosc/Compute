@@ -575,16 +575,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
                                     (node->is_dirty() ? AGInputOptionsPending : AGInputOptionsNone)),
     };
 
-    uint32_t index = -1;
-    if (node->needs_sort_input_edges()) {
-        node->add_input_edge(subgraph, new_input_edge);
-        index = node->input_edges().size() - 1;
-    } else {
-        auto pos = std::lower_bound(node->input_edges().begin(), node->input_edges().end(), new_input_edge);
-        node->input_edges().insert(subgraph, pos, new_input_edge);
-        index = (uint32_t)(pos - node->input_edges().begin());
-    }
-
+    uint32_t index = node->insert_input_edge(subgraph, new_input_edge);
     add_input_dependencies(AttributeID(node), resolved_input);
 
     if (node->is_updating()) {
@@ -605,7 +596,7 @@ void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
 void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index) {
     foreach_trace([&node_ptr, &index](Trace &trace) { trace.remove_edge(node_ptr, index); });
 
-    node.input_edges().erase(node.input_edges().begin() + index);
+    node.remove_input_edge(index);
     if (node.input_edges().size() == 0) {
         all_inputs_removed(node_ptr);
     }
@@ -1742,7 +1733,7 @@ inline size_t find_attribute(const AttributeID *attributes, AttributeID search, 
 
 bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_attributes,
                                uint64_t exclude_attributes_count) {
-    for (auto input_edge : node->input_edges()) {
+    for (auto &input_edge : node->input_edges()) {
         input_edge.options |= AGInputOptionsEnabled;
         if (input_edge.options & AGInputOptionsPending) {
             if (find_attribute(exclude_attributes, input_edge.attribute, exclude_attributes_count) ==

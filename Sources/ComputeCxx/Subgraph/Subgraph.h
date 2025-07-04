@@ -193,6 +193,10 @@ class Subgraph : public data::zone {
 
     AttributeID tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index);
     Graph::TreeElementID tree_subgraph_child(Graph::TreeElementID tree_element);
+    
+    // MARK: Printing
+    
+    void print(uint32_t indent_level);
 };
 
 } // namespace AG

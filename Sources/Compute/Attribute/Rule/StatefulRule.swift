@@ -16,14 +16,20 @@ extension StatefulRule {
     }
 
     public static func _updateDefault(_ default: UnsafeMutableRawPointer) {
-        fatalError("not implemented")
+        guard let initialValue = initialValue else {
+            return
+        }
+        withUnsafePointer(to: initialValue) { initialValuePointer in
+            __AGGraphSetOutputValue(initialValuePointer, Metadata(Value.self))
+        }
     }
 }
 
 extension StatefulRule {
 
-    public static func _update(_ body: UnsafeMutableRawPointer, attribute: AnyAttribute) {
-        fatalError("not implemented")
+    public static func _update(_ self: UnsafeMutableRawPointer, attribute: AnyAttribute) {
+        let rule = self.assumingMemoryBound(to: Self.self)
+        rule.pointee.updateValue()
     }
 
     public var bodyChanged: Bool {
@@ -32,23 +38,27 @@ extension StatefulRule {
 
     public var value: Value {
         unsafeAddress {
-            fatalError("not implemented")
+            guard let result = __AGGraphGetOutputValue(Metadata(Value.self)) else {
+                preconditionFailure()
+            }
+            let pointer = result.assumingMemoryBound(to: Value.self)
+            return UnsafePointer(pointer)
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            context.value = newValue
         }
     }
 
     public var hasValue: Bool {
-        fatalError("not implemented")
+        return context.hasValue
     }
 
     public var attribute: Attribute<Value> {
-        fatalError("not implemented")
+        return Attribute<Value>(identifier: AnyAttribute.current!)
     }
     
     public var context: RuleContext<Value> {
-        fatalError("not implemented")
+        return RuleContext<Value>(attribute: attribute)
     }
 
 }

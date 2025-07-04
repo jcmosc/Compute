@@ -1,35 +1,35 @@
 import ComputeCxx
 
-public struct TreeElement {}
-
 extension TreeElement {
 
     public var value: AnyAttribute? {
-        fatalError("not implemented")
+        let result = __AGTreeElementGetValue(self)
+        return result == .nil ? nil : result
     }
 
 }
 
-struct Nodes: Sequence, IteratorProtocol {
+extension Nodes: @retroactive Sequence, @retroactive IteratorProtocol {
 
-    public func next() -> AnyAttribute? {
-        fatalError("not implemented")
+    public mutating func next() -> AnyAttribute? {
+        let result =  __AGTreeElementGetNextNode(&self)
+        return result == .nil ? nil : result
     }
 
 }
 
-struct Children: Sequence, IteratorProtocol {
+extension Children: @retroactive Sequence, @retroactive IteratorProtocol {
 
     public mutating func next() -> TreeElement? {
-        fatalError("not implemented")
+        return __AGTreeElementGetNextChild(&self)
     }
 
 }
 
-struct Values: Sequence, IteratorProtocol {
+extension Values: @retroactive Sequence, @retroactive IteratorProtocol {
 
-    public func next() -> TreeElement? {
-        fatalError("not implemented")
+    public func next() -> TreeValue? {
+        return __AGTreeElementGetNextValue(self)
     }
 
 }

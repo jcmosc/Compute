@@ -19,7 +19,7 @@ AGTypeID AGTreeElementGetType(AGTreeElement tree_element) CF_SWIFT_NAME(getter:A
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGTreeElementGetValue(AGTreeElement tree_element) CF_SWIFT_NAME(getter:AGTreeElement.value(self:));
+AGAttribute AGTreeElementGetValue(AGTreeElement tree_element);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -43,8 +43,7 @@ AGTreeElementValueIterator AGTreeElementMakeValueIterator(AGTreeElement tree_ele
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter)
-    CF_SWIFT_NAME(getter:AGTreeElementValueIterator.next(self:));
+AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter);
 
 // MARK: Iterating nodes
 
@@ -60,8 +59,7 @@ AGTreeElementNodeIterator AGTreeElementMakeNodeIterator(AGTreeElement tree_eleme
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter)
-    CF_SWIFT_NAME(getter:AGTreeElementValueIterator.next(self:));
+AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter);
 
 // MARK: Iterating children
 
@@ -78,8 +76,7 @@ AGTreeElementChildIterator AGTreeElementMakeChildIterator(AGTreeElement tree_ele
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeElement AGTreeElementGetNextChild(AGTreeElementChildIterator *iter)
-    CF_SWIFT_NAME(getter:AGTreeElementChildIterator.next(self:));
+AGTreeElement AGTreeElementGetNextChild(AGTreeElementChildIterator *iter);
 
 CF_EXTERN_C_END
 

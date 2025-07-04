@@ -16,12 +16,21 @@ extension Rule {
     }
 
     public static func _updateDefault(_ self: UnsafeMutableRawPointer) {
-        fatalError("not implemented")
+        guard let initialValue = initialValue else {
+            return
+        }
+        withUnsafePointer(to: initialValue) { initialValuePointer in
+            __AGGraphSetOutputValue(initialValuePointer, Metadata(Value.self))
+        }
 
     }
 
     public static func _update(_ self: UnsafeMutableRawPointer, attribute: AnyAttribute) {
-        fatalError("not implemented")
+        let rule = self.assumingMemoryBound(to: Self.self)
+        let value = rule.pointee.value
+        withUnsafePointer(to: value) { valuePointer in
+            __AGGraphSetOutputValue(valuePointer, Metadata(Value.self))
+        }
     }
 
 }
@@ -33,11 +42,11 @@ extension Rule {
     }
 
     public var attribute: Attribute<Value> {
-        fatalError("not implemented")
+        return Attribute<Value>(identifier: AnyAttribute.current!)
     }
 
     public var context: RuleContext<Value> {
-        fatalError("not implemented")
+        return RuleContext<Value>(attribute: attribute)
     }
 
 }

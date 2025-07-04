@@ -38,32 +38,38 @@ public struct IndirectAttribute<Value> {
 
     public var value: Value {
         get {
-            fatalError("not implemented")
+            return Attribute(identifier: identifier).value
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            Attribute(identifier: identifier).value = newValue
+        }
+        nonmutating _modify {
+            yield &Attribute<Value>(identifier: identifier).value
         }
     }
 
-    public func changedValue(options: ValueOptions) -> (value: Value, changed: Bool) {
-        fatalError("not implemented")
+    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool) {
+        return Attribute(identifier: identifier).changedValue(options: options)
     }
 
     public var wrappedValue: Value {
         get {
-            fatalError("not implemented")
+            value
         }
-        set {
-            fatalError("not implemented")
+        nonmutating set {
+            value = newValue
+        }
+        nonmutating _modify {
+            yield &value
         }
     }
 
     public var projectedValue: Attribute<Value> {
-        fatalError("not implemented")
+        return Attribute(identifier: identifier)
     }
 
     public subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Attribute<Member> {
-        fatalError("not implemented")
+        return Attribute(identifier: identifier)[dynamicMember: keyPath]
     }
 
 }

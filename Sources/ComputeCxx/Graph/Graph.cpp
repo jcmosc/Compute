@@ -259,6 +259,7 @@ uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<c
 data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *value) {
     const AttributeType &type = attribute_type(type_id);
 
+    // TODO: test this combo
     const void *initial_value = nullptr;
     if (value == nullptr && type.value_metadata().vw_size() == 0) {
         if (type.flags() & AGAttributeTypeFlagsExternal) {
@@ -292,7 +293,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
 
     bool main_thread = type.flags() & AGAttributeTypeFlagsMainThread;
     new (node_ptr.get()) Node(type_id, main_thread);
-    node_ptr->set_main_ref(true);
+    node_ptr->set_main_ref(true); // setting here and below aain?
 
     if (type_id >= 0x100000) {
         precondition_failure("too many node types allocated");
@@ -728,6 +729,8 @@ void Graph::update_main_refs(AttributeID attribute) {
         ConstOutputEdgeArrayRef array = output_edge_arrays.back();
         output_edge_arrays.pop_back();
 
+        // TODO: test reverse view works
+        // TODO: change foreach_trace to reverse_view
         for (auto output_edge : std::ranges::reverse_view(array)) {
             update_main_ref(output_edge.attribute);
         }
@@ -939,6 +942,7 @@ bool Graph::breadth_first_search(AttributeID attribute, AGSearchOptions options,
         }
 
         if (options & AGSearchOptionsSearchOutputs) {
+            // outputs should never be non-mutable nodes - check!
             if (auto candidate_node = candidate.get_node()) {
                 for (auto output_edge : candidate_node->output_edges()) {
                     if (seen.contains(output_edge.attribute)) {
@@ -1532,6 +1536,7 @@ void Graph::value_mark(data::ptr<Node> node) {
     auto update = current_update();
     if (update.tag() == 0 && update.get() != nullptr) {
         if (update.get()->graph() == this && (!node->output_edges().empty() || node->is_updating())) {
+            // TODO: check output edges empty ORed with is_updating
             precondition_failure("setting value during update: %u", node);
         }
     }

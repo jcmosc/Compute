@@ -708,6 +708,7 @@ void AGGraphWithUpdate(AGAttribute attribute, void (*body)(void *context AG_SWIF
                        void *body_context) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id || attribute_id.is_nil()) {
+        // TODO: check
         AGGraphWithoutUpdate(body, body_context);
         return;
     }

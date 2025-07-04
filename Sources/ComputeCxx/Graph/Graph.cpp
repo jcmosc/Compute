@@ -1027,7 +1027,7 @@ void Graph::reset_update(data::ptr<Node> node) {
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
         for (auto frame : update.get()->frames()) {
             if (frame.attribute == node) {
-                frame.next_input_index = 0;
+                frame.num_pushed_inputs = 0;
             }
         }
     }

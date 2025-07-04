@@ -415,6 +415,8 @@ class Graph {
     const char *key_name(uint32_t key_id) const;
 
     // MARK: Description
+    
+    void print_cycle(data::ptr<Node> node);
 
 #ifdef __OBJC__
     static NSObject *_Nullable description(Graph *_Nullable graph, NSDictionary *options);

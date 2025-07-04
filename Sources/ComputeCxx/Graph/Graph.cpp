@@ -1076,7 +1076,7 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, AGGraphUpdateO
 
     _update_count += 1;
     if (node->is_main_thread()) {
-        _update_on_main_count += 1;
+        _main_thread_update_count += 1;
     }
 
     UpdateStack current_update = UpdateStack(this, options);
@@ -1097,7 +1097,7 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, AGGraphUpdateO
             });
             status = context.second;
 
-            _update_on_main_count += 1;
+            _main_thread_update_count += 1;
         }
     }
 

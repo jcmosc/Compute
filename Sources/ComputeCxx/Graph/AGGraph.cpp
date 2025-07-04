@@ -115,24 +115,24 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
         return graph_context->graph().num_nodes();
     case AGGraphCounterQueryTransactionCount:
         return graph_context->graph().transaction_count();
-        //    case AGGraphCounterQueryUpdateCount:
-        //        return graph_context->graph().update_count();
-        //    case AGGraphCounterQueryChangeCount:
-        //        return graph_context->graph().change_count();
+    case AGGraphCounterQueryUpdateCount:
+        return graph_context->graph().update_count();
+    case AGGraphCounterQueryChangeCount:
+        return graph_context->graph().change_count();
     case AGGraphCounterQueryContextID:
         return graph_context->id();
     case AGGraphCounterQueryGraphID:
         return graph_context->graph().id();
-        //    case AGGraphCounterQueryContextThreadUpdating:
-        //        return graph_context->is_thread_updating();
-        //    case AGGraphCounterQueryThreadUpdating:
-        //        return graph_context->graph().is_thread_updating();
-        //    case AGGraphCounterQueryContextNeedsUpdate:
-        //        return graph_context->needs_update();
-        //    case AGGraphCounterQueryNeedsUpdate:
-        //        return graph_context->graph().needs_update();
-        //    case AGGraphCounterQueryMainThreadUpdateCount:
-        //        return graph_context->graph().main_thread_update_count();
+    case AGGraphCounterQueryContextThreadUpdating:
+        return graph_context->thread_is_updating();
+    case AGGraphCounterQueryThreadUpdating:
+        return graph_context->graph().thread_is_updating();
+    case AGGraphCounterQueryContextNeedsUpdate:
+        return graph_context->needs_update();
+    case AGGraphCounterQueryNeedsUpdate:
+        return graph_context->graph().needs_update();
+    case AGGraphCounterQueryMainThreadUpdateCount:
+        return graph_context->graph().main_thread_update_count();
     case AGGraphCounterQueryNodeTotalCount:
         return graph_context->graph().num_nodes_total();
     case AGGraphCounterQuerySubgraphCount:

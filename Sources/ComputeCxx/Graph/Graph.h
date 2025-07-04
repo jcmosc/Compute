@@ -119,7 +119,7 @@ class Graph {
     // Counters
     uint64_t _transaction_count = 0;
     uint64_t _update_count = 0;
-    uint64_t _update_on_main_count = 0;
+    uint64_t _main_thread_update_count = 0;
     uint64_t _change_count = 0;
     uint64_t _version = 0;
 
@@ -358,7 +358,9 @@ class Graph {
             _transaction_count += 1;
         }
     };
-
+    uint64_t update_count() const { return _update_count; };
+    uint64_t main_thread_update_count() const { return _main_thread_update_count; };
+    uint64_t change_count() const { return _change_count; };
     uint64_t version() const { return _version; }
 
     bool needs_update() { return _needs_update; };

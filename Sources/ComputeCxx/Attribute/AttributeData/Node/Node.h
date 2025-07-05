@@ -106,6 +106,7 @@ class Node {
 
     bool is_updating() const { return (_state & (NodeState::Updating | NodeState::UpdatingCyclic)) != (NodeState)0; };
     void set_updating(bool value) { _state = value ? _state | NodeState::Updating : _state & ~NodeState::Updating; }
+    uint8_t count() const { return (uint8_t)_state >> 6; };
 
     // TODO: test this
     AGValueState flags() const {
@@ -135,7 +136,6 @@ class Node {
     bool input_edges_traverse_contexts() const { return _input_edges_traverse_contexts; }
     void set_input_edges_traverse_contexts(bool value) { _input_edges_traverse_contexts = value; }
 
-    
     void set_needs_sort_input_edges(bool value) { _needs_sort_input_edges = value; }
     void sort_input_edges_if_needed() {
         if (_needs_sort_input_edges) {

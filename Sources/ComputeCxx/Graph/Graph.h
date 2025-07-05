@@ -46,14 +46,13 @@ class Graph {
         vector<TreeElementNodePair, 0, uint64_t> _nodes;
         bool _sorted;
 
-        void sort_nodes();
-
       public:
         vector<TreeElementNodePair, 0, uint64_t> &nodes() {
             sort_nodes();
             return _nodes;
         };
 
+        void sort_nodes();
         void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
     };
 
@@ -206,6 +205,8 @@ class Graph {
                            const void *_Nullable main_handler_context);
 
     // MARK: Tree
+
+    bool has_tree_data() const { return _tree_data_elements_by_subgraph != nullptr; };
 
     TreeDataElement *_Nullable tree_data_element_for_subgraph(Subgraph *subgraph) {
         if (!_tree_data_elements_by_subgraph) {
@@ -416,14 +417,28 @@ class Graph {
     uint32_t intern_key(const char *key);
     const char *key_name(uint32_t key_id) const;
 
-    // MARK: Description
-    
+    // MARK: Printing
+
+    void print();
+    void print_data();
+    void print_attribute(data::ptr<Node> node);
     void print_cycle(data::ptr<Node> node);
+    static void print_stack();
+
+    // MARK: Description
 
 #ifdef __OBJC__
+    NSString *description(data::ptr<Node> node);
+
     static NSObject *_Nullable description(Graph *_Nullable graph, NSDictionary *options);
     static NSDictionary *description_graph(Graph *_Nullable graph, NSDictionary *options);
+    NSString *description_graph_dot(NSDictionary *_Nullable options);
+    NSString *description_stack(NSDictionary *options);
+    NSArray *description_stack_nodes(NSDictionary *options);
+    NSDictionary *description_stack_frame(NSDictionary *options);
 #endif
+
+    static void write_to_file(Graph *_Nullable graph, const char *_Nullable filename, bool exclude_values);
 };
 
 } // namespace AG

@@ -473,6 +473,14 @@ CF_REFINED_FOR_SWIFT
 CFTypeRef _Nullable AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options)
     CF_SWIFT_NAME(AGGraphRef.description(_:options:));
 
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphArchiveJSON(const char *_Nullable filename);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGGraphArchiveJSON2(const char *filename, bool exclude_values);
+
 CF_EXTERN_C_END
 
 CF_IMPLICIT_BRIDGING_DISABLED

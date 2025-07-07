@@ -605,8 +605,10 @@ void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t ind
 }
 
 void Graph::remove_all_inputs(data::ptr<Node> node) {
-    for (auto index = node->input_edges().size() - 1; index >= 0; --index) {
-        remove_input(node, index);
+    uint32_t input_index = node->input_edges().size();
+    while (input_index > 0) {
+        input_index -= 1;
+        remove_input(node, input_index);
     }
     all_inputs_removed(node);
 }

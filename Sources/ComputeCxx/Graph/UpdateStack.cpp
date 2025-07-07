@@ -277,8 +277,9 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
         if (frame.pending || frame.flag3 || frame.cancelled) {
             reset_node_flags = (frame.flag3 || frame.cancelled) ? !frame.cancelled : true;
 
-            for (uint32_t input_index = node->input_edges().size() - 1; input_index >= 0; --input_index) {
-                InputEdge &input_edge = node->input_edges()[input_index];
+            uint32_t input_index = node->input_edges().size();
+            for (InputEdge &input_edge : std::ranges::reverse_view(node->input_edges())) {
+                input_index -= 1;
 
                 bool reset_edge_pending = true;
                 if (frame.flag3 || frame.cancelled) {

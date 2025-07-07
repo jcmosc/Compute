@@ -312,8 +312,15 @@ struct AttributeTests {
 
         @Test
         func validate() {
-            let attribute = Attribute(value: 0)
+            let attribute = Attribute(value: 1)
             attribute.validate()
+        }
+        
+        @Test
+        func value() {
+            let attribute = Attribute(value: 1)
+            let value = attribute.value
+            #expect(value == 1)
         }
 
     }

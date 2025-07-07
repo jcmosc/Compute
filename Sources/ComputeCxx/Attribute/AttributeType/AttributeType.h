@@ -18,7 +18,7 @@ class AttributeType {
   private:
     swift::metadata *_body_metadata;
     swift::metadata *_value_metadata;
-    void (*_update)(const void *context, void *body, AGAttribute attribute);
+    void (*_update)(void *context AG_SWIFT_CONTEXT, void *body, AGAttribute attribute) AG_SWIFT_CC(swift);
     void *_update_context;
     const AGAttributeVTable *_callbacks;
     AGAttributeTypeFlags _flags;

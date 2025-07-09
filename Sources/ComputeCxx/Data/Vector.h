@@ -143,27 +143,27 @@ template <typename T> vector<T> &vector<T>::operator=(vector &&other) noexcept {
 template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, const T &value) {
     if (pos == end()) {
         push_back(zone, value);
-    } else {
-        reserve(zone, _metadata.size + 1);
-        iterator mutable_pos = begin() + (pos - begin());
-        std::move_backward(mutable_pos, end(), end() + 1);
-        new (mutable_pos) value_type(value);
-        _metadata.size += 1;
+        return end() - 1;
     }
-    return end();
+    reserve(zone, _metadata.size + 1);
+    iterator mutable_pos = begin() + (pos - begin());
+    std::move_backward(mutable_pos, end(), end() + 1);
+    new (mutable_pos) value_type(value);
+    _metadata.size += 1;
+    return mutable_pos;
 }
 
 template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, T &&value) {
     if (pos == end()) {
         push_back(zone, value);
-    } else {
-        reserve(zone, _metadata.size + 1);
-        iterator mutable_pos = begin() + (pos - begin());
-        std::move_backward(mutable_pos, end(), end() + 1);
-        new (pos) value_type(std::move(value));
-        _metadata.size += 1;
+        return end() - 1;
     }
-    return end();
+    reserve(zone, _metadata.size + 1);
+    iterator mutable_pos = begin() + (pos - begin());
+    std::move_backward(mutable_pos, end(), end() + 1);
+    new (pos) value_type(std::move(value));
+    _metadata.size += 1;
+    return mutable_pos;
 }
 
 template <typename T> vector<T>::iterator vector<T>::erase(iterator pos) {

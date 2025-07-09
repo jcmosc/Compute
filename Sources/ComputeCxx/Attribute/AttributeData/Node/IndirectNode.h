@@ -43,7 +43,7 @@ class IndirectNode {
     IndirectNode(const IndirectNode &) = delete;
     IndirectNode &operator=(const IndirectNode &) = delete;
 
-    // Non-movabe
+    // Non-movable
     IndirectNode(IndirectNode &&) = delete;
     IndirectNode &operator=(IndirectNode &&) = delete;
 

@@ -64,11 +64,15 @@ extension AGAttributeType {
             }
             return Unmanaged<CFString>.passRetained(description as NSString).autorelease()
         }
-        callbacks.pointee.initializeValue = { _, _ in
-            fatalError("not implemented")
+        callbacks.pointee.updateDefault = { attributeType, body in
+            attributeType.pointee.attributeBody._updateDefault(body)
         }
         return UnsafePointer(callbacks)
     }()
+
+    @_extern(c, "AGRetainClosure")
+    fileprivate static func passRetainedClosure(_ closure: (UnsafeMutableRawPointer, AnyAttribute) -> Void)
+        -> AGClosureStorage
 
     init<Body: _AttributeBody>(
         selfType: Body.Type,
@@ -83,11 +87,12 @@ extension AGAttributeType {
             flags.insert(.hasDestroySelf)
         }
 
+        let retainedUpdate = AGAttributeType.passRetainedClosure(update)
         let conformance = unsafeBitCast(selfType as any _AttributeBody.Type, to: ProtocolConformance.self)
         self.init(
             selfType: Metadata(selfType),
             valueType: Metadata(valueType),
-            update: unsafeBitCast(update, to: AGClosureStorage.self),
+            update: retainedUpdate,
             callbacks: AGAttributeType.callbacks,
             flags: flags,
             selfOffset: 0,

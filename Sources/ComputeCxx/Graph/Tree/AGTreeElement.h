@@ -19,7 +19,7 @@ AGTypeID AGTreeElementGetType(AGTreeElement tree_element) CF_SWIFT_NAME(getter:A
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGTreeElementGetValue(AGTreeElement tree_element) CF_SWIFT_NAME(getter:AGTreeElement.value(self:));
+AGAttribute AGTreeElementGetValue(AGTreeElement tree_element);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -38,11 +38,12 @@ typedef struct AGTreeElementValueIterator {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeElementValueIterator AGTreeElementMakeValueIterator(AGTreeElement tree_element) CF_SWIFT_NAME(AGTreeElementValueIterator.init(treeElement:));
+AGTreeElementValueIterator AGTreeElementMakeValueIterator(AGTreeElement tree_element)
+    CF_SWIFT_NAME(AGTreeElementValueIterator.init(treeElement:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter) CF_SWIFT_NAME(getter:AGTreeElementValueIterator.next(self:));
+AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter);
 
 // MARK: Iterating nodes
 
@@ -53,11 +54,12 @@ typedef struct AGTreeElementNodeIterator {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeElementNodeIterator AGTreeElementMakeNodeIterator(AGTreeElement tree_element) CF_SWIFT_NAME(AGTreeElementNodeIterator.init(treeElement:));
+AGTreeElementNodeIterator AGTreeElementMakeNodeIterator(AGTreeElement tree_element)
+    CF_SWIFT_NAME(AGTreeElementNodeIterator.init(treeElement:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter) CF_SWIFT_NAME(getter:AGTreeElementValueIterator.next(self:));
+AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter);
 
 // MARK: Iterating children
 
@@ -69,11 +71,12 @@ typedef struct AGTreeElementChildIterator {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeElementChildIterator AGTreeElementMakeChildIterator(AGTreeElement tree_element) CF_SWIFT_NAME(AGTreeElementChildIterator.init(treeElement:));
+AGTreeElementChildIterator AGTreeElementMakeChildIterator(AGTreeElement tree_element)
+    CF_SWIFT_NAME(AGTreeElementChildIterator.init(treeElement:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeElement AGTreeElementGetNextChild(AGTreeElementChildIterator *iter) CF_SWIFT_NAME(getter:AGTreeElementChildIterator.next(self:));
+AGTreeElement AGTreeElementGetNextChild(AGTreeElementChildIterator *iter);
 
 CF_EXTERN_C_END
 

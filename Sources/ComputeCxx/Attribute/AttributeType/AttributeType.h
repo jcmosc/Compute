@@ -18,7 +18,7 @@ class AttributeType {
   private:
     swift::metadata *_body_metadata;
     swift::metadata *_value_metadata;
-    void (*_update)(const void *context, void *body, AGAttribute attribute);
+    void (*_update)(void *context AG_SWIFT_CONTEXT, void *body, AGAttribute attribute) AG_SWIFT_CC(swift);
     void *_update_context;
     const AGAttributeVTable *_callbacks;
     AGAttributeTypeFlags _flags;
@@ -64,7 +64,7 @@ class AttributeType {
 
     bool compare_values(const void *lhs, const void *rhs) {
         AGComparisonOptions comparison_options = AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) |
-                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsReportFailures;
+                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsTraceCompareFailed;
         if (_layout == nullptr) {
             _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
         }
@@ -72,6 +72,18 @@ class AttributeType {
         ValueLayout layout = _layout == ValueLayoutTrivial ? nullptr : _layout;
         return LayoutDescriptor::compare(layout, (const unsigned char *)lhs, (const unsigned char *)rhs,
                                          value_metadata().vw_size(), comparison_options);
+    }
+
+    bool compare_values_partial(const void *lhs, const void *rhs, size_t offset, size_t size) {
+        AGComparisonOptions comparison_options =
+            AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) | AGComparisonOptionsCopyOnWrite;
+        if (_layout == nullptr) {
+            _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
+        }
+
+        ValueLayout layout = _layout == ValueLayoutTrivial ? nullptr : _layout;
+        return LayoutDescriptor::compare_partial(layout, (const unsigned char *)lhs + offset,
+                                                 (const unsigned char *)rhs + offset, offset, size, comparison_options);
     }
 
     void destroy_self(Node &node) const {

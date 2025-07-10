@@ -10,10 +10,10 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-struct AGFieldRange {
+typedef struct AGFieldRange {
     size_t offset;
     size_t size;
-};
+} AGFieldRange;
 
 typedef struct AGComparisonStateStorage *AGComparisonState;
 

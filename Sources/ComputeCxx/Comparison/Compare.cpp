@@ -140,7 +140,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + item_size;
 
             if (!compare_existential_values(*reinterpret_cast<const swift::existential_type_metadata *>(type),
-                                            lhs + offset, rhs + offset, options & ~AGComparisonOptionsTraceCompareFailed)) {
+                                            lhs + offset, rhs + offset,
+                                            options & ~AGComparisonOptionsTraceCompareFailed)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }

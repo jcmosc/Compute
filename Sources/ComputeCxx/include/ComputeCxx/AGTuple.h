@@ -19,7 +19,7 @@ typedef CF_ENUM(uint32_t, AGTupleCopyOptions) {
     AGTupleCopyOptionsInitTake = 3,
 } CF_SWIFT_NAME(TupleType.CopyOptions);
 
-typedef const AGSwiftMetadata *AGTupleType AG_SWIFT_STRUCT CF_SWIFT_NAME(TupleType);
+typedef const struct AGSwiftMetadata *AGTupleType AG_SWIFT_STRUCT CF_SWIFT_NAME(TupleType);
 
 typedef struct AGUnsafeTuple {
     AGTupleType type;
@@ -33,7 +33,7 @@ typedef struct AGUnsafeMutableTuple {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTupleType AGNewTupleType(uint32_t count, const AGTypeID _Nonnull *_Nonnull elements)
+AGTupleType AGNewTupleType(size_t count, const AGTypeID _Nonnull *_Nonnull elements)
     CF_SWIFT_NAME(TupleType.init(count:elements:));
 
 CF_EXPORT
@@ -46,29 +46,29 @@ size_t AGTupleSize(AGTupleType tuple_type) CF_SWIFT_NAME(getter:AGTupleType.size
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTypeID AGTupleElementType(AGTupleType tuple_type, uint32_t index) CF_SWIFT_NAME(TupleType.elementType(self:at:));
+AGTypeID AGTupleElementType(AGTupleType tuple_type, size_t index) CF_SWIFT_NAME(TupleType.elementType(self:at:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-size_t AGTupleElementSize(AGTupleType tuple_type, uint32_t index) CF_SWIFT_NAME(TupleType.elementSize(self:at:));
+size_t AGTupleElementSize(AGTupleType tuple_type, size_t index) CF_SWIFT_NAME(TupleType.elementSize(self:at:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-size_t AGTupleElementOffset(AGTupleType tuple_type, uint32_t index) CF_SWIFT_NAME(TupleType.elementOffset(self:at:));
+size_t AGTupleElementOffset(AGTupleType tuple_type, size_t index) CF_SWIFT_NAME(TupleType.elementOffset(self:at:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, uint32_t index, AGTypeID element_type)
+size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, size_t index, AGTypeID element_type)
     CF_SWIFT_NAME(TupleType.elementOffset(self:at:type:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, uint32_t index, void *element_value,
+void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, size_t index, void *element_value,
                         AGTypeID element_type, AGTupleCopyOptions options);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void *AGTupleSetElement(AGTupleType tuple_type, void *tuple_value, uint32_t index, const void *element_value,
+void *AGTupleSetElement(AGTupleType tuple_type, void *tuple_value, size_t index, const void *element_value,
                         AGTypeID element_type, AGTupleCopyOptions options);
 
 CF_EXPORT
@@ -77,7 +77,7 @@ void AGTupleDestroy(AGTupleType tuple_type, void *tuple_value) CF_SWIFT_NAME(Tup
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, uint32_t index)
+void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, size_t index)
     CF_SWIFT_NAME(TupleType.destroy(self:_:at:));
 
 CF_EXPORT

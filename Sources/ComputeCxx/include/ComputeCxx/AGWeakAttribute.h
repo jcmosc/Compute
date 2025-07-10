@@ -11,8 +11,10 @@ CF_ASSUME_NONNULL_BEGIN
 CF_EXTERN_C_BEGIN
 
 typedef struct AGWeakAttribute {
-    AGAttribute attribute;
-    uint32_t subgraph_id;
+    struct {
+        AGAttribute identifier;
+        uint32_t seed;
+    } _details;
 } CF_SWIFT_NAME(AnyWeakAttribute) AGWeakAttribute;
 
 CF_EXPORT

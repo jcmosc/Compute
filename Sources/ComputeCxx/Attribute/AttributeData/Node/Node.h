@@ -6,9 +6,9 @@
 #include "Attribute/AttributeData/Edge/OutputEdge.h"
 #include "Attribute/AttributeID/RelativeAttributeID.h"
 #include "ComputeCxx/AGAttribute.h"
+#include "ComputeCxx/AGGraph.h"
 #include "Data/Pointer.h"
 #include "Data/Vector.h"
-#include "Graph/AGGraph.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

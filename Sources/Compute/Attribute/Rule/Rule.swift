@@ -4,8 +4,8 @@ public protocol Rule: _AttributeBody {
 
     associatedtype Value
 
-    var value: Value { get }
     static var initialValue: Value? { get }
+    var value: Value { get }
 
 }
 
@@ -64,7 +64,10 @@ extension Rule where Value: Hashable {
     }
 
     public static func _cachedValue(
-        options: CachedValueOptions, owner: AnyAttribute?, hashValue: Int, bodyPtr: UnsafeRawPointer,
+        options: CachedValueOptions,
+        owner: AnyAttribute?,
+        hashValue: Int,
+        bodyPtr: UnsafeRawPointer,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafePointer<Value> {
         fatalError("not implemented")

@@ -38,16 +38,20 @@ class Trace {
     // Updates
     virtual void begin_update(const Subgraph &subgraph, uint32_t options) {};
     virtual void end_update(const Subgraph &subgraph) {};
-    virtual void begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options) {};
-    virtual void end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
+    virtual void begin_update(const Graph::UpdateStack &update_stack,
+                              data::ptr<Node> node, uint32_t options) {};
+    virtual void end_update(const Graph::UpdateStack &update_stack,
+                            data::ptr<Node> node,
                             AGGraphUpdateStatus update_status) {};
     virtual void begin_update(data::ptr<Node> node) {};
     virtual void end_update(data::ptr<Node> node, bool changed) {};
     virtual void begin_update(const Graph::Context &context) {};
     virtual void end_update(const Graph::Context &context) {};
 
-    virtual void begin_invalidation(const Graph::Context &context, AttributeID attribute) {};
-    virtual void end_invalidation(const Graph::Context &context, AttributeID attribute) {};
+    virtual void begin_invalidation(const Graph::Context &context,
+                                    AttributeID attribute) {};
+    virtual void end_invalidation(const Graph::Context &context,
+                                  AttributeID attribute) {};
 
     virtual void begin_modify(data::ptr<Node> node) {};
     virtual void end_modify(data::ptr<Node> node) {};
@@ -64,13 +68,16 @@ class Trace {
     virtual void destroy(const Subgraph &subgraph) {};
 
     virtual void add_child(const Subgraph &subgraph, const Subgraph &child) {};
-    virtual void remove_child(const Subgraph &subgraph, const Subgraph &child) {};
+    virtual void remove_child(const Subgraph &subgraph, const Subgraph &child) {
+    };
 
     virtual void added(data::ptr<Node> node) {};
 
-    virtual void add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) {};
+    virtual void add_edge(data::ptr<Node> node, AttributeID input,
+                          uint8_t input_edge_flags) {};
     virtual void remove_edge(data::ptr<Node> node, uint32_t input_index) {};
-    virtual void set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending) {};
+    virtual void set_edge_pending(data::ptr<Node> node, uint32_t input_index,
+                                  bool pending) {};
 
     virtual void set_dirty(data::ptr<Node> node, bool dirty) {};
     virtual void set_pending(data::ptr<Node> node, bool pending) {};
@@ -80,22 +87,28 @@ class Trace {
 
     virtual void added(data::ptr<IndirectNode> indirect_node) {};
 
-    virtual void set_source(data::ptr<IndirectNode> indirect_node, AttributeID source) {};
-    virtual void set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency) {};
+    virtual void set_source(data::ptr<IndirectNode> indirect_node,
+                            AttributeID source) {};
+    virtual void set_dependency(data::ptr<IndirectNode> indirect_node,
+                                AttributeID dependency) {};
 
     virtual void set_deadline(uint64_t deadline) {};
     virtual void passed_deadline() {};
 
     virtual void mark_profile(const Graph &graph, uint32_t options) {};
 
-    virtual void custom_event(const Graph::Context &context, const char *event_name, const void *value,
+    virtual void custom_event(const Graph::Context &context,
+                              const char *event_name, const void *value,
                               const swift::metadata &type) {};
-    virtual void named_event(const Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
-                             const void *event_args, CFDataRef data, uint32_t arg6) {};
+    virtual void named_event(const Graph::Context &context, uint32_t event_id,
+                             uint32_t event_arg_count, const void *event_args,
+                             CFDataRef data, uint32_t arg6) {};
     virtual bool named_event_enabled(uint32_t event_id) { return false; };
 
-    virtual void compare_failed(data::ptr<Node> node, const void *lhs, const void *rhs, size_t range_offset,
-                                size_t range_size, const swift::metadata *_Nullable type) {};
+    virtual void compare_failed(data::ptr<Node> node, const void *lhs,
+                                const void *rhs, size_t range_offset,
+                                size_t range_size,
+                                const swift::metadata *_Nullable type) {};
 };
 
 } // namespace AG

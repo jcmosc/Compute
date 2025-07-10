@@ -8,10 +8,10 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-struct AGClosureStorage {
-    void *function;
-    void *context;
-};
+typedef struct AGClosureStorage {
+    const void *thunk;
+    const void *_Nullable context;
+} AGClosureStorage;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

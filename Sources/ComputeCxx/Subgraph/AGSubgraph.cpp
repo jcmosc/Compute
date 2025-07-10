@@ -306,7 +306,7 @@ AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {
     }
 
     auto tree_root = AG::Subgraph::from_cf(subgraph)->tree_root();
-    return AGTreeElement(tree_root);
+    return AGTreeElement((uintptr_t)tree_root);
 }
 
 void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {

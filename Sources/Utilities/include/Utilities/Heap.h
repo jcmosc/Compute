@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <swift/bridging>
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -55,7 +54,7 @@ class Heap {
     uint64_t *alloc_uint64_t(size_t count = 1) { return alloc<uint64_t>(count); }
 #endif
 
-} SWIFT_UNSAFE_REFERENCE;
+};
 
 template <unsigned int _inline_size> class InlineHeap : public Heap {
   private:

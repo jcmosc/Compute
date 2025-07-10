@@ -4,13 +4,13 @@
 
 #include "Errors/Errors.h"
 
-AGTupleType AGNewTupleType(uint32_t count, const AGTypeID *elements) {
+AGTupleType AGNewTupleType(size_t count, const AGTypeID *elements) {
     if (count == 1) {
         return elements[0];
     }
     auto metadata_elements = reinterpret_cast<const ::swift::Metadata *const *>(elements);
     auto response = ::swift::swift_getTupleTypeMetadata(::swift::MetadataRequest(),
-                                                        ::swift::TupleTypeFlags().withNumElements(count),
+                                                        ::swift::TupleTypeFlags().withNumElements((unsigned int)count),
                                                         metadata_elements, nullptr, nullptr);
     if (response.State != ::swift::MetadataState::Complete) {
         AG::precondition_failure("invalid tuple type.");
@@ -32,7 +32,7 @@ size_t AGTupleSize(AGTupleType tuple_type) {
     return metadata->vw_size();
 }
 
-AGTypeID AGTupleElementType(AGTupleType tuple_type, uint32_t index) {
+AGTypeID AGTupleElementType(AGTupleType tuple_type, size_t index) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -44,11 +44,11 @@ AGTypeID AGTupleElementType(AGTupleType tuple_type, uint32_t index) {
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     return reinterpret_cast<AGTypeID>(element.Type);
 }
 
-size_t AGTupleElementSize(AGTupleType tuple_type, uint32_t index) {
+size_t AGTupleElementSize(AGTupleType tuple_type, size_t index) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -60,11 +60,11 @@ size_t AGTupleElementSize(AGTupleType tuple_type, uint32_t index) {
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     return element.Type->vw_size();
 }
 
-size_t AGTupleElementOffset(AGTupleType tuple_type, uint32_t index) {
+size_t AGTupleElementOffset(AGTupleType tuple_type, size_t index) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -76,11 +76,11 @@ size_t AGTupleElementOffset(AGTupleType tuple_type, uint32_t index) {
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     return element.Offset;
 }
 
-size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, uint32_t index, AGTypeID element_type) {
+size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, size_t index, AGTypeID element_type) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -95,7 +95,7 @@ size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, uint32_t index, AGTyp
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     if (reinterpret_cast<AGTypeID>(element.Type) != element_type) {
         AG::precondition_failure("element type mismatch");
     }
@@ -119,7 +119,7 @@ void *update(void *dest_ptr, const void *src_ptr, const ::swift::Metadata *metad
     }
 };
 
-void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, uint32_t index, void *element_value,
+void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, size_t index, void *element_value,
                         AGTypeID element_type, AGTupleCopyOptions options) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
@@ -135,7 +135,7 @@ void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, uint32_t inde
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     if (reinterpret_cast<AGTypeID>(element.Type) != element_type) {
         AG::precondition_failure("element type mismatch");
     }
@@ -143,7 +143,7 @@ void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, uint32_t inde
                   options);
 }
 
-void *AGTupleSetElement(AGTupleType tuple_type, void *tuple_value, uint32_t index, const void *element_value,
+void *AGTupleSetElement(AGTupleType tuple_type, void *tuple_value, size_t index, const void *element_value,
                         AGTypeID element_type, AGTupleCopyOptions options) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
@@ -159,7 +159,7 @@ void *AGTupleSetElement(AGTupleType tuple_type, void *tuple_value, uint32_t inde
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     if (reinterpret_cast<AGTypeID>(element.Type) != element_type) {
         AG::precondition_failure("element type mismatch");
     }
@@ -172,7 +172,7 @@ void AGTupleDestroy(AGTupleType tuple_type, void *tuple_value) {
     metadata->vw_destroy(reinterpret_cast<::swift::OpaqueValue *>(tuple_value));
 }
 
-void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, uint32_t index) {
+void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, size_t index) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -184,7 +184,7 @@ void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, uint32_t i
     if (index >= tuple_metadata->NumElements) {
         AG::precondition_failure("index out of range: %d", index);
     }
-    auto element = tuple_metadata->getElement(index);
+    auto element = tuple_metadata->getElement((unsigned int)index);
     element.Type->vw_destroy(element.findIn(reinterpret_cast<::swift::OpaqueValue *>(tuple_value)));
 }
 

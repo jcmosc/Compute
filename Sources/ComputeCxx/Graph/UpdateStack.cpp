@@ -114,7 +114,7 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
 
         // update default
         const AttributeType &attribute_type = _graph->attribute_type(node.type_id());
-        if (auto callback = attribute_type.callbacks().updateDefault) {
+        if (auto updateDefault = attribute_type.vtable().update_default) {
 
             Frame frame = {node_ptr, 0};
             if (node.is_pending() || (!node.is_value_initialized() && initialize_value)) {
@@ -124,7 +124,7 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
             _frames.push_back(frame);
 
             void *self = node.get_self(attribute_type);
-            callback(reinterpret_cast<const AGAttributeType *>(&attribute_type), self);
+            updateDefault(reinterpret_cast<const AGAttributeType *>(&attribute_type), self);
 
             _frames.pop_back();
 
@@ -176,7 +176,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                 // update default
                 const AttributeType &attribute_type = _graph->attribute_type(node->type_id());
-                if (auto callback = attribute_type.callbacks().updateDefault) {
+                if (auto callback = attribute_type.vtable().update_default) {
                     void *self = node->get_self(attribute_type);
                     callback(reinterpret_cast<const AGAttributeType *>(&attribute_type), self);
                     changed = true;
@@ -206,7 +206,9 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
             AttributeID input_attribute = input_edge.attribute;
             while (input_attribute.is_indirect_node()) {
-                AttributeID input_attribute = input_attribute.get_indirect_node()->source().attribute();
+                // TODO: warning: variable 'input_attribute' is uninitialized when used
+                // within its own initialization
+                input_attribute = input_attribute.get_indirect_node()->source().identifier();
                 if (input_attribute.get_indirect_node()->is_mutable()) {
                     if (AttributeID dependency = input_attribute.get_indirect_node()->to_mutable().dependency()) {
                         if (!dependency.get_node()->is_value_initialized() || dependency.get_node()->is_dirty()) {

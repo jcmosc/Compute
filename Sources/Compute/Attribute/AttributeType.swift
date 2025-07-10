@@ -17,7 +17,10 @@ extension AGUnownedGraphRef {
         -> UInt32
 
     @inline(__always)
-    func internAttributeType(type: Metadata, makeAttributeType: () -> UnsafePointer<AGAttributeType>) -> UInt32 {
+    func internAttributeType(
+        type: Metadata,
+        makeAttributeType: () -> UnsafePointer<AGAttributeType>
+    ) -> UInt32 {
         return AGUnownedGraphRef.internAttributeType(
             unsafeBitCast(self, to: UnsafeRawPointer.self),
             type: type,
@@ -37,74 +40,89 @@ extension CustomStringConvertible {
 
 extension AGAttributeType {
 
-    nonisolated(unsafe) static let callbacks: UnsafePointer<AGAttributeVTable> = {
-        let callbacks = UnsafeMutablePointer<AGAttributeVTable>.allocate(capacity: 1)
-        callbacks.pointee.allocate = nil
-        callbacks.pointee.deallocate = { pointer in
-            pointer.deallocate()
-        }
-        callbacks.pointee.destroySelf = { attributeType, body in
-            attributeType.pointee.attributeBody._destroySelf(body)
-        }
-        callbacks.pointee.bodyDescription = { attributeType, body in
-            let description: String
-            if let selfType = attributeType.pointee.selfType.type as? any CustomStringConvertible.Type {
-                description = selfType._description(for: body)
-            } else {
-                description = attributeType.pointee.selfType.description
+    nonisolated(unsafe) static let vtable: UnsafePointer<AGAttributeVTable> =
+        {
+            let vtable = UnsafeMutablePointer<AGAttributeVTable>.allocate(
+                capacity: 1
+            )
+            vtable.pointee.version = 0
+            vtable.pointee.type_destroy = { pointer in
+                pointer.deallocate()
             }
-            return Unmanaged<CFString>.passRetained(description as NSString).autorelease()
-        }
-        callbacks.pointee.valueDescription = { attributeType, value in
-            let description: String
-            if let valueType = attributeType.pointee.valueType.type as? any CustomStringConvertible.Type {
-                description = valueType._description(for: value)
-            } else {
-                description = attributeType.pointee.valueType.description
+            vtable.pointee.self_destroy = { attributeType, body in
+                attributeType.pointee.attributeBody._destroySelf(body)
             }
-            return Unmanaged<CFString>.passRetained(description as NSString).autorelease()
-        }
-        callbacks.pointee.updateDefault = { attributeType, body in
-            attributeType.pointee.attributeBody._updateDefault(body)
-        }
-        return UnsafePointer(callbacks)
-    }()
+            vtable.pointee.self_description = { attributeType, body in
+                let description: String
+                if let selfType = attributeType.pointee.self_id.type
+                    as? any CustomStringConvertible.Type
+                {
+                    description = selfType._description(for: body)
+                } else {
+                    description = attributeType.pointee.self_id.description
+                }
+                return Unmanaged<CFString>.passRetained(description as NSString)
+                    .autorelease()
+            }
+            vtable.pointee.value_description = { attributeType, value in
+                let description: String
+                if let valueType = attributeType.pointee.value_id.type
+                    as? any CustomStringConvertible.Type
+                {
+                    description = valueType._description(for: value)
+                } else {
+                    description = attributeType.pointee.value_id.description
+                }
+                return Unmanaged<CFString>.passRetained(description as NSString)
+                    .autorelease()
+            }
+            vtable.pointee.update_default = { attributeType, body in
+                attributeType.pointee.attributeBody._updateDefault(body)
+            }
+            return UnsafePointer(vtable)
+        }()
 
     @_extern(c, "AGRetainClosure")
-    fileprivate static func passRetainedClosure(_ closure: (UnsafeMutableRawPointer, AnyAttribute) -> Void)
+    fileprivate static func passRetainedClosure(
+        _ closure: (UnsafeMutableRawPointer, AnyAttribute) -> Void
+    )
         -> AGClosureStorage
 
     init<Body: _AttributeBody>(
         selfType: Body.Type,
         valueType: Any.Type,
-        flags: AGAttributeTypeFlags,
+        flags: Flags,
         update: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void,
     ) {
         var flags = flags
         flags.insert(selfType.flags)
-        flags.insert(AGAttributeTypeFlags(rawValue: UInt32(selfType.comparisonMode.rawValue)))
+        flags.insert(Flags(rawValue: UInt32(selfType.comparisonMode.rawValue)))
         if selfType._hasDestroySelf {
             flags.insert(.hasDestroySelf)
         }
 
         let retainedUpdate = AGAttributeType.passRetainedClosure(update)
-        let conformance = unsafeBitCast(selfType as any _AttributeBody.Type, to: ProtocolConformance.self)
+        let conformance = unsafeBitCast(
+            selfType as any _AttributeBody.Type,
+            to: ProtocolConformance.self
+        )
         self.init(
-            selfType: Metadata(selfType),
-            valueType: Metadata(valueType),
+            self_id: Metadata(selfType),
+            value_id: Metadata(valueType),
             update: retainedUpdate,
-            callbacks: AGAttributeType.callbacks,
+            vtable: AGAttributeType.vtable,
             flags: flags,
-            selfOffset: 0,
-            layout: nil,
-            attributeBodyType: conformance.metadata,
-            attributeBodyWitnessTable: conformance.witnessTable
+            internal_offset: 0,
+            value_layout: nil,
+            body_conformance: __Unnamed_struct_body_conformance(
+                type_id: conformance.metadata,
+                witness_table: conformance.witnessTable
+            )
         )
     }
 
     var attributeBody: any _AttributeBody.Type {
-        let conformance = ProtocolConformance(metadata: attributeBodyType, witnessTable: attributeBodyWitnessTable)
-        return unsafeBitCast(conformance, to: (any _AttributeBody.Type).self)
+        return unsafeBitCast(body_conformance, to: (any _AttributeBody.Type).self)
     }
 
 }

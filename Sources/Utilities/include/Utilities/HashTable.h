@@ -1,7 +1,6 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <swift/bridging>
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -77,7 +76,7 @@ class UntypedTable {
     bool insert(const key_type key, const value_type value);
     bool remove(const key_type key);
     bool remove_ptr(const key_type key);
-} SWIFT_UNSAFE_REFERENCE;
+};
 
 template <typename Key, typename Value> class Table : public UntypedTable {
   public:

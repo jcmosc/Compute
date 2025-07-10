@@ -177,18 +177,18 @@ NSString *Graph::description(data::ptr<Node> node) {
     [array addObject:[NSString stringWithFormat:@"dirty = %d", node->is_dirty()]];
     [array addObject:[NSString stringWithFormat:@"updating = %d", node->count()]]; // TODO: check is count and not bool
 
-    if (auto callback = type.callbacks().bodyDescription) {
+    if (auto selfDescription = type.vtable().self_description) {
         if (node->is_self_initialized()) {
             void *body = node->get_self(type);
-            if (auto desc = callback(reinterpret_cast<const AGAttributeType *>(&type), body)) {
+            if (auto desc = selfDescription(reinterpret_cast<const AGAttributeType *>(&type), body)) {
                 [array addObject:[NSString stringWithFormat:@"self = %@", desc]];
             }
         }
     }
-    if (auto callback = type.callbacks().valueDescription) {
+    if (auto valueDescription = type.vtable().value_description) {
         if (node->is_value_initialized()) {
             void *value = node->get_value();
-            if (auto desc = callback(reinterpret_cast<const AGAttributeType *>(&type), value)) {
+            if (auto desc = valueDescription(reinterpret_cast<const AGAttributeType *>(&type), value)) {
                 [array addObject:[NSString stringWithFormat:@"value = %@", desc]];
             }
         }
@@ -314,7 +314,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                         const AttributeType &attribute_type = graph->attribute_type(type_id);
                         if (node->is_self_initialized()) {
                             void *body = node->get_self(attribute_type);
-                            if (auto desc = attribute_type.body_description(body)) {
+                            if (auto desc = attribute_type.self_description(body)) {
                                 node_dict[@"desc"] = escaped_string((__bridge NSString *)desc, truncation_limit);
                             }
                         }
@@ -658,19 +658,19 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                         data::ptr<Node> node = attribute.get_node();
                         const AttributeType &node_type = attribute_type(node->type_id());
                         if (node->is_self_initialized()) {
-                            if (auto callback = node_type.callbacks().bodyDescription) {
+                            if (auto selfDescription = node_type.vtable().self_description) {
                                 void *self = node->get_self(node_type);
-                                if (auto desc = callback(reinterpret_cast<const AGAttributeType *>(&node_type), self)) {
+                                if (auto desc = selfDescription(reinterpret_cast<const AGAttributeType *>(&node_type), self)) {
                                     [result appendString:@": "];
                                     [result appendString:escaped_string((__bridge NSString *)desc, truncation_limit)];
                                 }
                             }
                         }
                         if (include_values && node->is_value_initialized()) {
-                            if (auto callback = node_type.callbacks().valueDescription) {
+                            if (auto valueDescription = node_type.vtable().value_description) {
                                 void *value = node->get_value();
                                 if (auto value_desc =
-                                        callback(reinterpret_cast<const AGAttributeType *>(&node_type), value)) {
+                                    valueDescription(reinterpret_cast<const AGAttributeType *>(&node_type), value)) {
                                     [result appendString:@" → "];
                                     [result
                                         appendString:escaped_string((__bridge NSString *)value_desc, truncation_limit)];
@@ -757,7 +757,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                                     indirect_nodes.try_emplace(intermediate.get_indirect_node(),
                                                                intermediate.get_indirect_node());
 
-                                    AttributeID source = intermediate.get_indirect_node()->source().attribute();
+                                    AttributeID source = intermediate.get_indirect_node()->source().identifier();
                                     if (source.is_node()) {
                                         break;
                                     }
@@ -797,7 +797,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
             [result appendFormat:@"  _%d[label=\"%d\" shape=box];\n", indirect_node.offset(), indirect_node.offset()];
 
             OffsetAttributeID resolved_source =
-                indirect_node->source().attribute().resolve(TraversalOptions::SkipMutableReference);
+                indirect_node->source().identifier().resolve(TraversalOptions::SkipMutableReference);
             [result appendFormat:@"  _%d -> _%d[label=\"@%d\"];\n",
                                  (uint32_t)resolved_source.attribute(), // TODO: check any pointer tag is unset
                                  indirect_node.offset(), resolved_source.offset()];

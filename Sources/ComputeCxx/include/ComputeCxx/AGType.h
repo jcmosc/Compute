@@ -10,10 +10,16 @@ CF_IMPLICIT_BRIDGING_ENABLED
 
 CF_EXTERN_C_BEGIN
 
-typedef const struct AGSwiftMetadata *AGTypeID AG_SWIFT_STRUCT AG_SWIFT_NAME(Metadata);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wextern-c-compat"
+typedef struct AG_SWIFT_NAME(_Metadata) AGSwiftMetadata {
+} AGSwiftMetadata;
+#pragma GCC diagnostic pop
+
+typedef const AGSwiftMetadata *AGTypeID AG_SWIFT_STRUCT AG_SWIFT_NAME(Metadata);
 
 typedef struct AGTypeSignature {
-    uint32_t data[5];
+    uint8_t bytes[20];
 } AG_SWIFT_NAME(Signature) AGTypeSignature;
 
 typedef CF_CLOSED_ENUM(uint32_t, AGTypeKind) {
@@ -90,15 +96,15 @@ bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGTypeGetEnumTag(AGTypeID typeID, void *value);
+uint64_t AGTypeGetEnumTag(AGTypeID typeID, const void *value) CF_SWIFT_NAME(AGTypeID.enumTag(self:_:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGTypeProjectEnumData(AGTypeID typeID);
+void AGTypeProjectEnumData(AGTypeID typeID, void *value) CF_SWIFT_NAME(AGTypeID.projectEnumData(self:_:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGTypeInjectEnumTag(AGTypeID typeID);
+void AGTypeInjectEnumTag(AGTypeID typeID, void *value, uint32_t tag) CF_SWIFT_NAME(AGTypeID.injectEnumTag(self:_:tag:));
 
 CF_EXTERN_C_END
 

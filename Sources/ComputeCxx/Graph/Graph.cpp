@@ -5,6 +5,8 @@
 #include <ranges>
 #include <set>
 
+#include <Utilities/List.h>
+
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Attribute/AttributeID/OffsetAttributeID.h"
@@ -18,7 +20,6 @@
 #include "Subgraph/Subgraph.h"
 #include "TraceRecorder.h"
 #include "UpdateStack.h"
-#include "Utilities/List.h"
 
 namespace AG {
 
@@ -411,7 +412,7 @@ void Graph::remove_node(data::ptr<Node> node) {
 
 void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
     if (indirect_node->is_mutable()) {
-        remove_removed_input(AttributeID(indirect_node), indirect_node->source().attribute());
+        remove_removed_input(AttributeID(indirect_node), indirect_node->source().identifier());
         AttributeID dependency = indirect_node->to_mutable().dependency();
         if (dependency) {
             remove_removed_input(AttributeID(indirect_node), dependency);
@@ -426,7 +427,7 @@ void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
         return;
     }
 
-    AttributeID source = indirect_node->source().attribute();
+    AttributeID source = indirect_node->source().identifier();
     while (true) {
         if (source.subgraph()->is_invalidated()) {
             break;
@@ -460,7 +461,7 @@ void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
                     break;
                 }
 
-                source = source_indirect_node->source().attribute();
+                source = source_indirect_node->source().identifier();
             }
         } else {
             break;
@@ -502,7 +503,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
     }
 
     if (auto output_indirect_node = output.get_indirect_node()) {
-        if (output_indirect_node->source().attribute() != attribute) {
+        if (output_indirect_node->source().identifier() != attribute) {
 
             // clear dependency
             assert(output_indirect_node->is_mutable());
@@ -524,20 +525,20 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
         if (output_indirect_node->is_mutable()) {
             auto &mutable_output_indirect_node = output_indirect_node->to_mutable();
             auto initial_source = mutable_output_indirect_node.initial_source();
-            if (initial_source.attribute() && !initial_source.attribute().is_nil() && !initial_source.expired()) {
+            if (initial_source.identifier() && !initial_source.identifier().is_nil() && !initial_source.expired()) {
                 new_source = initial_source;
                 new_offset = mutable_output_indirect_node.initial_offset();
             }
         }
 
         foreach_trace([&output_indirect_node, &new_source](Trace &trace) {
-            trace.set_source(output_indirect_node, new_source.attribute());
+            trace.set_source(output_indirect_node, new_source.identifier());
         });
 
         output_indirect_node->modify(new_source, new_offset);
 
-        if (new_source.attribute() && !new_source.attribute().is_nil() && !new_source.expired()) {
-            add_input_dependencies(output, new_source.attribute());
+        if (new_source.identifier() && !new_source.identifier().is_nil() && !new_source.expired()) {
+            add_input_dependencies(output, new_source.identifier());
         }
 
         return true;
@@ -685,8 +686,8 @@ void Graph::update_main_refs(AttributeID attribute) {
         }
 
         if (auto node = attribute.get_node()) {
-            auto &type =
-                this->attribute_type(node->type_id()); // TODO: should AttributeType have deleted copy constructor?
+            auto &type = this->attribute_type(node->type_id()); // TODO: should AttributeType have deleted
+                                                                // copy constructor?
 
             bool main_ref = false;
             if (type.value_metadata().getValueWitnesses()->isPOD() || type.flags() & AGAttributeTypeFlagsAsyncThread) {
@@ -782,7 +783,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
     source = resolved_source.attribute();
     uint32_t offset = resolved_source.offset();
 
-    AttributeID old_source = indirect_node->source().attribute();
+    AttributeID old_source = indirect_node->source().identifier();
     if (resolved_source.attribute() == old_source) {
         if (resolved_source.offset() == indirect_node.offset()) {
             return;
@@ -861,7 +862,8 @@ void Graph::indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_n
             precondition_failure("indirect dependencies must be attributes");
         }
         if (dependency.subgraph() != AttributeID(indirect_node).subgraph()) {
-            precondition_failure("indirect dependencies must share a subgraph with their attribute");
+            precondition_failure("indirect dependencies must share a subgraph "
+                                 "with their attribute");
         }
     } else {
         dependency = AttributeID(nullptr);
@@ -930,7 +932,7 @@ bool Graph::breadth_first_search(AttributeID attribute, AGSearchOptions options,
                 }
             } else if (auto candidate_indirect_node = candidate.get_indirect_node()) {
                 AttributeID source = candidate_indirect_node->source()
-                                         .attribute()
+                                         .identifier()
                                          .resolve(TraversalOptions::SkipMutableReference)
                                          .attribute();
                 if (!seen.contains(source)) {
@@ -1578,7 +1580,8 @@ void Graph::value_mark_all() {
         for (auto page : subgraph->pages()) {
             for (auto attribute : attribute_view(page)) {
                 if (!attribute || attribute.is_nil()) {
-                    break; // TODO: check if this should break out of entire loop
+                    break; // TODO: check if this should break out of entire
+                           // loop
                 }
                 if (auto node = attribute.get_node()) {
                     const AttributeType &type = attribute_type(node->type_id());
@@ -1624,7 +1627,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
             &indirect_node->to_mutable().output_edges().front(),
             indirect_node->to_mutable().output_edges().size(),
         };
-        OffsetAttributeID source = indirect_node->source().attribute().resolve(TraversalOptions::None);
+        OffsetAttributeID source = indirect_node->source().identifier().resolve(TraversalOptions::None);
         if (auto source_node = source.attribute().get_node()) {
             initial_state = source_node->state();
         }

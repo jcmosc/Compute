@@ -7,7 +7,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-uint64_t AGMakeUniqueID() CF_SWIFT_NAME(makeUniqueID());
+uint64_t AGMakeUniqueID(void) CF_SWIFT_NAME(makeUniqueID());
 
 CF_EXTERN_C_END
 

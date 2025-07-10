@@ -29,13 +29,13 @@ typedef struct AGTrace *AGTraceRef;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFTypeID AGGraphGetTypeID() CF_SWIFT_NAME(getter:AGGraphRef.typeID());
+CFTypeID AGGraphGetTypeID(void) CF_SWIFT_NAME(getter:AGGraphRef.typeID());
 
 // MARK: Graph Context
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGGraphCreate() CF_SWIFT_NAME(AGGraphRef.init());
+AGGraphRef AGGraphCreate(void) CF_SWIFT_NAME(AGGraphRef.init());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -286,7 +286,8 @@ typedef CF_OPTIONS(uint32_t, AGGraphUpdateOptions) {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphUpdateValue(AGAttribute attribute, AGGraphUpdateOptions options) CF_SWIFT_NAME(AGAttribute.updateValue(self:options:));
+void AGGraphUpdateValue(AGAttribute attribute, AGGraphUpdateOptions options)
+    CF_SWIFT_NAME(AGAttribute.updateValue(self:options:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -322,19 +323,19 @@ void AGGraphSetUpdate(const void *update) CF_SWIFT_NAME(AGGraphRef.setUpdate(_:)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-const void *AGGraphClearUpdate() CF_SWIFT_NAME(AGGraphRef.clearUpdate());
+const void *AGGraphClearUpdate(void) CF_SWIFT_NAME(AGGraphRef.clearUpdate());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphCancelUpdate() CF_SWIFT_NAME(AGGraphRef.cancelUpdate());
+void AGGraphCancelUpdate(void) CF_SWIFT_NAME(AGGraphRef.cancelUpdate());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGGraphCancelUpdateIfNeeded() CF_SWIFT_NAME(AGGraphRef.cancelUpdateIfNeeded());
+bool AGGraphCancelUpdateIfNeeded(void) CF_SWIFT_NAME(AGGraphRef.cancelUpdateIfNeeded());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGGraphUpdateWasCancelled() CF_SWIFT_NAME(AGGraphRef.updateWasCancelled());
+bool AGGraphUpdateWasCancelled(void) CF_SWIFT_NAME(getter:AGGraphRef.updateWasCancelled());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -346,7 +347,7 @@ void AGGraphSetDeadline(AGGraphRef graph, uint64_t deadline) CF_SWIFT_NAME(sette
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGGraphHasDeadlinePassed() CF_SWIFT_NAME(getter:AGGraphRef.hasDeadlinePassed());
+bool AGGraphHasDeadlinePassed(void) CF_SWIFT_NAME(getter:AGGraphRef.hasDeadlinePassed());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -368,11 +369,11 @@ void AGGraphSetUpdateCallback(AGGraphRef graph, void (*callback)(void *context A
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGGraphGetCurrentAttribute();
+AGAttribute AGGraphGetCurrentAttribute(void);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGGraphCurrentAttributeWasModified() CF_SWIFT_NAME(getter:AGAttribute.currentWasModified());
+bool AGGraphCurrentAttributeWasModified(void) CF_SWIFT_NAME(getter:AGAttribute.currentWasModified());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

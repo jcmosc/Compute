@@ -152,9 +152,9 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
-    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id,
-                               AGInputOptions input_options, const swift::metadata &value_type,
-                               AGChangedValueFlags *_Nonnull flags_out, uint32_t index);
+    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t seed, AGInputOptions input_options,
+                               const swift::metadata &value_type, AGChangedValueFlags *_Nonnull flags_out,
+                               uint32_t index);
 
     uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
     uint32_t index_of_input_slow(Node &node, InputEdge::Comparator comparator);
@@ -313,10 +313,10 @@ class Graph {
     bool value_exists(data::ptr<Node> node);
     AGValueState value_state(AttributeID attribute);
 
-    void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
+    void *value_ref(AttributeID attribute, uint32_t seed, const swift::metadata &value_type,
                     AGChangedValueFlags *_Nonnull flags_out);
 
-    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id, AGInputOptions input_options,
+    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t seed, AGInputOptions input_options,
                           const swift::metadata &value_type, AGChangedValueFlags *_Nonnull flags_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);

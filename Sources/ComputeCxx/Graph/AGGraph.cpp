@@ -355,7 +355,7 @@ AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size) 
 AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
     if (auto indirect_node = attribute_id.get_indirect_node()) {
-        return indirect_node->source().attribute();
+        return indirect_node->source().identifier();
     }
     return attribute_id;
 }
@@ -448,7 +448,7 @@ void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidat
 
 namespace {
 
-inline AGChangedValue get_value(AG::AttributeID attribute_id, uint32_t subgraph_id, AGValueOptions options,
+inline AGChangedValue get_value(AG::AttributeID attribute_id, uint32_t seed, AGValueOptions options,
                                 const AG::swift::metadata &metadata) {
     if (!(options & AGValueOptionsIncrementGraphVersion)) {
         auto update_ptr = AG::Graph::current_update();
@@ -459,7 +459,7 @@ inline AGChangedValue get_value(AG::AttributeID attribute_id, uint32_t subgraph_
             auto frame = update.frames().back();
 
             AGChangedValueFlags flags = 0;
-            void *value = graph->input_value_ref(frame.attribute, attribute_id, subgraph_id,
+            void *value = graph->input_value_ref(frame.attribute, attribute_id, seed,
                                                  options & AGValueOptionsInputOptionsMask, metadata, &flags);
             return {value, flags};
         }
@@ -473,7 +473,7 @@ inline AGChangedValue get_value(AG::AttributeID attribute_id, uint32_t subgraph_
     }
 
     AGChangedValueFlags flags = 0;
-    void *value = subgraph->graph()->value_ref(attribute_id, subgraph_id, metadata, &flags);
+    void *value = subgraph->graph()->value_ref(attribute_id, seed, metadata, &flags);
     return {value, flags};
 }
 
@@ -493,7 +493,7 @@ AGChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions opt
     }
 
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    return get_value(attribute_id, weak_attribute_id.subgraph_id(), options, *metadata);
+    return get_value(attribute_id, weak_attribute_id.seed(), options, *metadata);
 }
 
 AGChangedValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input, AGValueOptions options, AGTypeID type) {

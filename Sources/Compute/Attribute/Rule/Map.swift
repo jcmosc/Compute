@@ -16,7 +16,7 @@ extension Map: Rule {
         return body(arg.value)
     }
 
-    public static var flags: AGAttributeTypeFlags {
+    public static var flags: Flags {
         return []
     }
 

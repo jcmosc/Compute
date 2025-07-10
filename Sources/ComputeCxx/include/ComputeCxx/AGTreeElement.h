@@ -11,7 +11,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-typedef uint32_t AGTreeElement AG_SWIFT_STRUCT AG_SWIFT_NAME(TreeElement);
+typedef struct _AGTreeElement *AGTreeElement AG_SWIFT_STRUCT AG_SWIFT_NAME(TreeElement);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -32,8 +32,8 @@ AGTreeElement AGTreeElementGetParent(AGTreeElement tree_element) CF_SWIFT_NAME(g
 // MARK: Iterating values
 
 typedef struct AGTreeElementValueIterator {
-    AGTreeElement treeElement;
-    AGTreeValue nextValue;
+    uintptr_t parent_elt;
+    uintptr_t next_elt;
 } AG_SWIFT_NAME(Values) AGTreeElementValueIterator;
 
 CF_EXPORT
@@ -48,8 +48,8 @@ AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter);
 // MARK: Iterating nodes
 
 typedef struct AGTreeElementNodeIterator {
-    AGTreeElement treeElement;
-    uint32_t index;
+    uintptr_t elt;
+    unsigned long node_index;
 } AG_SWIFT_NAME(Nodes) AGTreeElementNodeIterator;
 
 CF_EXPORT
@@ -64,9 +64,9 @@ AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter);
 // MARK: Iterating children
 
 typedef struct AGTreeElementChildIterator {
-    AGTreeElement treeElement;
-    AGTreeElement nextChild;
-    bool iteratedSubgraphChildren;
+    uintptr_t parent_elt;
+    uintptr_t next_elt;
+    size_t subgraph_index;
 } AG_SWIFT_NAME(Children) AGTreeElementChildIterator;
 
 CF_EXPORT

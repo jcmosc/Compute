@@ -16,13 +16,13 @@ typedef struct CF_BRIDGED_TYPE(id) AGSubgraphStorage *AGSubgraphRef CF_SWIFT_NAM
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFTypeID AGSubgraphGetTypeID() CF_SWIFT_NAME(getter:AGSubgraphRef.typeID());
+CFTypeID AGSubgraphGetTypeID(void) CF_SWIFT_NAME(getter:AGSubgraphRef.typeID());
 
 // MARK: Current subgraph
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef _Nullable AGSubgraphGetCurrent() CF_SWIFT_NAME(getter:AGSubgraphRef.current());
+AGSubgraphRef _Nullable AGSubgraphGetCurrent(void) CF_SWIFT_NAME(getter:AGSubgraphRef.current());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -41,7 +41,7 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext()
+AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext(void)
     CF_SWIFT_NAME(getter:AGSubgraphRef.currentGraphContext());
 
 CF_EXPORT
@@ -177,11 +177,11 @@ void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, u
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGSubgraphShouldRecordTree() CF_SWIFT_NAME(getter:AGSubgraphRef.shouldRecordTree());
+bool AGSubgraphShouldRecordTree(void) CF_SWIFT_NAME(getter:AGSubgraphRef.shouldRecordTree());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphSetShouldRecordTree() CF_SWIFT_NAME(AGSubgraphRef.setShouldRecordTree());
+void AGSubgraphSetShouldRecordTree(void) CF_SWIFT_NAME(AGSubgraphRef.setShouldRecordTree());
 
 CF_EXTERN_C_END
 

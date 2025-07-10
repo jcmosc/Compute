@@ -17,7 +17,7 @@ public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, 
 extension Metadata {
 
     public init(_ type: Any.Type) {
-        self.init(rawValue: unsafeBitCast(type, to: OpaquePointer.self))
+        self.init(rawValue: unsafeBitCast(type, to: UnsafePointer<_Metadata>.self))
     }
 
     public var type: Any.Type {

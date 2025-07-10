@@ -14,13 +14,12 @@ CF_ASSUME_NONNULL_BEGIN
 namespace AG {
 
 class AttributeType {
-
   private:
     swift::metadata *_body_metadata;
     swift::metadata *_value_metadata;
     void (*_update)(void *context AG_SWIFT_CONTEXT, void *body, AGAttribute attribute) AG_SWIFT_CC(swift);
     void *_update_context;
-    const AGAttributeVTable *_callbacks;
+    const AGAttributeVTable *_vtable;
     AGAttributeTypeFlags _flags;
 
     // set after construction
@@ -35,8 +34,7 @@ class AttributeType {
       public:
         void operator()(AttributeType *ptr) {
             if (ptr != nullptr) {
-                auto &callbacks = ptr->callbacks();
-                callbacks.deallocate(reinterpret_cast<AGAttributeType *>(ptr));
+                ptr->vtable().type_destroy(reinterpret_cast<AGAttributeType *>(ptr));
             }
         }
     };
@@ -46,7 +44,7 @@ class AttributeType {
 
     void update(void *body, AGAttribute attribute) const { _update(_update_context, body, attribute); };
 
-    const AGAttributeVTable &callbacks() const { return *_callbacks; }
+    const AGAttributeVTable &vtable() const { return *_vtable; }
     AGAttributeTypeFlags flags() const { return _flags; };
 
     /// Returns the offset in bytes from a Node to the attribute body,
@@ -89,7 +87,7 @@ class AttributeType {
     void destroy_self(Node &node) const {
         if (_flags & AGAttributeTypeFlagsHasDestroySelf) {
             void *body = node.get_self(*this);
-            callbacks().destroySelf(reinterpret_cast<const AGAttributeType *>(this), body);
+            vtable().self_destroy(reinterpret_cast<const AGAttributeType *>(this), body);
         }
     }
 
@@ -98,16 +96,16 @@ class AttributeType {
         body_metadata().vw_destroy(static_cast<swift::opaque_value *>(body));
     }
 
-    CFStringRef _Nullable body_description(void *body) const {
-        if (auto bodyDescription = callbacks().bodyDescription) {
-            return bodyDescription(reinterpret_cast<const AGAttributeType *>(this), body);
+    CFStringRef _Nullable self_description(void *body) const {
+        if (auto self_description = vtable().self_description) {
+            return self_description(reinterpret_cast<const AGAttributeType *>(this), body);
         }
         return nullptr;
     }
 
     CFStringRef _Nullable value_description(void *value) const {
-        if (auto valueDescription = callbacks().valueDescription) {
-            return valueDescription(reinterpret_cast<const AGAttributeType *>(this), value);
+        if (auto value_description = vtable().value_description) {
+            return value_description(reinterpret_cast<const AGAttributeType *>(this), value);
         }
         return nullptr;
     }

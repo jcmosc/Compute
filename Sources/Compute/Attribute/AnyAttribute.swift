@@ -75,7 +75,7 @@ extension AnyAttribute {
     }
 
     public var _bodyType: Any.Type {
-        return info.type.pointee.selfType.type
+        return info.type.pointee.self_id.type
     }
 
     public var _bodyPointer: UnsafeRawPointer {
@@ -83,7 +83,7 @@ extension AnyAttribute {
     }
 
     public var valueType: Any.Type {
-        return info.type.pointee.valueType.type
+        return info.type.pointee.value_id.type
     }
 
 }

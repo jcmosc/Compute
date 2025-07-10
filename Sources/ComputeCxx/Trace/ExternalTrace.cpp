@@ -23,7 +23,8 @@ void ExternalTrace::end_trace(const AG::Graph &graph) {
     }
 }
 
-void ExternalTrace::begin_update(const AG::Subgraph &subgraph, uint32_t options) {
+void ExternalTrace::begin_update(const AG::Subgraph &subgraph,
+                                 uint32_t options) {
     auto cf_subgraph = subgraph.to_cf();
     if (auto callback = _trace->beginUpdateSubgraph) {
         callback(_context, cf_subgraph);
@@ -37,14 +38,16 @@ void ExternalTrace::end_update(const AG::Subgraph &subgraph) {
     }
 }
 
-void ExternalTrace::begin_update(const AG::Graph::UpdateStack &update_stack, AG::data::ptr<AG::Node> node,
+void ExternalTrace::begin_update(const AG::Graph::UpdateStack &update_stack,
+                                 AG::data::ptr<AG::Node> node,
                                  uint32_t options) {
     if (auto callback = _trace->beginUpdate) {
         callback(_context, AGAttribute(AG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::end_update(const AG::Graph::UpdateStack &update_stack, AG::data::ptr<AG::Node> node,
+void ExternalTrace::end_update(const AG::Graph::UpdateStack &update_stack,
+                               AG::data::ptr<AG::Node> node,
                                AGGraphUpdateStatus update_status) {
     if (auto callback = _trace->endUpdate) {
         callback(_context, update_status == AGGraphUpdateStatusChanged);
@@ -77,14 +80,16 @@ void ExternalTrace::end_update(const AG::Graph::Context &context) {
     }
 }
 
-void ExternalTrace::begin_invalidation(const AG::Graph::Context &context, AG::AttributeID attribute) {
+void ExternalTrace::begin_invalidation(const AG::Graph::Context &context,
+                                       AG::AttributeID attribute) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->beginInvalidation) {
         callback(_context, cf_context, AGAttribute(attribute));
     }
 }
 
-void ExternalTrace::end_invalidation(const AG::Graph::Context &context, AG::AttributeID attribute) {
+void ExternalTrace::end_invalidation(const AG::Graph::Context &context,
+                                     AG::AttributeID attribute) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->endInvalidation) {
         callback(_context, cf_context, AGAttribute(attribute));
@@ -103,7 +108,8 @@ void ExternalTrace::end_modify(AG::data::ptr<AG::Node> node) {
     }
 }
 
-void ExternalTrace::begin_event(AG::data::ptr<AG::Node> node, uint32_t event_id) {
+void ExternalTrace::begin_event(AG::data::ptr<AG::Node> node,
+                                uint32_t event_id) {
     if (auto callback = _trace->beginEvent) {
         if (auto subgraph = AG::AttributeID(node).subgraph()) {
             const char *event_name = subgraph->graph()->key_name(event_id);
@@ -158,7 +164,8 @@ void ExternalTrace::invalidate(const AG::Subgraph &subgraph) {
 
 void ExternalTrace::destroy(const AG::Subgraph &subgraph) {}
 
-void ExternalTrace::add_child(const AG::Subgraph &subgraph, const AG::Subgraph &child) {
+void ExternalTrace::add_child(const AG::Subgraph &subgraph,
+                              const AG::Subgraph &child) {
     auto cf_subgraph = subgraph.to_cf();
     auto cf_child = subgraph.to_cf();
     if (auto callback = _trace->addChildSubgraph) {
@@ -166,7 +173,8 @@ void ExternalTrace::add_child(const AG::Subgraph &subgraph, const AG::Subgraph &
     }
 }
 
-void ExternalTrace::remove_child(const AG::Subgraph &subgraph, const AG::Subgraph &child) {
+void ExternalTrace::remove_child(const AG::Subgraph &subgraph,
+                                 const AG::Subgraph &child) {
     auto cf_subgraph = subgraph.to_cf();
     auto cf_child = subgraph.to_cf();
     if (auto callback = _trace->removeChildSubgraph) {
@@ -180,13 +188,15 @@ void ExternalTrace::added(AG::data::ptr<AG::Node> node) {
     }
 }
 
-void ExternalTrace::add_edge(AG::data::ptr<AG::Node> node, AG::AttributeID input, uint8_t input_edge_flags) {
+void ExternalTrace::add_edge(AG::data::ptr<AG::Node> node,
+                             AG::AttributeID input, uint8_t input_edge_flags) {
     if (auto callback = _trace->addEdge) {
         callback(_context);
     }
 }
 
-void ExternalTrace::remove_edge(AG::data::ptr<AG::Node> node, uint32_t input_index) {
+void ExternalTrace::remove_edge(AG::data::ptr<AG::Node> node,
+                                uint32_t input_index) {
     if (auto callback = _trace->removeEdge) {
         if (AG::AttributeID(node).subgraph()) {
             callback(_context);
@@ -194,7 +204,8 @@ void ExternalTrace::remove_edge(AG::data::ptr<AG::Node> node, uint32_t input_ind
     }
 }
 
-void ExternalTrace::set_edge_pending(AG::data::ptr<AG::Node> node, uint32_t input_index, bool pending) {
+void ExternalTrace::set_edge_pending(AG::data::ptr<AG::Node> node,
+                                     uint32_t input_index, bool pending) {
     if (auto callback = _trace->setEdgePending) {
         if (AG::AttributeID(node).subgraph()) {
             callback(_context);
@@ -228,19 +239,24 @@ void ExternalTrace::mark_value(AG::data::ptr<AG::Node> node) {
 
 void ExternalTrace::added(AG::data::ptr<AG::IndirectNode> indirect_node) {
     if (auto callback = _trace->addedIndirectAttribute) {
-        callback(_context, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
+        callback(_context, AGAttribute(AG::AttributeID(
+                               indirect_node))); // TODO: check sets kind
     }
 }
 
-void ExternalTrace::set_source(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID source) {
+void ExternalTrace::set_source(AG::data::ptr<AG::IndirectNode> indirect_node,
+                               AG::AttributeID source) {
     if (auto callback = _trace->setSource) {
-        callback(_context, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
+        callback(_context, AGAttribute(AG::AttributeID(
+                               indirect_node))); // TODO: check sets kind
     }
 }
 
-void ExternalTrace::set_dependency(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID dependency) {
+void ExternalTrace::set_dependency(
+    AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID dependency) {
     if (auto callback = _trace->setDependency) {
-        callback(_context, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
+        callback(_context, AGAttribute(AG::AttributeID(
+                               indirect_node))); // TODO: check sets kind
     }
 }
 
@@ -251,7 +267,8 @@ void ExternalTrace::mark_profile(const AG::Graph &graph, uint32_t event_id) {
     }
 }
 
-void ExternalTrace::custom_event(const AG::Graph::Context &context, const char *event_name, const void *value,
+void ExternalTrace::custom_event(const AG::Graph::Context &context,
+                                 const char *event_name, const void *value,
                                  const AG::swift::metadata &type) {
     if (_trace->events >= AGTraceEventsCustom) {
         auto cf_context = context.to_cf();
@@ -261,12 +278,15 @@ void ExternalTrace::custom_event(const AG::Graph::Context &context, const char *
     }
 }
 
-void ExternalTrace::named_event(const AG::Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
-                                const void *event_args, CFDataRef data, uint32_t arg6) {
+void ExternalTrace::named_event(const AG::Graph::Context &context,
+                                uint32_t event_id, uint32_t event_arg_count,
+                                const void *event_args, CFDataRef data,
+                                uint32_t arg6) {
     if (_trace->events >= AGTraceEventsNamed) {
         auto cf_context = context.to_cf();
         if (auto callback = _trace->namedEvent) {
-            callback(_context, cf_context, event_id, event_arg_count, event_args, data, arg6);
+            callback(_context, cf_context, event_id, event_arg_count,
+                     event_args, data, arg6);
         }
     }
 }
@@ -297,10 +317,13 @@ void ExternalTrace::passed_deadline() {
     }
 }
 
-void ExternalTrace::compare_failed(AG::data::ptr<AG::Node> node, const void *lhs, const void *rhs, size_t range_offset,
-                                   size_t range_size, const AG::swift::metadata *_Nullable type) {
+void ExternalTrace::compare_failed(AG::data::ptr<AG::Node> node,
+                                   const void *lhs, const void *rhs,
+                                   size_t range_offset, size_t range_size,
+                                   const AG::swift::metadata *_Nullable type) {
     if (_trace->events >= AGTraceEventsCompareFailed) {
-        AGComparisonStateStorage storage = {lhs, rhs, range_offset, range_size, AGTypeID(&type)};
+        AGComparisonStateStorage storage = {lhs, rhs, range_offset, range_size,
+                                            AGTypeID(&type)};
         if (auto callback = _trace->compareFailed) {
             callback(_context, AGAttribute(AG::AttributeID(node)), &storage);
         }

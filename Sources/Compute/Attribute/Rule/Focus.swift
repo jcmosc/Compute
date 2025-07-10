@@ -16,7 +16,7 @@ extension Focus: Rule {
         return root.value[keyPath: keyPath]
     }
 
-    public static var flags: AGAttributeTypeFlags {
+    public static var flags: Flags {
         return []
     }
 

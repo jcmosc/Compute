@@ -35,7 +35,7 @@ public struct Attribute<Value> {
     public init<Body: _AttributeBody>(
         body: UnsafePointer<Body>,
         value: UnsafePointer<Value>?,
-        flags: AGAttributeTypeFlags,
+        flags: Flags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) {
         guard let graphContext = Subgraph.currentGraphContext else {

@@ -33,3 +33,12 @@ extension Values: @retroactive Sequence, @retroactive IteratorProtocol {
     }
 
 }
+
+// TODO: how is this used?
+extension TreeElement {
+    
+    struct LocalChildren {
+        var base: Children
+    }
+    
+}

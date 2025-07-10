@@ -58,6 +58,7 @@ extension Graph {
 extension Graph {
 
     public static func startProfiling() {
+        
         fatalError("not implemented")
     }
 

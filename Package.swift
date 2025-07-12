@@ -59,7 +59,6 @@ let package = Package(
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],
-            cxxSettings: [.headerSearchPath("../ComputeCxx")],
             swiftSettings: [.interoperabilityMode(.Cxx), .enableExperimentalFeature("Extern")]
         ),
         .testTarget(
@@ -70,7 +69,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .interoperabilityMode(.Cxx),
-                .enableExperimentalFeature("Extern")
+                .enableExperimentalFeature("Extern"),
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
@@ -82,7 +81,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .interoperabilityMode(.Cxx),
-                .enableExperimentalFeature("Extern")
+                .enableExperimentalFeature("Extern"),
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),

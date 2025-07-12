@@ -11,7 +11,7 @@ os_log_t error_log() {
     return log;
 }
 
-void precondition_failure(const char *format, ...) {
+[[noreturn]] void precondition_failure(const char *format, ...) {
     char *message = nullptr;
 
     va_list args;

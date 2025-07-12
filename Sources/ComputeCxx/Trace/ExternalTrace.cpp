@@ -1,7 +1,7 @@
 #include "ExternalTrace.h"
 
 #include "Comparison/AGComparison-Private.h"
-#include "Graph/AGGraph.h"
+#include "ComputeCxx/AGGraph.h"
 #include "Graph/Context.h"
 #include "Graph/Graph.h"
 

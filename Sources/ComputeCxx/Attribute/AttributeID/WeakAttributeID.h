@@ -3,8 +3,8 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdint.h>
 
-#include "AGWeakAttribute.h"
 #include "AttributeID.h"
+#include "ComputeCxx/AGWeakAttribute.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

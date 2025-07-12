@@ -33,7 +33,7 @@ class IndirectNode {
           _size(size.has_value() && size.value() < InvalidSize ? uint16_t(size.value()) : InvalidSize) {}
 
   public:
-    static constexpr uint16_t MaximumOffset = 0x3ffffffe; // 30 bits - 1
+    static constexpr uint32_t MaximumOffset = 0x3ffffffe; // 30 bits - 1
 
     IndirectNode(WeakAttributeID source, bool traverses_contexts, uint32_t offset, std::optional<size_t> size)
         : _source(source), _traverses_contexts(traverses_contexts), _offset(offset),

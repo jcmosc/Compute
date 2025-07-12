@@ -2,8 +2,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "AGSwiftSupport.h"
-#include "AGType.h"
+#include <ComputeCxx/AGSwiftSupport.h>
+#include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
 

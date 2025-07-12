@@ -2,8 +2,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Graph/AGGraph.h"
-#include "Subgraph/AGSubgraph.h"
+#include <ComputeCxx/AGGraph.h>
+#include <ComputeCxx/AGSubgraph.h>
 
 CF_ASSUME_NONNULL_BEGIN
 

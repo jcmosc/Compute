@@ -5,7 +5,7 @@
 #include <CoreFoundation/CFString.h>
 #include <SwiftEquatableSupport.h>
 
-#include "AGSwiftSupport.h"
+#include "ComputeCxx/AGSwiftSupport.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

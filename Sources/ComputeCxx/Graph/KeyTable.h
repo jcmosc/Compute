@@ -2,8 +2,9 @@
 
 #include <CoreFoundation/CFBase.h>
 
+#include <Utilities/HashTable.h>
+
 #include "Graph.h"
-#include "Utilities/HashTable.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

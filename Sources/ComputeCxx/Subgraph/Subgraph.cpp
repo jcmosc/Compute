@@ -681,7 +681,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
     auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
                                   [](auto iter, auto value) -> bool { return iter.first < value; });
     if (found == nodes.end()) {
-        return;
+        return Graph::TreeElementID(nullptr);;
     }
 
     auto subgraph_children = vector<Subgraph *, 32, uint64_t>();

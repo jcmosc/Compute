@@ -2,7 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "AGGraph.h"
+#include "ComputeCxx/AGGraph.h"
 #include "Graph/Context.h"
 #include "Private/CFRuntime.h"
 

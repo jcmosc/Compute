@@ -2,12 +2,12 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Attribute/AttributeID/AGAttribute.h"
-#include "Comparison/AGComparison.h"
-#include "Graph/AGGraph.h"
+#include "ComputeCxx/AGAttribute.h"
+#include "ComputeCxx/AGComparison.h"
+#include "ComputeCxx/AGGraph.h"
+#include "ComputeCxx/AGType.h"
 #include "Graph/Context.h"
 #include "Subgraph/Subgraph.h"
-#include "Swift/AGType.h"
 #include "Trace/Trace.h"
 
 CF_ASSUME_NONNULL_BEGIN

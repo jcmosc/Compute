@@ -5,15 +5,15 @@
 #include <os/log.h>
 #include <ptrauth.h>
 
-#include "AGGraph.h"
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeType/AttributeType.h"
+#include "ComputeCxx/AGGraph.h"
+#include "ComputeCxx/AGTrace.h"
+#include "ComputeCxx/AGUniqueID.h"
 #include "Context.h"
 #include "Log/Log.h"
 #include "Subgraph/Subgraph.h"
 #include "Time/Time.h"
-#include "Trace/AGTrace.h"
-#include "UniqueID/AGUniqueID.h"
 
 namespace AG {
 
@@ -213,6 +213,7 @@ void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t e
 
 bool Graph::TraceRecorder::named_event_enabled(uint32_t event_id) {
     // TODO: not implemented
+    return false;
 }
 
 } // namespace AG

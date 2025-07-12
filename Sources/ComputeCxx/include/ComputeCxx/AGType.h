@@ -3,7 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdint.h>
 
-#include "AGSwiftSupport.h"
+#include <ComputeCxx/AGSwiftSupport.h>
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED

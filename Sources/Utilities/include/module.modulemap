@@ -1,0 +1,4 @@
+module Utilities {
+    header "Utilities/Utilities.h"
+    requires cplusplus
+}

@@ -68,7 +68,7 @@ class indirect_pointer_vector {
                 }
             }
             _data = other._data;
-            other._data = nullptr;
+            other._data = 0;
         }
         return *this;
     }

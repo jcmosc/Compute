@@ -7,12 +7,13 @@
 #include <swift/Runtime/ExistentialContainer.h>
 #include <swift/Runtime/HeapObject.h>
 
+#include <Utilities/HashTable.h>
+#include <Utilities/Heap.h>
+
 #include "ContextDescriptor.h"
 #include "Errors/Errors.h"
 #include "MetadataVisitor.h"
 #include "Swift/mach-o/dyld.h"
-#include "Utilities/HashTable.h"
-#include "Utilities/Heap.h"
 #include "_SwiftStdlibCxxOverlay.h"
 
 namespace AG {

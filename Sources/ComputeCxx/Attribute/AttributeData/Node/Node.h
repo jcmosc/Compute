@@ -4,8 +4,8 @@
 
 #include "Attribute/AttributeData/Edge/InputEdge.h"
 #include "Attribute/AttributeData/Edge/OutputEdge.h"
-#include "Attribute/AttributeID/AGAttribute.h"
 #include "Attribute/AttributeID/RelativeAttributeID.h"
+#include "ComputeCxx/AGAttribute.h"
 #include "Data/Pointer.h"
 #include "Data/Vector.h"
 

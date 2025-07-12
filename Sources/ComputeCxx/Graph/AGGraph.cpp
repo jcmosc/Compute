@@ -3,12 +3,13 @@
 #include <CoreFoundation/CFString.h>
 #include <os/lock.h>
 
+#include <Utilities/FreeDeleter.h>
+
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Context.h"
 #include "Graph.h"
 #include "Private/CFRuntime.h"
 #include "Trace/ExternalTrace.h"
-#include "Utilities/FreeDeleter.h"
 
 namespace {
 

@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "AGTreeElement.h"
+#include "ComputeCxx/AGTreeElement.h"
 #include "Data/Pointer.h"
 #include "Graph/Graph.h"
 #include "TreeValue.h"
@@ -19,7 +19,7 @@ class Graph::TreeElementID : public data::ptr<Graph::TreeElement> {
   public:
     explicit constexpr TreeElementID() : ptr() {}
     explicit TreeElementID(data::ptr<Graph::TreeElement> tree_element) : ptr(tree_element.offset()) {};
-    
+
     operator AGTreeElement() const { return offset(); }
     explicit constexpr TreeElementID(AGTreeElement storage) : ptr(storage) {}
 

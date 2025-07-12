@@ -2,7 +2,7 @@
 
 #include "LayoutDescriptor.h"
 
-#include "AGComparison.h"
+#include "ComputeCxx/AGComparison.h"
 #include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -52,7 +52,7 @@ class Compare {
     bool operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset, size_t size,
                     AGComparisonOptions options);
 
-    bool failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+    void failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                 size_t size, const swift::metadata *_Nullable type);
 };
 

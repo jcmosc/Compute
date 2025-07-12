@@ -2,8 +2,8 @@
 
 #include "AGGraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
+#include "ComputeCxx/AGUniqueID.h"
 #include "Subgraph/Subgraph.h"
-#include "UniqueID/AGUniqueID.h"
 
 namespace AG {
 

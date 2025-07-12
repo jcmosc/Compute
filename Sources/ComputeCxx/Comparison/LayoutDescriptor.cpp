@@ -3,12 +3,13 @@
 #include <os/lock.h>
 #include <variant>
 
+#include <Utilities/HashTable.h>
+
 #include "AGComparison.h"
 #include "Builder.h"
 #include "Compare.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
-#include "Utilities/HashTable.h"
 #include "ValueLayout.h"
 
 namespace AG {

@@ -3,9 +3,10 @@
 #include <CoreFoundation/CFBase.h>
 #include <execinfo.h>
 
+#include <Utilities/HashTable.h>
+
 #include "AGGraph.h"
 #include "Trace/Trace.h"
-#include "Utilities/HashTable.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

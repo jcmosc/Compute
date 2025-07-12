@@ -11,13 +11,14 @@
 #import <Foundation/Foundation.h>
 #endif
 
+#include <Utilities/HashTable.h>
+#include <Utilities/Heap.h>
+
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
 #include "Swift/Metadata.h"
 #include "Trace/AGTrace.h"
-#include "Utilities/HashTable.h"
-#include "Utilities/Heap.h"
 #include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN

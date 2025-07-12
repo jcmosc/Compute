@@ -213,6 +213,7 @@ void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t e
 
 bool Graph::TraceRecorder::named_event_enabled(uint32_t event_id) {
     // TODO: not implemented
+    return false;
 }
 
 } // namespace AG

@@ -52,7 +52,7 @@ class Compare {
     bool operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset, size_t size,
                     AGComparisonOptions options);
 
-    bool failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+    void failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                 size_t size, const swift::metadata *_Nullable type);
 };
 

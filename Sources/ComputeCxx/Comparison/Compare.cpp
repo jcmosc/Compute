@@ -303,7 +303,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
     }
 }
 
-bool Compare::failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+void Compare::failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                      size_t size, const swift::metadata *type) {
     if (options & AGComparisonOptionsReportFailures) {
         // TODO: tracing

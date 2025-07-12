@@ -170,7 +170,7 @@ class Graph {
         return &iter->second;
     };
 
-    Graph::TreeDataElement &add_tree_data_for_subgraph(Subgraph *subgraph, data::ptr<TreeElement> tree_element,
+    void add_tree_data_for_subgraph(Subgraph *subgraph, data::ptr<TreeElement> tree_element,
                                                        data::ptr<Node> node) {
         if (!_tree_data_elements_by_subgraph) {
             _tree_data_elements_by_subgraph.reset(new std::unordered_map<Subgraph *, TreeDataElement>());

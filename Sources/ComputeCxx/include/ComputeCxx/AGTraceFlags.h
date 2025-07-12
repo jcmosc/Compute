@@ -2,7 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Graph/AGGraph.h"
+#include <ComputeCxx/AGGraph.h>
 
 CF_ASSUME_NONNULL_BEGIN
 

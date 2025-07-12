@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Attribute/AttributeData/Edge/AGInputOptions.h"
 #include "Attribute/AttributeID/AttributeID.h"
+#include "ComputeCxx/AGInputOptions.h"
 
 namespace AG {
 

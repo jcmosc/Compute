@@ -2,8 +2,8 @@
 
 #import <Foundation/Foundation.h>
 
-#include "AGDescription.h"
 #include "Attribute/AttributeView/AttributeView.h"
+#include "ComputeCxx/AGDescription.h"
 #include "Subgraph/Subgraph.h"
 
 namespace {
@@ -33,7 +33,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
     if (include_values_number) {
         include_values = [include_values_number boolValue];
     }
-    
+
     NSNumber *truncation_limit_number = options[(__bridge NSString *)AGDescriptionTruncationLimit];
     uint64_t truncation_limit = 1024;
     if (truncation_limit_number) {
@@ -80,7 +80,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                     if (auto node = attribute.get_node()) {
                         uint64_t index = node_indices_by_id.size() + 1;
                         node_indices_by_id.emplace(node, index);
-                        
+
                         uint32_t type_id = node->type_id();
                         uint64_t type_index;
                         auto found = type_indices_by_id.find(type_id);
@@ -91,11 +91,11 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                             type_ids.push_back(type_id);
                             type_indices_by_id.emplace(type_id, index);
                         }
-                        
+
                         NSMutableDictionary *node_dict = [NSMutableDictionary dictionary];
                         node_dict[@"type"] = @(type_index);
                         node_dict[@"id"] = @(node.offset());
-                        
+
                         const AttributeType &attribute_type = graph->attribute_type(type_id);
                         if (node->is_self_initialized()) {
                             void *body = node->get_self(attribute_type);
@@ -103,19 +103,19 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                                 node_dict[@"desc"] = escaped_string((__bridge NSString *)desc, truncation_limit);
                             }
                         }
-                        
+
                         if (include_values && node->is_value_initialized()) {
                             void *value = node->get_value();
                             if (auto value_desc = attribute_type.value_description(value)) {
                                 node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
                             }
                         }
-                        
+
                         auto flags = node->value_state();
                         if (flags) {
                             node_dict[@"flags"] = [NSNumber numberWithUnsignedInt:flags];
                         }
-                        
+
                         [node_dicts addObject:node_dict];
                     }
                 }

@@ -17,8 +17,8 @@
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
+#include "ComputeCxx/AGTrace.h"
 #include "Swift/Metadata.h"
-#include "Trace/AGTrace.h"
 #include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN
@@ -104,7 +104,7 @@ class Graph {
     uint32_t _ref_count = 1;
 
     uint64_t _id;
-    
+
     // Counters
     uint64_t _version = 0;
 
@@ -170,8 +170,7 @@ class Graph {
         return &iter->second;
     };
 
-    void add_tree_data_for_subgraph(Subgraph *subgraph, data::ptr<TreeElement> tree_element,
-                                                       data::ptr<Node> node) {
+    void add_tree_data_for_subgraph(Subgraph *subgraph, data::ptr<TreeElement> tree_element, data::ptr<Node> node) {
         if (!_tree_data_elements_by_subgraph) {
             _tree_data_elements_by_subgraph.reset(new std::unordered_map<Subgraph *, TreeDataElement>());
         }
@@ -251,7 +250,7 @@ class Graph {
 
     AttributeID indirect_attribute_dependency(data::ptr<IndirectNode> indirect_node);
     void indirect_attribute_set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency);
-    
+
     // MARK: Search
 
     bool breadth_first_search(AttributeID attribute, AGSearchOptions options,
@@ -261,10 +260,10 @@ class Graph {
 
     void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
                     uint8_t *_Nonnull state_out);
-    
+
     bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
-    
+
     bool value_exists(data::ptr<Node> node);
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };
@@ -272,7 +271,7 @@ class Graph {
     void did_destroy_node() { _num_nodes -= 1; };
 
     // MARK: Update
-    
+
     void update_attribute(AttributeID attribute, bool option);
     void reset_update(data::ptr<Node> node);
 
@@ -282,8 +281,6 @@ class Graph {
                       const void *_Nullable source_value, uint32_t start_output_index);
 
     void propagate_dirty(AttributeID attribute);
-
-    
 
     // MARK: Trace
 

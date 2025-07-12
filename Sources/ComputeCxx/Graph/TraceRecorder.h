@@ -5,7 +5,7 @@
 
 #include <Utilities/HashTable.h>
 
-#include "AGGraph.h"
+#include "ComputeCxx/AGGraph.h"
 #include "Trace/Trace.h"
 
 CF_ASSUME_NONNULL_BEGIN

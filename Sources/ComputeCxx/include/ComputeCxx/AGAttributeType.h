@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Closure/AGClosure.h"
-#include "Swift/AGType.h"
+#include <ComputeCxx/AGClosure.h>
+#include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED

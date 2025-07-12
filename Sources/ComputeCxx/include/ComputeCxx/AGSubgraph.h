@@ -2,8 +2,8 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "Graph/AGGraph.h"
-#include "Graph/Tree/AGTreeElement.h"
+#include <ComputeCxx/AGGraph.h>
+#include <ComputeCxx/AGTreeElement.h>
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED

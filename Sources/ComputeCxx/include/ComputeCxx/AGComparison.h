@@ -3,8 +3,8 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdint.h>
 
-#include "AGSwiftSupport.h"
-#include "Swift/AGType.h"
+#include <ComputeCxx/AGSwiftSupport.h>
+#include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
 
@@ -54,7 +54,8 @@ typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGCompareValues(const void *_Nonnull destination, const void *_Nonnull source, AGTypeID type_id, AGComparisonOptions options);
+bool AGCompareValues(const void *_Nonnull destination, const void *_Nonnull source, AGTypeID type_id,
+                     AGComparisonOptions options);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

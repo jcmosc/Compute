@@ -5,13 +5,13 @@
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
 
-#include "AGSwiftSupport.h"
-#include "Attribute/AttributeData/Edge/AGInputOptions.h"
-#include "Attribute/AttributeID/AGAttribute.h"
-#include "Attribute/AttributeType/AGAttributeType.h"
-#include "Comparison/AGComparison.h"
-#include "Swift/AGType.h"
-#include "Trace/AGTraceFlags.h"
+#include <ComputeCxx/AGAttribute.h>
+#include <ComputeCxx/AGAttributeType.h>
+#include <ComputeCxx/AGComparison.h>
+#include <ComputeCxx/AGInputOptions.h>
+#include <ComputeCxx/AGSwiftSupport.h>
+#include <ComputeCxx/AGTraceFlags.h>
+#include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED

@@ -2,11 +2,11 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "AGAttributeType.h"
 #include "Attribute/AttributeData/Node/Node.h"
-#include "Attribute/AttributeID/AGAttribute.h"
-#include "Comparison/AGComparison.h"
 #include "Comparison/LayoutDescriptor.h"
+#include "ComputeCxx/AGAttribute.h"
+#include "ComputeCxx/AGAttributeType.h"
+#include "ComputeCxx/AGComparison.h"
 #include "Swift/Metadata.h"
 
 CF_ASSUME_NONNULL_BEGIN

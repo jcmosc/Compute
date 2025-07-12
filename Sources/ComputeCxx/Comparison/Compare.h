@@ -2,7 +2,7 @@
 
 #include "LayoutDescriptor.h"
 
-#include "AGComparison.h"
+#include "ComputeCxx/AGComparison.h"
 #include "Vector/Vector.h"
 
 CF_ASSUME_NONNULL_BEGIN

@@ -8,12 +8,12 @@
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
+#include "ComputeCxx/AGTrace.h"
+#include "ComputeCxx/AGUniqueID.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
 #include "Subgraph/Subgraph.h"
-#include "Trace/AGTrace.h"
 #include "TraceRecorder.h"
-#include "UniqueID/AGUniqueID.h"
 
 namespace AG {
 

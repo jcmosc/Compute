@@ -3,8 +3,8 @@
 #include <CoreFoundation/CFBase.h>
 #include <stdint.h>
 
-#include "Attribute/AttributeID/AGAttribute.h"
-#include "Swift/AGType.h"
+#include <ComputeCxx/AGAttribute.h>
+#include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
 

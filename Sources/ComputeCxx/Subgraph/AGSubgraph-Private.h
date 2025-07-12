@@ -2,7 +2,7 @@
 
 #include <CoreFoundation/CFBase.h>
 
-#include "AGSubgraph.h"
+#include "ComputeCxx/AGSubgraph.h"
 #include "Private/CFRuntime.h"
 
 namespace AG {

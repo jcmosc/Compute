@@ -3,7 +3,7 @@
 #include <CoreFoundation/CFBase.h>
 #include <swift/Runtime/HeapObject.h>
 
-#include "AGSwiftSupport.h"
+#include "ComputeCxx/AGSwiftSupport.h"
 
 namespace AG {
 

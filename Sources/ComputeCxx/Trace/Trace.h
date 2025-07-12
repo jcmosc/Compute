@@ -2,9 +2,9 @@
 
 #include <CoreFoundation/CFData.h>
 
-#include "Graph/AGGraph.h"
+#include "ComputeCxx/AGGraph.h"
+#include "ComputeCxx/AGUniqueID.h"
 #include "Graph/Graph.h"
-#include "UniqueID/AGUniqueID.h"
 
 CF_ASSUME_NONNULL_BEGIN
 

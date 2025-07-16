@@ -13,9 +13,9 @@ CF_EXTERN_C_BEGIN
 typedef struct AGFieldRange {
     size_t offset;
     size_t size;
-} AGFieldRange;
+} AGFieldRange AG_SWIFT_STRUCT AG_SWIFT_NAME(FieldRange);
 
-typedef struct AGComparisonStateStorage *AGComparisonState;
+typedef struct AGComparisonStateStorage *AGComparisonState AG_SWIFT_STRUCT AG_SWIFT_NAME(ComparisonState);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

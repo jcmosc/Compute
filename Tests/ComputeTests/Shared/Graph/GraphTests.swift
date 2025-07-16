@@ -67,10 +67,10 @@ struct GraphTests {
     @Suite
     struct InternAttributeTypeTests {
 
-        nonisolated(unsafe) static var testCallbacks = AGAttributeVTable()
+        nonisolated(unsafe) static var testVtable = AGAttributeVTable()
 
         init() {
-            InternAttributeTypeTests.testCallbacks.deallocate = { (pointer: UnsafeMutablePointer<AGAttributeType>) in
+            InternAttributeTypeTests.testVtable.type_destroy = { (pointer: UnsafeMutablePointer<AGAttributeType>) in
                 pointer.deallocate()
             }
         }
@@ -85,11 +85,11 @@ struct GraphTests {
                 Metadata(External<Int>.self),
                 { _ in
                     var attributeType = AGAttributeType()
-                    attributeType.selfType = Metadata(External<Int>.self)
-                    attributeType.valueType = Metadata(Int.self)
+                    attributeType.self_id = Metadata(External<Int>.self)
+                    attributeType.value_id = Metadata(Int.self)
 
-                    withUnsafePointer(to: &InternAttributeTypeTests.testCallbacks) { testCallbacksPointer in
-                        attributeType.callbacks = testCallbacksPointer
+                    withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
+                        attributeType.vtable = testVtablePointer
                     }
 
                     let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
@@ -106,11 +106,11 @@ struct GraphTests {
                 Metadata(External<String>.self),
                 { _ in
                     var attributeType = AGAttributeType()
-                    attributeType.selfType = Metadata(External<String>.self)
-                    attributeType.valueType = Metadata(String.self)
+                    attributeType.self_id = Metadata(External<String>.self)
+                    attributeType.value_id = Metadata(String.self)
 
-                    withUnsafePointer(to: &InternAttributeTypeTests.testCallbacks) { testCallbacksPointer in
-                        attributeType.callbacks = testCallbacksPointer
+                    withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
+                        attributeType.vtable = testVtablePointer
                     }
 
                     let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
@@ -127,11 +127,11 @@ struct GraphTests {
                 Metadata(External<Int>.self),
                 { _ in
                     var attributeType = AGAttributeType()
-                    attributeType.selfType = Metadata(External<Int>.self)
-                    attributeType.valueType = Metadata(Int.self)
+                    attributeType.self_id = Metadata(External<Int>.self)
+                    attributeType.value_id = Metadata(Int.self)
 
-                    withUnsafePointer(to: &InternAttributeTypeTests.testCallbacks) { testCallbacksPointer in
-                        attributeType.callbacks = testCallbacksPointer
+                    withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
+                        attributeType.vtable = testVtablePointer
                     }
 
                     let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
@@ -156,11 +156,11 @@ struct GraphTests {
                 Metadata(External<Int>.self),
                 { _ in
                     var attributeType = AGAttributeType()
-                    attributeType.selfType = Metadata(External<Int>.self)
-                    attributeType.valueType = Metadata(Int.self)
+                    attributeType.self_id = Metadata(External<Int>.self)
+                    attributeType.value_id = Metadata(Int.self)
 
-                    withUnsafePointer(to: &InternAttributeTypeTests.testCallbacks) { testCallbacksPointer in
-                        attributeType.callbacks = testCallbacksPointer
+                    withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
+                        attributeType.vtable = testVtablePointer
                     }
 
                     let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
@@ -174,10 +174,10 @@ struct GraphTests {
             )
 
             let attributeType = GraphTests.InternAttributeTypeTests.internedAttributeType?.pointee
-            #expect(attributeType?.selfType == Metadata(External<Int>.self))
-            #expect(attributeType?.valueType == Metadata(Int.self))
-            #expect(attributeType?.layout == ValueLayout.trivial.storage)
-            #expect(attributeType?.selfOffset == 28)  // size of Node rounded up to alignment of External<Int>
+            #expect(attributeType?.self_id == Metadata(External<Int>.self))
+            #expect(attributeType?.value_id == Metadata(Int.self))
+            #expect(attributeType?.value_layout == ValueLayout.trivial.storage)
+            #expect(attributeType?.internal_offset == 28)  // size of Node rounded up to alignment of External<Int>
         }
     }
 

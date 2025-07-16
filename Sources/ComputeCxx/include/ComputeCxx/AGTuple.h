@@ -10,9 +10,6 @@ CF_ASSUME_NONNULL_BEGIN
 CF_EXTERN_C_BEGIN
 
 typedef CF_ENUM(uint32_t, AGTupleCopyOptions) {
-    AGTupleCopyOptionsInitialize = 1 << 0,
-    AGTupleCopyOptionsWithTake = 1 << 1,
-
     AGTupleCopyOptionsAssignCopy = 0,
     AGTupleCopyOptionsInitCopy = 1,
     AGTupleCopyOptionsAssignTake = 2,

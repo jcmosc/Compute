@@ -6,12 +6,16 @@
 #include <CoreFoundation/CFDictionary.h>
 
 #include <ComputeCxx/AGAttribute.h>
+#include <ComputeCxx/AGAttributeInfo.h>
 #include <ComputeCxx/AGAttributeType.h>
+#include <ComputeCxx/AGChangedValue.h>
 #include <ComputeCxx/AGComparison.h>
 #include <ComputeCxx/AGInputOptions.h>
+#include <ComputeCxx/AGSearchOptions.h>
 #include <ComputeCxx/AGSwiftSupport.h>
 #include <ComputeCxx/AGTraceFlags.h>
 #include <ComputeCxx/AGType.h>
+#include <ComputeCxx/AGValue.h>
 #include <ComputeCxx/AGWeakAttribute.h>
 
 CF_ASSUME_NONNULL_BEGIN
@@ -135,11 +139,6 @@ CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.graph(self:));
 
-typedef struct AGAttributeInfo {
-    const AGAttributeType *type;
-    const void *body;
-} AGAttributeInfo;
-
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.info(self:));
@@ -200,12 +199,6 @@ void AGGraphSetIndirectDependency(AGAttribute attribute, AGAttribute dependency)
 
 // MARK: Search
 
-typedef CF_OPTIONS(uint32_t, AGSearchOptions) {
-    AGSearchOptionsSearchInputs = 1 << 0,
-    AGSearchOptionsSearchOutputs = 1 << 1,
-    AGSearchOptionsTraverseGraphContexts = 1 << 2,
-};
-
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
@@ -222,34 +215,6 @@ void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidat
 
 // MARK: Value
 
-typedef CF_OPTIONS(uint32_t, AGValueOptions) {
-    AGValueOptionsNone = 0,
-    AGValueOptionsInputOptionsMask = 3,
-
-    AGValueOptionsIncrementGraphVersion = 1 << 2, // AsTopLevelOutput
-};
-
-typedef CF_OPTIONS(uint8_t, AGValueState) {
-    AGValueStateNone = 0,
-    AGValueStateDirty = 1 << 0,
-    AGValueStatePending = 1 << 1,
-    AGValueStateUpdating = 1 << 2,
-    AGValueStateValueExists = 1 << 3,
-    AGValueStateMainThread = 1 << 4,
-    AGValueStateMainRef = 1 << 5,
-    AGValueStateRequiresMainThread = 1 << 6,
-    AGValueStateSelfModified = 1 << 7,
-};
-
-typedef CF_OPTIONS(uint8_t, AGChangedValueFlags) {
-    AGChangedValueFlagsChanged = 1 << 0,
-    AGChangedValueFlagsRequiresMainThread = 1 << 1,
-};
-
-typedef struct AGChangedValue {
-    const void *value;
-    AGChangedValueFlags flags;
-} AGChangedValue;
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

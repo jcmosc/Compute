@@ -194,7 +194,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
         }
 
         if (!frame.pending && frame.num_pushed_inputs > 0 &&
-            node->input_edges()[frame.num_pushed_inputs - 1].options & AGInputOptionsPending) {
+            node->input_edges()[frame.num_pushed_inputs - 1].options & AGInputOptionsChanged) {
             frame.pending = true;
         }
 
@@ -222,13 +222,13 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             }
 
             if (auto input_node = input_attribute.get_node()) {
-                if (input_edge.options & AGInputOptionsPending) {
+                if (input_edge.options & AGInputOptionsChanged) {
                     frame.pending = true;
                 }
 
                 if (!input_node->is_value_initialized() || input_node->is_dirty()) {
 
-                    if (!(input_edge.options & AGInputOptionsPending) && input_attribute.subgraph()->is_valid()) {
+                    if (!(input_edge.options & AGInputOptionsChanged) && input_attribute.subgraph()->is_valid()) {
                         frame.num_pushed_inputs = input_index + 1;
                         if (push(input_node, *input_node.get(), true, true)) {
                             // go to top
@@ -294,11 +294,11 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                 if (reset_edge_pending) {
                     if (frame.pending && !frame.cancelled) {
-                        if (input_edge.options & AGInputOptionsPending) {
+                        if (input_edge.options & AGInputOptionsChanged) {
                             _graph->foreach_trace([&frame, &input_edge](Trace &trace) {
                                 trace.set_edge_pending(frame.attribute, input_edge.attribute, false);
                             });
-                            input_edge.options &= ~AGInputOptionsPending;
+                            input_edge.options &= ~AGInputOptionsChanged;
                         }
                     }
                 }

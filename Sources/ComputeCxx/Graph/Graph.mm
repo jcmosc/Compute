@@ -358,7 +358,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                                     }
                                 }
                                 if (indirect || input_edge.options & AGInputOptionsAlwaysEnabled ||
-                                    input_edge.options & AGInputOptionsPending ||
+                                    input_edge.options & AGInputOptionsChanged ||
                                     input_edge.options & AGInputOptionsEnabled ||
                                     input_edge.options & AGInputOptionsUnprefetched) {
                                     input_edge_dict[@"flags"] = @YES;
@@ -764,7 +764,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                                     intermediate = source.resolve(TraversalOptions::SkipMutableReference).attribute();
                                 }
 
-                                if (input_edge.options & AGInputOptionsPending) {
+                                if (input_edge.options & AGInputOptionsChanged) {
                                     [result appendString:@" color=red"];
                                 }
 
@@ -846,7 +846,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
                         [description appendFormat:@" %s -> %s", input_type.body_metadata().name(false),
                                                   input_type.value_metadata().name(false)];
                     }
-                    if (input_edge.options & AGInputOptionsPending) { // TODO: rename back to changed
+                    if (input_edge.options & AGInputOptionsChanged) {
                         [description appendString:@", changed"];
                     }
                     if (input_edge.options & AGInputOptionsAlwaysEnabled) {
@@ -941,7 +941,7 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
                             AGSetTypeForKey((__bridge CFMutableDictionaryRef)input_dictionary,
                                             (__bridge CFStringRef) @"value-type", &input_type.value_metadata());
                         }
-                        if (input_edge.options & AGInputOptionsPending) { // TODO: rename to changed
+                        if (input_edge.options & AGInputOptionsChanged) {
                             input_dictionary[@"changed"] = @YES;
                         }
                         if (input_edge.options & AGInputOptionsAlwaysEnabled) {

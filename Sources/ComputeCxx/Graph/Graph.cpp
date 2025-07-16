@@ -574,7 +574,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
     InputEdge new_input_edge = {
         resolved_input,
         static_cast<AGInputOptions>((options & (AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled)) |
-                                    (node->is_dirty() ? AGInputOptionsPending : AGInputOptionsNone)),
+                                    (node->is_dirty() ? AGInputOptionsChanged : AGInputOptionsNone)),
     };
 
     uint32_t index = node->insert_input_edge(subgraph, new_input_edge);
@@ -1124,7 +1124,7 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
             if (input_edge.attribute.resolve(TraversalOptions::None).attribute() != AttributeID(node)) {
                 continue;
             }
-            if (input_edge.options & AGInputOptionsPending) {
+            if (input_edge.options & AGInputOptionsChanged) {
                 continue;
             }
             if (!input_edge.attribute.is_node()) {
@@ -1132,7 +1132,7 @@ void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, co
                     continue;
                 }
             }
-            input_edge.options |= AGInputOptionsPending;
+            input_edge.options |= AGInputOptionsChanged;
             break;
         }
         output_index += 1;
@@ -1189,7 +1189,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                     if (input_edge.attribute.resolve(TraversalOptions::SkipMutableReference).attribute() != attribute) {
                         continue;
                     }
-                    if (input_edge.options & AGInputOptionsPending) {
+                    if (input_edge.options & AGInputOptionsChanged) {
                         continue;
                     }
                     if (!input_edge.attribute.is_node()) {
@@ -1200,7 +1200,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                     foreach_trace([&output_node, &input_index](Trace &trace) {
                         trace.set_edge_pending(output_node, input_index, true);
                     });
-                    input_edge.options |= AGInputOptionsPending;
+                    input_edge.options |= AGInputOptionsChanged;
                 }
             } else if (auto output_indirect_node = output_edge->attribute.get_indirect_node()) {
                 if (output_indirect_node->to_mutable().dependency() != attribute) {
@@ -1408,7 +1408,7 @@ void *Graph::input_value_ref(data::ptr<AG::Node> node, AttributeID input, uint32
             InputEdge &input_edge = node->input_edges()[index];
             input_edge.options |= AGInputOptionsEnabled;
 
-            if (input_edge.options & AGInputOptionsPending) {
+            if (input_edge.options & AGInputOptionsChanged) {
                 *flags_out |= AGChangedValueFlagsChanged;
             }
 
@@ -1474,7 +1474,7 @@ void *Graph::input_value_ref_slow(data::ptr<AG::Node> node, AttributeID input, u
         }
     }
 
-    if (input_edge.options & AGInputOptionsPending) {
+    if (input_edge.options & AGInputOptionsChanged) {
         *flags_out |= AGChangedValueFlagsChanged;
     }
     if (input_options & AGInputOptionsSyncMainRef && input_node->is_main_ref() &&
@@ -1591,7 +1591,7 @@ void Graph::value_mark_all() {
                         subgraph->add_dirty_flags(node->subgraph_flags());
                     }
                     for (auto &input_edge : node->input_edges()) {
-                        input_edge.options |= AGInputOptionsPending;
+                        input_edge.options |= AGInputOptionsChanged;
                     }
                 }
             }
@@ -1745,7 +1745,7 @@ bool Graph::any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_
                                uint64_t exclude_attributes_count) {
     for (auto &input_edge : node->input_edges()) {
         input_edge.options |= AGInputOptionsEnabled;
-        if (input_edge.options & AGInputOptionsPending) {
+        if (input_edge.options & AGInputOptionsChanged) {
             if (find_attribute(exclude_attributes, input_edge.attribute, exclude_attributes_count) ==
                 exclude_attributes_count) {
                 return true;

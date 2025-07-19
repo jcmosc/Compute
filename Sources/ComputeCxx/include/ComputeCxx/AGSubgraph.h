@@ -98,8 +98,7 @@ void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index,
-                                 uint8_t *_Nullable tag_out) CF_RETURNS_NOT_RETAINED
+AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index, uint8_t *_Nullable tag_out)
     CF_SWIFT_NAME(AGSubgraphRef.child(self:at:tag:));
 
 CF_EXPORT
@@ -108,8 +107,7 @@ uint32_t AGSubgraphGetChildCount(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AG
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphGetParent(AGSubgraphRef subgraph, int64_t index) CF_RETURNS_NOT_RETAINED
-    CF_SWIFT_NAME(AGSubgraphRef.parent(self:at:));
+AGSubgraphRef AGSubgraphGetParent(AGSubgraphRef subgraph, int64_t index) CF_SWIFT_NAME(AGSubgraphRef.parent(self:at:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

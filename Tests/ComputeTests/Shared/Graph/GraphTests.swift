@@ -312,7 +312,7 @@ struct GraphTests {
             func initialDescription() throws {
                 let description =
                     try #require(
-                        Graph.description(nil, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
+                        Graph.description(nil, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
                             as? NSDictionary
                     )
 
@@ -345,7 +345,7 @@ struct GraphTests {
                 
                 let description =
                     try #require(
-                        Graph.description(graph, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
+                        Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
                             as? NSDictionary
                     )
 
@@ -418,10 +418,10 @@ struct GraphTests {
                 }
                 
                 let description =
-                try #require(
-                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
-                    as? NSDictionary
-                )
+                    try #require(
+                        Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
+                            as? NSDictionary
+                    )
                 let data = try JSONSerialization.data(
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
@@ -448,17 +448,20 @@ struct GraphTests {
                 }
                 
                 let description =
-                try #require(
-                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict"] as NSDictionary)
-                    as? NSDictionary
-                )
+                    try #require(
+                        Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
+                            as? NSDictionary
+                    )
                 let data = try JSONSerialization.data(
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
                 )
                 
                 let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
-                #expect(graphDescription.graphs[0].nodes[0].desc == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody")
+                #expect(
+                    graphDescription.graphs[0].nodes[0].desc
+                        == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody"
+                )
             }
             
         }
@@ -482,10 +485,13 @@ struct GraphTests {
                 let _ = Attribute(value: TestValue())
                 
                 let description =
-                try #require(
-                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict", AGDescriptionIncludeValues: true] as NSDictionary)
-                    as? NSDictionary
-                )
+                    try #require(
+                        Graph.description(
+                            graph,
+                            options: [Graph.descriptionFormat: "graph/dict", Graph.includeValues: true] as NSDictionary
+                        )
+                            as? NSDictionary
+                    )
                 let data = try JSONSerialization.data(
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
@@ -508,17 +514,23 @@ struct GraphTests {
                 let _ = Attribute(value: TestValue())
                 
                 let description =
-                try #require(
-                    Graph.description(graph, options: [AGDescriptionFormat: "graph/dict", AGDescriptionIncludeValues: true] as NSDictionary)
-                    as? NSDictionary
-                )
+                    try #require(
+                        Graph.description(
+                            graph,
+                            options: [Graph.descriptionFormat: "graph/dict", Graph.includeValues: true] as NSDictionary
+                        )
+                            as? NSDictionary
+                    )
                 let data = try JSONSerialization.data(
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
                 )
                 
                 let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
-                #expect(graphDescription.graphs[0].nodes[0].desc == "GraphTests.DescriptionTests.ValueDescriptionTests.TestValue")
+                #expect(
+                    graphDescription.graphs[0].nodes[0].desc
+                        == "GraphTests.DescriptionTests.ValueDescriptionTests.TestValue"
+                )
             }
             
         }

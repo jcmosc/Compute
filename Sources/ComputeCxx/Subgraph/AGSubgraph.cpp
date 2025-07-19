@@ -143,9 +143,9 @@ void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) {
 
 #pragma mark - Observers
 
-uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
-                               void (*observer)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                               void *observer_context) {
+AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
+                                 void (*observer)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 void *observer_context) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
@@ -154,7 +154,7 @@ uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
     return AG::Subgraph::from_cf(subgraph)->add_observer(callback);
 }
 
-void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id) {
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, AGUniqueID observer_id) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }

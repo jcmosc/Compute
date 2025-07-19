@@ -4,6 +4,7 @@
 
 #include <ComputeCxx/AGGraph.h>
 #include <ComputeCxx/AGTreeElement.h>
+#include <ComputeCxx/AGUniqueID.h>
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -70,13 +71,13 @@ void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) CF_SWIFT_NAME(se
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
-                               void (*observer)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                               void *_Nullable observer_context);
+AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
+                                 void (*observer)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 void *_Nullable observer_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id)
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, AGUniqueID observer_id)
     CF_SWIFT_NAME(AGSubgraphRef.removeObserver(self:observerID:));
 
 // MARK: Children

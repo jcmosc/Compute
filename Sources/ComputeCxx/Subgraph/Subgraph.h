@@ -5,6 +5,7 @@
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Closure/ClosureFunction.h"
+#include "ComputeCxx/AGUniqueID.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
 #include "Graph/Tree/TreeElement.h"
@@ -117,8 +118,8 @@ class Subgraph : public data::zone {
 
     // MARK: Observers
 
-    uint64_t add_observer(ClosureFunctionVV<void> callback);
-    void remove_observer(uint64_t observer_id);
+    AGUniqueID add_observer(ClosureFunctionVV<void> callback);
+    void remove_observer(AGUniqueID observer_id);
     void notify_observers();
 
     // MARK: Invalidating

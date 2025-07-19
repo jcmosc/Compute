@@ -83,7 +83,7 @@ void Subgraph::set_current_subgraph(Subgraph *subgraph) { pthread_setspecific(_c
 
 #pragma mark - Observers
 
-uint64_t Subgraph::add_observer(ClosureFunctionVV<void> callback) {
+AGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
     if (!_observers) {
         _observers =
             alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
@@ -96,7 +96,7 @@ uint64_t Subgraph::add_observer(ClosureFunctionVV<void> callback) {
     return observer_id;
 }
 
-void Subgraph::remove_observer(uint64_t observer_id) {
+void Subgraph::remove_observer(AGUniqueID observer_id) {
     if (auto observers_ptr = _observers.get()) {
         auto observers = *observers_ptr;
         auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {

@@ -72,8 +72,8 @@ void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) CF_SWIFT_NAME(se
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
-                                 void (*observer)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                 void *_Nullable observer_context);
+                                 void (*observer)(const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 const void *_Nullable observer_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -143,7 +143,8 @@ AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute)
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context);
+                     void (*body)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift),
+                     const void *body_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

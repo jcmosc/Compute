@@ -146,8 +146,9 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
 
 #pragma mark - Main handler
 
-void AGGraphWithMainThreadHandler(AGGraphRef graph, void (*body)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                  void *body_context,
+void AGGraphWithMainThreadHandler(AGGraphRef graph,
+                                  void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                  const void *body_context,
                                   void (*main_thread_handler)(const void *context AG_SWIFT_CONTEXT,
                                                               void (*trampoline_thunk)(const void *),
                                                               const void *trampoline) AG_SWIFT_CC(swift),
@@ -172,9 +173,9 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 #pragma mark - Attribute types
 
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,
-                                    const AGAttributeType *(*make_attribute_type)(void *context AG_SWIFT_CONTEXT)
+                                    const AGAttributeType *(*make_attribute_type)(const void *context AG_SWIFT_CONTEXT)
                                         AG_SWIFT_CC(swift),
-                                    void *make_attribute_type_context) {
+                                    const void *make_attribute_type_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     AG::Graph *graph = reinterpret_cast<AG::Graph *>(unowned_graph);
     return graph->intern_type(
@@ -409,8 +410,8 @@ void AGGraphSetIndirectDependency(AGAttribute attribute, AGAttribute dependency)
 #pragma mark - Search
 
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
-                   bool (*predicate)(void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
-                   void *predicate_context) {
+                   bool (*predicate)(const void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
+                   const void *predicate_context) {
     auto attribute_id = AG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
@@ -426,8 +427,8 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
 #pragma mark - Body
 
 void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
-                            void (*modify)(void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
-                            void *modify_context) {
+                            void (*modify)(const void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
+                            const void *modify_context) {
     auto attribute_id = AG::AttributeID(attribute);
     auto node = attribute_id.get_node();
     if (!node) {
@@ -625,8 +626,9 @@ void AGGraphInvalidateAllValues(AGGraphRef graph) {
 }
 
 void AGGraphSetInvalidationCallback(AGGraphRef graph,
-                                    void (*callback)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift),
-                                    void *callback_context) {
+                                    void (*callback)(const void *context AG_SWIFT_CONTEXT, AGAttribute)
+                                        AG_SWIFT_CC(swift),
+                                    const void *callback_context) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     graph_context->set_invalidation_callback(AG::ClosureFunctionAV<void, AGAttribute>(callback, callback_context));
 }
@@ -704,8 +706,8 @@ void AGGraphSetNeedsUpdate(AGGraphRef graph) {
     graph_context->set_needs_update();
 }
 
-void AGGraphWithUpdate(AGAttribute attribute, void (*body)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                       void *body_context) {
+void AGGraphWithUpdate(AGAttribute attribute, void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                       const void *body_context) {
     auto attribute_id = AG::AttributeID(attribute);
     if (!attribute_id || attribute_id.is_nil()) {
         // TODO: check
@@ -727,12 +729,14 @@ void AGGraphWithUpdate(AGAttribute attribute, void (*body)(void *context AG_SWIF
     subgraph->graph()->with_update(node, AG::ClosureFunctionVV<void>(body, body_context));
 }
 
-void AGGraphWithoutUpdate(void (*body)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift), void *body_context) {
+void AGGraphWithoutUpdate(void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                          const void *body_context) {
     AG::Graph::without_update(AG::ClosureFunctionVV<void>(body, body_context));
 }
 
-void AGGraphSetUpdateCallback(AGGraphRef graph, void (*callback)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                              void *callback_context) {
+void AGGraphSetUpdateCallback(AGGraphRef graph,
+                              void (*callback)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                              const void *callback_context) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     graph_context->set_update_callback(AG::ClosureFunctionVV<void>(callback, callback_context));
 }

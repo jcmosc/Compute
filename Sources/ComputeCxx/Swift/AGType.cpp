@@ -74,23 +74,23 @@ const char *AGTypeNominalDescriptorName(AGTypeID typeID) {
 }
 
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*apply)(void *context AG_SWIFT_CONTEXT,
+                       void (*apply)(const void *context AG_SWIFT_CONTEXT,
                                      const char *field_name,
                                      size_t field_offset, AGTypeID field_type)
                            AG_SWIFT_CC(swift),
-                       void *apply_context) {
+                       const void *apply_context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
-        void (*_body)(void *context AG_SWIFT_CONTEXT, const char *field_name,
+        void (*_body)(const void *context AG_SWIFT_CONTEXT, const char *field_name,
                       size_t field_offset, AGTypeID field_type)
             AG_SWIFT_CC(swift);
-        void *_body_context;
+        const void *_body_context;
 
       public:
-        Visitor(void (*body)(void *context AG_SWIFT_CONTEXT,
+        Visitor(void (*body)(const void *context AG_SWIFT_CONTEXT,
                              const char *field_name, size_t field_offset,
                              AGTypeID field_type) AG_SWIFT_CC(swift),
-                void *body_context)
+                const void *body_context)
             : _body(body), _body_context(body_context) {}
 
         bool unknown_result() override { return true; }
@@ -116,11 +116,11 @@ void AGTypeApplyFields(AGTypeID typeID,
 }
 
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*apply)(void *context AG_SWIFT_CONTEXT,
+                        bool (*apply)(const void *context AG_SWIFT_CONTEXT,
                                       const char *field_name,
                                       size_t field_offset, AGTypeID field_type)
                             AG_SWIFT_CC(swift),
-                        void *apply_context) {
+                        const void *apply_context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
         AGTypeApplyOptions _options;

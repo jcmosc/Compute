@@ -144,8 +144,8 @@ void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) {
 #pragma mark - Observers
 
 AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
-                                 void (*observer)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                 void *observer_context) {
+                                 void (*observer)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 const void *observer_context) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
@@ -282,7 +282,7 @@ AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
 }
 
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context) {
+                     void (*body)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), const void *body_context) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         return;
     }

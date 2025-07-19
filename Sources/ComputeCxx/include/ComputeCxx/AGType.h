@@ -69,16 +69,16 @@ typedef CF_OPTIONS(uint32_t, AGTypeApplyOptions) {
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*apply)(void *_Nullable context AG_SWIFT_CONTEXT, const char *field_name,
+                       void (*apply)(const void *_Nullable context AG_SWIFT_CONTEXT, const char *field_name,
                                      size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
-                       void *apply_context);
+                       const void *apply_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*_Nonnull apply)(void *context AG_SWIFT_CONTEXT, const char *field_name,
+                        bool (*_Nonnull apply)(const void *context AG_SWIFT_CONTEXT, const char *field_name,
                                                size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
-                        void *apply_context);
+                        const void *apply_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

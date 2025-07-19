@@ -191,12 +191,12 @@ struct GraphTests {
             }
 
             var trace = AGTrace()
-            trace.beginTrace = { contextPointer, graph in
+            trace.begin_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "beginTrace", graph: graph))
                 }
             }
-            trace.endTrace = { contextPointer, graph in
+            trace.end_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "endTrace", graph: graph))
                 }
@@ -235,12 +235,12 @@ struct GraphTests {
             }
 
             var trace = AGTrace()
-            trace.beginTrace = { contextPointer, graph in
+            trace.begin_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "beginTrace", graph: graph))
                 }
             }
-            trace.endTrace = { contextPointer, graph in
+            trace.end_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "endTrace", graph: graph))
                 }

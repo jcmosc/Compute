@@ -78,7 +78,7 @@ let package = Package(
         .testTarget(
             name: "ComputeCompatibilityTests",
             dependencies: [
-//                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks"),
+                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
             ],
             swiftSettings: [
@@ -94,5 +94,5 @@ let package = Package(
         ),
         .target(name: "ComputeCxxSwiftSupport"),
     ],
-    cxxLanguageStandard: .cxx20
+    cxxLanguageStandard: .cxx20,
 )

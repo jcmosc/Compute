@@ -7,7 +7,7 @@ public protocol _AttributeBody {
 
     static func _updateDefault(_ default: UnsafeMutableRawPointer)
 
-    static var comparisonMode: AGComparisonMode { get }
+    static var comparisonMode: ComparisonMode { get }
     static var flags: Flags { get }
 
 }
@@ -22,7 +22,7 @@ extension _AttributeBody {
 
     public static func _updateDefault(_ default: UnsafeMutableRawPointer) {}
 
-    public static var comparisonMode: AGComparisonMode {
+    public static var comparisonMode: ComparisonMode {
         return .equatableUnlessPOD
     }
 

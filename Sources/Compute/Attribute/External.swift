@@ -1,7 +1,7 @@
 import ComputeCxx
 
 public struct External<Value> {
-    
+
     public init() {}
 
     public static func _update(_: UnsafeMutableRawPointer, attribute: AnyAttribute) {}
@@ -10,7 +10,7 @@ public struct External<Value> {
 
 extension External: _AttributeBody {
 
-    public static var comparisonMode: AGComparisonMode {
+    public static var comparisonMode: ComparisonMode {
         return .equatableAlways
     }
 

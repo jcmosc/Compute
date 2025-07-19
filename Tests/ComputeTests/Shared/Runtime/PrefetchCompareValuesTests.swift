@@ -14,7 +14,7 @@ public struct ValueLayout: CustomStringConvertible, Equatable {
 
 }
 
-func prefetchCompareValues<Value>(of type: Value.Type, options: AGComparisonOptions, priority: Int)
+func prefetchCompareValues<Value>(of type: Value.Type, options: ComparisonOptions, priority: Int)
     -> ValueLayout?
 {
     guard
@@ -42,9 +42,9 @@ extension Optional: @retroactive CustomStringConvertible where Wrapped == ValueL
 
 }
 
-let allOptions: [AGComparisonOptions] = [
-    AGComparisonOptions(mode: .bitwise), AGComparisonOptions(mode: .equatableUnlessPOD),
-    AGComparisonOptions(mode: .equatableAlways),
+let allOptions: [ComparisonOptions] = [
+    ComparisonOptions(mode: .bitwise), ComparisonOptions(mode: .equatableUnlessPOD),
+    ComparisonOptions(mode: .equatableAlways),
 ]
 
 // The code being tested uses a shared global cache, hence this test suite may
@@ -60,28 +60,28 @@ struct PrefetchCompareValuesTests {
         func layoutForNever() async {
             let layout0 = prefetchCompareValues(
                 of: Never.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == nil)
 
             let layout1 = prefetchCompareValues(
                 of: Never.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == nil)
 
             let layout2 = prefetchCompareValues(
                 of: Never.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == nil)
 
             var output3 = ""
             let layout3 = await reprintingStandardError(to: &output3) {
-                prefetchCompareValues(of: Never.self, options: AGComparisonOptions(mode: .equatableAlways), priority: 0)
+                prefetchCompareValues(of: Never.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
             }
             #expect(layout3 != nil)
             #expect(
@@ -95,7 +95,7 @@ struct PrefetchCompareValuesTests {
         }
 
         @Test(arguments: allOptions)
-        func layoutForVoid(with options: AGComparisonOptions) {
+        func layoutForVoid(with options: ComparisonOptions) {
             let layout = prefetchCompareValues(of: Void.self, options: options, priority: 0)
             #expect(layout == .trivial)
         }
@@ -104,28 +104,28 @@ struct PrefetchCompareValuesTests {
         func layoutForBool() async {
             let layout0 = prefetchCompareValues(
                 of: Bool.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: Bool.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
 
             let layout2 = prefetchCompareValues(
                 of: Bool.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == .trivial)
 
             var output3 = ""
             let layout3 = await reprintingStandardError(to: &output3) {
-                prefetchCompareValues(of: Bool.self, options: AGComparisonOptions(mode: .equatableAlways), priority: 0)
+                prefetchCompareValues(of: Bool.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
             }
             #expect(layout3 != nil)
             #expect(
@@ -146,22 +146,22 @@ struct PrefetchCompareValuesTests {
             ] as [(Any.Type, Int)]
         )
         func layoutForNumeric(of type: Any.Type, size: Int) async {
-            let layout0 = prefetchCompareValues(of: type, options: AGComparisonOptions(mode: .bitwise), priority: 0)
+            let layout0 = prefetchCompareValues(of: type, options: ComparisonOptions(mode: .bitwise), priority: 0)
             #expect(layout0 == .trivial)
 
-            let layout1 = prefetchCompareValues(of: type, options: AGComparisonOptions(mode: .indirect), priority: 0)
+            let layout1 = prefetchCompareValues(of: type, options: ComparisonOptions(mode: .indirect), priority: 0)
             #expect(layout1 == .trivial)
 
             let layout2 = prefetchCompareValues(
                 of: type,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == .trivial)
 
             var output3 = ""
             let layout3 = await reprintingStandardError(to: &output3) {
-                prefetchCompareValues(of: type, options: AGComparisonOptions(mode: .equatableAlways), priority: 0)
+                prefetchCompareValues(of: type, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
             }
             #expect(layout3 != nil)
             #expect(
@@ -178,14 +178,14 @@ struct PrefetchCompareValuesTests {
         func layoutForString() async {
             let layout0 = prefetchCompareValues(
                 of: String.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: String.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
@@ -194,7 +194,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: String.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -212,7 +212,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: String.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -228,7 +228,7 @@ struct PrefetchCompareValuesTests {
         }
 
         @Test(arguments: allOptions)
-        func layoutForStaticString(with options: AGComparisonOptions) {
+        func layoutForStaticString(with options: ComparisonOptions) {
             let layout = prefetchCompareValues(of: StaticString.self, options: options, priority: 0)
             #expect(layout == .trivial)
         }
@@ -239,7 +239,7 @@ struct PrefetchCompareValuesTests {
     struct StructTests {
 
         @Test(arguments: allOptions)
-        func layoutForEmptyStruct(with options: AGComparisonOptions) {
+        func layoutForEmptyStruct(with options: ComparisonOptions) {
             struct EmptyStruct {}
 
             let layout = prefetchCompareValues(of: EmptyStruct.self, options: options, priority: 0)
@@ -254,28 +254,28 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: StructEnclosingSingleElement.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: StructEnclosingSingleElement.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
 
             let layout2 = prefetchCompareValues(
                 of: StructEnclosingSingleElement.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == .trivial)
 
             let innerLayout = prefetchCompareValues(
                 of: Int.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -283,7 +283,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: StructEnclosingSingleElement.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -299,28 +299,28 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: TrivialStruct.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: TrivialStruct.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
 
             let layout2 = prefetchCompareValues(
                 of: TrivialStruct.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == .trivial)
 
             let _ = prefetchCompareValues(
                 of: Int.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -328,7 +328,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: TrivialStruct.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -355,7 +355,7 @@ struct PrefetchCompareValuesTests {
             let layout0 = await reprintingStandardError(to: &output0) {
                 prefetchCompareValues(
                     of: StructWithAlignedElement.self,
-                    options: AGComparisonOptions(mode: .bitwise),
+                    options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
             }
@@ -375,7 +375,7 @@ struct PrefetchCompareValuesTests {
             let layout1 = await reprintingStandardError(to: &output1) {
                 prefetchCompareValues(
                     of: StructWithAlignedElement.self,
-                    options: AGComparisonOptions(mode: .indirect),
+                    options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
             }
@@ -395,7 +395,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: StructWithAlignedElement.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -413,12 +413,12 @@ struct PrefetchCompareValuesTests {
 
             let _ = prefetchCompareValues(
                 of: Int8.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
             let _ = prefetchCompareValues(
                 of: Int64.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -426,7 +426,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: StructWithAlignedElement.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -453,7 +453,7 @@ struct PrefetchCompareValuesTests {
 
             let nestedLayout0 = prefetchCompareValues(
                 of: ComplexType.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
 
@@ -461,7 +461,7 @@ struct PrefetchCompareValuesTests {
             let layout0 = await reprintingStandardError(to: &output0) {
                 prefetchCompareValues(
                     of: StructWithComplexProperty.self,
-                    options: AGComparisonOptions(mode: .bitwise),
+                    options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
             }
@@ -479,7 +479,7 @@ struct PrefetchCompareValuesTests {
 
             let nestedLayout1 = prefetchCompareValues(
                 of: ComplexType.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
 
@@ -487,7 +487,7 @@ struct PrefetchCompareValuesTests {
             let layout1 = await reprintingStandardError(to: &output1) {
                 prefetchCompareValues(
                     of: StructWithComplexProperty.self,
-                    options: AGComparisonOptions(mode: .indirect),
+                    options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
             }
@@ -505,7 +505,7 @@ struct PrefetchCompareValuesTests {
 
             let nestedLayout2 = prefetchCompareValues(
                 of: ComplexType.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
 
@@ -513,7 +513,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: StructWithComplexProperty.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -531,12 +531,12 @@ struct PrefetchCompareValuesTests {
 
             let _ = prefetchCompareValues(
                 of: Int8.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
             let _ = prefetchCompareValues(
                 of: ComplexType.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -544,7 +544,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: StructWithComplexProperty.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -567,7 +567,7 @@ struct PrefetchCompareValuesTests {
     struct ClassTests {
 
         @Test(arguments: allOptions)
-        func layoutForEmptyClass(with options: AGComparisonOptions) {
+        func layoutForEmptyClass(with options: ComparisonOptions) {
             class EmptyClass {}
 
             let layout = prefetchCompareValues(of: EmptyClass.self, options: options, priority: 0)
@@ -575,7 +575,7 @@ struct PrefetchCompareValuesTests {
         }
 
         @Test(arguments: allOptions)
-        func layoutForTrivialClass(with options: AGComparisonOptions) {
+        func layoutForTrivialClass(with options: ComparisonOptions) {
             class TrivialClass {
                 var property: Int = 0
             }
@@ -585,7 +585,7 @@ struct PrefetchCompareValuesTests {
         }
 
         @Test(arguments: allOptions)
-        func layoutForStructWithWeakVar(with options: AGComparisonOptions) {
+        func layoutForStructWithWeakVar(with options: ComparisonOptions) {
             class EmptyClass {}
             struct StructWithWeakVar {
                 weak var property: EmptyClass?
@@ -601,7 +601,7 @@ struct PrefetchCompareValuesTests {
     struct EnumTests {
 
         @Test(arguments: allOptions)
-        func layoutForEmptyEnum(with options: AGComparisonOptions) {
+        func layoutForEmptyEnum(with options: ComparisonOptions) {
             enum EmptyEnum {}
 
             let layout = prefetchCompareValues(of: EmptyEnum.self, options: options, priority: 0)
@@ -617,21 +617,21 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: BasicEnum.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == nil)
 
             let layout1 = prefetchCompareValues(
                 of: BasicEnum.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == nil)
 
             let layout2 = prefetchCompareValues(
                 of: BasicEnum.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == nil)
@@ -640,7 +640,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: BasicEnum.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -664,21 +664,21 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: IntEnum.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == nil)
 
             let layout1 = prefetchCompareValues(
                 of: IntEnum.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == nil)
 
             let layout2 = prefetchCompareValues(
                 of: IntEnum.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == nil)
@@ -687,7 +687,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: IntEnum.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -714,7 +714,7 @@ struct PrefetchCompareValuesTests {
             let layout0 = await reprintingStandardError(to: &output0) {
                 prefetchCompareValues(
                     of: TaggedUnionEnum.self,
-                    options: AGComparisonOptions(mode: .bitwise),
+                    options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
             }
@@ -736,7 +736,7 @@ struct PrefetchCompareValuesTests {
             let layout1 = await reprintingStandardError(to: &output1) {
                 prefetchCompareValues(
                     of: TaggedUnionEnum.self,
-                    options: AGComparisonOptions(mode: .indirect),
+                    options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
             }
@@ -756,7 +756,7 @@ struct PrefetchCompareValuesTests {
 
             let _ = prefetchCompareValues(
                 of: String.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
 
@@ -764,7 +764,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: TaggedUnionEnum.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -784,12 +784,12 @@ struct PrefetchCompareValuesTests {
 
             let _ = prefetchCompareValues(
                 of: Int.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
             let _ = prefetchCompareValues(
                 of: String.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -797,7 +797,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: TaggedUnionEnum.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -825,7 +825,7 @@ struct PrefetchCompareValuesTests {
 
             var output0 = ""
             let layout0 = await reprintingStandardError(to: &output0) {
-                prefetchCompareValues(of: IndirectEnum.self, options: AGComparisonOptions(mode: .bitwise), priority: 0)
+                prefetchCompareValues(of: IndirectEnum.self, options: ComparisonOptions(mode: .bitwise), priority: 0)
             }
             #expect(layout0 != nil)
             #expect(
@@ -843,7 +843,7 @@ struct PrefetchCompareValuesTests {
 
             var output1 = ""
             let layout1 = await reprintingStandardError(to: &output1) {
-                prefetchCompareValues(of: IndirectEnum.self, options: AGComparisonOptions(mode: .indirect), priority: 0)
+                prefetchCompareValues(of: IndirectEnum.self, options: ComparisonOptions(mode: .indirect), priority: 0)
             }
             #expect(layout1 != nil)
             #expect(
@@ -863,7 +863,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: IndirectEnum.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -885,7 +885,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: IndirectEnum.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -913,21 +913,21 @@ struct PrefetchCompareValuesTests {
         func layoutForTuple() async {
             let layout0 = prefetchCompareValues(
                 of: (Int, String).self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: (Int, String).self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
 
             let _ = prefetchCompareValues(
                 of: String.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
 
@@ -935,7 +935,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: (Int, String).self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -952,12 +952,12 @@ struct PrefetchCompareValuesTests {
 
             let _ = prefetchCompareValues(
                 of: Int.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
             let _ = prefetchCompareValues(
                 of: String.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -965,7 +965,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: (Int, String).self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -985,7 +985,7 @@ struct PrefetchCompareValuesTests {
         func layoutForTupleWithAlignedElement() async {
             var output0 = ""
             let layout0 = await reprintingStandardError(to: &output0) {
-                prefetchCompareValues(of: (Int8, Int64).self, options: AGComparisonOptions(mode: .bitwise), priority: 0)
+                prefetchCompareValues(of: (Int8, Int64).self, options: ComparisonOptions(mode: .bitwise), priority: 0)
             }
             #expect(layout0 != nil)
             #expect(
@@ -1003,7 +1003,7 @@ struct PrefetchCompareValuesTests {
             let layout1 = await reprintingStandardError(to: &output1) {
                 prefetchCompareValues(
                     of: (Int8, Int64).self,
-                    options: AGComparisonOptions(mode: .indirect),
+                    options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
             }
@@ -1023,7 +1023,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: (Int8, Int64).self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1041,12 +1041,12 @@ struct PrefetchCompareValuesTests {
 
             let _ = prefetchCompareValues(
                 of: Int8.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
             let _ = prefetchCompareValues(
                 of: Int64.self,
-                options: AGComparisonOptions(mode: .equatableAlways),
+                options: ComparisonOptions(mode: .equatableAlways),
                 priority: 0
             )
 
@@ -1054,7 +1054,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: (Int8, Int64).self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1080,14 +1080,14 @@ struct PrefetchCompareValuesTests {
         func layoutForArray() async {
             let layout0 = prefetchCompareValues(
                 of: Array<Int>.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: Array<Int>.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
@@ -1096,7 +1096,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: Array<Int>.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1114,7 +1114,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: Array<Int>.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1130,7 +1130,7 @@ struct PrefetchCompareValuesTests {
         }
 
         @Test(arguments: allOptions)
-        func layoutForArrayOfNotEquatable(with options: AGComparisonOptions) {
+        func layoutForArrayOfNotEquatable(with options: ComparisonOptions) {
             class NotEquatable {}
 
             let layout = prefetchCompareValues(of: Array<NotEquatable>.self, options: options, priority: 0)
@@ -1141,14 +1141,14 @@ struct PrefetchCompareValuesTests {
         func layoutForDictionary() async {
             let layout0 = prefetchCompareValues(
                 of: Dictionary<Int, Int>.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: Dictionary<Int, Int>.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
@@ -1157,7 +1157,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: Dictionary<Int, Int>.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1175,7 +1175,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: Dictionary<Int, Int>.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1191,7 +1191,7 @@ struct PrefetchCompareValuesTests {
         }
 
         @Test(arguments: allOptions)
-        func layoutForDictionaryOfNotEquatable(with options: AGComparisonOptions) {
+        func layoutForDictionaryOfNotEquatable(with options: ComparisonOptions) {
             class NotEquatable {}
 
             let layout = prefetchCompareValues(
@@ -1206,14 +1206,14 @@ struct PrefetchCompareValuesTests {
         func layoutForSet() async {
             let layout0 = prefetchCompareValues(
                 of: Set<Int>.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: Set<Int>.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
@@ -1222,7 +1222,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: Set<Int>.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1240,7 +1240,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: Set<Int>.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1271,21 +1271,21 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: EquatableStruct.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == .trivial)
 
             let layout1 = prefetchCompareValues(
                 of: EquatableStruct.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == .trivial)
 
             let layout2 = prefetchCompareValues(
                 of: EquatableStruct.self,
-                options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
             #expect(layout2 == .trivial)
@@ -1294,7 +1294,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: EquatableStruct.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1320,14 +1320,14 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: EquatableClass.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == nil)
 
             let layout1 = prefetchCompareValues(
                 of: EquatableClass.self,
-                options: AGComparisonOptions(mode: .indirect),
+                options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
             #expect(layout1 == nil)
@@ -1336,7 +1336,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: EquatableClass.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1354,7 +1354,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: EquatableClass.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1376,12 +1376,12 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForAny() async {
-            let layout0 = prefetchCompareValues(of: Any.self, options: AGComparisonOptions(mode: .bitwise), priority: 0)
+            let layout0 = prefetchCompareValues(of: Any.self, options: ComparisonOptions(mode: .bitwise), priority: 0)
             #expect(layout0 == nil)
 
             var output1 = ""
             let layout1 = await reprintingStandardError(to: &output1) {
-                prefetchCompareValues(of: Any.self, options: AGComparisonOptions(mode: .indirect), priority: 0)
+                prefetchCompareValues(of: Any.self, options: ComparisonOptions(mode: .indirect), priority: 0)
             }
             #expect(layout1 != nil)
             #expect(
@@ -1397,7 +1397,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: Any.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1413,7 +1413,7 @@ struct PrefetchCompareValuesTests {
 
             var output3 = ""
             let layout3 = await reprintingStandardError(to: &output3) {
-                prefetchCompareValues(of: Any.self, options: AGComparisonOptions(mode: .equatableAlways), priority: 0)
+                prefetchCompareValues(of: Any.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
             }
             #expect(layout3 != nil)
             #expect(
@@ -1430,14 +1430,14 @@ struct PrefetchCompareValuesTests {
         func layoutForAnyError() async {
             let layout0 = prefetchCompareValues(
                 of: (any Error).self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == nil)
 
             var output1 = ""
             let layout1 = await reprintingStandardError(to: &output1) {
-                prefetchCompareValues(of: (any Error).self, options: AGComparisonOptions(mode: .indirect), priority: 0)
+                prefetchCompareValues(of: (any Error).self, options: ComparisonOptions(mode: .indirect), priority: 0)
             }
             #expect(layout1 != nil)
             #expect(
@@ -1453,7 +1453,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: (any Error).self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1471,7 +1471,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: (any Error).self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }
@@ -1497,14 +1497,14 @@ struct PrefetchCompareValuesTests {
 
             let layout0 = prefetchCompareValues(
                 of: Function.self,
-                options: AGComparisonOptions(mode: .bitwise),
+                options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
             #expect(layout0 == nil)
 
             var output1 = ""
             let layout1 = await reprintingStandardError(to: &output1) {
-                prefetchCompareValues(of: Function.self, options: AGComparisonOptions(mode: .indirect), priority: 0)
+                prefetchCompareValues(of: Function.self, options: ComparisonOptions(mode: .indirect), priority: 0)
             }
             #expect(layout1 != nil)
             #expect(
@@ -1521,7 +1521,7 @@ struct PrefetchCompareValuesTests {
             let layout2 = await reprintingStandardError(to: &output2) {
                 prefetchCompareValues(
                     of: Function.self,
-                    options: AGComparisonOptions(mode: .equatableUnlessPOD),
+                    options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
             }
@@ -1540,7 +1540,7 @@ struct PrefetchCompareValuesTests {
             let layout3 = await reprintingStandardError(to: &output3) {
                 prefetchCompareValues(
                     of: Function.self,
-                    options: AGComparisonOptions(mode: .equatableAlways),
+                    options: ComparisonOptions(mode: .equatableAlways),
                     priority: 0
                 )
             }

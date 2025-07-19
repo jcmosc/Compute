@@ -38,7 +38,7 @@ typedef CF_ENUM(uint8_t, AGComparisonMode) {
     AGComparisonModeIndirect = 1,
     AGComparisonModeEquatableUnlessPOD = 2,
     AGComparisonModeEquatableAlways = 3,
-};
+} CF_SWIFT_NAME(ComparisonMode);
 
 typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
     AGComparisonOptionsComparisonModeBitwise = 0,
@@ -50,7 +50,7 @@ typedef CF_OPTIONS(uint32_t, AGComparisonOptions) {
     AGComparisonOptionsCopyOnWrite = 1 << 8,
     AGComparisonOptionsFetchLayoutsSynchronously = 1 << 9,
     AGComparisonOptionsTraceCompareFailed = 1ul << 31, // -1 signed int
-};
+} CF_SWIFT_NAME(ComparisonOptions);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

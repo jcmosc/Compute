@@ -45,12 +45,12 @@ extension Subgraph {
         Subgraph.endTreeElement(value: value.identifier)
     }
 
-    public func addTreeValue<Value>(
-        _ attribute: Attribute<Value>,
+    public static func addTreeValue<Value>(
+        _ value: Attribute<Value>,
         forKey key: UnsafePointer<Int8>,
         flags: UInt32
     ) {
-        fatalError("not implemented")
+        Subgraph.addTreeValue(value: value.identifier, type: Metadata(Value.self), forKey: key, flags: flags)
     }
 
 }

@@ -9,36 +9,29 @@ extension TreeElement {
 
 }
 
-extension Nodes: @retroactive Sequence, @retroactive IteratorProtocol {
+extension Nodes: @retroactive IteratorProtocol {
+    public typealias Element = AnyAttribute
 
     public mutating func next() -> AnyAttribute? {
-        let result =  __AGTreeElementGetNextNode(&self)
+        let result = __AGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result
     }
 
 }
 
-extension Children: @retroactive Sequence, @retroactive IteratorProtocol {
-
-    public mutating func next() -> TreeElement? {
-        return __AGTreeElementGetNextChild(&self)
-    }
-
+extension Children: @retroactive IteratorProtocol {
+    public typealias Element = TreeElement
 }
 
-extension Values: @retroactive Sequence, @retroactive IteratorProtocol {
-
-    public func next() -> TreeValue? {
-        return __AGTreeElementGetNextValue(self)
-    }
-
+extension Values: @retroactive IteratorProtocol {
+    public typealias Element = TreeValue
 }
 
 // TODO: how is this used?
 extension TreeElement {
-    
+
     struct LocalChildren {
         var base: Children
     }
-    
+
 }

@@ -34,11 +34,11 @@ AGTreeElementMakeValueIterator(AGTreeElement tree_element) {
                                       tree_element_id->first_value);
 }
 
-AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator iter) {
-    AGTreeValue next_value = reinterpret_cast<AGTreeValue>(iter.next_elt);
+AGTreeValue AGTreeElementGetNextValue(AGTreeElementValueIterator *iter) {
+    AGTreeValue next_value = reinterpret_cast<AGTreeValue>(iter->next_elt);
     if (next_value) {
         auto next_value_id = AG::Graph::TreeValueID(next_value);
-        iter.next_elt = next_value_id->next;
+        iter->next_elt = next_value_id->next;
     }
     return next_value;
 }

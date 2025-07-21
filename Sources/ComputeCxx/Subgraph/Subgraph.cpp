@@ -526,9 +526,9 @@ void Subgraph::add_node(data::ptr<Node> node) {
     node->set_subgraph_flags(AGAttributeFlagsDefault);
     insert_attribute(AttributeID(node), true);
 
-    //    if (_tree_root) {
-    //        graph()->add_tree_data_for_subgraph(this, _tree_root, node);
-    //    }
+    if (_tree_root) {
+        graph()->add_tree_data_for_subgraph(this, _tree_root, node);
+    }
 
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }

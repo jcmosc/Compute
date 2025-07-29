@@ -40,47 +40,40 @@ extension CustomStringConvertible {
 
 extension AGAttributeType {
 
-    nonisolated(unsafe) static let vtable: UnsafePointer<AGAttributeVTable> =
-        {
-            let vtable = UnsafeMutablePointer<AGAttributeVTable>.allocate(
-                capacity: 1
-            )
-            vtable.pointee.version = 0
-            vtable.pointee.type_destroy = { pointer in
-                pointer.deallocate()
+    nonisolated(unsafe) static let vtable: UnsafePointer<_AttributeVTable> = {
+        let vtable = UnsafeMutablePointer<_AttributeVTable>.allocate(
+            capacity: 1
+        )
+        vtable.pointee.version = 0
+        vtable.pointee.type_destroy = { pointer in
+            pointer.deallocate()
+        }
+        vtable.pointee.self_destroy = { attributeType, body in
+            attributeType.pointee.attributeBody._destroySelf(body)
+        }
+        vtable.pointee.self_description = { attributeType, body in
+            let description: String
+            if let selfType = attributeType.pointee.self_id.type
+                as? any CustomStringConvertible.Type
+            {
+                description = String._describing(body, of: selfType)
+            } else {
+                description = attributeType.pointee.self_id.description
             }
-            vtable.pointee.self_destroy = { attributeType, body in
-                attributeType.pointee.attributeBody._destroySelf(body)
-            }
-            vtable.pointee.self_description = { attributeType, body in
-                let description: String
-                if let selfType = attributeType.pointee.self_id.type
-                    as? any CustomStringConvertible.Type
-                {
-                    description = selfType._description(for: body)
-                } else {
-                    description = attributeType.pointee.self_id.description
-                }
-                return Unmanaged<CFString>.passRetained(description as NSString)
-                    .autorelease()
-            }
-            vtable.pointee.value_description = { attributeType, value in
-                let description: String
-                if let valueType = attributeType.pointee.value_id.type
-                    as? any CustomStringConvertible.Type
-                {
-                    description = valueType._description(for: value)
-                } else {
-                    description = attributeType.pointee.value_id.description
-                }
-                return Unmanaged<CFString>.passRetained(description as NSString)
-                    .autorelease()
-            }
-            vtable.pointee.update_default = { attributeType, body in
-                attributeType.pointee.attributeBody._updateDefault(body)
-            }
-            return UnsafePointer(vtable)
-        }()
+            return Unmanaged<CFString>.passRetained(description as NSString)
+                .autorelease()
+        }
+        vtable.pointee.value_description = { attributeType, value in
+            let valueType = attributeType.pointee.value_id.type
+            let description = String._describing(value, of: valueType)
+            return Unmanaged<CFString>.passRetained(description as NSString)
+                .autorelease()
+        }
+        vtable.pointee.update_default = { attributeType, body in
+            attributeType.pointee.attributeBody._updateDefault(body)
+        }
+        return UnsafePointer(vtable)
+    }()
 
     @_extern(c, "AGRetainClosure")
     fileprivate static func passRetainedClosure(

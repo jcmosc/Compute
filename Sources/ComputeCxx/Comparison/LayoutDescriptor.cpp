@@ -8,6 +8,7 @@
 #include "Builder.h"
 #include "Compare.h"
 #include "ComputeCxx/AGComparison.h"
+#include "Graph/Graph.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
 #include "ValueLayout.h"
@@ -406,14 +407,8 @@ bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs,
                              AGComparisonOptions options) {
     size_t failure_location = 0;
     bool result = compare_bytes(lhs, rhs, size, &failure_location);
-    if ((options & AGComparisonOptionsReportFailures) && !result) {
-        //        for (auto update = Graph::current_update(); update != nullptr; update = update.get()->previous()) {
-        //            auto graph = update.get()->graph();
-        //            auto attribute = update.get()->frames().back().attribute;
-        //            graph->foreach_trace([&attribute, &lhs, &rhs, &failure_location](Trace &trace) {
-        //                trace.compare_failed(attribute, lhs, rhs, failure_location, 1, nullptr);
-        //            });
-        //        }
+    if ((options & AGComparisonOptionsTraceCompareFailed) && !result) {
+        Graph::compare_failed(lhs, rhs, failure_location, 1, nullptr);
     }
     return result;
 }
@@ -999,7 +994,7 @@ void Builder::add_field(size_t field_size) {
 bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
     if (!no_fetch) {
         if (auto layout = fetch(type,
-                                AGComparisonOptions(_current_comparison_mode) | AGComparisonOptionsReportFailures |
+                                AGComparisonOptions(_current_comparison_mode) | AGComparisonOptionsTraceCompareFailed |
                                     AGComparisonOptionsFetchLayoutsSynchronously,
                                 true)) {
             if (layout == ValueLayoutTrivial) {

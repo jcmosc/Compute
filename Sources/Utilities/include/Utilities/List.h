@@ -147,7 +147,6 @@ class UInt64ForwardList : public ForwardList<uint64_t> {
     void push_front(uint64_t &&element);
 
     void pop_front();
-
 } SWIFT_UNSAFE_REFERENCE;
 
 UInt64ForwardList *UInt64ForwardList::create() { return new UInt64ForwardList(); }

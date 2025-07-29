@@ -7,10 +7,10 @@
 namespace AG {
 
 bool WeakAttributeID::expired() const {
-    uint64_t raw_page_seed = data::table::shared().raw_page_seed(_attribute.page_ptr());
+    uint64_t raw_page_seed = data::table::shared().raw_page_seed(_identifier.page_ptr());
     if (raw_page_seed & 0xff00000000) {
         auto zone_info = data::zone::info::from_raw_value(uint32_t(raw_page_seed));
-        if (zone_info.zone_id() == _subgraph_id) {
+        if (zone_info.zone_id() == _seed) {
             return false;
         }
     }
@@ -18,7 +18,7 @@ bool WeakAttributeID::expired() const {
 }
 
 const AttributeID WeakAttributeID::evaluate() const {
-    return _attribute && !expired() ? _attribute : AttributeID(AGAttributeNil);
+    return _identifier && !expired() ? _identifier : AttributeID(AGAttributeNil);
 };
 
 } // namespace AG

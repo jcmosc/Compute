@@ -4,6 +4,7 @@
 
 #include <ComputeCxx/AGGraph.h>
 #include <ComputeCxx/AGTreeElement.h>
+#include <ComputeCxx/AGUniqueID.h>
 
 CF_ASSUME_NONNULL_BEGIN
 CF_IMPLICIT_BRIDGING_ENABLED
@@ -16,13 +17,13 @@ typedef struct CF_BRIDGED_TYPE(id) AGSubgraphStorage *AGSubgraphRef CF_SWIFT_NAM
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-CFTypeID AGSubgraphGetTypeID() CF_SWIFT_NAME(getter:AGSubgraphRef.typeID());
+CFTypeID AGSubgraphGetTypeID(void) CF_SWIFT_NAME(getter:AGSubgraphRef.typeID());
 
 // MARK: Current subgraph
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef _Nullable AGSubgraphGetCurrent() CF_SWIFT_NAME(getter:AGSubgraphRef.current());
+AGSubgraphRef _Nullable AGSubgraphGetCurrent(void) CF_SWIFT_NAME(getter:AGSubgraphRef.current());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -41,7 +42,7 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext()
+AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext(void)
     CF_SWIFT_NAME(getter:AGSubgraphRef.currentGraphContext());
 
 CF_EXPORT
@@ -70,13 +71,13 @@ void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) CF_SWIFT_NAME(se
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
-                               void (*observer)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                               void *_Nullable observer_context);
+AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
+                                 void (*observer)(const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 const void *_Nullable observer_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id)
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, AGUniqueID observer_id)
     CF_SWIFT_NAME(AGSubgraphRef.removeObserver(self:observerID:));
 
 // MARK: Children
@@ -97,8 +98,7 @@ void AGSubgraphRemoveChild(AGSubgraphRef subgraph, AGSubgraphRef child)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index,
-                                 uint8_t *_Nullable tag_out) CF_RETURNS_NOT_RETAINED
+AGSubgraphRef AGSubgraphGetChild(AGSubgraphRef subgraph, uint32_t index, uint8_t *_Nullable tag_out)
     CF_SWIFT_NAME(AGSubgraphRef.child(self:at:tag:));
 
 CF_EXPORT
@@ -107,8 +107,7 @@ uint32_t AGSubgraphGetChildCount(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AG
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGSubgraphGetParent(AGSubgraphRef subgraph, int64_t index) CF_RETURNS_NOT_RETAINED
-    CF_SWIFT_NAME(AGSubgraphRef.parent(self:at:));
+AGSubgraphRef AGSubgraphGetParent(AGSubgraphRef subgraph, int64_t index) CF_SWIFT_NAME(AGSubgraphRef.parent(self:at:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -144,7 +143,12 @@ AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute)
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context);
+                     void (*body)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift),
+                     const void *body_context);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags mask);
 
 // MARK: Tree
 
@@ -173,11 +177,11 @@ void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, u
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGSubgraphShouldRecordTree() CF_SWIFT_NAME(getter:AGSubgraphRef.shouldRecordTree());
+bool AGSubgraphShouldRecordTree(void) CF_SWIFT_NAME(getter:AGSubgraphRef.shouldRecordTree());
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphSetShouldRecordTree() CF_SWIFT_NAME(AGSubgraphRef.setShouldRecordTree());
+void AGSubgraphSetShouldRecordTree(void) CF_SWIFT_NAME(AGSubgraphRef.setShouldRecordTree());
 
 CF_EXTERN_C_END
 

@@ -7,25 +7,29 @@ public struct WeakAttribute<Value> {
     public init(base: AnyWeakAttribute) {
         self.base = base
     }
-    
+
     public init() {
-        base = AnyWeakAttribute(attribute: AnyAttribute(rawValue: 0), subgraph_id: 0)
+        base = AnyWeakAttribute(_details: AnyWeakAttribute.__Unnamed_struct__details(identifier: AnyAttribute(rawValue: 0), seed: 0))
     }
-    
+
     public init(_ attribute: Attribute<Value>) {
         base = AnyWeakAttribute(attribute.identifier)
     }
-    
+
     public init(_ attribute: Attribute<Value>?) {
         base = AnyWeakAttribute(attribute?.identifier)
     }
 
-    public func changedValue(options: ValueOptions) -> (value: Value, changed: Bool)? {
-        fatalError("not implemented")
+    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool)? {
+        return attribute?.changedValue(options: options)
     }
 
     public var value: Value? {
-        fatalError("not implemented")
+        return __AGGraphGetWeakValue(base, [], Metadata(Value.self))
+            .value
+            // TO BE CONFIRMED
+            .assumingMemoryBound(to: Value?.self)
+            .pointee
     }
 
     public var attribute: Attribute<Value>? {
@@ -36,11 +40,11 @@ public struct WeakAttribute<Value> {
             base.attribute = newValue?.identifier
         }
     }
-    
+
     public var wrappedValue: Value? {
-        fatalError("not implemented")
+        return value
     }
-    
+
     public var projectedValue: Attribute<Value>? {
         get {
             return attribute
@@ -48,8 +52,11 @@ public struct WeakAttribute<Value> {
         set {
             attribute = newValue
         }
+        _modify {
+            yield &attribute
+        }
     }
-    
+
     public subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Attribute<Member>? {
         return attribute?[keyPath: keyPath]
     }

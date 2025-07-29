@@ -7,8 +7,8 @@ public protocol _AttributeBody {
 
     static func _updateDefault(_ default: UnsafeMutableRawPointer)
 
-    static var comparisonMode: AGComparisonMode { get }
-    static var flags: AGAttributeTypeFlags { get }
+    static var comparisonMode: ComparisonMode { get }
+    static var flags: Flags { get }
 
 }
 
@@ -22,11 +22,11 @@ extension _AttributeBody {
 
     public static func _updateDefault(_ default: UnsafeMutableRawPointer) {}
 
-    public static var comparisonMode: AGComparisonMode {
+    public static var comparisonMode: ComparisonMode {
         return .equatableUnlessPOD
     }
 
-    public static var flags: AGAttributeTypeFlags {
+    public static var flags: Flags {
         return .mainThread
     }
 
@@ -35,7 +35,7 @@ extension _AttributeBody {
 extension _AttributeBody {
 
     public var updateWasCancelled: Bool {
-        fatalError("not implemented")
+        return Graph.updateWasCancelled
     }
 
 }

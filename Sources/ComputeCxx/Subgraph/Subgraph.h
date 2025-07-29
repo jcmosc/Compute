@@ -5,6 +5,7 @@
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Closure/ClosureFunction.h"
+#include "ComputeCxx/AGUniqueID.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
 #include "Graph/Tree/TreeElement.h"
@@ -83,6 +84,14 @@ class Subgraph : public data::zone {
   public:
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
+    
+    // Non-copyable
+    Subgraph(const Subgraph &) = delete;
+    Subgraph &operator=(const Subgraph &) = delete;
+    
+    // Non-movable
+    Subgraph(Subgraph &&) = delete;
+    Subgraph &operator=(Subgraph &&) = delete;
 
     // MARK: CFType
 
@@ -109,8 +118,8 @@ class Subgraph : public data::zone {
 
     // MARK: Observers
 
-    uint64_t add_observer(ClosureFunctionVV<void> callback);
-    void remove_observer(uint64_t observer_id);
+    AGUniqueID add_observer(ClosureFunctionVV<void> callback);
+    void remove_observer(AGUniqueID observer_id);
     void notify_observers();
 
     // MARK: Invalidating
@@ -170,6 +179,8 @@ class Subgraph : public data::zone {
     static std::atomic<uint32_t> _last_traversal_seed;
 
     void apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body);
+    
+    void update(AGAttributeFlags mask);
 
     // MARK: Tree
 
@@ -183,6 +194,10 @@ class Subgraph : public data::zone {
 
     AttributeID tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index);
     Graph::TreeElementID tree_subgraph_child(Graph::TreeElementID tree_element);
+    
+    // MARK: Printing
+    
+    void print(uint32_t indent_level);
 };
 
 } // namespace AG

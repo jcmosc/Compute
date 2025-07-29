@@ -2,28 +2,55 @@ import ComputeCxx
 
 extension Graph {
 
-    public func onUpdate(_ handler: () -> Void) {
-        fatalError("not implemented")
+    @_extern(c, "AGGraphSetUpdateCallback")
+    private static func setUpdateCallback(_ graph: UnsafeRawPointer, callback: (() -> Void)?)
+
+    public func onUpdate(_ handler: @escaping () -> Void) {
+        Graph.setUpdateCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
     }
 
-    public func onInvalidation(_ handler: (AnyAttribute) -> Void) {
-        fatalError("not implemented")
+    @_extern(c, "AGGraphSetInvalidationCallback")
+    private static func setInvalidationCallback(_ graph: UnsafeRawPointer, callback: ((AnyAttribute) -> Void)?)
+
+    public func onInvalidation(_ handler: @escaping (AnyAttribute) -> Void) {
+        Graph.setInvalidationCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
     }
 
     public func withDeadline<T>(_ deadline: UInt64, _ body: () -> T) -> T {
-        fatalError("not implemented")
+        let oldDeadline = self.deadline
+        self.deadline = deadline
+        let result = body()
+        self.deadline = oldDeadline
+        return result
     }
 
     public func withoutUpdate<T>(_ body: () -> T) -> T {
-        fatalError("not implemented")
+        let previousUpdate = Graph.clearUpdate()
+        let result = body()
+        Graph.setUpdate(previousUpdate)
+        return result
     }
 
     public func withoutSubgraphInvalidation<T>(_ body: () -> T) -> T {
-        fatalError("not implemented")
+        let wasDeferring = self.beginDeferringSubgraphInvalidation()
+        let result = body()
+        self.endDeferringSubgraphInvalidation(wasDeferring: wasDeferring)
+        return result
     }
 
-    public func withMainThreadHandler(_ body: (() -> Void) -> Void, do: () -> Void) {
-        fatalError("not implemented")
+    @_extern(c, "AGGraphWithMainThreadHandler")
+    private static func withMainThreadHandler(
+        _ graph: UnsafeRawPointer,
+        body: () -> Void,
+        mainThreadHandler: (() -> Void) -> Void
+    )
+
+    public func withMainThreadHandler(_ mainThreadHandler: (() -> Void) -> Void, do body: () -> Void) {
+        Graph.withMainThreadHandler(
+            unsafeBitCast(self, to: UnsafeRawPointer.self),
+            body: body,
+            mainThreadHandler: mainThreadHandler
+        )
     }
 
 }
@@ -31,6 +58,7 @@ extension Graph {
 extension Graph {
 
     public static func startProfiling() {
+        
         fatalError("not implemented")
     }
 

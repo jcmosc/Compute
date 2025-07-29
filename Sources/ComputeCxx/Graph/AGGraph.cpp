@@ -6,10 +6,12 @@
 #include <Utilities/FreeDeleter.h>
 
 #include "Attribute/AttributeData/Node/IndirectNode.h"
+#include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Context.h"
 #include "Graph.h"
 #include "Private/CFRuntime.h"
 #include "Trace/ExternalTrace.h"
+#include "UpdateStack.h"
 
 namespace {
 
@@ -84,6 +86,14 @@ AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef storage) {
     return graph_context->to_cf();
 }
 
+void AGGraphInvalidate(AGGraphRef graph) {
+    if (graph->context.invalidated()) {
+        return;
+    }
+    graph->context.~Context();
+    graph->context.set_invalidated(true);
+}
+
 #pragma mark - User context
 
 const void *AGGraphGetContext(AGGraphRef graph) {
@@ -103,26 +113,26 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
     switch (query) {
     case AGGraphCounterQueryNodeCount:
         return graph_context->graph().num_nodes();
-        //    case AGGraphCounterQueryTransactionCount:
-        //        return graph_context->graph().transaction_count();
-        //    case AGGraphCounterQueryUpdateCount:
-        //        return graph_context->graph().update_count();
-        //    case AGGraphCounterQueryChangeCount:
-        //        return graph_context->graph().change_count();
+    case AGGraphCounterQueryTransactionCount:
+        return graph_context->graph().transaction_count();
+    case AGGraphCounterQueryUpdateCount:
+        return graph_context->graph().update_count();
+    case AGGraphCounterQueryChangeCount:
+        return graph_context->graph().change_count();
     case AGGraphCounterQueryContextID:
         return graph_context->id();
     case AGGraphCounterQueryGraphID:
         return graph_context->graph().id();
-        //    case AGGraphCounterQueryContextThreadUpdating:
-        //        return graph_context->is_thread_updating();
-        //    case AGGraphCounterQueryThreadUpdating:
-        //        return graph_context->graph().is_thread_updating();
-        //    case AGGraphCounterQueryContextNeedsUpdate:
-        //        return graph_context->needs_update();
-        //    case AGGraphCounterQueryNeedsUpdate:
-        //        return graph_context->graph().needs_update();
-        //    case AGGraphCounterQueryMainThreadUpdateCount:
-        //        return graph_context->graph().main_thread_update_count();
+    case AGGraphCounterQueryContextThreadUpdating:
+        return graph_context->thread_is_updating();
+    case AGGraphCounterQueryThreadUpdating:
+        return graph_context->graph().thread_is_updating();
+    case AGGraphCounterQueryContextNeedsUpdate:
+        return graph_context->needs_update();
+    case AGGraphCounterQueryNeedsUpdate:
+        return graph_context->graph().needs_update();
+    case AGGraphCounterQueryMainThreadUpdateCount:
+        return graph_context->graph().main_thread_update_count();
     case AGGraphCounterQueryNodeTotalCount:
         return graph_context->graph().num_nodes_total();
     case AGGraphCounterQuerySubgraphCount:
@@ -132,6 +142,20 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) {
     default:
         return 0;
     }
+}
+
+#pragma mark - Main handler
+
+void AGGraphWithMainThreadHandler(AGGraphRef graph,
+                                  void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                  const void *body_context,
+                                  void (*main_thread_handler)(const void *context AG_SWIFT_CONTEXT,
+                                                              void (*trampoline_thunk)(const void *),
+                                                              const void *trampoline) AG_SWIFT_CC(swift),
+                                  const void *main_thread_handler_context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().with_main_handler(AG::ClosureFunctionVV<void>(body, body_context), main_thread_handler,
+                                             main_thread_handler_context);
 }
 
 #pragma mark - Subgraph
@@ -149,9 +173,9 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 #pragma mark - Attribute types
 
 uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,
-                                    const AGAttributeType *(*make_attribute_type)(void *context AG_SWIFT_CONTEXT)
+                                    const AGAttributeType *(*make_attribute_type)(const void *context AG_SWIFT_CONTEXT)
                                         AG_SWIFT_CC(swift),
-                                    void *make_attribute_type_context) {
+                                    const void *make_attribute_type_context) {
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     AG::Graph *graph = reinterpret_cast<AG::Graph *>(unowned_graph);
     return graph->intern_type(
@@ -332,7 +356,7 @@ AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size) 
 AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) {
     auto attribute_id = AG::AttributeID(attribute);
     if (auto indirect_node = attribute_id.get_indirect_node()) {
-        return indirect_node->source().attribute();
+        return indirect_node->source().identifier();
     }
     return attribute_id;
 }
@@ -386,8 +410,8 @@ void AGGraphSetIndirectDependency(AGAttribute attribute, AGAttribute dependency)
 #pragma mark - Search
 
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
-                   bool (*predicate)(void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
-                   void *predicate_context) {
+                   bool (*predicate)(const void *context AG_SWIFT_CONTEXT, AGAttribute attribute) AG_SWIFT_CC(swift),
+                   const void *predicate_context) {
     auto attribute_id = AG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
@@ -400,44 +424,103 @@ bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
         attribute_id, options, AG::ClosureFunctionAB<bool, AGAttribute>(predicate, predicate_context));
 }
 
+#pragma mark - Body
+
+void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
+                            void (*modify)(const void *context AG_SWIFT_CONTEXT, void *body) AG_SWIFT_CC(swift),
+                            const void *modify_context) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    subgraph->graph()->attribute_modify(node, *reinterpret_cast<const AG::swift::metadata *>(type),
+                                        AG::ClosureFunctionPV<void, void *>(modify, modify_context), invalidating);
+}
+
 #pragma mark - Value
 
 namespace {
 
-inline AGValue get_value(AG::AttributeID attribute_id, uint32_t subgraph_id, AGValueOptions options,
-                         const AG::swift::metadata &metadata) {
-    // TODO: input_value_ref
-    
+inline AGChangedValue get_value(AG::AttributeID attribute_id, uint32_t seed, AGValueOptions options,
+                                const AG::swift::metadata &metadata) {
+    if (!(options & AGValueOptionsIncrementGraphVersion)) {
+        auto update_ptr = AG::Graph::current_update();
+        if (update_ptr.tag() == 0 && update_ptr.get() != nullptr) {
+            auto &update = *update_ptr.get();
+
+            auto graph = update.graph();
+            auto frame = update.frames().back();
+
+            AGChangedValueFlags flags = 0;
+            void *value = graph->input_value_ref(frame.attribute, attribute_id, seed,
+                                                 options & AGValueOptionsInputOptionsMask, metadata, &flags);
+            return {value, flags};
+        }
+    }
+
     attribute_id.validate_data_offset();
-    
+
     auto subgraph = attribute_id.subgraph();
     if (!subgraph) {
         AG::precondition_failure("no graph: %u", attribute_id);
     }
-    
-    uint8_t state = 0;
-    void *value = subgraph->graph()->value_ref(attribute_id, subgraph_id, metadata, &state);
-    
-    return {value, state & 1 ? true : false};
+
+    AGChangedValueFlags flags = 0;
+    void *value = subgraph->graph()->value_ref(attribute_id, seed, metadata, &flags);
+    return {value, flags};
 }
 
 } // namespace
 
-AGValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AGTypeID type) {
+AGChangedValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AGTypeID type) {
     auto attribute_id = AG::AttributeID(attribute);
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     return get_value(attribute_id, 0, options, *metadata);
 }
 
-AGValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type) {
+AGChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type) {
     auto weak_attribute_id = AG::WeakAttributeID(attribute);
     auto attribute_id = weak_attribute_id.evaluate();
     if (attribute_id.is_nil()) {
         return {nullptr, false};
     }
-    
+
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    return get_value(attribute_id, weak_attribute_id.subgraph_id(), options, *metadata);
+    return get_value(attribute_id, weak_attribute_id.seed(), options, *metadata);
+}
+
+AGChangedValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input, AGValueOptions options, AGTypeID type) {
+    auto attribute_id = AG::AttributeID(attribute);
+    if (options & AGValueOptionsIncrementGraphVersion || attribute_id.is_nil()) {
+        return AGGraphGetValue(input, options, type);
+    }
+
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    auto input_id = AG::AttributeID(input);
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+
+    AGChangedValueFlags flags = 0;
+    void *value = subgraph->graph()->input_value_ref(attribute, input_id, 0, options & AGValueOptionsInputOptionsMask,
+                                                     *metadata, &flags);
+    return {value, flags};
 }
 
 bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type) {
@@ -447,12 +530,12 @@ bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
     attribute_id.validate_data_offset();
-    
+
     auto subgraph = attribute_id.subgraph();
     if (!subgraph) {
         AG::precondition_failure("no graph: %u", attribute);
     }
-    
+
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     return subgraph->graph()->value_set(attribute_id.get_node(), *metadata, value);
 }
@@ -464,13 +547,269 @@ bool AGGraphHasValue(AGAttribute attribute) {
         AG::precondition_failure("non-direct attribute id: %u", attribute);
     }
     attribute_id.validate_data_offset();
-    
+
     auto subgraph = attribute_id.subgraph();
     if (!subgraph) {
         AG::precondition_failure("no graph: %u", attribute);
     }
-    
+
     return subgraph->graph()->value_exists(attribute_id.get_node());
+}
+
+AGValueState AGGraphGetValueState(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    return subgraph->graph()->value_state(attribute_id);
+}
+
+void AGGraphUpdateValue(AGAttribute attribute, AGGraphUpdateOptions options) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+
+    node.assert_valid();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    subgraph->graph()->update_attribute(node, options);
+}
+
+uint32_t AGGraphPrefetchValue(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    if (subgraph->graph()->passed_deadline()) {
+        return AGGraphUpdateStatusChanged;
+    }
+
+    auto resolved = attribute_id.resolve(AG::TraversalOptions::AssertNotNil);
+    return (uint32_t)subgraph->graph()->update_attribute(
+        resolved.attribute().get_node(),
+        AGGraphUpdateOptions(AGGraphUpdateOptionsAbortIfCancelled | AGGraphUpdateOptionsCancelIfPassedDeadline));
+}
+
+void AGGraphInvalidateValue(AGAttribute attribute) {
+    auto attribute_id = AG::AttributeID(attribute);
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    subgraph->graph()->value_mark(node);
+}
+
+void AGGraphInvalidateAllValues(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->graph().value_mark_all();
+}
+
+void AGGraphSetInvalidationCallback(AGGraphRef graph,
+                                    void (*callback)(const void *context AG_SWIFT_CONTEXT, AGAttribute)
+                                        AG_SWIFT_CC(swift),
+                                    const void *callback_context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->set_invalidation_callback(AG::ClosureFunctionAV<void, AGAttribute>(callback, callback_context));
+}
+
+#pragma mark - Update
+
+void AGGraphSetUpdate(const void *update) {
+    AG::Graph::set_current_update(util::tagged_ptr<AG::Graph::UpdateStack>((AG::Graph::UpdateStack *)update));
+}
+
+const void *AGGraphClearUpdate() {
+    auto update = AG::Graph::current_update();
+    if (update != nullptr && update.tag() == 0) {
+        AG::Graph::set_current_update(update.with_tag(true));
+    }
+    return (const void *)update.value();
+}
+
+void AGGraphCancelUpdate() {
+    auto update = AG::Graph::current_update().get();
+    if (update == nullptr) {
+        AG::precondition_failure("no attribute updating");
+    }
+
+    AG::Graph::UpdateStack::cancel();
+}
+
+bool AGGraphCancelUpdateIfNeeded() {
+    auto update = AG::Graph::current_update().get();
+    if (update == nullptr) {
+        AG::precondition_failure("no attribute updating");
+    }
+
+    if (update->cancelled()) {
+        return true;
+    }
+
+    if (update->graph()->passed_deadline()) {
+        update->cancel();
+        return true;
+    }
+
+    return false;
+}
+
+bool AGGraphUpdateWasCancelled() {
+    auto update = AG::Graph::current_update();
+    if (update.tag() != 0 || update.get() == nullptr) {
+        AG::precondition_failure("no attribute updating");
+    }
+
+    return update.get()->cancelled();
+}
+
+uint64_t AGGraphGetDeadline(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    return graph_context->deadline();
+}
+
+void AGGraphSetDeadline(AGGraphRef graph, uint64_t deadline) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->set_deadline(deadline);
+}
+
+bool AGGraphHasDeadlinePassed() {
+    auto update = AG::Graph::current_update().get();
+    if (update != nullptr) {
+        return update->graph()->passed_deadline();
+    }
+    return false;
+}
+
+void AGGraphSetNeedsUpdate(AGGraphRef graph) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->set_needs_update();
+}
+
+void AGGraphWithUpdate(AGAttribute attribute, void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                       const void *body_context) {
+    auto attribute_id = AG::AttributeID(attribute);
+    if (!attribute_id || attribute_id.is_nil()) {
+        // TODO: check
+        AGGraphWithoutUpdate(body, body_context);
+        return;
+    }
+
+    auto node = attribute_id.get_node();
+    if (!node) {
+        AG::precondition_failure("non-direct attribute id: %u", attribute);
+    }
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        AG::precondition_failure("no graph: %u", attribute);
+    }
+
+    subgraph->graph()->with_update(node, AG::ClosureFunctionVV<void>(body, body_context));
+}
+
+void AGGraphWithoutUpdate(void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                          const void *body_context) {
+    AG::Graph::without_update(AG::ClosureFunctionVV<void>(body, body_context));
+}
+
+void AGGraphSetUpdateCallback(AGGraphRef graph,
+                              void (*callback)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                              const void *callback_context) {
+    auto graph_context = AG::Graph::Context::from_cf(graph);
+    graph_context->set_update_callback(AG::ClosureFunctionVV<void>(callback, callback_context));
+}
+
+AGAttribute AGGraphGetCurrentAttribute() {
+    auto update_ptr = AG::Graph::current_update();
+    if (update_ptr.tag() != 0 || update_ptr.get() == nullptr) {
+        return AGAttributeNil;
+    }
+
+    auto &update = *update_ptr.get();
+    auto frame = update.frames().back();
+    if (!frame.attribute) {
+        return AGAttributeNil;
+    }
+
+    return AGAttribute(AG::AttributeID(frame.attribute));
+}
+
+bool AGGraphCurrentAttributeWasModified() {
+    auto update_ptr = AG::Graph::current_update();
+    if (update_ptr.tag() != 0 || update_ptr.get() == nullptr) {
+        return false;
+    }
+
+    auto &update = *update_ptr.get();
+    auto frame = update.frames().back();
+    if (!frame.attribute) {
+        return false;
+    }
+
+    return frame.attribute->is_self_modified();
+}
+
+bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, uint64_t exclude_attributes_count) {
+    auto update = AG::Graph::current_update();
+    if (update.tag() != 0 || update.get() == nullptr) {
+        AG::precondition_failure("no attribute updating");
+    }
+
+    auto frame = update.get()->frames().back();
+    return update.get()->graph()->any_inputs_changed(
+        frame.attribute, reinterpret_cast<const AG::AttributeID *>(exclude_attributes), exclude_attributes_count);
+}
+
+void *AGGraphGetOutputValue(AGTypeID type) {
+    auto update_ptr = AG::Graph::current_update();
+    if (update_ptr.tag() != 0 || update_ptr.get() == nullptr) {
+        AG::precondition_failure("no attribute updating");
+    }
+
+    auto &update = *update_ptr.get();
+    auto frame = update.frames().back();
+    auto graph = update.graph();
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    return graph->output_value_ref(frame.attribute, *metadata);
+}
+
+void AGGraphSetOutputValue(const void *value, AGTypeID type) {
+    auto update_ptr = AG::Graph::current_update();
+    if (update_ptr.tag() != 0 || update_ptr.get() == nullptr) {
+        AG::precondition_failure("no attribute updating");
+    }
+
+    auto &update = *update_ptr.get();
+    auto frame = update.frames().back();
+    if (!frame.attribute->is_updating()) {
+        AG::precondition_failure("writing attribute that is not evaluating: %", frame.attribute);
+    }
+
+    auto graph = update.graph();
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    graph->value_set_internal(frame.attribute, *frame.attribute.get(), value, *metadata);
 }
 
 #pragma mark - Trace
@@ -647,4 +986,12 @@ uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *even
     os_unfair_lock_unlock(&NamedEvents::lock);
 
     return event_id;
+}
+
+// MARK: Description
+
+void AGGraphArchiveJSON(const char *filename) { AG::Graph::write_to_file(nullptr, filename, false); }
+
+void AGGraphArchiveJSON2(const char *filename, bool exclude_values) {
+    AG::Graph::write_to_file(nullptr, filename, exclude_values);
 }

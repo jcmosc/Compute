@@ -1,5 +1,6 @@
 #include "Compare.h"
 
+#include "Graph/Graph.h"
 #include "Swift/Metadata.h"
 #include "Swift/SwiftShims.h"
 #include "ValueLayout.h"
@@ -124,7 +125,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + item_size;
 
             if (!compare_indirect(&indirect_layout, *_enums.back().type, *type,
-                                  options & ~AGComparisonOptionsReportFailures, lhs + offset, rhs + offset)) {
+                                  options & ~AGComparisonOptionsTraceCompareFailed, lhs + offset, rhs + offset)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -139,7 +140,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + item_size;
 
             if (!compare_existential_values(*reinterpret_cast<const swift::existential_type_metadata *>(type),
-                                            lhs + offset, rhs + offset, options & ~AGComparisonOptionsReportFailures)) {
+                                            lhs + offset, rhs + offset,
+                                            options & ~AGComparisonOptionsTraceCompareFailed)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -154,7 +156,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + 8;
 
             if (lhs + offset != rhs + offset) {
-                if (!compare_heap_objects(lhs + offset, rhs + offset, options & ~AGComparisonOptionsReportFailures,
+                if (!compare_heap_objects(lhs + offset, rhs + offset, options & ~AGComparisonOptionsTraceCompareFailed,
                                           is_function)) {
                     failed(options, lhs, rhs, offset, 8, nullptr);
                     return false;
@@ -305,8 +307,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
 void Compare::failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                      size_t size, const swift::metadata *type) {
-    if (options & AGComparisonOptionsReportFailures) {
-        // TODO: tracing
+    if (options & AGComparisonOptionsTraceCompareFailed) {
+        Graph::compare_failed(lhs, rhs, offset, size, type);
     }
 }
 

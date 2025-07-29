@@ -10,11 +10,11 @@ public struct External<Value> {
 
 extension External: _AttributeBody {
 
-    public static var comparisonMode: AGComparisonMode {
+    public static var comparisonMode: ComparisonMode {
         return .equatableAlways
     }
 
-    public static var flags: AGAttributeTypeFlags {
+    public static var flags: Flags {
         return []
     }
 

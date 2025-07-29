@@ -16,8 +16,8 @@ extension Focus: Rule {
         return root.value[keyPath: keyPath]
     }
 
-    public static var flags: AGAttributeTypeFlags {
-        fatalError("not implemented")
+    public static var flags: Flags {
+        return []
     }
 
 }
@@ -25,7 +25,7 @@ extension Focus: Rule {
 extension Focus: CustomStringConvertible {
 
     public var description: String {
-        fatalError("not implemented")
+        return "• \(Metadata(Value.self).description)"
     }
 
 }

@@ -36,7 +36,7 @@ bool AttributeID::traverses(AttributeID other, TraversalOptions options) const {
             return true;
         }
         if (!(options & TraversalOptions::SkipMutableReference) || !indirect_node->is_mutable()) {
-            return indirect_node->source().attribute().traverses(other, options);
+            return indirect_node->source().identifier().traverses(other, options);
         }
     }
     return *this == other;
@@ -63,11 +63,11 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
             }
 
             if (options & TraversalOptions::UpdateDependencies) {
-                AttributeID dependency = indirect_node->to_mutable().dependency();
+                auto dependency = indirect_node->to_mutable().dependency();
                 if (dependency) {
                     auto subgraph = dependency.subgraph();
                     if (subgraph) {
-                        subgraph->graph()->update_attribute(dependency, false);
+                        subgraph->graph()->update_attribute(dependency.get_node(), AGGraphUpdateOptionsNone);
                     }
                 }
             }
@@ -83,7 +83,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
         }
 
         offset += indirect_node->offset();
-        result = indirect_node->source().attribute();
+        result = indirect_node->source().identifier();
     }
 
     if (options & TraversalOptions::AssertNotNil && !result.is_node()) {

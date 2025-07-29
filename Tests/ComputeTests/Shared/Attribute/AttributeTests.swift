@@ -29,19 +29,19 @@ struct AttributeTests {
             )
 
             let attributeType = attribute.identifier.info.type.pointee
-            #expect(attributeType.selfType == Metadata(External<Int>.self))
-            #expect(attributeType.valueType == Metadata(Int.self))
+            #expect(attributeType.self_id == Metadata(External<Int>.self))
+            #expect(attributeType.value_id == Metadata(Int.self))
 
             #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
-            #expect(attributeType.selfOffset == 28)
-            #expect(attributeType.layout.map { ValueLayout(storage: $0) } == expectedlayout)
+            #expect(attributeType.internal_offset == 28)
+            #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
 
             let attributeBody = unsafeBitCast(
                 External<Int>.self as any _AttributeBody.Type,
                 to: (type: Metadata, witnessTable: UnsafeRawPointer).self
             )
-            #expect(attributeType.attributeBodyType == attributeBody.type)
-            #expect(attributeType.attributeBodyWitnessTable == attributeBody.witnessTable)
+            #expect(attributeType.body_conformance.type_id == attributeBody.type)
+            #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
         }
 
         @Test
@@ -57,19 +57,19 @@ struct AttributeTests {
             )
 
             let attributeType = attribute.identifier.info.type.pointee
-            #expect(attributeType.selfType == Metadata(External<Int>.self))
-            #expect(attributeType.valueType == Metadata(Int.self))
+            #expect(attributeType.self_id == Metadata(External<Int>.self))
+            #expect(attributeType.value_id == Metadata(Int.self))
 
             #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
-            #expect(attributeType.selfOffset == 28)
-            #expect(attributeType.layout.map { ValueLayout(storage: $0) } == expectedlayout)
+            #expect(attributeType.internal_offset == 28)
+            #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
 
             let attributeBody = unsafeBitCast(
                 External<Int>.self as any _AttributeBody.Type,
                 to: (type: Metadata, witnessTable: UnsafeRawPointer).self
             )
-            #expect(attributeType.attributeBodyType == attributeBody.type)
-            #expect(attributeType.attributeBodyWitnessTable == attributeBody.witnessTable)
+            #expect(attributeType.body_conformance.type_id == attributeBody.type)
+            #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
         }
 
         @Test
@@ -98,19 +98,19 @@ struct AttributeTests {
             )
 
             let attributeType = attribute.identifier.info.type.pointee
-            #expect(attributeType.selfType == Metadata(TestBody.self))
-            #expect(attributeType.valueType == Metadata(String.self))
+            #expect(attributeType.self_id == Metadata(TestBody.self))
+            #expect(attributeType.value_id == Metadata(String.self))
 
             #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
-            #expect(attributeType.selfOffset == 28)
-            #expect(attributeType.layout.map { ValueLayout(storage: $0) } == expectedlayout)
+            #expect(attributeType.internal_offset == 28)
+            #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
 
             let attributeBody = unsafeBitCast(
                 External<Int>.self as any _AttributeBody.Type,
                 to: (type: Metadata, witnessTable: UnsafeRawPointer).self
             )
-            #expect(attributeType.attributeBodyType == attributeBody.type)
-            #expect(attributeType.attributeBodyWitnessTable == attributeBody.witnessTable)
+            #expect(attributeType.body_conformance.type_id == attributeBody.type)
+            #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
         }
 
         @Test
@@ -312,8 +312,15 @@ struct AttributeTests {
 
         @Test
         func validate() {
-            let attribute = Attribute(value: 0)
+            let attribute = Attribute(value: 1)
             attribute.validate()
+        }
+        
+        @Test
+        func value() {
+            let attribute = Attribute(value: 1)
+            let value = attribute.value
+            #expect(value == 1)
         }
 
     }

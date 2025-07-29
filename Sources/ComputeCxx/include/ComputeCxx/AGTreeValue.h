@@ -10,7 +10,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-typedef uint32_t AGTreeValue AG_SWIFT_STRUCT AG_SWIFT_NAME(TreeValue);
+typedef struct _AGTreeValue *AGTreeValue AG_SWIFT_STRUCT AG_SWIFT_NAME(TreeValue);
 
 CF_EXPORT
 AGTypeID AGTreeValueGetType(AGTreeValue tree_value) CF_SWIFT_NAME(getter:AGTreeValue.type(self:));

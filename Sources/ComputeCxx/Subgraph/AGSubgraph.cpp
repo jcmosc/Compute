@@ -143,9 +143,9 @@ void AGSubgraphSetIndex(AGSubgraphRef subgraph, uint32_t index) {
 
 #pragma mark - Observers
 
-uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
-                               void (*observer)(void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                               void *observer_context) {
+AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
+                                 void (*observer)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                 const void *observer_context) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
@@ -154,7 +154,7 @@ uint64_t AGSubgraphAddObserver(AGSubgraphRef subgraph,
     return AG::Subgraph::from_cf(subgraph)->add_observer(callback);
 }
 
-void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, uint64_t observer_id) {
+void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, AGUniqueID observer_id) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         AG::precondition_failure("accessing invalidated subgraph");
     }
@@ -282,12 +282,20 @@ AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
 }
 
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), void *body_context) {
+                     void (*body)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), const void *body_context) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         return;
     }
 
     AG::Subgraph::from_cf(subgraph)->apply(options, AG::ClosureFunctionAV<void, unsigned int>(body, body_context));
+}
+
+void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+    if (AG::Subgraph::from_cf(subgraph) == nullptr) {
+        return;
+    }
+
+    AG::Subgraph::from_cf(subgraph)->update(mask);
 }
 
 #pragma mark - Tree
@@ -298,7 +306,7 @@ AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) {
     }
 
     auto tree_root = AG::Subgraph::from_cf(subgraph)->tree_root();
-    return AGTreeElement(tree_root);
+    return AGTreeElement((uintptr_t)tree_root);
 }
 
 void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner) {

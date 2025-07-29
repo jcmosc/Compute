@@ -1,18 +1,28 @@
-public func withUnsafeTuple(of type: TupleType, count: Int, body: (UnsafeMutableTuple) -> Void) {
+public func withUnsafeTuple(
+    of type: TupleType,
+    count: Int,
+    body: (UnsafeMutableTuple) -> Void
+) {
     return TupleType.withUnsafeTuple(of: type, count: count, body: body)
 }
 
 extension TupleType {
 
     @_extern(c, "AGTupleWithBuffer")
-    fileprivate static func withUnsafeTuple(of type: TupleType, count: Int, body: (UnsafeMutableTuple) -> Void)
+    fileprivate static func withUnsafeTuple(
+        of type: TupleType,
+        count: Int,
+        body: (UnsafeMutableTuple) -> Void
+    )
 
     public init(_ types: [Any.Type]) {
-        self.init(count: UInt32(types.count), elements: types.map(Metadata.init))
+        self.init(count: types.count, elements: types.map(Metadata.init))
     }
 
     public init(_ type: Any.Type) {
-        self.init(rawValue: unsafeBitCast(type, to: OpaquePointer.self))
+        self.init(
+            rawValue: unsafeBitCast(type, to: UnsafePointer<_Metadata>.self)
+        )
     }
 
     public var type: Any.Type {
@@ -28,11 +38,11 @@ extension TupleType {
     }
 
     public func type(at index: Int) -> Any.Type {
-        return elementType(at: UInt32(index)).type
+        return elementType(at: index).type
     }
 
     public func offset<T>(at index: Int, as type: T.Type) -> Int {
-        return elementOffset(at: UInt32(index), type: Metadata(type))
+        return elementOffset(at: index, type: Metadata(type))
     }
 
     public func getElement<T>(
@@ -41,7 +51,14 @@ extension TupleType {
         to destinationValue: UnsafeMutablePointer<T>,
         options: CopyOptions
     ) {
-        __AGTupleGetElement(self, tupleValue, UInt32(index), destinationValue, Metadata(T.self), options)
+        __AGTupleGetElement(
+            self,
+            tupleValue,
+            index,
+            destinationValue,
+            Metadata(T.self),
+            options
+        )
     }
 
     public func setElement<T>(
@@ -50,7 +67,14 @@ extension TupleType {
         from sourceValue: UnsafePointer<T>,
         options: CopyOptions
     ) {
-        __AGTupleSetElement(self, tupleValue, UInt32(index), sourceValue, Metadata(T.self), options)
+        __AGTupleSetElement(
+            self,
+            tupleValue,
+            index,
+            sourceValue,
+            Metadata(T.self),
+            options
+        )
     }
 
 }
@@ -76,9 +100,13 @@ extension UnsafeTuple {
         return value.assumingMemoryBound(to: expectedType)
     }
 
-    public func address<T>(of index: Int, as elementType: T.Type) -> UnsafePointer<T> {
-        return value.advanced(by: type.elementOffset(at: UInt32(index), type: Metadata(elementType)))
-            .assumingMemoryBound(to: elementType)
+    public func address<T>(of index: Int, as elementType: T.Type)
+        -> UnsafePointer<T>
+    {
+        return value.advanced(
+            by: type.elementOffset(at: index, type: Metadata(elementType))
+        )
+        .assumingMemoryBound(to: elementType)
     }
 
     public subscript<T>() -> T {
@@ -116,7 +144,12 @@ extension UnsafeMutableTuple {
 
     public func initialize<T>(at index: Int, to element: T) {
         withUnsafePointer(to: element) { elementPointer in
-            type.setElement(in: value, at: index, from: elementPointer, options: .initCopy)
+            type.setElement(
+                in: value,
+                at: index,
+                from: elementPointer,
+                options: .initCopy
+            )
         }
     }
 
@@ -125,7 +158,7 @@ extension UnsafeMutableTuple {
     }
 
     public func deinitialize(at index: Int) {
-        type.destroy(value, at: UInt32(index))
+        type.destroy(value, at: index)
     }
 
     public var count: Int {
@@ -147,9 +180,13 @@ extension UnsafeMutableTuple {
         return value.assumingMemoryBound(to: expectedType)
     }
 
-    public func address<T>(of index: Int, as elementType: T.Type) -> UnsafeMutablePointer<T> {
-        return value.advanced(by: type.elementOffset(at: UInt32(index), type: Metadata(elementType)))
-            .assumingMemoryBound(to: elementType)
+    public func address<T>(of index: Int, as elementType: T.Type)
+        -> UnsafeMutablePointer<T>
+    {
+        return value.advanced(
+            by: type.elementOffset(at: index, type: Metadata(elementType))
+        )
+        .assumingMemoryBound(to: elementType)
     }
 
     public subscript<T>() -> T {

@@ -6,6 +6,7 @@
 #include "Attribute/AttributeData/Edge/OutputEdge.h"
 #include "Attribute/AttributeID/RelativeAttributeID.h"
 #include "ComputeCxx/AGAttribute.h"
+#include "ComputeCxx/AGGraph.h"
 #include "Data/Pointer.h"
 #include "Data/Vector.h"
 
@@ -19,18 +20,29 @@ class zone;
 class AttributeType;
 class Graph;
 
+enum class NodeState : uint8_t {
+    Dirty = 1 << 0,
+    Pending = 1 << 1,
+    MainThread = 1 << 2,
+    RequiresMainThread = 1 << 3,
+    ValueInitialized = 1 << 4,
+    SelfInitialized = 1 << 5,
+    Updating = 1 << 6,
+    UpdatingCyclic = 1 << 7,
+};
+inline NodeState operator|(NodeState a, NodeState b) {
+    return static_cast<NodeState>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
+inline NodeState operator&(NodeState a, NodeState b) {
+    return static_cast<NodeState>(static_cast<uint8_t>(a) & static_cast<uint8_t>(b));
+}
+inline NodeState operator~(NodeState a) { return static_cast<NodeState>(~static_cast<uint8_t>(a)); }
+
 class Node {
   private:
-    // Value state
-    unsigned int _dirty : 1 = 0;
-    unsigned int _pending : 1 = 0;
-    unsigned int _main_thread : 1 = 0;
-    unsigned int _main_thread_only : 1 = 0;
+    NodeState _state;
 
-    // Node state
-    unsigned int _value_initialized : 1 = 0;
-    unsigned int _self_initialized : 1 = 0;
-    unsigned int _update_count : 2 = 0;
+    // Attribute type
     unsigned int _type_id : 24 = 0;
 
     // Subgraph
@@ -53,39 +65,56 @@ class Node {
 
   public:
     Node(uint32_t type_id, bool main_thread)
-        : _type_id(type_id), _main_thread(main_thread), _main_thread_only(main_thread) {};
+        : _type_id(type_id),
+          _state(main_thread ? NodeState::MainThread | NodeState::RequiresMainThread : (NodeState)0) {};
 
     // Non-copyable
     Node(const Node &) = delete;
     Node &operator=(const Node &) = delete;
 
-    // Non-movabe
+    // Non-movable
     Node(Node &&) = delete;
     Node &operator=(Node &&) = delete;
 
-    bool is_dirty() const { return _dirty; }
-    void set_dirty(bool value) { _dirty = value; }
+    NodeState state() const { return _state; }
 
-    bool is_pending() const { return _pending; }
-    void set_pending(bool value) { _pending = value; }
+    bool is_dirty() const { return (_state & NodeState::Dirty) != (NodeState)0; }
+    void set_dirty(bool value) { _state = value ? _state | NodeState::Dirty : _state & ~NodeState::Dirty; }
 
-    bool is_main_thread() const { return _main_thread; }
+    bool is_pending() const { return (_state & NodeState::Pending) != (NodeState)0; }
+    void set_pending(bool value) { _state = value ? _state | NodeState::Pending : _state & ~NodeState::Pending; }
 
-    bool is_main_thread_only() const { return _main_thread_only; }
-    void set_main_thread_only(bool value) { _main_thread_only = value; }
+    bool is_main_thread() const { return (_state & NodeState::MainThread) != (NodeState)0; }
+    void set_main_thread(bool value) {
+        _state = value ? _state | NodeState::MainThread : _state & ~NodeState::MainThread;
+    }
 
-    bool is_value_initialized() const { return _value_initialized; }
-    void set_value_initialized(bool value) { _value_initialized = value; }
+    bool requires_main_thread() const { return (_state & NodeState::RequiresMainThread) != (NodeState)0; }
+    void set_requires_main_thread(bool value) {
+        _state = value ? _state | NodeState::RequiresMainThread : _state & ~NodeState::RequiresMainThread;
+    }
 
-    bool is_self_initialized() const { return _self_initialized; }
-    void set_self_initialized(bool value) { _self_initialized = value; }
+    bool is_value_initialized() const { return (_state & NodeState::ValueInitialized) != (NodeState)0; }
+    void set_value_initialized(bool value) {
+        _state = value ? _state | NodeState::ValueInitialized : _state & ~NodeState::ValueInitialized;
+    }
 
-    bool is_updating() const { return _update_count > 0; };
+    bool is_self_initialized() const { return (_state & NodeState::SelfInitialized) != (NodeState)0; }
+    void set_self_initialized(bool value) {
+        _state = value ? _state | NodeState::SelfInitialized : _state & ~NodeState::SelfInitialized;
+    }
+
+    bool is_updating() const { return (_state & (NodeState::Updating | NodeState::UpdatingCyclic)) != (NodeState)0; };
+    void set_updating(bool value) { _state = value ? _state | NodeState::Updating : _state & ~NodeState::Updating; }
+    uint8_t count() const { return (uint8_t)_state >> 6; };
 
     // TODO: test this
-    uint8_t value_state() const {
-        return _dirty << 0 | _pending << 1 | (_update_count > 0 ? 1 : 0) << 2 | _value_initialized << 3 |
-               _main_thread << 4 | _main_ref << 5 | _main_thread_only << 6 | _self_modified << 7;
+    AGValueState flags() const {
+        return (is_dirty() ? AGValueStateDirty : 0) | (is_pending() ? AGValueStatePending : 0) |
+               (is_updating() ? AGValueStateUpdating : 0) | (is_value_initialized() ? AGValueStateValueExists : 0) |
+               (is_main_thread() ? AGValueStateMainThread : 0) | (_main_ref ? AGValueStateMainRef : 0) |
+               (requires_main_thread() ? AGValueStateRequiresMainThread : 0) |
+               (_self_modified ? AGValueStateSelfModified : 0);
     };
 
     uint32_t type_id() const { return _type_id; };
@@ -104,9 +133,9 @@ class Node {
     bool has_indirect_value() const { return _has_indirect_value; }
     void set_has_indirect_value(bool value) { _has_indirect_value = value; }
 
+    bool input_edges_traverse_contexts() const { return _input_edges_traverse_contexts; }
     void set_input_edges_traverse_contexts(bool value) { _input_edges_traverse_contexts = value; }
 
-    bool needs_sort_input_edges() { return _needs_sort_input_edges; }
     void set_needs_sort_input_edges(bool value) { _needs_sort_input_edges = value; }
     void sort_input_edges_if_needed() {
         if (_needs_sort_input_edges) {
@@ -118,11 +147,21 @@ class Node {
     bool is_main_ref() const { return _main_ref; }
     void set_main_ref(bool value) { _main_ref = value; }
 
-    data::vector<InputEdge> &input_edges() { return _input_edges; }; // TODO: delete whole vector accessor
-    void add_input_edge(data::zone *subgraph, InputEdge &input_edge) {
-        _input_edges.push_back(subgraph, input_edge);
-        _needs_sort_input_edges = true;
+    bool is_self_modified() const { return _self_modified; }
+    void set_self_modified(bool value) { _self_modified = value; }
+
+    data::vector<InputEdge> &input_edges() { return _input_edges; };
+    uint32_t insert_input_edge(data::zone *subgraph, InputEdge &input_edge) {
+        if (_needs_sort_input_edges) {
+            _input_edges.push_back(subgraph, input_edge);
+            return _input_edges.size() - 1;
+        } else {
+            auto pos = std::lower_bound(_input_edges.begin(), _input_edges.end(), input_edge);
+            auto inserted = _input_edges.insert(subgraph, pos, input_edge);
+            return (uint32_t)(inserted - _input_edges.begin());
+        }
     }
+    void remove_input_edge(uint32_t index) { _input_edges.erase(_input_edges.begin() + index); }
 
     data::vector<OutputEdge> &output_edges() { return _output_edges; };
 

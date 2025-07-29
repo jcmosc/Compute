@@ -12,20 +12,20 @@ namespace AG {
 
 class WeakAttributeID {
   private:
-    AttributeID _attribute;
-    uint32_t _subgraph_id;
+    AttributeID _identifier;
+    uint32_t _seed;
 
   public:
-    WeakAttributeID(AttributeID attribute, uint32_t subgraph_id) : _attribute(attribute), _subgraph_id(subgraph_id) {}
+    WeakAttributeID(AttributeID identifier, uint32_t seed) : _identifier(identifier), _seed(seed) {}
 
-    operator AGWeakAttribute() const { return AGWeakAttribute(_attribute, _subgraph_id); }
+    operator AGWeakAttribute() const { return *reinterpret_cast<const AGWeakAttribute *>(this); }
     explicit constexpr WeakAttributeID(AGWeakAttribute storage)
-        : _attribute(storage.attribute), _subgraph_id(storage.subgraph_id) {}
+        : _identifier(storage._details.identifier), _seed(storage._details.seed) {}
 
     // MARK: Accessing data
 
-    const AttributeID attribute() const { return _attribute; };
-    uint32_t subgraph_id() const { return _subgraph_id; }
+    const AttributeID identifier() const { return _identifier; };
+    uint32_t seed() const { return _seed; }
 
     bool expired() const;
 

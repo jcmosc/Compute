@@ -49,7 +49,9 @@ let package = Package(
         .package(path: "../DarwinPrivateFrameworks"),
     ],
     targets: [
-        .target(name: "Utilities"),
+        .target(
+            name: "Utilities"
+        ),
         .testTarget(
             name: "UtilitiesTests",
             dependencies: ["Utilities"],
@@ -88,9 +90,9 @@ let package = Package(
         .swiftRuntimeTarget(
             name: "ComputeCxx",
             dependencies: ["Utilities", "ComputeCxxSwiftSupport"],
-            cxxSettings: [.headerSearchPath("")]
+            cxxSettings: [.headerSearchPath(""), .unsafeFlags(["-Wno-elaborated-enum-base"])]
         ),
         .target(name: "ComputeCxxSwiftSupport"),
     ],
-    cxxLanguageStandard: .cxx20
+    cxxLanguageStandard: .cxx20,
 )

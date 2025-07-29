@@ -28,7 +28,7 @@ enum class HeapMode : uint16_t {
     Locals = 1 << 1,
     GenericLocals = 1 << 2,
 };
-inline bool operator&(HeapMode a, HeapMode b) { return a & b; }
+inline bool operator&(HeapMode a, HeapMode b) { return (uint16_t)a & (uint16_t)b; }
 inline HeapMode operator|(HeapMode a, HeapMode b) { return a | b; }
 
 extern unsigned char base_address;

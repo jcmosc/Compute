@@ -1,6 +1,9 @@
 #include "Subgraph.h"
 
 #include <ranges>
+#include <stack>
+
+#include <Utilities/CFPointer.h>
 
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeData/Node/IndirectNode.h"
@@ -8,6 +11,8 @@
 #include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Attribute/AttributeView/AttributeView.h"
 #include "Graph/Context.h"
+#include "Graph/Tree/TreeElement.h"
+#include "Graph/UpdateStack.h"
 #include "Trace/Trace.h"
 
 namespace AG {
@@ -23,7 +28,14 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
 
     if (AGSubgraphShouldRecordTree()) {
         if (!attribute || attribute.is_nil()) {
-            // TODO: get currently updating attribute
+            auto update = Graph::current_update();
+            if (update.tag() == 0 && update.get() != nullptr) {
+                if (update.get()->graph() == graph) {
+                    if (auto frame = update.get()->global_top()) {
+                        attribute = AttributeID(frame->attribute);
+                    }
+                }
+            }
         }
         begin_tree(attribute, nullptr, 0);
     }
@@ -71,7 +83,7 @@ void Subgraph::set_current_subgraph(Subgraph *subgraph) { pthread_setspecific(_c
 
 #pragma mark - Observers
 
-uint64_t Subgraph::add_observer(ClosureFunctionVV<void> callback) {
+AGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
     if (!_observers) {
         _observers =
             alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
@@ -84,7 +96,7 @@ uint64_t Subgraph::add_observer(ClosureFunctionVV<void> callback) {
     return observer_id;
 }
 
-void Subgraph::remove_observer(uint64_t observer_id) {
+void Subgraph::remove_observer(AGUniqueID observer_id) {
     if (auto observers_ptr = _observers.get()) {
         auto observers = *observers_ptr;
         auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
@@ -172,10 +184,12 @@ void Subgraph::invalidate_now(Graph &graph) {
             removed_subgraphs.push_back(subgraph);
 
             // Invalidate all children that belong to the same context
-            // Update parent and child vectors of subgraphs that aren't being invalidated
+            // Update parent and child vectors of subgraphs that aren't being
+            // invalidated
             for (auto child : subgraph->_children) {
                 if (child.subgraph()->context_id() == _context_id) {
-                    // for each other parent of the child, remove the child from that parent
+                    // for each other parent of the child, remove the child from
+                    // that parent
                     for (auto other_parent : child.subgraph()->_parents) {
                         if (other_parent == subgraph) {
                             continue;
@@ -201,7 +215,8 @@ void Subgraph::invalidate_now(Graph &graph) {
                         invalidating_subgraphs.push(child.subgraph());
                     }
                 } else {
-                    // don't invalidate this child but remove this subgraph from its parents vector
+                    // don't invalidate this child but remove this subgraph from
+                    // its parents vector
                     auto iter =
                         std::remove(child.subgraph()->_parents.begin(), child.subgraph()->_parents.end(), subgraph);
                     child.subgraph()->_parents.erase(iter);
@@ -232,7 +247,8 @@ void Subgraph::invalidate_now(Graph &graph) {
     // TODO: destroy nodes
     for (auto removed_subgraph : removed_subgraphs) {
         for (auto page : removed_subgraph->pages()) {
-            // store previous node so we can iterate past it before destroying it
+            // store previous node so we can iterate past it before destroying
+            // it
             data::ptr<Node> previous_node = nullptr;
             bool found_nil_attribute = false;
             for (auto attribute : attribute_view(page)) {
@@ -440,8 +456,9 @@ void Subgraph::propagate_dirty_flags() {
 void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
     AttributeID previous_attribute = AttributeID(AGAttributeNil);
 
-    // sort attributes with flags before indirect attributes or attributes without flags
-    // the attribute will only be non-updatable if it is a non-mutable indirect node that does not traverse subgraphs
+    // sort attributes with flags before indirect attributes or attributes
+    // without flags the attribute will only be non-updatable if it is a
+    // non-mutable indirect node that does not traverse subgraphs
     if (updatable && !attribute.has_subgraph_flags()) {
         for (auto other : attribute_view(attribute.page_ptr())) {
             if (!other.has_subgraph_flags()) {
@@ -509,15 +526,16 @@ void Subgraph::add_node(data::ptr<Node> node) {
     node->set_subgraph_flags(AGAttributeFlagsDefault);
     insert_attribute(AttributeID(node), true);
 
-    //    if (_tree_root) {
-    //        graph()->add_tree_data_for_subgraph(this, _tree_root, node);
-    //    }
+    if (_tree_root) {
+        graph()->add_tree_data_for_subgraph(this, _tree_root, node);
+    }
 
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
 
 void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
-    insert_attribute(AttributeID(node), flag); // make sure adds Indirect kind to node
+    insert_attribute(AttributeID(node),
+                     flag); // make sure adds Indirect kind to node
 
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
@@ -558,10 +576,11 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
                             break;
                         }
                         if (auto node = attribute.get_node()) {
-                            if (options) {
+                            if (options) { // TODO: options or mask?
                                 if (node->subgraph_flags() == AGAttributeFlagsDefault) {
-                                    // we know this attribute is sorted after all nodes with flags
-                                    // so we aren't going to match any more attributes after this
+                                    // we know this attribute is sorted after
+                                    // all nodes with flags so we aren't going
+                                    // to match any more attributes after this
                                     break;
                                 }
                                 if (!(node->subgraph_flags() & flags)) {
@@ -571,9 +590,10 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
 
                             body(attribute);
                         } else if (attribute.is_indirect_node()) {
-                            if (options) {
-                                // we know this attribute is sorted after all nodes with flags
-                                // so we aren't going to match any more attributes after this
+                            if (options) { // TODO: options or mask?
+                                // we know this attribute is sorted after all
+                                // nodes with flags so we aren't going to match
+                                // any more attributes after this
                                 break;
                             }
                         }
@@ -590,6 +610,106 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
             }
         }
     }
+}
+
+void Subgraph::update(AGAttributeFlags mask) {
+    if (_graph->needs_update() && _graph->thread_is_updating()) {
+        _graph->call_update();
+    }
+
+    if (!is_valid() || !is_dirty(mask)) {
+        _graph->invalidate_subgraphs();
+        return;
+    }
+
+    _graph->foreach_trace([this, &mask](Trace &trace) { trace.begin_update(*this, mask); });
+    _last_traversal_seed += 1;
+
+    auto subgraph_objects =
+        std::stack<util::cf_ptr<AGSubgraphRef>, vector<util::cf_ptr<AGSubgraphRef>, 32, uint64_t>>();
+    auto dirty_nodes = vector<data::ptr<Node>, 256, uint64_t>();
+
+    subgraph_objects.push(util::cf_ptr(to_cf()));
+    _traversal_seed = _last_traversal_seed;
+
+    while (!subgraph_objects.empty()) {
+        bool created_transaction = false;
+
+        util::cf_ptr<AGSubgraphRef> subgraph_object = subgraph_objects.top();
+        subgraph_objects.pop();
+
+        Subgraph *subgraph = Subgraph::from_cf(subgraph_object.get());
+        if (!subgraph) {
+            continue;
+        }
+
+        if (subgraph->is_valid() && subgraph->_dirty_flags & mask) {
+            subgraph->_dirty_flags &= ~mask;
+
+            if (mask == 0 || intersects(mask)) {
+                for (auto page : subgraph->pages()) {
+                    for (auto attribute : attribute_view(page)) {
+                        if (!attribute || attribute.is_nil()) {
+                            break;
+                        }
+                        if (auto node = attribute.get_node()) {
+                            if (mask) {
+                                if (node->subgraph_flags() == AGAttributeFlagsDefault) {
+                                    // we know this attribute is sorted after
+                                    // all nodes with flags so we aren't going
+                                    // to match any more attributes after this
+                                    break;
+                                }
+                                if (!(node->subgraph_flags() & mask)) {
+                                    continue;
+                                }
+                            }
+
+                            if (node->is_dirty()) {
+                                dirty_nodes.push_back(node);
+                            }
+                        } else if (attribute.is_indirect_node()) {
+                            if (mask) {
+                                // we know this attribute is sorted after all
+                                // nodes with flags so we aren't going to match
+                                // any more attributes after this
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (auto node : dirty_nodes) {
+                if (!created_transaction) {
+                    _graph->increment_transaction_count_if_needed();
+                }
+                _graph->update_attribute(node, AGGraphUpdateOptionsInTransaction);
+                created_transaction = true;
+                if (!subgraph->is_valid()) {
+                    break;
+                }
+            }
+            dirty_nodes.clear();
+        }
+
+        if (subgraph->is_valid() && subgraph->_descendent_dirty_flags & mask) {
+            subgraph->_descendent_dirty_flags &= ~mask;
+
+            for (auto child : subgraph->children()) {
+                Subgraph *child_subgraph = child.subgraph();
+                if (child_subgraph->is_dirty(mask) && child_subgraph->_traversal_seed != _traversal_seed) {
+                    subgraph_objects.push(util::cf_ptr(child_subgraph->to_cf()));
+                    child_subgraph->_traversal_seed = _traversal_seed;
+                }
+            }
+        }
+
+        _graph->invalidate_subgraphs();
+    }
+
+    _graph->invalidate_subgraphs();
+    _graph->foreach_trace([this](Trace &trace) { trace.end_update(*this); });
 }
 
 #pragma mark - Tree
@@ -649,10 +769,11 @@ AttributeID Subgraph::tree_node_at_index(Graph::TreeElementID tree_element, uint
         auto &nodes = tree_data_element->nodes();
 
         auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
-                                      [](auto iter, auto value) { return iter.first < value; });
+                                      [](auto iter, auto value) { return iter.first < (uint32_t)value; });
 
-        // Find the element that is `index` places after the first given tree element,
-        // stopping if we reach the next tree element before `index` places.
+        // Find the element that is `index` places after the first given tree
+        // element, stopping if we reach the next tree element before `index`
+        // places.
         uint64_t i = index;
         for (auto iter = found; iter != nodes.end(); ++iter) {
             if (iter->first != tree_element) {
@@ -679,9 +800,9 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
     }
 
     auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
-                                  [](auto iter, auto value) -> bool { return iter.first < value; });
+                                  [](auto iter, auto value) -> bool { return iter.first < (uint32_t)value; });
     if (found == nodes.end()) {
-        return Graph::TreeElementID(nullptr);;
+        return Graph::TreeElementID(nullptr);
     }
 
     auto subgraph_children = vector<Subgraph *, 32, uint64_t>();
@@ -725,6 +846,36 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
     }
 
     return first_tree_child;
+}
+
+#pragma mark - Printing
+
+void Subgraph::print(uint32_t indent_level) {
+    uint64_t indent_length = 2 * indent_level;
+    char *indent_string = (char *)alloca(indent_length + 1);
+    memset(indent_string, ' ', indent_length);
+    indent_string[indent_length] = '\0';
+
+    fprintf(stdout, "%s+ %p: %u in %lu [", indent_string, this, (uint32_t)subgraph_id(), (unsigned long)_context_id);
+
+    bool first = true;
+    for (auto page : pages()) {
+        for (auto attribute : attribute_view(page)) {
+            if (auto node = attribute.get_node()) {
+                fprintf(stdout, "%s%u", first ? "" : " ", AGAttribute(attribute));
+                if (auto subgraph_flags = node->subgraph_flags()) {
+                    fprintf(stdout, "(%u)", subgraph_flags);
+                }
+                first = false;
+            }
+        }
+    }
+
+    fwrite("]\n", 2, 1, stdout);
+
+    for (auto child : _children) {
+        child.subgraph()->print(indent_level + 1);
+    }
 }
 
 } // namespace AG

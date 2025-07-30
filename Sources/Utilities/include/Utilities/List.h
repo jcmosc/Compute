@@ -59,9 +59,12 @@ template <typename T> class ForwardList {
 };
 
 template <typename T>
-ForwardList<T>::ForwardList() : _heap(new Heap(nullptr, 0, util::Heap::minimum_increment)), _is_heap_owner(true){};
+ForwardList<T>::ForwardList()
+    : _heap(new Heap(nullptr, 0, util::Heap::minimum_increment)), _front(nullptr), _spare(nullptr),
+      _is_heap_owner(true){};
 
-template <typename T> ForwardList<T>::ForwardList(util::Heap *heap) : _heap(heap), _is_heap_owner(false){};
+template <typename T>
+ForwardList<T>::ForwardList(util::Heap *heap) : _heap(heap), _front(nullptr), _spare(nullptr), _is_heap_owner(false){};
 
 template <typename T> ForwardList<T>::~ForwardList() {
     if (_is_heap_owner && _heap) {

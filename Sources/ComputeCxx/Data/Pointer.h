@@ -18,15 +18,16 @@ struct page;
 template <typename T> class ptr {
   public:
     using element_type = T;
-    using difference_type = uint32_t;
+    using offset_type = uint32_t;
+    using difference_type = int32_t;
 
   private:
-    difference_type _offset;
+    offset_type _offset;
 
     template <typename U> friend class ptr;
 
   public:
-    constexpr ptr(difference_type offset = 0) : _offset(offset) {};
+    constexpr ptr(offset_type offset = 0) : _offset(offset) {};
     constexpr ptr(nullptr_t): _offset(0) {};
 
     void assert_valid() const {
@@ -46,9 +47,9 @@ template <typename T> class ptr {
 
     ptr<page> page_ptr() const noexcept { return ptr<page>(_offset & ~page_alignment_mask); }
 
-    difference_type offset() const noexcept { return _offset; }
+    offset_type offset() const noexcept { return _offset; }
 
-    template <typename U> ptr<U> aligned(difference_type alignment_mask = sizeof(difference_type) - 1) const {
+    template <typename U> ptr<U> aligned(offset_type alignment_mask = sizeof(offset_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);
     };
 
@@ -64,10 +65,10 @@ template <typename T> class ptr {
     bool operator==(nullptr_t) const noexcept { return _offset == 0; };
     bool operator!=(nullptr_t) const noexcept { return _offset != 0; };
 
-    bool operator<(difference_type offset) const noexcept { return _offset < offset; };
-    bool operator<=(difference_type offset) const noexcept { return _offset <= offset; };
-    bool operator>(difference_type offset) const noexcept { return _offset > offset; };
-    bool operator>=(difference_type offset) const noexcept { return _offset >= offset; };
+    bool operator<(offset_type offset) const noexcept { return _offset < offset; };
+    bool operator<=(offset_type offset) const noexcept { return _offset <= offset; };
+    bool operator>(offset_type offset) const noexcept { return _offset > offset; };
+    bool operator>=(offset_type offset) const noexcept { return _offset >= offset; };
 
     template <typename U> ptr<U> operator+(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
     template <typename U> ptr<U> operator-(difference_type shift) const noexcept { return ptr<U>(_offset - shift); };

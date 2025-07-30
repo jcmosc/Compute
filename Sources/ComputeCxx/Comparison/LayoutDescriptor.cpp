@@ -433,6 +433,7 @@ bool compare_bytes(const unsigned char *lhs, const unsigned char *rhs, size_t si
             lhs += 8;
             rhs += 8;
             location += 8;
+            remaining_size -= 8;
         }
     }
 
@@ -447,6 +448,7 @@ bool compare_bytes(const unsigned char *lhs, const unsigned char *rhs, size_t si
         lhs += 1;
         rhs += 1;
         location += 1;
+        remaining_size -= 1;
     }
 
     return true;

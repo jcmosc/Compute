@@ -572,7 +572,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
     }
 
     InputEdge new_input_edge = {
-        resolved_input,
+        input,
         static_cast<AGInputOptions>((options & (AGInputOptionsUnprefetched | AGInputOptionsAlwaysEnabled)) |
                                     (node->is_dirty() ? AGInputOptionsChanged : AGInputOptionsNone)),
     };

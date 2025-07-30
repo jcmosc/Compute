@@ -130,8 +130,9 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
             if (map_index >= _page_maps.size()) {
                 map_index -= _page_maps.size(); // wrap around
             }
-
-            page_map_type free_pages_map = _page_maps[map_index].flip();
+            
+            auto map_copy = std::bitset(_page_maps[map_index]);
+            page_map_type free_pages_map = map_copy.flip();
             while (free_pages_map.any()) {
 
                 int candidate_bit = std::countr_zero(static_cast<uint64_t>(free_pages_map.to_ullong()));

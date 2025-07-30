@@ -67,12 +67,18 @@ ptr<void> zone::alloc_bytes(uint32_t size, uint32_t alignment_mask) {
 }
 
 ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
-    for (ptr<bytes_info> bytes = _free_bytes; bytes; bytes = bytes->next) {
+    for (ptr<bytes_info> *indirect_bytes = &_free_bytes; *indirect_bytes; indirect_bytes = &(*indirect_bytes)->next) {
+        ptr<bytes_info> bytes = *indirect_bytes;
+
         if (size > bytes->size) {
             continue;
         }
 
         ptr<void> aligned_bytes = bytes.aligned<void>(alignment_mask);
+        auto unusable_size = aligned_bytes - bytes;
+        if (unusable_size >= bytes->size) {
+            continue;
+        }
         uint32_t usable_size = bytes->size + (bytes - aligned_bytes);
         if (size > usable_size) {
             continue;
@@ -83,6 +89,9 @@ ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
         if (size - bytes->size > 0xff) {
             continue;
         }
+
+        // Remove this bytes out of recycle list
+        *indirect_bytes = bytes->next;
 
         // check if there will be some bytes remaining within the same page
         auto end = aligned_bytes.advanced<void>(size);
@@ -129,7 +138,7 @@ ptr<void> zone::alloc_slow(uint32_t size, uint32_t alignment_mask) {
         new_page->next = _first_page;
         _first_page = new_page;
     } else {
-        uint32_t aligned_size = ((sizeof(page) + size) + alignment_mask) & ~alignment_mask;
+        uint32_t aligned_size = ((sizeof(page) + alignment_mask) & ~alignment_mask) + size;
         new_page = table::shared().alloc_page(this, aligned_size);
         if (_first_page) {
             // It's less likely we will be able to alloc unused bytes from this page,

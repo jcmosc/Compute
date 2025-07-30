@@ -196,24 +196,26 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos,
                                                                                                 const T &value) {
+    auto offset = pos - begin();
     reserve(_size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
+    iterator mutable_pos = begin() + offset;
     std::move_backward(mutable_pos, end(), end() + 1);
     new (mutable_pos) value_type(value);
     _size += 1;
-    return pos;
+    return mutable_pos;
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos,
                                                                                                 T &&value) {
+    auto offset = pos - begin();
     reserve(_size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
+    iterator mutable_pos = begin() + offset;
     std::move_backward(mutable_pos, end(), end() + 1);
-    new (pos) value_type(std::move(value));
+    new (mutable_pos) value_type(std::move(value));
     _size += 1;
-    return pos;
+    return mutable_pos;
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
@@ -498,8 +500,9 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator
         push_back(value);
         return end() - 1;
     }
+    auto offset = pos - begin();
     reserve(_size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
+    iterator mutable_pos = begin() + offset;
     std::move_backward(mutable_pos, end(), end() + 1);
     new (mutable_pos) value_type(value);
     _size += 1;
@@ -513,8 +516,9 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator
         push_back(std::move(value));
         return end() - 1;
     }
+    auto offset = pos - begin();
     reserve(_size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
+    iterator mutable_pos = begin() + offset;
     std::move_backward(mutable_pos, end(), end() + 1);
     new (mutable_pos) value_type(std::move(value));
     _size += 1;

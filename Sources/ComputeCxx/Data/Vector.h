@@ -145,8 +145,9 @@ template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_it
         push_back(zone, value);
         return end() - 1;
     }
+    auto offset = pos - begin();
     reserve(zone, _metadata.size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
+    iterator mutable_pos = begin() + offset;
     std::move_backward(mutable_pos, end(), end() + 1);
     new (mutable_pos) value_type(value);
     _metadata.size += 1;
@@ -158,10 +159,11 @@ template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_it
         push_back(zone, value);
         return end() - 1;
     }
+    auto offset = pos - begin();
     reserve(zone, _metadata.size + 1);
-    iterator mutable_pos = begin() + (pos - begin());
+    iterator mutable_pos = begin() + offset;
     std::move_backward(mutable_pos, end(), end() + 1);
-    new (pos) value_type(std::move(value));
+    new (mutable_pos) value_type(std::move(value));
     _metadata.size += 1;
     return mutable_pos;
 }

@@ -398,7 +398,7 @@ void Graph::remove_node(data::ptr<Node> node) {
         precondition_failure("deleting updating attribute: %u\n", node);
     }
 
-    for (auto input_edge : node->input_edges()) {
+    for (auto &input_edge : node->input_edges()) {
         this->remove_removed_input(AttributeID(node), input_edge.attribute);
     }
     for (auto output_edge : node->output_edges()) {
@@ -492,7 +492,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
 
     if (auto output_node = output.get_node()) {
         uint32_t index = 0;
-        for (auto input_edge : output_node->input_edges()) {
+        for (auto &input_edge : output_node->input_edges()) {
             if (input_edge.attribute.traverses(attribute, TraversalOptions::SkipMutableReference)) {
                 remove_input_edge(output_node, *output_node.get(), index);
                 return true;
@@ -745,7 +745,7 @@ uint32_t Graph::index_of_input(Node &node, InputEdge::Comparator comparator) {
         return index_of_input_slow(node, comparator);
     }
     uint32_t index = 0;
-    for (auto input_edge : node.input_edges()) {
+    for (auto &input_edge : node.input_edges()) {
         if (comparator.match(input_edge)) {
             return index;
         }
@@ -1185,7 +1185,7 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                 auto &input_edges = output_node->input_edges();
                 for (uint32_t input_index = 0, num_inputs = input_edges.size(); input_index < num_inputs;
                      ++input_index) {
-                    auto input_edge = input_edges[input_index];
+                    auto &input_edge = input_edges[input_index];
                     if (input_edge.attribute.resolve(TraversalOptions::SkipMutableReference).attribute() != attribute) {
                         continue;
                     }

@@ -740,7 +740,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
 
                         [result appendString:@"];\n"];
 
-                        for (auto input_edge : node->input_edges()) {
+                        for (auto &input_edge : node->input_edges()) {
 
                             AttributeID resolved_input_attribute =
                                 input_edge.attribute.resolve(TraversalOptions::None).attribute();
@@ -920,7 +920,7 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
                 if (!frame.attribute->input_edges().empty()) {
                     NSMutableArray *inputs = [NSMutableArray array];
 
-                    for (auto input_edge : frame.attribute->input_edges()) {
+                    for (auto &input_edge : frame.attribute->input_edges()) {
                         NSMutableDictionary *input_dictionary = [NSMutableDictionary dictionary];
 
                         input_dictionary[@"id"] = @((uint32_t)input_edge.attribute);

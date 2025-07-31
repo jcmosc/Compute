@@ -42,7 +42,7 @@ extension AnyAttribute {
 
     // Node
 
-    public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
+    public func setFlags(_ newFlags: Subgraph.Flags, mask: Subgraph.Flags) {
         flags = flags.subtracting(mask).union(newFlags.intersection(mask))
     }
 

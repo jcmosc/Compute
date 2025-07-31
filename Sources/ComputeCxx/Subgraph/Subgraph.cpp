@@ -394,7 +394,7 @@ void Subgraph::set_flags(data::ptr<Node> node, AGAttributeFlags flags) {
     if (node->subgraph_flags() == flags) {
         return;
     }
-    if (node->subgraph_flags() == AGAttributeFlagsDefault || flags == AGAttributeFlagsDefault) {
+    if (node->subgraph_flags() == AGAttributeFlagsNone || flags == AGAttributeFlagsNone) {
         // unlink and reinsert to trigger a reorder
         unlink_attribute(AttributeID(node));
         node->set_subgraph_flags(flags);
@@ -523,7 +523,7 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
 }
 
 void Subgraph::add_node(data::ptr<Node> node) {
-    node->set_subgraph_flags(AGAttributeFlagsDefault);
+    node->set_subgraph_flags(AGAttributeFlagsNone);
     insert_attribute(AttributeID(node), true);
 
     if (_tree_root) {
@@ -547,7 +547,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
         return;
     }
 
-    AGAttributeFlags flags = options & AGAttributeFlagsMask;
+    AGAttributeFlags flags = options & AGAttributeFlagsAll;
     if (!intersects(flags)) {
         return;
     }
@@ -577,7 +577,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
                         }
                         if (auto node = attribute.get_node()) {
                             if (options) { // TODO: options or mask?
-                                if (node->subgraph_flags() == AGAttributeFlagsDefault) {
+                                if (node->subgraph_flags() == AGAttributeFlagsNone) {
                                     // we know this attribute is sorted after
                                     // all nodes with flags so we aren't going
                                     // to match any more attributes after this
@@ -654,7 +654,7 @@ void Subgraph::update(AGAttributeFlags mask) {
                         }
                         if (auto node = attribute.get_node()) {
                             if (mask) {
-                                if (node->subgraph_flags() == AGAttributeFlagsDefault) {
+                                if (node->subgraph_flags() == AGAttributeFlagsNone) {
                                     // we know this attribute is sorted after
                                     // all nodes with flags so we aren't going
                                     // to match any more attributes after this

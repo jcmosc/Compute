@@ -13,7 +13,7 @@ namespace AG {
 
 bool AttributeID::has_subgraph_flags() const {
     if (auto node = get_node()) {
-        return node->subgraph_flags() != AGAttributeFlagsDefault;
+        return node->subgraph_flags() != AGAttributeFlagsNone;
     }
     return false;
 }

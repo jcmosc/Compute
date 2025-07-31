@@ -74,7 +74,7 @@ public struct Attribute<Value> {
         identifier.visitBody(&visitor)
     }
 
-    public var flags: AGAttributeFlags {
+    public var flags: Subgraph.Flags {
         get {
             return identifier.flags
         }
@@ -83,7 +83,7 @@ public struct Attribute<Value> {
         }
     }
 
-    public func setFlags(_ newFlags: AGAttributeFlags, mask: AGAttributeFlags) {
+    public func setFlags(_ newFlags: Subgraph.Flags, mask: Subgraph.Flags) {
         identifier.setFlags(newFlags, mask: mask)
     }
 

@@ -20,7 +20,7 @@ extension Subgraph {
     }
 
     public func forEach(
-        _ flags: AGAttributeFlags,
+        _ flags: Subgraph.Flags,
         _ body: (AnyAttribute) -> Void
     ) {
         fatalError("not implemented")

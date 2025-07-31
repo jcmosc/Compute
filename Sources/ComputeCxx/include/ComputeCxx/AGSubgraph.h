@@ -122,12 +122,12 @@ bool AGSubgraphIsAncestor(AGSubgraphRef subgraph, AGSubgraphRef other)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGSubgraphIntersects(AGSubgraphRef subgraph, AGAttributeFlags mask)
-    CF_SWIFT_NAME(AGSubgraphRef.intersects(self:mask:));
+bool AGSubgraphIntersects(AGSubgraphRef subgraph, AGAttributeFlags flags)
+    CF_SWIFT_NAME(AGSubgraphRef.intersects(self:flags:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) CF_SWIFT_NAME(AGSubgraphRef.isDirty(self:mask:));
+bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags flags) CF_SWIFT_NAME(AGSubgraphRef.isDirty(self:flags:));
 
 // MARK: Attributes
 
@@ -148,7 +148,7 @@ void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags mask);
+void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags flags) CF_SWIFT_NAME(AGSubgraphRef.update(self:flags:));
 
 // MARK: Tree
 

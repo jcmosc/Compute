@@ -242,20 +242,20 @@ bool AGSubgraphIsAncestor(AGSubgraphRef subgraph, AGSubgraphRef other) {
 
 #pragma mark - Flags
 
-bool AGSubgraphIntersects(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+bool AGSubgraphIntersects(AGSubgraphRef subgraph, AGAttributeFlags flags) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         return false;
     }
 
-    return AG::Subgraph::from_cf(subgraph)->intersects(mask);
+    return AG::Subgraph::from_cf(subgraph)->intersects(flags);
 }
 
-bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+bool AGSubgraphIsDirty(AGSubgraphRef subgraph, AGAttributeFlags flags) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         return false;
     }
 
-    return AG::Subgraph::from_cf(subgraph)->is_dirty(mask);
+    return AG::Subgraph::from_cf(subgraph)->is_dirty(flags);
 }
 
 #pragma mark - Graph
@@ -290,12 +290,12 @@ void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
     AG::Subgraph::from_cf(subgraph)->apply(options, AG::ClosureFunctionAV<void, unsigned int>(body, body_context));
 }
 
-void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags mask) {
+void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags flags) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         return;
     }
 
-    AG::Subgraph::from_cf(subgraph)->update(mask);
+    AG::Subgraph::from_cf(subgraph)->update(flags);
 }
 
 #pragma mark - Tree

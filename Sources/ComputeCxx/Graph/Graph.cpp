@@ -102,7 +102,7 @@ Graph::Context *Graph::primary_context() const {
 
 bool Graph::is_context_updating(uint64_t context_id) {
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
-        for (auto frame : std::ranges::reverse_view(update.get()->frames())) {
+        for (auto &frame : std::ranges::reverse_view(update.get()->frames())) {
             auto subgraph = AttributeID(frame.attribute).subgraph();
             if (subgraph && subgraph->context_id() == context_id) {
                 return true;
@@ -1024,7 +1024,7 @@ void Graph::call_update() {
 
 void Graph::reset_update(data::ptr<Node> node) {
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
-        for (auto frame : update.get()->frames()) {
+        for (auto &frame : update.get()->frames()) {
             if (frame.attribute == node) {
                 frame.num_pushed_inputs = 0;
             }
@@ -1714,7 +1714,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
         bool stop = false;
-        for (auto update_frame : update.get()->frames()) {
+        for (auto &update_frame : update.get()->frames()) {
             if (update_frame.attribute->is_main_thread()) {
                 stop = true;
                 break;

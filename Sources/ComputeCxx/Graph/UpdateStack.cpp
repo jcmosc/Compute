@@ -29,7 +29,7 @@ Graph::UpdateStack::UpdateStack(Graph *graph, AGGraphUpdateOptions options)
 }
 
 Graph::UpdateStack::~UpdateStack() {
-    for (auto frame : _frames) {
+    for (auto &frame : _frames) {
         frame.attribute->set_updating(false);
     }
 
@@ -71,7 +71,7 @@ void Graph::UpdateStack::cancel() {
 bool Graph::UpdateStack::cancelled() {
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
         if (!update.get()->frames().empty()) {
-            auto last_frame = update.get()->frames().back();
+            auto &last_frame = update.get()->frames().back();
             return last_frame.cancelled;
         }
     }
@@ -82,7 +82,7 @@ bool Graph::UpdateStack::push(data::ptr<Node> node_ptr, Node &node, bool ignore_
     if (!node.is_updating() && _frames.size() + 1 <= _frames.capacity()) {
         node.set_updating(true);
 
-        Frame frame = {node_ptr, 0};
+        Frame frame = Frame(node_ptr);
         if (node.is_pending() || (!node.is_value_initialized() && initialize_value)) {
             frame.pending = true;
         }
@@ -116,7 +116,7 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
         const AttributeType &attribute_type = _graph->attribute_type(node.type_id());
         if (auto updateDefault = attribute_type.vtable().update_default) {
 
-            Frame frame = {node_ptr, 0};
+            Frame frame = Frame(node_ptr);
             if (node.is_pending() || (!node.is_value_initialized() && initialize_value)) {
                 frame.pending = true;
             }
@@ -140,11 +140,10 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
 
     node.set_updating(true);
 
-    Frame frame = {node_ptr, 0};
+    Frame frame = Frame(node_ptr);
     if (node.is_pending() || (!node.is_value_initialized() && initialize_value)) {
         frame.pending = true;
     }
-
     if ((old_state & (NodeState::Updating | old_state & NodeState::UpdatingCyclic)) != NodeState(0)) {
         frame.cyclic = true;
     }
@@ -155,7 +154,7 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
 
 Graph::UpdateStatus Graph::UpdateStack::update() {
     while (true) {
-        auto frame = _frames.back();
+        Frame &frame = _frames.back();
         data::ptr<Node> node = frame.attribute;
 
         // Check cancelled

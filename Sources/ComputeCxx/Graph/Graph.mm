@@ -127,7 +127,7 @@ void Graph::print_stack() {
              update_stack = update_stack.get()->next()) {
 
             for (auto frame_index = update_stack.get()->frames().size() - 1; frame_index >= 0; --frame_index) {
-                auto frame = update_stack.get()->frames()[frame_index];
+                auto &frame = update_stack.get()->frames()[frame_index];
 
                 uint32_t count = frame.attribute->count();
                 uint32_t input_index = frame.num_pushed_inputs;
@@ -879,7 +879,7 @@ NSArray *Graph::description_stack_nodes(NSDictionary *options) {
     int frame_count = 0;
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
         auto &frames = update.get()->frames();
-        for (auto frame : std::ranges::reverse_view(update.get()->frames())) {
+        for (auto &frame : std::ranges::reverse_view(update.get()->frames())) {
             [nodes addObject:[NSNumber numberWithUnsignedInt:frame.attribute.offset()]];
 
             frame_count += 1;
@@ -904,7 +904,7 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
         int i = 0;
         auto &frames = update.get()->frames();
-        for (auto frame : frames) {
+        for (auto &frame : frames) {
 
             if (i == frame_index || frame.attribute == frame_node) {
 

@@ -9,7 +9,7 @@ CF_ASSUME_NONNULL_BEGIN
 namespace AG {
 
 class Graph::UpdateStack {
-  private:
+  protected:
     struct Frame {
         data::ptr<Node> attribute;
         unsigned int pending : 1;
@@ -17,6 +17,10 @@ class Graph::UpdateStack {
         unsigned int flag3 : 1;
         unsigned int cancelled : 1;
         unsigned int num_pushed_inputs : 28;
+
+        Frame() : attribute(nullptr), pending(0), cyclic(0), flag3(0), cancelled(0), num_pushed_inputs(0) {}
+        Frame(data::ptr<Node> node_ptr, bool _pending = false)
+            : attribute(node_ptr), pending(_pending ? 1 : 0), cyclic(0), flag3(0), cancelled(0), num_pushed_inputs(0) {}
     };
 
     Graph *_graph;

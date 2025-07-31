@@ -457,7 +457,7 @@ inline AGChangedValue get_value(AG::AttributeID attribute_id, uint32_t seed, AGV
             auto &update = *update_ptr.get();
 
             auto graph = update.graph();
-            auto frame = update.frames().back();
+            auto &frame = update.frames().back();
 
             AGChangedValueFlags flags = 0;
             void *value = graph->input_value_ref(frame.attribute, attribute_id, seed,
@@ -748,7 +748,10 @@ AGAttribute AGGraphGetCurrentAttribute() {
     }
 
     auto &update = *update_ptr.get();
-    auto frame = update.frames().back();
+    if (update.frames().empty()) {
+        return AGAttributeNil;
+    }
+    auto &frame = update.frames().back();
     if (!frame.attribute) {
         return AGAttributeNil;
     }
@@ -763,7 +766,7 @@ bool AGGraphCurrentAttributeWasModified() {
     }
 
     auto &update = *update_ptr.get();
-    auto frame = update.frames().back();
+    auto &frame = update.frames().back();
     if (!frame.attribute) {
         return false;
     }
@@ -777,7 +780,7 @@ bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, uint64_t exc
         AG::precondition_failure("no attribute updating");
     }
 
-    auto frame = update.get()->frames().back();
+    auto &frame = update.get()->frames().back();
     return update.get()->graph()->any_inputs_changed(
         frame.attribute, reinterpret_cast<const AG::AttributeID *>(exclude_attributes), exclude_attributes_count);
 }
@@ -789,7 +792,7 @@ void *AGGraphGetOutputValue(AGTypeID type) {
     }
 
     auto &update = *update_ptr.get();
-    auto frame = update.frames().back();
+    auto &frame = update.frames().back();
     auto graph = update.graph();
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
     return graph->output_value_ref(frame.attribute, *metadata);
@@ -802,7 +805,7 @@ void AGGraphSetOutputValue(const void *value, AGTypeID type) {
     }
 
     auto &update = *update_ptr.get();
-    auto frame = update.frames().back();
+    auto &frame = update.frames().back();
     if (!frame.attribute->is_updating()) {
         AG::precondition_failure("writing attribute that is not evaluating: %", frame.attribute);
     }

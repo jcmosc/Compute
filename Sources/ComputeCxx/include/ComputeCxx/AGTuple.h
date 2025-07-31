@@ -6,6 +6,7 @@
 #include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
+CF_IMPLICIT_BRIDGING_ENABLED
 
 CF_EXTERN_C_BEGIN
 
@@ -86,4 +87,5 @@ void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
 
 CF_EXTERN_C_END
 
+CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END

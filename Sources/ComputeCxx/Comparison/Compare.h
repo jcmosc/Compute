@@ -34,6 +34,14 @@ class Compare {
         Enum(const swift::metadata *type, Mode mode, unsigned int enum_tag, size_t offset, const unsigned char *lhs,
              const unsigned char *lhs_copy, const unsigned char *rhs, const unsigned char *rhs_copy, bool owns_copies);
         ~Enum();
+
+        // Non-copyable
+        Enum(const Enum &) = delete;
+        Enum &operator=(const Enum &) = delete;
+
+        // Non-moveable
+        Enum(Enum &&) = delete;
+        Enum &operator=(Enum &&) = delete;
     };
 
     class Frame {

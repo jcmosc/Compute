@@ -99,6 +99,8 @@ class vector {
     void push_back(const T &value);
     void push_back(T &&value);
     void pop_back();
+    
+    template <typename... Args> reference emplace_back(Args &&...args);
 
     void resize(size_type count);
     void resize(size_type count, const value_type &value);
@@ -259,6 +261,16 @@ void vector<T, _inline_capacity, size_type>::push_back(T &&value) {
     reserve(_size + 1);
     new (&data()[_size]) value_type(std::move(value));
     _size += 1;
+}
+
+template <typename T, unsigned int _inline_capacity, typename size_type>
+    requires std::unsigned_integral<size_type>
+template <typename... Args>
+vector<T, _inline_capacity, size_type>::reference vector<T, _inline_capacity, size_type>::emplace_back(Args &&...args) {
+    reserve(_size + 1);
+    new (&data()[_size]) value_type(std::forward<Args>(args)...);
+    _size += 1;
+    return data()[_size - 1];
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>

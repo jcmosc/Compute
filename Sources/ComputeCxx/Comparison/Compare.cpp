@@ -39,10 +39,13 @@ Compare::Enum::~Enum() {
             type->vw_destroy((swift::opaque_value *)lhs_copy);
             type->vw_destroy((swift::opaque_value *)rhs_copy);
         }
+        type = nullptr;
     }
     if (owns_copies) {
         free((void *)lhs_copy);
+        lhs_copy = nullptr;
         free((void *)rhs_copy);
+        rhs_copy = nullptr;
     }
 }
 
@@ -245,9 +248,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
                 rhs_enum = rhs + offset;
             }
 
-            Enum enum_value = Enum(type, is_copy ? Enum::Mode::Managed : Enum::Mode::Unmanaged, lhs_tag, offset,
-                                   lhs + offset, lhs_enum, rhs + offset, rhs_enum, owns_copies);
-            _enums.push_back(enum_value);
+            _enums.emplace_back(type, is_copy ? Enum::Mode::Managed : Enum::Mode::Unmanaged, lhs_tag, offset,
+                                lhs + offset, lhs_enum, rhs + offset, rhs_enum, owns_copies);
 
             // Pretend the copies of the enum data are part the entire data
             // until we get to the end of the enum

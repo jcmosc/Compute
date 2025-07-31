@@ -7,6 +7,7 @@
 #include <ComputeCxx/AGType.h>
 
 CF_ASSUME_NONNULL_BEGIN
+CF_IMPLICIT_BRIDGING_ENABLED
 
 CF_EXTERN_C_BEGIN
 
@@ -68,4 +69,5 @@ void AGOverrideComparisonForTypeDescriptor(void *descriptor, AGComparisonMode mo
 
 CF_EXTERN_C_END
 
+CF_IMPLICIT_BRIDGING_DISABLED
 CF_ASSUME_NONNULL_END

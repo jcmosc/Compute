@@ -2,6 +2,15 @@ import ComputeCxx
 
 extension Graph {
 
+    @_transparent
+    public static func anyInputsChanged(excluding excludedAttributes: [AnyAttribute]) -> Bool {
+        return __AGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
+    }
+
+}
+
+extension Graph {
+
     @_extern(c, "AGGraphSetUpdateCallback")
     private static func setUpdateCallback(_ graph: UnsafeRawPointer, callback: (() -> Void)?)
 

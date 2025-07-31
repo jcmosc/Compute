@@ -774,7 +774,7 @@ bool AGGraphCurrentAttributeWasModified() {
     return frame.attribute->is_self_modified();
 }
 
-bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, uint64_t exclude_attributes_count) {
+bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, size_t exclude_attributes_count) {
     auto update = AG::Graph::current_update();
     if (update.tag() != 0 || update.get() == nullptr) {
         AG::precondition_failure("no attribute updating");

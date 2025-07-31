@@ -344,7 +344,7 @@ bool AGGraphCurrentAttributeWasModified(void) CF_SWIFT_NAME(getter:AGAttribute.c
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-bool AGGraphAnyInputsChanged(const AGAttribute *exclude_attributes, uint64_t exclude_attributes_count);
+bool AGGraphAnyInputsChanged(const AGAttribute *__counted_by(count) exclude_attributes, size_t count);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

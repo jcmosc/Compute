@@ -4,22 +4,25 @@
 #include <CoreFoundation/CFString.h>
 
 #include <ComputeCxx/AGGraph.h>
+#include <ComputeCxx/AGSwiftSupport.h>
 
 CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-CF_EXPORT
-const CFStringRef AGDescriptionFormat CF_SWIFT_NAME(AGGraphRef.descriptionFormat);
+typedef CFStringRef AGDescriptionOption AG_SWIFT_STRUCT CF_SWIFT_NAME(AGGraphRef.DescriptionOption);
 
 CF_EXPORT
-const CFStringRef AGDescriptionMaxFrames CF_SWIFT_NAME(AGGraphRef.maxFrames);
+const AGDescriptionOption AGDescriptionFormat CF_SWIFT_NAME(AGDescriptionOption.descriptionFormat);
 
 CF_EXPORT
-const CFStringRef AGDescriptionIncludeValues CF_SWIFT_NAME(AGGraphRef.includeValues);
+const AGDescriptionOption AGDescriptionMaxFrames CF_SWIFT_NAME(AGDescriptionOption.maxFrames);
 
 CF_EXPORT
-const CFStringRef AGDescriptionTruncationLimit CF_SWIFT_NAME(AGGraphRef.truncationLimit);
+const AGDescriptionOption AGDescriptionIncludeValues CF_SWIFT_NAME(AGDescriptionOption.includeValues);
+
+CF_EXPORT
+const AGDescriptionOption AGDescriptionTruncationLimit CF_SWIFT_NAME(AGDescriptionOption.truncationLimit);
 
 CF_EXTERN_C_END
 

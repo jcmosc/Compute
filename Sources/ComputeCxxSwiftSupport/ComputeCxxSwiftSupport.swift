@@ -1,3 +1,5 @@
+import Foundation
+
 @_silgen_name("AGDispatchEquatable")
 public func Equatable_isEqual_indirect<T: Equatable>(
     _ lhs: UnsafePointer<T>,
@@ -8,9 +10,9 @@ public func Equatable_isEqual_indirect<T: Equatable>(
 
 @_silgen_name("AGSetTypeForKey")
 public func setTypeForKey(
-    _ dict: inout [String: Any],
-    _ key: String,
+    _ dict: NSMutableDictionary,
+    _ key: NSString,
     _ type: Any.Type
 ) {
-    dict[key] = type
+    dict.setObject(type, forKey: key)
 }

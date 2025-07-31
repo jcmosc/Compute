@@ -78,6 +78,10 @@ class table {
 
     // Printing
     void print();
+
+    // Counters (TODO: what are these calculated from?)
+    uint64_t bytes() const { return _num_used_pages * 512; }
+    uint64_t max_bytes() const { return _num_used_pages * 512; }
 };
 
 } // namespace data

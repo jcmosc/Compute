@@ -435,7 +435,7 @@ class Graph {
     NSString *description_graph_dot(NSDictionary *_Nullable options);
     NSString *description_stack(NSDictionary *options);
     NSArray *description_stack_nodes(NSDictionary *options);
-    NSDictionary *description_stack_frame(NSDictionary *options);
+    static NSDictionary *description_stack_frame(NSDictionary *options);
 #endif
 
     static void write_to_file(Graph *_Nullable graph, const char *_Nullable filename, bool exclude_values);

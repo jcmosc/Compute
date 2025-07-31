@@ -207,7 +207,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             while (input_attribute.is_indirect_node()) {
                 // TODO: warning: variable 'input_attribute' is uninitialized when used
                 // within its own initialization
-                input_attribute = input_attribute.get_indirect_node()->source().identifier();
+                auto input_attribute_source = input_attribute.get_indirect_node()->source().identifier();
                 if (input_attribute.get_indirect_node()->is_mutable()) {
                     if (AttributeID dependency = input_attribute.get_indirect_node()->to_mutable().dependency()) {
                         if (!dependency.get_node()->is_value_initialized() || dependency.get_node()->is_dirty()) {
@@ -218,6 +218,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                         }
                     }
                 }
+                input_attribute = input_attribute_source;
             }
 
             if (auto input_node = input_attribute.get_node()) {
@@ -332,7 +333,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
         _frames.pop_back();
         if (_frames.empty()) {
-            return changed ? UpdateStatus::Changed : UpdateStatus::Unchanged;
+            return UpdateStatus::Changed;
         }
     }
 }

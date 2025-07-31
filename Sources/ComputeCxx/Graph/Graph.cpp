@@ -749,6 +749,7 @@ uint32_t Graph::index_of_input(Node &node, InputEdge::Comparator comparator) {
         if (comparator.match(input_edge)) {
             return index;
         }
+        index += 1;
     }
     return UINT32_MAX;
 }
@@ -1104,7 +1105,7 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, AGGraphUpdateO
         trace.end_update(current_update, node, AGGraphUpdateStatus(status));
     });
 
-    // ~UpdateStatus called
+    // ~UpdateStack called
 }
 
 void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,

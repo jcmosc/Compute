@@ -1,6 +1,6 @@
 public protocol ObservedAttribute: _AttributeBody {
 
-    func destroy()
+    mutating func destroy()
     
 }
 

@@ -5,7 +5,7 @@ public protocol StatefulRule: _AttributeBody {
     associatedtype Value
 
     static var initialValue: Value? { get }
-    func updateValue()
+    mutating func updateValue()
 
 }
 

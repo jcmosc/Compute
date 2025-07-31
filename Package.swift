@@ -61,7 +61,7 @@ let package = Package(
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],
-            swiftSettings: [.interoperabilityMode(.Cxx), .enableExperimentalFeature("Extern")]
+            swiftSettings: [.enableExperimentalFeature("Extern"), .unsafeFlags(["-enable-library-evolution"])]
         ),
         .testTarget(
             name: "ComputeTests",
@@ -70,8 +70,7 @@ let package = Package(
                 .product(name: "Algorithms", package: "swift-algorithms"),
             ],
             swiftSettings: [
-                .interoperabilityMode(.Cxx),
-                .enableExperimentalFeature("Extern"),
+                .enableExperimentalFeature("Extern")
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),

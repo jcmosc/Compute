@@ -104,7 +104,7 @@ void AGTypeProjectEnumData(AGTypeID typeID, void *value) CF_SWIFT_NAME(AGTypeID.
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGTypeInjectEnumTag(AGTypeID typeID, void *value, uint32_t tag) CF_SWIFT_NAME(AGTypeID.injectEnumTag(self:_:tag:));
+void AGTypeInjectEnumTag(AGTypeID typeID, uint32_t tag, void *value) CF_SWIFT_NAME(AGTypeID.injectEnumTag(self:tag:_:));
 
 CF_EXTERN_C_END
 

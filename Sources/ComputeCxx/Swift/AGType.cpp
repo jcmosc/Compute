@@ -335,7 +335,7 @@ void AGTypeProjectEnumData(AGTypeID typeID, void *value) {
         reinterpret_cast<AG::swift::opaque_value *>(value), type);
 }
 
-void AGTypeInjectEnumTag(AGTypeID typeID, void *value, uint32_t tag) {
+void AGTypeInjectEnumTag(AGTypeID typeID, uint32_t tag, void *value) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
     auto value_witness = type->getValueWitnesses();
     if (!value_witness || !value_witness->flags.hasEnumWitnesses()) {

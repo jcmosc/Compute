@@ -30,10 +30,10 @@ extension AGUnownedGraphRef {
 
 }
 
-extension CustomStringConvertible {
+extension String {
 
-    static func _description(for self: UnsafeRawPointer) -> String {
-        return self.assumingMemoryBound(to: Self.self).pointee.description
+    static func _describing<Subject>(_ subject: UnsafeRawPointer, of type: Subject.Type) -> String {
+        return String(describing: subject.assumingMemoryBound(to: Subject.self).pointee)
     }
 
 }

@@ -194,7 +194,7 @@ void ExternalTrace::remove_edge(AG::data::ptr<AG::Node> node, uint32_t input_ind
     }
 }
 
-void ExternalTrace::set_edge_pending(AG::data::ptr<AG::Node> node, uint32_t input_index, bool pending) {
+void ExternalTrace::set_edge_pending(AG::data::ptr<AG::Node> node, AG::AttributeID input, bool pending) {
     if (auto callback = _trace->set_edge_pending) {
         if (AG::AttributeID(node).subgraph()) {
             callback(_context);

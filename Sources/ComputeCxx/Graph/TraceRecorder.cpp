@@ -160,8 +160,7 @@ void Graph::TraceRecorder::added(data::ptr<Node> node) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input,
-                                    uint8_t input_edge_flags) {
+void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) {
     // TODO: not implemented
 }
 
@@ -170,9 +169,7 @@ void Graph::TraceRecorder::remove_edge(data::ptr<Node> node,
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node,
-                                            uint32_t input_index,
-                                            bool pending) {
+void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) {
     // TODO: not implemented
 }
 

@@ -559,7 +559,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
         precondition_failure("cyclic edge: %u -> %u", resolved_input, node);
     }
 
-    foreach_trace([&node, &resolved_input, &options](Trace &trace) { trace.add_edge(node, resolved_input, options); });
+    foreach_trace([&node, &input, &options](Trace &trace) { trace.add_edge(node, input, options); });
 
     auto subgraph = AttributeID(node).subgraph();
     auto context_id = subgraph ? subgraph->context_id() : 0;
@@ -578,13 +578,13 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
     };
 
     uint32_t index = node->insert_input_edge(subgraph, new_input_edge);
-    add_input_dependencies(AttributeID(node), resolved_input);
+    add_input_dependencies(AttributeID(node), input);
 
     if (node->is_updating()) {
         reset_update(node);
     }
     if (node->is_dirty()) {
-        foreach_trace([&node, &index](Trace &trace) { trace.set_edge_pending(node, index, true); });
+        foreach_trace([&node, &input](Trace &trace) { trace.set_edge_pending(node, input, true); });
     }
 
     return index;
@@ -1197,8 +1197,8 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                             continue;
                         }
                     }
-                    foreach_trace([&output_node, &input_index](Trace &trace) {
-                        trace.set_edge_pending(output_node, input_index, true);
+                    foreach_trace([&output_node, &input_edge](Trace &trace) {
+                        trace.set_edge_pending(output_node, input_edge.attribute, true);
                     });
                     input_edge.options |= AGInputOptionsChanged;
                 }

@@ -69,7 +69,7 @@ class Graph::TraceRecorder : public Trace {
 
     void add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) override;
     void remove_edge(data::ptr<Node> node, uint32_t input_index) override;
-    void set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending) override;
+    void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) override;
 
     void set_dirty(data::ptr<Node> node, bool dirty) override;
     void set_pending(data::ptr<Node> node, bool pending) override;

@@ -27,6 +27,7 @@ template <typename T> class cf_ptr {
     ~cf_ptr() {
         if (_storage) {
             CFRelease(_storage);
+            _storage = nullptr;
         }
     }
 
@@ -44,13 +45,14 @@ template <typename T> class cf_ptr {
 
     cf_ptr &operator=(const cf_ptr &other) noexcept {
         if (this != &other) {
+            CFTypeRef tmp = other._storage;
+            if (tmp) {
+                CFRetain(tmp);
+            }
             if (_storage) {
                 CFRelease(_storage);
             }
-            _storage = other._storage;
-            if (_storage) {
-                CFRetain(_storage);
-            }
+            _storage = tmp;
         }
         return *this;
     };
@@ -60,8 +62,7 @@ template <typename T> class cf_ptr {
             if (_storage) {
                 CFRelease(_storage);
             }
-            _storage = other._storage;
-            other._storage = nullptr;
+            _storage = std::exchange(other._storage, nullptr);
         }
         return *this;
     }
@@ -72,13 +73,14 @@ template <typename T> class cf_ptr {
 
     void reset(T ref = nullptr) noexcept {
         if (_storage != ref) {
+            CFTypeRef tmp = to_storage(ref);
+            if (tmp) {
+                CFRetain(tmp);
+            }
             if (_storage) {
                 CFRelease(_storage);
             }
-            _storage = to_storage(ref);
-            if (_storage) {
-                CFRetain(_storage);
-            }
+            _storage = tmp;
         }
     }
 

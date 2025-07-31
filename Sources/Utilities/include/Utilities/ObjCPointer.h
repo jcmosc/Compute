@@ -33,6 +33,7 @@ template <typename T> class objc_ptr {
     ~objc_ptr() {
         if (_storage) {
             objc_release(_storage);
+            _storage = nullptr;
         }
     }
 
@@ -50,13 +51,14 @@ template <typename T> class objc_ptr {
 
     objc_ptr &operator=(const objc_ptr &other) noexcept {
         if (this != &other) {
+            auto tmp = other._storage;
+            if (tmp) {
+                objc_retain(tmp);
+            }
             if (_storage) {
                 objc_release(_storage);
             }
-            _storage = other._storage;
-            if (_storage) {
-                objc_retain(_storage);
-            }
+            _storage = tmp;
         }
         return *this;
     }
@@ -66,8 +68,7 @@ template <typename T> class objc_ptr {
             if (_storage) {
                 objc_release(_storage);
             }
-            _storage = other._storage;
-            other._storage = nullptr;
+            _storage = std::exchange(other._storage, nullptr);
         }
         return *this;
     }
@@ -78,13 +79,14 @@ template <typename T> class objc_ptr {
 
     void reset(T obj = nullptr) noexcept {
         if (_storage != obj) {
+            auto tmp = obj;
+            if (tmp) {
+                objc_retain(tmp);
+            }
             if (_storage) {
                 objc_release(_storage);
             }
-            _storage = obj;
-            if (_storage) {
-                objc_retain(_storage);
-            }
+            _storage = tmp;
         }
     }
 

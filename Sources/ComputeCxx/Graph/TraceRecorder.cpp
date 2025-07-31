@@ -21,14 +21,11 @@ namespace {
 
 uint64_t uuid_hash(const uuid_t key) { return *key; }
 
-bool uuid_equal(const uuid_t a, const uuid_t b) {
-    return uuid_compare(a, b) == 0;
-}
+bool uuid_equal(const uuid_t a, const uuid_t b) { return uuid_compare(a, b) == 0; }
 
 } // namespace
 
-Graph::TraceRecorder::TraceRecorder(Graph *graph, AGTraceFlags trace_flags,
-                                    std::span<const char *> subsystems) {
+Graph::TraceRecorder::TraceRecorder(Graph *graph, AGTraceFlags trace_flags, std::span<const char *> subsystems) {
     // TODO: not implemented
 }
 
@@ -58,8 +55,7 @@ void Graph::TraceRecorder::log_message_v(const char *format, va_list args) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::begin_update(const Subgraph &subgraph,
-                                        uint32_t options) {
+void Graph::TraceRecorder::begin_update(const Subgraph &subgraph, uint32_t options) {
     // TODO: not implemented
 }
 
@@ -67,14 +63,12 @@ void Graph::TraceRecorder::end_update(const Subgraph &subgraph) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::begin_update(const Graph::UpdateStack &update_stack,
-                                        data::ptr<Node> node,
+void Graph::TraceRecorder::begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
                                         uint32_t options) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::end_update(const Graph::UpdateStack &update_stack,
-                                      data::ptr<Node> node,
+void Graph::TraceRecorder::end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
                                       AGGraphUpdateStatus update_status) {
     // TODO: not implemented
 }
@@ -95,13 +89,11 @@ void Graph::TraceRecorder::end_update(const Graph::Context &context) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::begin_invalidation(const Graph::Context &context,
-                                              AttributeID attribute) {
+void Graph::TraceRecorder::begin_invalidation(const Graph::Context &context, AttributeID attribute) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::end_invalidation(const Graph::Context &context,
-                                            AttributeID attribute) {
+void Graph::TraceRecorder::end_invalidation(const Graph::Context &context, AttributeID attribute) {
     // TODO: not implemented
 }
 
@@ -113,8 +105,7 @@ void Graph::TraceRecorder::end_modify(data::ptr<Node> node) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::begin_event(data::ptr<Node> node,
-                                       uint32_t event_id) {
+void Graph::TraceRecorder::begin_event(data::ptr<Node> node, uint32_t event_id) {
     // TODO: not implemented
 }
 
@@ -146,13 +137,11 @@ void Graph::TraceRecorder::destroy(const Subgraph &subgraph) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::add_child(const Subgraph &subgraph,
-                                     const Subgraph &child) {
+void Graph::TraceRecorder::add_child(const Subgraph &subgraph, const Subgraph &child) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::remove_child(const Subgraph &subgraph,
-                                        const Subgraph &child) {
+void Graph::TraceRecorder::remove_child(const Subgraph &subgraph, const Subgraph &child) {
     // TODO: not implemented
 }
 
@@ -164,8 +153,7 @@ void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, uin
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::remove_edge(data::ptr<Node> node,
-                                       uint32_t input_index) {
+void Graph::TraceRecorder::remove_edge(data::ptr<Node> node, uint32_t input_index) {
     // TODO: not implemented
 }
 
@@ -193,13 +181,11 @@ void Graph::TraceRecorder::added(data::ptr<IndirectNode> indirect_node) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::set_source(data::ptr<IndirectNode> indirect_node,
-                                      AttributeID source) {
+void Graph::TraceRecorder::set_source(data::ptr<IndirectNode> indirect_node, AttributeID source) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::set_dependency(data::ptr<IndirectNode> indirect_node,
-                                          AttributeID dependency) {
+void Graph::TraceRecorder::set_dependency(data::ptr<IndirectNode> indirect_node, AttributeID dependency) {
     // TODO: not implemented
 }
 
@@ -215,18 +201,13 @@ void Graph::TraceRecorder::mark_profile(const Graph &graph, uint32_t options) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::custom_event(const Graph::Context &context,
-                                        const char *event_name,
-                                        const void *value,
+void Graph::TraceRecorder::custom_event(const Graph::Context &context, const char *event_name, const void *value,
                                         const swift::metadata &type) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::named_event(const Graph::Context &context,
-                                       uint32_t event_id,
-                                       uint32_t event_arg_count,
-                                       const void *event_args, CFDataRef data,
-                                       uint32_t arg6) {
+void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
+                                       const void *event_args, CFDataRef data, uint32_t arg6) {
     // TODO: not implemented
 }
 

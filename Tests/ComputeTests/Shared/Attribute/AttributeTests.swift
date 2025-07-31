@@ -178,13 +178,13 @@ struct AttributeTests {
 
             attribute.flags = []
 
-            attribute.setFlags([.active], mask: [])
+            attribute.setFlags(Subgraph.Flags(rawValue: 1), mask: [])
             #expect(attribute.flags == [])
 
-            attribute.setFlags([.removable], mask: [])
+            attribute.setFlags(Subgraph.Flags(rawValue: 2), mask: [])
             #expect(attribute.flags == [])
 
-            attribute.setFlags([.active, .invalidatable], mask: [])
+            attribute.setFlags(Subgraph.Flags(rawValue: 5), mask: [])
             #expect(attribute.flags == [])
         }
 
@@ -193,17 +193,17 @@ struct AttributeTests {
             let attribute = AnyAttribute(Attribute(value: 0))
 
             attribute.flags = []
-            attribute.setFlags([.active], mask: [.active])
-            #expect(attribute.flags == [.active])
+            attribute.setFlags(Subgraph.Flags(rawValue: 1), mask: [Subgraph.Flags(rawValue: 1)])
+            #expect(attribute.flags == [Subgraph.Flags(rawValue: 1)])
 
-            attribute.setFlags([.removable], mask: [.removable])
-            #expect(attribute.flags == [.active, .removable])
+            attribute.setFlags(Subgraph.Flags(rawValue: 2), mask: [Subgraph.Flags(rawValue: 2)])
+            #expect(attribute.flags == Subgraph.Flags(rawValue: 3))
 
-            attribute.setFlags([.invalidatable], mask: [.active])
-            #expect(attribute.flags == [.removable])
+            attribute.setFlags(Subgraph.Flags(rawValue: 4), mask: [Subgraph.Flags(rawValue: 1)])
+            #expect(attribute.flags == [Subgraph.Flags(rawValue: 2)])
 
-            attribute.setFlags([.active, .invalidatable], mask: [.active, .removable, .invalidatable])
-            #expect(attribute.flags == [.active, .invalidatable])
+            attribute.setFlags(Subgraph.Flags(rawValue: 5), mask: Subgraph.Flags(rawValue: 7))
+            #expect(attribute.flags == Subgraph.Flags(rawValue: 5))
         }
 
     }

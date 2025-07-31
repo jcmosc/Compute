@@ -437,12 +437,12 @@ struct SubgraphTests {
             Subgraph.current = child
             
             let attribute = Attribute(value: 1)
-            #expect(subgraph.intersects(mask: [.active]) == false)
-            #expect(child.intersects(mask: [.active]) == false)
+            #expect(subgraph.intersects(flags: Subgraph.Flags(rawValue: 1)) == false)
+            #expect(child.intersects(flags: Subgraph.Flags(rawValue: 1)) == false)
             
-            attribute.flags = .active
-            #expect(subgraph.intersects(mask: [.active]) == true)
-            #expect(child.intersects(mask: [.active]) == true)
+            attribute.flags = Subgraph.Flags(rawValue: 1)
+            #expect(subgraph.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
+            #expect(child.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
         }
         
     }

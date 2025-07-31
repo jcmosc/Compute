@@ -10,7 +10,7 @@ CF_EXTERN_C_BEGIN
 
 typedef struct AGAttributeType AGAttributeType;
 
-typedef struct AGAttributeVTable {
+typedef struct CF_SWIFT_NAME(_AttributeVTable) AGAttributeVTable {
     unsigned long version;
     void (*_Nullable type_destroy)(AGAttributeType *);
     void (*_Nullable self_destroy)(const AGAttributeType *, void *);
@@ -32,7 +32,7 @@ typedef CF_OPTIONS(uint32_t, AGAttributeTypeFlags) {
     AGAttributeTypeFlagsAsyncThread = 1 << 5,
 } CF_SWIFT_NAME(Flags);
 
-typedef struct AGAttributeType {
+typedef struct CF_SWIFT_NAME(_AttributeType) AGAttributeType {
     AGTypeID self_id;
     AGTypeID value_id;
     AGClosureStorage update;

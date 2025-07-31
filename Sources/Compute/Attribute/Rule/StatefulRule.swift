@@ -20,7 +20,7 @@ extension StatefulRule {
             return
         }
         withUnsafePointer(to: initialValue) { initialValuePointer in
-            __AGGraphSetOutputValue(initialValuePointer, Metadata(Value.self))
+            Graph.setOutputValue(initialValuePointer)
         }
     }
 }

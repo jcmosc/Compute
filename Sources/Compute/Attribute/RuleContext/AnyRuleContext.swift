@@ -19,8 +19,11 @@ public struct AnyRuleContext {
     @_extern(c, "AGGraphWithUpdate")
     private static func withUpdate(_ attribute: AnyAttribute, body: @escaping () -> Void)
 
-    public func update(body: @escaping () -> Void) {
-        AnyRuleContext.withUpdate(attribute, body: body)
+    public func update(body: () -> Void) {
+        // TODO: double check needs to be escaping
+        withoutActuallyEscaping(body) { escapingBody in
+            AnyRuleContext.withUpdate(attribute, body: escapingBody)
+        }
     }
 
     public func changedValue<Value>(of input: Attribute<Value>, options: AGValueOptions) -> (

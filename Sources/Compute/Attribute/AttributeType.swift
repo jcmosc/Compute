@@ -12,14 +12,14 @@ extension AGUnownedGraphRef {
     fileprivate static func internAttributeType(
         _ graph: UnsafeRawPointer,
         type: Metadata,
-        makeAttributeType: () -> UnsafePointer<AGAttributeType>
+        makeAttributeType: () -> UnsafePointer<_AttributeType>
     )
         -> UInt32
 
     @inline(__always)
     func internAttributeType(
         type: Metadata,
-        makeAttributeType: () -> UnsafePointer<AGAttributeType>
+        makeAttributeType: () -> UnsafePointer<_AttributeType>
     ) -> UInt32 {
         return AGUnownedGraphRef.internAttributeType(
             unsafeBitCast(self, to: UnsafeRawPointer.self),
@@ -38,7 +38,7 @@ extension String {
 
 }
 
-extension AGAttributeType {
+extension _AttributeType {
 
     nonisolated(unsafe) static let vtable: UnsafePointer<_AttributeVTable> = {
         let vtable = UnsafeMutablePointer<_AttributeVTable>.allocate(
@@ -79,7 +79,7 @@ extension AGAttributeType {
     fileprivate static func passRetainedClosure(
         _ closure: (UnsafeMutableRawPointer, AnyAttribute) -> Void
     )
-        -> AGClosureStorage
+        -> _AGClosureStorage
 
     init<Body: _AttributeBody>(
         selfType: Body.Type,
@@ -94,7 +94,7 @@ extension AGAttributeType {
             flags.insert(.hasDestroySelf)
         }
 
-        let retainedUpdate = AGAttributeType.passRetainedClosure(update)
+        let retainedUpdate = _AttributeType.passRetainedClosure(update)
         let conformance = unsafeBitCast(
             selfType as any _AttributeBody.Type,
             to: ProtocolConformance.self
@@ -103,7 +103,7 @@ extension AGAttributeType {
             self_id: Metadata(selfType),
             value_id: Metadata(valueType),
             update: retainedUpdate,
-            vtable: AGAttributeType.vtable,
+            vtable: _AttributeType.vtable,
             flags: flags,
             internal_offset: 0,
             value_layout: nil,

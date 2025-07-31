@@ -486,7 +486,7 @@ AGChangedValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AG
     return get_value(attribute_id, 0, options, *metadata);
 }
 
-AGChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type) {
+AGWeakChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type) {
     auto weak_attribute_id = AG::WeakAttributeID(attribute);
     auto attribute_id = weak_attribute_id.evaluate();
     if (attribute_id.is_nil()) {
@@ -494,7 +494,8 @@ AGChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions opt
     }
 
     auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
-    return get_value(attribute_id, weak_attribute_id.seed(), options, *metadata);
+    auto value = get_value(attribute_id, weak_attribute_id.seed(), options, *metadata);
+    return *reinterpret_cast<AGWeakChangedValue *>(&value);
 }
 
 AGChangedValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input, AGValueOptions options, AGTypeID type) {

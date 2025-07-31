@@ -18,6 +18,11 @@ typedef struct AGChangedValue {
     AGChangedValueFlags flags;
 } AGChangedValue;
 
+typedef struct AGWeakChangedValue {
+    const void *_Nullable value;
+    AGChangedValueFlags flags;
+} AGWeakChangedValue;
+
 CF_EXTERN_C_END
 
 CF_ASSUME_NONNULL_END

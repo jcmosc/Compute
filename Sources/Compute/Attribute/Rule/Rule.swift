@@ -20,7 +20,7 @@ extension Rule {
             return
         }
         withUnsafePointer(to: initialValue) { initialValuePointer in
-            __AGGraphSetOutputValue(initialValuePointer, Metadata(Value.self))
+            Graph.setOutputValue(initialValuePointer)
         }
 
     }
@@ -29,7 +29,7 @@ extension Rule {
         let rule = self.assumingMemoryBound(to: Self.self)
         let value = rule.pointee.value
         withUnsafePointer(to: value) { valuePointer in
-            __AGGraphSetOutputValue(valuePointer, Metadata(Value.self))
+            Graph.setOutputValue(valuePointer)
         }
     }
 

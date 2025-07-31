@@ -2,7 +2,7 @@ import ComputeCxx
 
 public struct AnyOptionalAttribute {
 
-    public static var current: AnyOptionalAttribute? {
+    public static var current: AnyOptionalAttribute {
         return AnyOptionalAttribute(AnyAttribute.current)
     }
 

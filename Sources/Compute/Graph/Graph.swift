@@ -2,6 +2,19 @@ import ComputeCxx
 
 extension Graph {
 
+    @_silgen_name("AGGraphSetOutputValue")
+    @inline(__always)
+    @inlinable
+    public static func setOutputValue<Value>(_ value: UnsafePointer<Value>)
+
+    @_transparent
+    @inline(__always)
+    public var mainUpdates: Int { numericCast(counter(for: .mainThreadUpdateCount)) }
+
+}
+
+extension Graph {
+
     @_transparent
     public static func anyInputsChanged(excluding excludedAttributes: [AnyAttribute]) -> Bool {
         return __AGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
@@ -33,7 +46,8 @@ extension Graph {
         return result
     }
 
-    public func withoutUpdate<T>(_ body: () -> T) -> T {
+    // check is static
+    public static func withoutUpdate<T>(_ body: () -> T) -> T {
         let previousUpdate = Graph.clearUpdate()
         let result = body()
         Graph.setUpdate(previousUpdate)
@@ -66,12 +80,11 @@ extension Graph {
 
 extension Graph {
 
-    public static func startProfiling() {
-        
+    public static func startProfiling(_ graph: Graph?) {
         fatalError("not implemented")
     }
 
-    public static func stopProfiling() {
+    public static func stopProfiling(_ graph: Graph?) {
         fatalError("not implemented")
     }
 

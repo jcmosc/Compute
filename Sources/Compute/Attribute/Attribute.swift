@@ -45,13 +45,13 @@ public struct Attribute<Value> {
         let typeID = graphContext.internAttributeType(
             type: Metadata(Body.self)
         ) {
-            let attributeType = AGAttributeType(
+            let attributeType = _AttributeType(
                 selfType: Body.self,
                 valueType: Value.self,
                 flags: flags,
                 update: update()
             )
-            let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
+            let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
             pointer.initialize(to: attributeType)
             return UnsafePointer(pointer)
         }
@@ -103,7 +103,7 @@ public struct Attribute<Value> {
         identifier.addInput(input, options: options, token: token)
     }
 
-    public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
+    public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
         return identifier.breadthFirstSearch(options: options, predicate)
     }
 
@@ -148,7 +148,7 @@ public struct Attribute<Value> {
         identifier.invalidateValue()
     }
 
-    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool) {
+    public func changedValue(options: AGValueOptions = []) -> (value: Value, changed: Bool) {
         let value = __AGGraphGetValue(identifier, options, Metadata(Value.self))
         return (
             value.value.assumingMemoryBound(to: Value.self).pointee,

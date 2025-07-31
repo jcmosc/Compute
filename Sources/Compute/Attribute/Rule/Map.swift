@@ -3,7 +3,7 @@ public struct Map<Arg, Value> {
     public var arg: Attribute<Arg>
     public var body: (Arg) -> Value
 
-    public init(arg: Attribute<Arg>, body: @escaping (Arg) -> Value) {
+    public init(_ arg: Attribute<Arg>, _ body: @escaping (Arg) -> Value) {
         self.arg = arg
         self.body = body
     }

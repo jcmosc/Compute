@@ -3,7 +3,7 @@ import ComputeCxx
 extension Graph {
 
     @_extern(c, "AGGraphSearch")
-    static func search(attribute: AnyAttribute, options: AGSearchOptions, predicate: (AnyAttribute) -> Bool) -> Bool
+    static func search(attribute: AnyAttribute, options: SearchOptions, predicate: (AnyAttribute) -> Bool) -> Bool
 
     @_extern(c, "AGGraphMutateAttribute")
     static func mutateAttribute(
@@ -70,7 +70,7 @@ extension AnyAttribute {
         }
     }
 
-    public func breadthFirstSearch(options: AGSearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
+    public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
         return Graph.search(attribute: self, options: options, predicate: predicate)
     }
 

@@ -20,15 +20,14 @@ public struct WeakAttribute<Value> {
         base = AnyWeakAttribute(attribute?.identifier)
     }
 
-    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool)? {
+    public func changedValue(options: AGValueOptions = []) -> (value: Value, changed: Bool)? {
         return attribute?.changedValue(options: options)
     }
 
     public var value: Value? {
         return __AGGraphGetWeakValue(base, [], Metadata(Value.self))
-            .value
-            // TO BE CONFIRMED
-            .assumingMemoryBound(to: Value?.self)
+            .value?
+            .assumingMemoryBound(to: Value.self)
             .pointee
     }
 

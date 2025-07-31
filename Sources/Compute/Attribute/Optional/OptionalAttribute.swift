@@ -9,7 +9,7 @@ public struct OptionalAttribute<Value> {
     }
     
     public init() {
-        fatalError("not implemented")
+        base = AnyOptionalAttribute()
     }
     
     public init(_ weakAttribute: WeakAttribute<Value>) {

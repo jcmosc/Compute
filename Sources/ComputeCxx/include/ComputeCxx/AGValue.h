@@ -10,6 +10,8 @@ CF_EXTERN_C_BEGIN
 
 typedef CF_OPTIONS(uint32_t, AGValueOptions) {
     AGValueOptionsNone = 0,
+    AGValueOptionsInputOptionsUnprefetched = 1 << 0,
+    AGValueOptionsInputOptionsSyncMainRef = 1 << 1,
     AGValueOptionsInputOptionsMask = 3,
 
     AGValueOptionsIncrementGraphVersion = 1 << 2, // AsTopLevelOutput

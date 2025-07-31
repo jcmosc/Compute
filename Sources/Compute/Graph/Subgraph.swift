@@ -16,7 +16,14 @@ extension Subgraph {
     }
 
     public func apply<T>(_ body: () -> T) -> T {
-        fatalError("not implemented")
+        let update = Graph.clearUpdate()
+        let current = Subgraph.current
+        defer {
+            Subgraph.current = current
+            Graph.setUpdate(update)
+        }
+        Subgraph.current = self
+        return body()
     }
 
     public func forEach(

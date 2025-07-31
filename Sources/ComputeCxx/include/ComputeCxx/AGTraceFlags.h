@@ -15,7 +15,7 @@ typedef CF_OPTIONS(uint32_t, AGTraceFlags) {
     AGTraceFlagsPrepare = 1 << 3,
     AGTraceFlagsCustom = 1 << 4,
     AGTraceFlagsAll = 1 << 5,
-};
+} CF_SWIFT_NAME(AGGraphRef.TraceFlags); // TODO: what is real name
 
 CF_EXTERN_C_END
 

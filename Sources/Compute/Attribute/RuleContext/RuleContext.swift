@@ -19,7 +19,7 @@ public struct RuleContext<Value> {
         }
         nonmutating set {
             withUnsafePointer(to: newValue) { newValuePointer in
-                __AGGraphSetOutputValue(newValuePointer, Metadata(Value.self))
+                Graph.setOutputValue(newValuePointer)
             }
         }
     }

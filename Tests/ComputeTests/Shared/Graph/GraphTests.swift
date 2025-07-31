@@ -67,10 +67,10 @@ struct GraphTests {
     @Suite
     struct InternAttributeTypeTests {
 
-        nonisolated(unsafe) static var testVtable = AGAttributeVTable()
+        nonisolated(unsafe) static var testVtable = _AttributeVTable()
 
         init() {
-            InternAttributeTypeTests.testVtable.type_destroy = { (pointer: UnsafeMutablePointer<AGAttributeType>) in
+            InternAttributeTypeTests.testVtable.type_destroy = { (pointer: UnsafeMutablePointer<_AttributeType>) in
                 pointer.deallocate()
             }
         }
@@ -84,16 +84,12 @@ struct GraphTests {
                 graph.graphContext,
                 Metadata(External<Int>.self),
                 { _ in
-                    var attributeType = AGAttributeType()
-                    attributeType.self_id = Metadata(External<Int>.self)
-                    attributeType.value_id = Metadata(Int.self)
-
+                    let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
+                    pointer.pointee.self_id = Metadata(External<Int>.self)
+                    pointer.pointee.value_id = Metadata(Int.self)
                     withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
-                        attributeType.vtable = testVtablePointer
+                        pointer.pointee.vtable = testVtablePointer
                     }
-
-                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
-                    pointer.pointee = attributeType
                     return UnsafePointer(pointer)
                 },
                 nil
@@ -105,16 +101,12 @@ struct GraphTests {
                 graph.graphContext,
                 Metadata(External<String>.self),
                 { _ in
-                    var attributeType = AGAttributeType()
-                    attributeType.self_id = Metadata(External<String>.self)
-                    attributeType.value_id = Metadata(String.self)
-
+                    let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
+                    pointer.pointee.self_id = Metadata(External<String>.self)
+                    pointer.pointee.value_id = Metadata(String.self)
                     withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
-                        attributeType.vtable = testVtablePointer
+                        pointer.pointee.vtable = testVtablePointer
                     }
-
-                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
-                    pointer.pointee = attributeType
                     return UnsafePointer(pointer)
                 },
                 nil
@@ -126,16 +118,12 @@ struct GraphTests {
                 graph.graphContext,
                 Metadata(External<Int>.self),
                 { _ in
-                    var attributeType = AGAttributeType()
-                    attributeType.self_id = Metadata(External<Int>.self)
-                    attributeType.value_id = Metadata(Int.self)
-
+                    let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
+                    pointer.pointee.self_id = Metadata(External<Int>.self)
+                    pointer.pointee.value_id = Metadata(Int.self)
                     withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
-                        attributeType.vtable = testVtablePointer
+                        pointer.pointee.vtable = testVtablePointer
                     }
-
-                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
-                    pointer.pointee = attributeType
                     return UnsafePointer(pointer)
                 },
                 nil
@@ -143,7 +131,7 @@ struct GraphTests {
             #expect(cachedIntTypeIndex == intTypeIndex)
         }
 
-        nonisolated(unsafe) static var internedAttributeType: UnsafeMutablePointer<AGAttributeType>? = nil
+        nonisolated(unsafe) static var internedAttributeType: UnsafeMutablePointer<_AttributeType>? = nil
 
         @Test
         func internAttributeTypeInitializesSelfOffsetAndLayout() throws {
@@ -155,16 +143,12 @@ struct GraphTests {
                 graph.graphContext,
                 Metadata(External<Int>.self),
                 { _ in
-                    var attributeType = AGAttributeType()
-                    attributeType.self_id = Metadata(External<Int>.self)
-                    attributeType.value_id = Metadata(Int.self)
-
+                    let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
+                    pointer.pointee.self_id = Metadata(External<Int>.self)
+                    pointer.pointee.value_id = Metadata(Int.self)
                     withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
-                        attributeType.vtable = testVtablePointer
+                        pointer.pointee.vtable = testVtablePointer
                     }
-
-                    let pointer = UnsafeMutablePointer<AGAttributeType>.allocate(capacity: 1)
-                    pointer.pointee = attributeType
 
                     GraphTests.InternAttributeTypeTests.internedAttributeType = pointer
 
@@ -338,11 +322,11 @@ struct GraphTests {
             @Test
             func graphDescription() throws {
                 let graph = Graph()
-                
+
                 let subgraph = Subgraph(graph: graph)
                 let child = Subgraph(graph: graph)
                 subgraph.addChild(child, tag: 1)
-                
+
                 let description =
                     try #require(
                         Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
@@ -395,10 +379,10 @@ struct GraphTests {
                 )
             }
         }
-        
+
         @Suite
         struct BodyDescriptionTests {
-            
+
             @Test
             func customBodyDescription() throws {
                 struct TestBody: _AttributeBody, CustomStringConvertible {
@@ -406,17 +390,17 @@ struct GraphTests {
                         return "Custom Description"
                     }
                 }
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
-                
+
                 let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
                     Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
                         return { _, _ in }
                     }
                 }
-                
+
                 let description =
                     try #require(
                         Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
@@ -426,27 +410,27 @@ struct GraphTests {
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
                 )
-                
+
                 let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
                 #expect(graphDescription.graphs[0].nodes[0].desc == "Custom Description")
             }
-            
+
             @Test
             func defaultBodyDescription() throws {
                 struct TestBody: _AttributeBody {
-                    
+
                 }
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
-                
+
                 let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
                     Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
                         return { _, _ in }
                     }
                 }
-                
+
                 let description =
                     try #require(
                         Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
@@ -456,19 +440,19 @@ struct GraphTests {
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
                 )
-                
+
                 let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
                 #expect(
                     graphDescription.graphs[0].nodes[0].desc
                         == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody"
                 )
             }
-            
+
         }
-        
+
         @Suite
         struct ValueDescriptionTests {
-            
+
             @Test
             func customValueDescription() throws {
                 struct TestValue: CustomStringConvertible {
@@ -477,13 +461,13 @@ struct GraphTests {
                         return "Custom Value"
                     }
                 }
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
-                
+
                 let _ = Attribute(value: TestValue())
-                
+
                 let description =
                     try #require(
                         Graph.description(
@@ -496,23 +480,23 @@ struct GraphTests {
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
                 )
-                
+
                 let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
                 #expect(graphDescription.graphs[0].nodes[0].value == "Custom Value")
             }
-            
+
             @Test
             func defaultValueDescription() throws {
                 struct TestValue {
                     var field: Int = 0
                 }
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
-                
+
                 let _ = Attribute(value: TestValue())
-                
+
                 let description =
                     try #require(
                         Graph.description(
@@ -525,14 +509,14 @@ struct GraphTests {
                     withJSONObject: description,
                     options: [.prettyPrinted, .sortedKeys]
                 )
-                
+
                 let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
                 #expect(
                     graphDescription.graphs[0].nodes[0].desc
                         == "GraphTests.DescriptionTests.ValueDescriptionTests.TestValue"
                 )
             }
-            
+
         }
 
     }

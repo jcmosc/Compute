@@ -56,7 +56,7 @@ AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphInvalidate(AGGraphRef graph);
+void AGGraphInvalidate(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.invalidate(self:));
 
 // MARK: User context
 
@@ -171,7 +171,7 @@ AGAttribute AGGraphCreateOffsetAttribute2(AGAttribute attribute, uint32_t offset
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGGraphCreateIndirectAttribute(AGAttribute attribute);
+AGAttribute AGGraphCreateIndirectAttribute(AGAttribute attribute) CF_SWIFT_NAME(AGAttribute.createIndirect(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -222,7 +222,7 @@ AGChangedValue AGGraphGetValue(AGAttribute attribute, AGValueOptions options, AG
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type);
+AGWeakChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions options, AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -358,17 +358,17 @@ void AGGraphSetOutputValue(const void *value, AGTypeID type);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags)
-    CF_SWIFT_NAME(AGGraphRef.startTracing(self:flags:));
+void AGGraphStartTracing(AGGraphRef _Nullable graph, AGTraceFlags trace_flags)
+    CF_SWIFT_NAME(AGGraphRef.startTracing(_:flags:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef _Nullable subsystems)
-    CF_SWIFT_NAME(AGGraphRef.startTracing(self:flags:subsystems:));
+void AGGraphStartTracing2(AGGraphRef _Nullable graph, AGTraceFlags trace_flags, CFArrayRef _Nullable subsystems)
+    CF_SWIFT_NAME(AGGraphRef.startTracing(_:flags:subsystems:)); // TODO: flags or options
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphStopTracing(AGGraphRef graph) CF_SWIFT_NAME(AGGraphRef.stopTracing(self:));
+void AGGraphStopTracing(AGGraphRef _Nullable graph) CF_SWIFT_NAME(AGGraphRef.stopTracing(_:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -443,11 +443,12 @@ CFTypeRef _Nullable AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryR
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphArchiveJSON(const char *_Nullable filename);
+void AGGraphArchiveJSON(const char *_Nullable filename) CF_SWIFT_NAME(AGGraphRef.archiveJSON(name:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGGraphArchiveJSON2(const char *filename, bool exclude_values);
+void AGGraphArchiveJSON2(const char *filename, bool exclude_values)
+    CF_SWIFT_NAME(AGGraphRef.archiveJSON(name:excludeValues:));
 
 CF_EXTERN_C_END
 

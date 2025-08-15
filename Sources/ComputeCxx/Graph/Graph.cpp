@@ -174,6 +174,13 @@ void Graph::remove_subgraph(Subgraph &subgraph) {
     auto iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
     _subgraphs.erase(iter);
 
+    if (auto map = _tree_data_elements_by_subgraph.get()) {
+        auto iter = map->find(&subgraph);
+        if (iter != map->end()) {
+            map->erase(iter);
+        }
+    }
+
     _num_subgraphs -= 1;
 }
 

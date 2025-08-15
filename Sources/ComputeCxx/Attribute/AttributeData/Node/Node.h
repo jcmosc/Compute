@@ -166,7 +166,7 @@ class Node {
     data::vector<OutputEdge> &output_edges() { return _output_edges; };
 
     void *get_self(const AttributeType &type) const;
-    void update_self(const Graph &graph, void *new_self);
+    void update_self(const Graph &graph, const void *new_self);
     void destroy_self(const Graph &graph);
 
     void *get_value() const;

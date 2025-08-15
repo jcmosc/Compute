@@ -16,17 +16,18 @@ void *Node::get_self(const AttributeType &type) const {
     return self;
 }
 
-void Node::update_self(const Graph &graph, void *new_self) {
+void Node::update_self(const Graph &graph, const void *new_self) {
     auto type = graph.attribute_type(_type_id);
     void *self = get_self(type);
 
+    void *mutable_new_self = const_cast<void *>(new_self);
     if (!is_self_initialized()) {
         set_self_initialized(true);
         type.body_metadata().vw_initializeWithCopy(static_cast<swift::opaque_value *>(self),
-                                                   static_cast<swift::opaque_value *>(new_self));
+                                                   static_cast<swift::opaque_value *>(mutable_new_self));
     } else {
         type.body_metadata().vw_assignWithCopy(static_cast<swift::opaque_value *>(self),
-                                               static_cast<swift::opaque_value *>(new_self));
+                                               static_cast<swift::opaque_value *>(mutable_new_self));
     }
 }
 

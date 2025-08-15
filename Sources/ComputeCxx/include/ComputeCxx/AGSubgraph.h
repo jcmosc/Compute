@@ -158,12 +158,11 @@ AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags)
-    CF_SWIFT_NAME(AGSubgraphRef.beginTreeElement(value:type:flags:));
+void AGSubgraphBeginTreeElement(AGAttribute value, AGTypeID type, uint32_t flags);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphEndTreeElement(AGAttribute value) CF_SWIFT_NAME(AGSubgraphRef.endTreeElement(value:));
+void AGSubgraphEndTreeElement(AGAttribute value);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -172,8 +171,7 @@ void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags)
-    CF_SWIFT_NAME(AGSubgraphRef.addTreeValue(value:type:forKey:flags:));
+void AGSubgraphAddTreeValue(AGAttribute value, AGTypeID type, const char *key, uint32_t flags);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

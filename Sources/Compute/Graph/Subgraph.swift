@@ -41,15 +41,19 @@ extension Subgraph {
         value: Attribute<Value>,
         flags: UInt32
     ) {
-        Subgraph.beginTreeElement(
-            value: value.identifier,
-            type: Metadata(Value.self),
-            flags: flags
-        )
+        if shouldRecordTree {
+            __AGSubgraphBeginTreeElement(
+                value.identifier,
+                Metadata(Value.self),
+                flags
+            )
+        }
     }
 
     public static func endTreeElement<Value>(value: Attribute<Value>) {
-        Subgraph.endTreeElement(value: value.identifier)
+        if shouldRecordTree {
+            __AGSubgraphEndTreeElement(value.identifier)
+        }
     }
 
     public static func addTreeValue<Value>(
@@ -57,7 +61,9 @@ extension Subgraph {
         forKey key: UnsafePointer<Int8>,
         flags: UInt32
     ) {
-        Subgraph.addTreeValue(value: value.identifier, type: Metadata(Value.self), forKey: key, flags: flags)
+        if shouldRecordTree {
+            __AGSubgraphAddTreeValue(value.identifier, Metadata(Value.self), key, flags)
+        }
     }
 
 }

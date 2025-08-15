@@ -10,10 +10,10 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-typedef CFStringRef AGDescriptionOption AG_SWIFT_STRUCT CF_SWIFT_NAME(AGGraphRef.DescriptionOption);
+typedef CFStringRef AGDescriptionOption AG_SWIFT_STRUCT CF_SWIFT_NAME(DescriptionOption);
 
 CF_EXPORT
-const AGDescriptionOption AGDescriptionFormat CF_SWIFT_NAME(AGDescriptionOption.descriptionFormat);
+const AGDescriptionOption AGDescriptionFormat CF_SWIFT_NAME(AGDescriptionOption.format);
 
 CF_EXPORT
 const AGDescriptionOption AGDescriptionMaxFrames CF_SWIFT_NAME(AGDescriptionOption.maxFrames);

@@ -6,7 +6,7 @@ struct ProtocolConformance {
     var witnessTable: UnsafeRawPointer
 }
 
-extension AGUnownedGraphRef {
+extension AGUnownedGraphContextRef {
 
     @_extern(c, "AGGraphInternAttributeType")
     fileprivate static func internAttributeType(
@@ -21,7 +21,7 @@ extension AGUnownedGraphRef {
         type: Metadata,
         makeAttributeType: () -> UnsafePointer<_AttributeType>
     ) -> UInt32 {
-        return AGUnownedGraphRef.internAttributeType(
+        return AGUnownedGraphContextRef.internAttributeType(
             unsafeBitCast(self, to: UnsafeRawPointer.self),
             type: type,
             makeAttributeType: makeAttributeType

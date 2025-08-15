@@ -26,8 +26,7 @@ CF_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct CF_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
-typedef void *AGUnownedGraphRef AG_SWIFT_STRUCT;
-typedef struct AGGraphContextStorage *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
+typedef void *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
 
 typedef struct AGTrace *AGTraceRef;
 
@@ -47,12 +46,11 @@ AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph) CF_SWIFT_NAME(AGGraph
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGUnownedGraphRef AGGraphGetGraphContext(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.graphContext(self:));
+AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) CF_SWIFT_NAME(getter:AGGraphRef.graphContext(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef context)
-    CF_SWIFT_NAME(getter:AGUnownedGraphContextRef.graph(self:));
+AGGraphRef AGGraphContextGetGraph(void *context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
@@ -120,7 +118,7 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint32_t AGGraphInternAttributeType(AGUnownedGraphRef graph, AGTypeID type,
+uint32_t AGGraphInternAttributeType(AGUnownedGraphContextRef graph, AGTypeID type,
                                     const AGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(
                                         const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                     const void *_Nullable make_attribute_type_context);

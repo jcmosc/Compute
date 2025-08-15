@@ -42,7 +42,7 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute)
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGUnownedGraphRef _Nullable AGSubgraphGetCurrentGraphContext(void)
+AGUnownedGraphContextRef _Nullable AGSubgraphGetCurrentGraphContext(void)
     CF_SWIFT_NAME(getter:AGSubgraphRef.currentGraphContext());
 
 CF_EXPORT

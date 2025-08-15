@@ -13,8 +13,4 @@ struct AGGraphStorage {
     AG::Graph::Context context;
 };
 
-struct AGGraphContextStorage {
-    AG::Graph::Context context;
-};
-
 CF_ASSUME_NONNULL_END

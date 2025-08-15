@@ -82,14 +82,14 @@ AGSubgraphRef AGSubgraphCreate2(AGGraphRef graph, AGAttribute attribute) {
     return instance;
 };
 
-AGUnownedGraphRef AGSubgraphGetCurrentGraphContext() {
+AGUnownedGraphContextRef AGSubgraphGetCurrentGraphContext() {
     AG::Subgraph *current_subgraph = AG::Subgraph::current_subgraph();
     if (current_subgraph == nullptr) {
         return nullptr;
     }
 
     AG::Graph *graph = current_subgraph->graph();
-    return reinterpret_cast<AGUnownedGraphRef>(graph);
+    return reinterpret_cast<AGUnownedGraphContextRef>(graph);
 }
 
 AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) {
@@ -99,8 +99,8 @@ AGGraphRef AGSubgraphGetGraph(AGSubgraphRef subgraph) {
 
     auto context_id = AG::Subgraph::from_cf(subgraph)->context_id();
     if (context_id != 0) {
-        if (auto context = AG::Subgraph::from_cf(subgraph)->graph()->context_with_id(context_id)) {
-            return AGGraphContextGetGraph(reinterpret_cast<AGUnownedGraphContextRef>(context));
+        if (AG::Graph::Context *context = AG::Subgraph::from_cf(subgraph)->graph()->context_with_id(context_id)) {
+            return AGGraphContextGetGraph(context);
         }
     }
 

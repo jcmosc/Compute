@@ -75,13 +75,13 @@ AGGraphRef AGGraphCreateShared(AGGraphRef original) {
     return instance;
 };
 
-AGUnownedGraphRef AGGraphGetGraphContext(AGGraphRef graph) {
+AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) {
     AG::Graph::Context *graph_context = AG::Graph::Context::from_cf(graph);
     AG::Graph *unowned_graph = &graph_context->graph();
-    return reinterpret_cast<AGUnownedGraphRef>(unowned_graph);
+    return reinterpret_cast<AGUnownedGraphContextRef>(unowned_graph);
 }
 
-AGGraphRef AGGraphContextGetGraph(AGUnownedGraphContextRef storage) {
+AGGraphRef AGGraphContextGetGraph(void *storage) {
     auto graph_context = reinterpret_cast<AG::Graph::Context *>(storage);
     return graph_context->to_cf();
 }
@@ -172,7 +172,7 @@ void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferrin
 
 #pragma mark - Attribute types
 
-uint32_t AGGraphInternAttributeType(AGUnownedGraphRef unowned_graph, AGTypeID type,
+uint32_t AGGraphInternAttributeType(AGUnownedGraphContextRef unowned_graph, AGTypeID type,
                                     const AGAttributeType *(*make_attribute_type)(const void *context AG_SWIFT_CONTEXT)
                                         AG_SWIFT_CC(swift),
                                     const void *make_attribute_type_context) {

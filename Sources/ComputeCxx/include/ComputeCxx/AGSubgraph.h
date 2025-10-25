@@ -137,7 +137,7 @@ AGSubgraphRef AGGraphGetAttributeSubgraph(AGAttribute attribute) CF_SWIFT_NAME(g
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute)
+AGSubgraphRef _Nullable AGGraphGetAttributeSubgraph2(AGAttribute attribute)
     CF_SWIFT_NAME(getter:AGAttribute.subgraphOrNil(self:));
 
 CF_EXPORT

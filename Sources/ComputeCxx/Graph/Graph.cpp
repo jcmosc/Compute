@@ -792,7 +792,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
     uint32_t offset = resolved_source.offset();
 
     AttributeID old_source = indirect_node->source().identifier();
-    if (resolved_source.attribute() == old_source) {
+    if (source == old_source) {
         if (resolved_source.offset() == indirect_node.offset()) {
             return;
         }
@@ -800,12 +800,13 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
         remove_input_dependencies(AttributeID(indirect_node), old_source);
     }
 
-    indirect_node->modify(WeakAttributeID(resolved_source.attribute(), 0), resolved_source.offset());
+    uint64_t source_subgraph_id = source && !source.is_nil() ? source.subgraph()->subgraph_id() : 0;
+    indirect_node->modify(WeakAttributeID(source, source_subgraph_id), resolved_source.offset());
     indirect_node->set_traverses_contexts(AttributeID(indirect_node).subgraph()->context_id() !=
-                                          resolved_source.attribute().subgraph()->context_id());
+                                          source.subgraph()->context_id());
 
-    if (old_source != resolved_source.attribute()) {
-        add_input_dependencies(AttributeID(indirect_node), resolved_source.attribute());
+    if (old_source != source) {
+        add_input_dependencies(AttributeID(indirect_node), source);
     }
 
     mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);

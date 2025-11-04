@@ -96,7 +96,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == Never, 0 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 0 #:type Never))
+                           (== #:size 0 #:type Never))
 
                         """
                 )
@@ -153,7 +153,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == Bool, 1 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 1 #:type Bool))
+                           (== #:size 1 #:type Bool))
 
                         """
                 )
@@ -202,7 +202,7 @@ struct PrefetchCompareValuesTests {
                     output == """
                         == Int, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout))
-                              (== #:size 8 #:type Int))
+                           (== #:size 8 #:type Int))
 
                         """
                 )
@@ -229,7 +229,7 @@ struct PrefetchCompareValuesTests {
                     output == """
                         == Double, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout))
-                              (== #:size 8 #:type Double))
+                           (== #:size 8 #:type Double))
 
                         """
                 )
@@ -256,7 +256,7 @@ struct PrefetchCompareValuesTests {
                     output == """
                         == Float, 4 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout))
-                              (== #:size 4 #:type Float))
+                           (== #:size 4 #:type Float))
 
                         """
                 )
@@ -297,7 +297,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == String, 16 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
-                              (== #:size 16 #:type String))
+                           (== #:size 16 #:type String))
 
                         """
                 )
@@ -317,7 +317,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == String, 16 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 16 #:type String))
+                           (== #:size 16 #:type String))
 
                         """
                 )
@@ -445,8 +445,8 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == TrivialStruct, 16 bytes ==
                         (layout #:length 35 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type Int)
-                              (== #:size 8 #:type Int))
+                           (== #:size 8 #:type Int)
+                           (== #:size 8 #:type Int))
 
                         """
                 )
@@ -478,9 +478,9 @@ struct PrefetchCompareValuesTests {
                     output0 == """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout0))
-                              (read 1)
-                              (skip 7)
-                              (read 8))
+                           (read 1)
+                           (skip 7)
+                           (read 8))
 
                         """
                 )
@@ -500,9 +500,9 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout1))
-                              (read 1)
-                              (skip 7)
-                              (read 8))
+                           (read 1)
+                           (skip 7)
+                           (read 8))
 
                         """
                 )
@@ -522,9 +522,9 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout2))
-                              (read 1)
-                              (skip 7)
-                              (read 8))
+                           (read 1)
+                           (skip 7)
+                           (read 8))
 
                         """
                 )
@@ -555,9 +555,9 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 36 #:address \(String(describing: layout3))
-                              (== #:size 1 #:type Int8)
-                              (skip 7)
-                              (== #:size 8 #:type Int64))
+                           (== #:size 1 #:type Int8)
+                           (skip 7)
+                           (== #:size 8 #:type Int64))
 
                         """
                 )
@@ -596,9 +596,9 @@ struct PrefetchCompareValuesTests {
                     output0 == """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout0))
-                              (read 1)
-                              (skip 7)
-                              (nested #:size 11 #:layout \(String(describing: nestedLayout0))))
+                           (read 1)
+                           (skip 7)
+                           (nested #:size 11 #:layout \(String(describing: nestedLayout0))))
 
                         """
                 )
@@ -624,9 +624,9 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout1))
-                              (read 1)
-                              (skip 7)
-                              (nested #:size 11 #:layout \(String(describing: nestedLayout1))))
+                           (read 1)
+                           (skip 7)
+                           (nested #:size 11 #:layout \(String(describing: nestedLayout1))))
 
                         """
                 )
@@ -652,9 +652,9 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout2))
-                              (read 1)
-                              (skip 7)
-                              (nested #:size 11 #:layout \(String(describing: nestedLayout2))))
+                           (read 1)
+                           (skip 7)
+                           (nested #:size 11 #:layout \(String(describing: nestedLayout2))))
 
                         """
                 )
@@ -685,9 +685,9 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 36 #:address \(String(describing: layout3))
-                              (== #:size 1 #:type Int8)
-                              (skip 7)
-                              (== #:size 11 #:type Optional<Optional<Optional<Int64>>>))
+                           (== #:size 1 #:type Int8)
+                           (skip 7)
+                           (== #:size 11 #:type Optional<Optional<Optional<Int64>>>))
 
                         """
                 )
@@ -799,7 +799,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == BasicEnum, 1 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 1 #:type BasicEnum))
+                           (== #:size 1 #:type BasicEnum))
 
                         """
                 )
@@ -852,7 +852,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == IntEnum, 1 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 1 #:type IntEnum))
+                           (== #:size 1 #:type IntEnum))
 
                         """
                 )
@@ -885,11 +885,11 @@ struct PrefetchCompareValuesTests {
                     output0 == """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 14 #:address \(String(describing: layout0))
-                              (enum #:size 17 #:type TaggedUnionEnum
-                                  (case 0
-                                      (read 8))
-                                  (case 1
-                                      (read 16))))
+                           (enum #:size 17 #:type TaggedUnionEnum
+                             (case 0
+                               (read 8))
+                             (case 1
+                               (read 16))))
 
                         """
                 )
@@ -909,11 +909,11 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 14 #:address \(String(describing: layout1))
-                              (enum #:size 17 #:type TaggedUnionEnum
-                                  (case 0
-                                      (read 8))
-                                  (case 1
-                                      (read 16))))
+                           (enum #:size 17 #:type TaggedUnionEnum
+                             (case 0
+                               (read 8))
+                             (case 1
+                               (read 16))))
 
                         """
                 )
@@ -939,11 +939,11 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 30 #:address \(String(describing: layout2))
-                              (enum #:size 17 #:type TaggedUnionEnum
-                                  (case 0
-                                      (read 8))
-                                  (case 1
-                                      (== #:size 16 #:type String))))
+                           (enum #:size 17 #:type TaggedUnionEnum
+                             (case 0
+                               (read 8))
+                             (case 1
+                               (== #:size 16 #:type String))))
 
                         """
                 )
@@ -974,11 +974,11 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout3))
-                              (enum #:size 17 #:type TaggedUnionEnum
-                                  (case 0
-                                      (== #:size 8 #:type Int))
-                                  (case 1
-                                      (== #:size 16 #:type String))))
+                           (enum #:size 17 #:type TaggedUnionEnum
+                             (case 0
+                               (== #:size 8 #:type Int))
+                             (case 1
+                               (== #:size 16 #:type String))))
 
                         """
                 )
@@ -1010,11 +1010,11 @@ struct PrefetchCompareValuesTests {
                     output0 == """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 14 #:address \(String(describing: layout0))
-                              (enum #:size 8 #:type IndirectEnum
-                                  (case 0
-                                      (read 8))
-                                  (case 1
-                                      (read 8))))
+                           (enum #:size 8 #:type IndirectEnum
+                             (case 0
+                               (read 8))
+                             (case 1
+                               (read 8))))
 
                         """
                 )
@@ -1034,11 +1034,11 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout1))
-                              (enum #:size 8 #:type IndirectEnum
-                                  (case 0
-                                      (indirect #:size 16 #:type String))
-                                  (case 1
-                                      (indirect #:size 8 #:type (child: IndirectEnum)))))
+                           (enum #:size 8 #:type IndirectEnum
+                             (case 0
+                               (indirect #:size 16 #:type String))
+                             (case 1
+                               (indirect #:size 8 #:type (child: IndirectEnum)))))
 
                         """
                 )
@@ -1058,11 +1058,11 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout2))
-                              (enum #:size 8 #:type IndirectEnum
-                                  (case 0
-                                      (indirect #:size 16 #:type String))
-                                  (case 1
-                                      (indirect #:size 8 #:type (child: IndirectEnum)))))
+                           (enum #:size 8 #:type IndirectEnum
+                             (case 0
+                               (indirect #:size 16 #:type String))
+                             (case 1
+                               (indirect #:size 8 #:type (child: IndirectEnum)))))
 
                         """
                 )
@@ -1082,11 +1082,11 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout3))
-                              (enum #:size 8 #:type IndirectEnum
-                                  (case 0
-                                      (indirect #:size 16 #:type String))
-                                  (case 1
-                                      (indirect #:size 8 #:type (child: IndirectEnum)))))
+                           (enum #:size 8 #:type IndirectEnum
+                             (case 0
+                               (indirect #:size 16 #:type String))
+                             (case 1
+                               (indirect #:size 8 #:type (child: IndirectEnum)))))
 
                         """
                 )
@@ -1138,8 +1138,8 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == (Int, String), 24 bytes ==
                         (layout #:length 19 #:address \(String(describing: layout2))
-                              (read 8)
-                              (== #:size 16 #:type String))
+                           (read 8)
+                           (== #:size 16 #:type String))
 
                         """
                 )
@@ -1170,8 +1170,8 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == (Int, String), 24 bytes ==
                         (layout #:length 35 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type Int)
-                              (== #:size 16 #:type String))
+                           (== #:size 8 #:type Int)
+                           (== #:size 16 #:type String))
 
                         """
                 )
@@ -1198,9 +1198,9 @@ struct PrefetchCompareValuesTests {
                     output0 == """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout0))
-                              (read 1)
-                              (skip 7)
-                              (read 8))
+                           (read 1)
+                           (skip 7)
+                           (read 8))
 
                         """
                 )
@@ -1220,9 +1220,9 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout1))
-                              (read 1)
-                              (skip 7)
-                              (read 8))
+                           (read 1)
+                           (skip 7)
+                           (read 8))
 
                         """
                 )
@@ -1242,9 +1242,9 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout2))
-                              (read 1)
-                              (skip 7)
-                              (read 8))
+                           (read 1)
+                           (skip 7)
+                           (read 8))
 
                         """
                 )
@@ -1275,9 +1275,9 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 36 #:address \(String(describing: layout3))
-                              (== #:size 1 #:type Int8)
-                              (skip 7)
-                              (== #:size 8 #:type Int64))
+                           (== #:size 1 #:type Int8)
+                           (skip 7)
+                           (== #:size 8 #:type Int64))
 
                         """
                 )
@@ -1323,7 +1323,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == Array<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
-                              (== #:size 8 #:type Array<Int>))
+                           (== #:size 8 #:type Array<Int>))
 
                         """
                 )
@@ -1343,7 +1343,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == Array<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type Array<Int>))
+                           (== #:size 8 #:type Array<Int>))
 
                         """
                 )
@@ -1395,7 +1395,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == Dictionary<Int, Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
-                              (== #:size 8 #:type Dictionary<Int, Int>))
+                           (== #:size 8 #:type Dictionary<Int, Int>))
 
                         """
                 )
@@ -1415,7 +1415,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == Dictionary<Int, Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type Dictionary<Int, Int>))
+                           (== #:size 8 #:type Dictionary<Int, Int>))
 
                         """
                 )
@@ -1471,7 +1471,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == Set<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
-                              (== #:size 8 #:type Set<Int>))
+                           (== #:size 8 #:type Set<Int>))
 
                         """
                 )
@@ -1491,7 +1491,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == Set<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type Set<Int>))
+                           (== #:size 8 #:type Set<Int>))
 
                         """
                 )
@@ -1551,7 +1551,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == EquatableStruct, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type EquatableStruct))
+                           (== #:size 8 #:type EquatableStruct))
 
                         """
                 )
@@ -1599,7 +1599,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == EquatableClass, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
-                              (== #:size 8 #:type EquatableClass))
+                           (== #:size 8 #:type EquatableClass))
 
                         """
                 )
@@ -1619,7 +1619,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == EquatableClass, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
-                              (== #:size 8 #:type EquatableClass))
+                           (== #:size 8 #:type EquatableClass))
 
                         """
                 )
@@ -1650,7 +1650,7 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == Any, 32 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout1))
-                              (existential #:size 32 #:type Any))
+                           (existential #:size 32 #:type Any))
 
                         """
                 )
@@ -1670,7 +1670,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == Any, 32 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout2))
-                              (existential #:size 32 #:type Any))
+                           (existential #:size 32 #:type Any))
 
                         """
                 )
@@ -1685,7 +1685,7 @@ struct PrefetchCompareValuesTests {
                 output3 == """
                     == Any, 32 bytes ==
                     (layout #:length 10 #:address \(String(describing: layout3))
-                          (existential #:size 32 #:type Any))
+                       (existential #:size 32 #:type Any))
 
                     """
             )
@@ -1718,7 +1718,7 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == Error, 8 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout1))
-                              (existential #:size 8 #:type Error))
+                           (existential #:size 8 #:type Error))
 
                         """
                 )
@@ -1738,7 +1738,7 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == Error, 8 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout2))
-                              (existential #:size 8 #:type Error))
+                           (existential #:size 8 #:type Error))
 
                         """
                 )
@@ -1758,7 +1758,7 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == Error, 8 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout3))
-                              (existential #:size 8 #:type Error))
+                           (existential #:size 8 #:type Error))
 
                         """
                 )
@@ -1795,8 +1795,8 @@ struct PrefetchCompareValuesTests {
                     output1 == """
                         == () -> (), 16 bytes ==
                         (layout #:length 3 #:address \(String(describing: layout1))
-                              (read 8)
-                              (capture-ref))
+                           (read 8)
+                           (capture-ref))
 
                         """
                 )
@@ -1816,8 +1816,8 @@ struct PrefetchCompareValuesTests {
                     output2 == """
                         == () -> (), 16 bytes ==
                         (layout #:length 3 #:address \(String(describing: layout2))
-                              (read 8)
-                              (capture-ref))
+                           (read 8)
+                           (capture-ref))
 
                         """
                 )
@@ -1837,8 +1837,8 @@ struct PrefetchCompareValuesTests {
                     output3 == """
                         == () -> (), 16 bytes ==
                         (layout #:length 3 #:address \(String(describing: layout3))
-                              (read 8)
-                              (capture-ref))
+                           (read 8)
+                           (capture-ref))
 
                         """
                 )

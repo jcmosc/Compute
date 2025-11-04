@@ -765,7 +765,7 @@ void print(std::string &output, ValueLayout layout) {
             uint8_t skip = reader.read_bytes<uint8_t>();
             skip = (skip & 0x3f) + 1; // Convert 0-63 to 1-64
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(skip %u)", skip);
             continue;
         }
@@ -774,7 +774,7 @@ void print(std::string &output, ValueLayout layout) {
             uint8_t length = reader.read_bytes<uint8_t>();
             length = (length & 0x7f) + 1; // Convert 0-127 to 1-128
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(read %u)", length);
             continue;
         }
@@ -790,7 +790,7 @@ void print(std::string &output, ValueLayout layout) {
             reader.skip(sizeof(void *));
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(== #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
@@ -799,7 +799,7 @@ void print(std::string &output, ValueLayout layout) {
             reader.skip(sizeof(void *));
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(indirect #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
@@ -807,7 +807,7 @@ void print(std::string &output, ValueLayout layout) {
             auto type = reader.read_bytes<const swift::metadata *>();
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(existential #:size %d #:type %s)", type->vw_size(), type->name(false));
             continue;
         }
@@ -816,7 +816,7 @@ void print(std::string &output, ValueLayout layout) {
             bool is_heap_ref = kind == ValueLayoutEntryKind::HeapRef;
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(%s)", is_heap_ref ? "heap-ref" : "capture-ref");
             continue;
         }
@@ -825,7 +825,7 @@ void print(std::string &output, ValueLayout layout) {
             size_t nested_size = reader.read_varint();
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(nested #:size %d #:layout %p)", nested_size, nested_layout);
             continue;
         }
@@ -837,7 +837,7 @@ void print(std::string &output, ValueLayout layout) {
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(nested #:size %d #:layout %p)", nested_size, nested_layout);
             continue;
         }
@@ -856,11 +856,11 @@ void print(std::string &output, ValueLayout layout) {
             }
 
             output.push_back('\n');
-            output.append(indent * 2, ' ');
+            output.append(indent, ' ');
             print_format("(enum #:size %d #:type %s", type->vw_size(), type->name(false));
 
             output.push_back('\n');
-            output.append(indent * 2 + 4, ' ');
+            output.append(indent + 2, ' ');
             print_format("(case %d", enum_tag);
 
             indent += 4;
@@ -885,7 +885,7 @@ void print(std::string &output, ValueLayout layout) {
 
             output.push_back(')');
             output.push_back('\n');
-            output.append(indent * 2 - 4, ' ');
+            output.append(indent - 2, ' ');
             print_format("(case %d", enum_tag);
             continue;
         }

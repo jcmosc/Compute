@@ -79,6 +79,8 @@ class UntypedTable {
     bool remove_ptr(const key_type key);
 } SWIFT_UNSAFE_REFERENCE;
 
+#if !SWIFT_TESTING
+
 template <typename Key, typename Value> class Table : public UntypedTable {
   public:
     using key_type = Key;
@@ -117,6 +119,8 @@ template <typename Key, typename Value> class Table : public UntypedTable {
     bool remove(const key_type key) { return UntypedTable::remove(*(void **)&key); };
     bool remove_ptr(const key_type key) { return UntypedTable::remove_ptr(key); };
 };
+
+#endif
 
 } // namespace util
 

@@ -57,6 +57,8 @@ class Heap {
 
 } SWIFT_UNSAFE_REFERENCE;
 
+#if !SWIFT_TESTING
+
 template <unsigned int _inline_size> class InlineHeap : public Heap {
   private:
     char _inline_buffer[_inline_size] = {};
@@ -64,6 +66,8 @@ template <unsigned int _inline_size> class InlineHeap : public Heap {
   public:
     InlineHeap() : Heap(_inline_buffer, _inline_size, 0) {}
 };
+
+#endif
 
 } // namespace util
 

@@ -1092,6 +1092,114 @@ struct PrefetchCompareValuesTests {
                 )
             }
         }
+        
+        @Test
+        func layoutForIndirectEnumCase() async {
+            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
+            setenv("AG_ASYNC_LAYOUTS", "0", 1)
+            setenv("AG_PRINT_LAYOUTS", "1", 1)
+            
+            protocol NodeProtocol {
+                
+            }
+            struct Node {
+                let field0: NodeProtocol.Type
+                var field1: UInt32
+                var field2: UInt32?
+            }
+            enum Stack<Value> {
+                case empty
+                indirect case node(value: Value, next: Stack<Value>)
+            }
+
+            await #expect(processExitsWith: .success) {
+                var output0 = ""
+                let layout0 = await reprintingStandardError(to: &output0) {
+                    prefetchCompareValues(
+                        of: Stack<Node>.self,
+                        options: ComparisonOptions(mode: .bitwise),
+                        priority: 0
+                    )
+                }
+                #expect(layout0 != nil)
+                #expect(
+                    output0 == """
+                        == Stack<Node>, 8 bytes ==
+                        (layout #:length 12 #:address \(String(describing: layout0))
+                           (enum #:size 8 #:type Stack<Node>
+                             (case 0
+                               (read 8))))
+                        
+                        """
+                )
+            }
+
+            await #expect(processExitsWith: .success) {
+                var output1 = ""
+                let layout1 = await reprintingStandardError(to: &output1) {
+                    prefetchCompareValues(
+                        of: Stack<Node>.self,
+                        options: ComparisonOptions(mode: .indirect),
+                        priority: 0
+                    )
+                }
+                #expect(layout1 != nil)
+                #expect(
+                    output1 == """
+                        == Stack<Node>, 8 bytes ==
+                        (layout #:length 28 #:address \(String(describing: layout1))
+                           (enum #:size 8 #:type Stack<Node>
+                             (case 0
+                               (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
+                        
+                        """
+                )
+            }
+
+            await #expect(processExitsWith: .success) {
+                var output2 = ""
+                let layout2 = await reprintingStandardError(to: &output2) {
+                    prefetchCompareValues(
+                        of: Stack<Node>.self,
+                        options: ComparisonOptions(mode: .equatableUnlessPOD),
+                        priority: 0
+                    )
+                }
+                #expect(layout2 != nil)
+                #expect(
+                    output2 == """
+                        == Stack<Node>, 8 bytes ==
+                        (layout #:length 28 #:address \(String(describing: layout2))
+                           (enum #:size 8 #:type Stack<Node>
+                             (case 0
+                               (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
+                        
+                        """
+                )
+            }
+
+            await #expect(processExitsWith: .success) {
+                var output3 = ""
+                let layout3 = await reprintingStandardError(to: &output3) {
+                    prefetchCompareValues(
+                        of: Stack<Node>.self,
+                        options: ComparisonOptions(mode: .equatableAlways),
+                        priority: 0
+                    )
+                }
+                #expect(layout3 != nil)
+                #expect(
+                    output3 == """
+                        == Stack<Node>, 8 bytes ==
+                        (layout #:length 28 #:address \(String(describing: layout3))
+                           (enum #:size 8 #:type Stack<Node>
+                             (case 0
+                               (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
+                        
+                        """
+                )
+            }
+        }
 
     }
 

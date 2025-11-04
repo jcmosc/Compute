@@ -533,8 +533,8 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
         static_assert(sizeof(::swift::HeapObject) == 0x10);
         size_t alignment_mask = layout_type.getValueWitnesses()->getAlignmentMask();
         size_t offset = (sizeof(::swift::HeapObject) + alignment_mask) & ~alignment_mask;
-        unsigned char *lhs_value = (unsigned char *)(*lhs_copy + offset);
-        unsigned char *rhs_value = (unsigned char *)(*rhs_copy + offset);
+        unsigned char *lhs_value = (unsigned char *)(*(unsigned char **)lhs_copy + offset);
+        unsigned char *rhs_value = (unsigned char *)(*(unsigned char **)rhs_copy + offset);
 
         result =
             compare(layout, lhs_value, rhs_value, layout_type.vw_size(), options & ~AGComparisonOptionsCopyOnWrite);

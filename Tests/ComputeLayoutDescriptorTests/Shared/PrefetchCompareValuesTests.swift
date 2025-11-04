@@ -1784,19 +1784,21 @@ struct PrefetchCompareValuesTests {
                 )
             }
 
-            var output3 = ""
-            let layout3 = await reprintingStandardError(to: &output3) {
-                prefetchCompareValues(of: Any.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
-            }
-            #expect(layout3 != nil)
-            #expect(
-                output3 == """
+            await #expect(processExitsWith: .success) {
+                var output3 = ""
+                let layout3 = await reprintingStandardError(to: &output3) {
+                    prefetchCompareValues(of: Any.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
+                }
+                #expect(layout3 != nil)
+                #expect(
+                    output3 == """
                     == Any, 32 bytes ==
                     (layout #:length 10 #:address \(String(describing: layout3))
                        (existential #:size 32 #:type Any))
-
+                    
                     """
-            )
+                )
+            }
         }
 
         @Test

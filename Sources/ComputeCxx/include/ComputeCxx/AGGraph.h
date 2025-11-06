@@ -10,6 +10,7 @@
 #include <ComputeCxx/AGAttributeType.h>
 #include <ComputeCxx/AGChangedValue.h>
 #include <ComputeCxx/AGComparison.h>
+#include <ComputeCxx/AGGraphCounterQueryType.h>
 #include <ComputeCxx/AGInputOptions.h>
 #include <ComputeCxx/AGSearchOptions.h>
 #include <ComputeCxx/AGSwiftSupport.h>
@@ -69,26 +70,10 @@ void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context)
 
 // MARK: Counter
 
-typedef CF_ENUM(uint32_t, AGGraphCounterQuery) {
-    AGGraphCounterQueryNodeCount,
-    AGGraphCounterQueryTransactionCount,
-    AGGraphCounterQueryUpdateCount,
-    AGGraphCounterQueryChangeCount,
-    AGGraphCounterQueryContextID,
-    AGGraphCounterQueryGraphID,
-    AGGraphCounterQueryContextThreadUpdating,
-    AGGraphCounterQueryThreadUpdating,
-    AGGraphCounterQueryContextNeedsUpdate,
-    AGGraphCounterQueryNeedsUpdate,
-    AGGraphCounterQueryMainThreadUpdateCount,
-    AGGraphCounterQueryNodeTotalCount,
-    AGGraphCounterQuerySubgraphCount,
-    AGGraphCounterQuerySubgraphTotalCount,
-};
-
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQuery query) CF_SWIFT_NAME(AGGraphRef.counter(self:for:));
+uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQueryType query)
+    CF_SWIFT_NAME(AGGraphRef.counter(self:for:));
 
 // MARK: Main handler
 

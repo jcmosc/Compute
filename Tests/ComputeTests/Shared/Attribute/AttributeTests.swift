@@ -123,8 +123,8 @@ struct AttributeTests {
         func incrementsGraphCounters() {
             let attribute = Attribute(value: 1)
 
-            #expect(attribute.graph.counter(for: .nodeCount) == 1)
-            #expect(attribute.graph.counter(for: .nodeTotalCount) == 1)
+            #expect(attribute.graph.counter(for: .nodes) == 1)
+            #expect(attribute.graph.counter(for: .createdNodes) == 1)
         }
 
     }

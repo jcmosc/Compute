@@ -49,19 +49,19 @@ struct SubgraphTests {
         func subgraphCounters() {
             let graph = Graph()
 
-            #expect(graph.counter(for: .subgraphCount) == 0)
-            #expect(graph.counter(for: .subgraphTotalCount) == 0)
+            #expect(graph.counter(for: .subgraphs) == 0)
+            #expect(graph.counter(for: .createdSubgraphs) == 0)
 
             autoreleasepool {
                 let subgraph = Subgraph(graph: graph)
                 #expect(subgraph.graph == graph)
 
-                #expect(graph.counter(for: .subgraphCount) == 1)
-                #expect(graph.counter(for: .subgraphTotalCount) == 1)
+                #expect(graph.counter(for: .subgraphs) == 1)
+                #expect(graph.counter(for: .createdSubgraphs) == 1)
             }
 
-            #expect(graph.counter(for: .subgraphCount) == 0)
-            #expect(graph.counter(for: .subgraphTotalCount) == 1)
+            #expect(graph.counter(for: .subgraphs) == 0)
+            #expect(graph.counter(for: .createdSubgraphs) == 1)
         }
 
     }
@@ -136,13 +136,13 @@ struct SubgraphTests {
             }
 
             #expect(subgraph.isValid == true)
-            #expect(graph.counter(for: .subgraphCount) == 1)
+            #expect(graph.counter(for: .subgraphs) == 1)
             #expect(notifiedCount == 0)
 
             subgraph.invalidate()
 
             #expect(subgraph.isValid == false)
-            #expect(graph.counter(for: .subgraphCount) == 0)
+            #expect(graph.counter(for: .subgraphs) == 0)
             #expect(notifiedCount == 1)
         }
 
@@ -157,7 +157,7 @@ struct SubgraphTests {
             }
 
             #expect(subgraph.isValid == true)
-            #expect(graph.counter(for: .subgraphCount) == 1)
+            #expect(graph.counter(for: .subgraphs) == 1)
             #expect(notifiedCount == 0)
 
             let wasDeferring = graph.beginDeferringSubgraphInvalidation()
@@ -165,13 +165,13 @@ struct SubgraphTests {
             subgraph.invalidate()
 
             #expect(subgraph.isValid == false)
-            #expect(graph.counter(for: .subgraphCount) == 1)  // Subgraph not removed until batch end
+            #expect(graph.counter(for: .subgraphs) == 1)  // Subgraph not removed until batch end
             #expect(notifiedCount == 0)
 
             graph.endDeferringSubgraphInvalidation(wasDeferring: wasDeferring)
 
             #expect(subgraph.isValid == false)
-            #expect(graph.counter(for: .subgraphCount) == 0)
+            #expect(graph.counter(for: .subgraphs) == 0)
             #expect(notifiedCount == 1)
         }
 

@@ -8,6 +8,7 @@
 #include <ComputeCxx/AGComparison.h>
 #include <ComputeCxx/AGDescription.h>
 #include <ComputeCxx/AGGraph.h>
+#include <ComputeCxx/AGGraphCounterQueryType.h>
 #include <ComputeCxx/AGInputOptions.h>
 #include <ComputeCxx/AGSearchOptions.h>
 #include <ComputeCxx/AGSubgraph.h>

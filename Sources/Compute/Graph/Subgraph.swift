@@ -26,11 +26,18 @@ extension Subgraph {
         return body()
     }
 
+    @_extern(c, "AGSubgraphApply")
+    private static func forEach(
+        _ subgraph: UnsafeRawPointer,
+        _ flags: Subgraph.Flags,
+        _ body: (AnyAttribute) -> Void
+    )
+
     public func forEach(
         _ flags: Subgraph.Flags,
         _ body: (AnyAttribute) -> Void
     ) {
-        fatalError("not implemented")
+        Subgraph.forEach(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, body)
     }
 
 }

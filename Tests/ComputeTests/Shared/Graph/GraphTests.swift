@@ -296,7 +296,7 @@ struct GraphTests {
             func initialDescription() throws {
                 let description =
                     try #require(
-                        Graph.description(nil, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
+                        Graph.description(nil, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
                             as? NSDictionary
                     )
 
@@ -329,7 +329,7 @@ struct GraphTests {
 
                 let description =
                     try #require(
-                        Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
+                        Graph.description(graph, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
                             as? NSDictionary
                     )
 
@@ -403,7 +403,7 @@ struct GraphTests {
 
                 let description =
                     try #require(
-                        Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
+                        Graph.description(graph, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
                             as? NSDictionary
                     )
                 let data = try JSONSerialization.data(
@@ -433,7 +433,7 @@ struct GraphTests {
 
                 let description =
                     try #require(
-                        Graph.description(graph, options: [Graph.descriptionFormat: "graph/dict"] as NSDictionary)
+                        Graph.description(graph, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
                             as? NSDictionary
                     )
                 let data = try JSONSerialization.data(
@@ -472,7 +472,7 @@ struct GraphTests {
                     try #require(
                         Graph.description(
                             graph,
-                            options: [Graph.descriptionFormat: "graph/dict", Graph.includeValues: true] as NSDictionary
+                            options: [DescriptionOption.format: "graph/dict", DescriptionOption.includeValues: true] as NSDictionary
                         )
                             as? NSDictionary
                     )
@@ -501,7 +501,7 @@ struct GraphTests {
                     try #require(
                         Graph.description(
                             graph,
-                            options: [Graph.descriptionFormat: "graph/dict", Graph.includeValues: true] as NSDictionary
+                            options: [DescriptionOption.format: "graph/dict", DescriptionOption.includeValues: true] as NSDictionary
                         )
                             as? NSDictionary
                     )

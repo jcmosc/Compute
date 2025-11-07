@@ -7,7 +7,7 @@ CF_ASSUME_NONNULL_BEGIN
 
 CF_EXTERN_C_BEGIN
 
-typedef uint64_t AGUniqueID;
+typedef long AGUniqueID;
 
 AGUniqueID AGMakeUniqueID(void) CF_SWIFT_NAME(makeUniqueID());
 

@@ -1114,6 +1114,7 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, AGGraphUpdateO
     });
 
     // ~UpdateStack called
+    return status;
 }
 
 void Graph::mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,

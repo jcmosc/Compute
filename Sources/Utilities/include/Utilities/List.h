@@ -1,8 +1,8 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <swift/bridging>
 
+#include <Utilities/SwiftBridging.h>
 #include <Utilities/Heap.h>
 
 CF_ASSUME_NONNULL_BEGIN

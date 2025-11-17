@@ -21,8 +21,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: Compute
-      - run: cd Compute
       - name: Build
         run: swift build -v
+        working-directory: ./Compute
       - name: Run tests
         run: swift test -v
+        working-directory: ./Compute

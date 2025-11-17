@@ -720,7 +720,9 @@ void Subgraph::begin_tree(AttributeID value, const swift::metadata *type, uint32
     tree->value = value;
     tree->flags = flags;
     tree->parent = _tree_root;
+    tree->first_child = Graph::TreeElementID();
     tree->next_sibling = Graph::TreeElementID();
+    tree->first_value = Graph::TreeValueID();
 
     auto old_root = _tree_root;
     _tree_root = Graph::TreeElementID(tree);

@@ -16,7 +16,7 @@ extension Focus: Rule {
         return root.value[keyPath: keyPath]
     }
 
-    public static var flags: Flags {
+    public static var flags: _AttributeType.Flags {
         return []
     }
 

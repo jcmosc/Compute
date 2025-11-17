@@ -30,7 +30,7 @@ typedef CF_OPTIONS(uint32_t, AGAttributeTypeFlags) {
     AGAttributeTypeFlagsMainThread = 1 << 3,
     AGAttributeTypeFlagsExternal = 1 << 4,
     AGAttributeTypeFlagsAsyncThread = 1 << 5,
-} CF_SWIFT_NAME(Flags);
+} CF_SWIFT_NAME(_AttributeType.Flags);
 
 typedef struct CF_SWIFT_NAME(_AttributeType) AGAttributeType {
     AGTypeID self_id;

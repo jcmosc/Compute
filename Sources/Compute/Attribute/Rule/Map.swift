@@ -16,7 +16,7 @@ extension Map: Rule {
         return body(arg.value)
     }
 
-    public static var flags: Flags {
+    public static var flags: _AttributeType.Flags {
         return []
     }
 

@@ -8,7 +8,7 @@ public protocol _AttributeBody {
     static func _updateDefault(_ default: UnsafeMutableRawPointer)
 
     static var comparisonMode: ComparisonMode { get }
-    static var flags: Flags { get }
+    static var flags: _AttributeType.Flags { get }
 
 }
 
@@ -26,7 +26,7 @@ extension _AttributeBody {
         return .equatableUnlessPOD
     }
 
-    public static var flags: Flags {
+    public static var flags: _AttributeType.Flags {
         return .mainThread
     }
 

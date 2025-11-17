@@ -35,7 +35,7 @@ public struct Attribute<Value> {
     public init<Body: _AttributeBody>(
         body: UnsafePointer<Body>,
         value: UnsafePointer<Value>?,
-        flags: Flags,
+        flags: _AttributeType.Flags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) {
         guard let graphContext = Subgraph.currentGraphContext else {
@@ -245,7 +245,7 @@ extension Attribute {
             }
         }
     }
-    
+
     public init<Body: Rule>(_ body: Body, initialValue: Value) where Body.Value == Value {
         self = withUnsafePointer(to: body) { bodyPointer in
             return withUnsafePointer(to: initialValue) { initialValuePointer in
@@ -263,7 +263,7 @@ extension Attribute {
             }
         }
     }
-    
+
     public init<Body: StatefulRule>(_ body: Body, initialValue: Value) where Body.Value == Value {
         self = withUnsafePointer(to: body) { bodyPointer in
             return withUnsafePointer(to: initialValue) { initialValuePointer in

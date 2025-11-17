@@ -14,7 +14,7 @@ extension External: _AttributeBody {
         return .equatableAlways
     }
 
-    public static var flags: Flags {
+    public static var flags: _AttributeType.Flags {
         return []
     }
 

@@ -507,7 +507,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
 
                         uint64_t tree_element_index;
                         auto found_tree_element = tree_element_indices.find(tree);
-                        if (found_tree_element == tree_element_indices.end()) {
+                        if (found_tree_element != tree_element_indices.end()) {
                             auto index = trees.size();
                             tree_element_indices.try_emplace(tree, index);
                             trees.push_back(tree);
@@ -546,7 +546,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                         if (tree->parent == nullptr) {
                             tree_dict[@"root"] = @YES;
                         }
-                    } else if (tree->value && tree->type == nullptr) {
+                    } else if (tree->value && !tree->value.is_nil() && tree->type == nullptr) {
                         tree_dict[@"node"] = @(node_indices_by_id.find(tree->value.get_node())->second);
                     } else {
                         if (tree->parent == nullptr) {
@@ -594,7 +594,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                     for (data::ptr<TreeValue> value = tree->first_value; value != nullptr; value = value->next) {
 
                         OffsetAttributeID resolved_value = value->value.resolve(TraversalOptions::None);
-                        if (resolved_value.attribute().is_node()) {
+                        if (resolved_value.attribute() && resolved_value.attribute().is_node()) {
                             NSMutableDictionary *dict = [NSMutableDictionary dictionary];
                             dict[@"node"] = @(node_indices_by_id.find(resolved_value.attribute().get_node())->second);
                             if (resolved_value.offset() != 0) {

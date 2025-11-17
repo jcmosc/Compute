@@ -154,7 +154,7 @@ void AGSubgraphUpdate(AGSubgraphRef subgraph, AGAttributeFlags flags) CF_SWIFT_N
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.treeRoot(self:));
+_Nullable AGTreeElement AGSubgraphGetTreeRoot(AGSubgraphRef subgraph) CF_SWIFT_NAME(getter:AGSubgraphRef.treeRoot(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

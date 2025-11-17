@@ -78,7 +78,7 @@ AGUniqueID AGSubgraphAddObserver(AGSubgraphRef subgraph,
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGSubgraphRemoveObserver(AGSubgraphRef subgraph, AGUniqueID observer_id)
-    CF_SWIFT_NAME(AGSubgraphRef.removeObserver(self:observerID:));
+    CF_SWIFT_NAME(AGSubgraphRef.removeObserver(self:_:));
 
 // MARK: Children
 

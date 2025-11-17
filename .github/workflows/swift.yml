@@ -14,10 +14,20 @@ jobs:
     runs-on: macos-26
 
     steps:
+      - name: Install dependencies
+        run: brew install ninja sccache
       - uses: actions/checkout@v4
         with:
           repository: swiftlang/swift
           path: swift-project/swift
+      - run: utils/update-checkout --clone-with-ssh
+        working-directory: ./swift-project/swift
+      - name: Build toolchain
+        run: |
+          utils/build-script --skip-build-benchmarks \
+            --swift-darwin-supported-archs "$(uname -m)" \
+            --release-debuginfo --swift-disable-dead-stripping \
+            --bootstrapping=hosttools
       - uses: actions/checkout@v4
         with:
           path: Compute

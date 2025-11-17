@@ -81,8 +81,8 @@ extension _AttributeType {
     )
         -> _AGClosureStorage
 
-    init<Body: _AttributeBody>(
-        selfType: Body.Type,
+    init(
+        selfType: _AttributeBody.Type,
         valueType: Any.Type,
         flags: Flags,
         update: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void,

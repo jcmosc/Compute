@@ -45,12 +45,13 @@ public struct Attribute<Value> {
         let typeID = graphContext.internAttributeType(
             type: Metadata(Body.self)
         ) {
-            let attributeType = _AttributeType(
-                selfType: Body.self,
-                valueType: Value.self,
-                flags: flags,
-                update: update()
-            )
+            let attributeType =
+                _AttributeType(
+                    selfType: flags.contains(.external) ? _External.self : Body.self,
+                    valueType: Value.self,
+                    flags: flags,
+                    update: update()
+                )
             let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
             pointer.initialize(to: attributeType)
             return UnsafePointer(pointer)

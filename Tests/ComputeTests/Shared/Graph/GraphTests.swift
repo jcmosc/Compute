@@ -166,7 +166,7 @@ struct GraphTests {
                 let attributeType = GraphTests.InternAttributeTypeTests.internedAttributeType?.pointee
                 #expect(attributeType?.self_id == Metadata(External<Int>.self))
                 #expect(attributeType?.value_id == Metadata(Int.self))
-                #expect(attributeType?.value_layout == ValueLayout.trivial.storage)
+                #expect(attributeType?.value_layout == UnsafePointer(bitPattern: 1))
                 #expect(attributeType?.internal_offset == 28)  // size of Node rounded up to alignment of External<Int>
             }
         }

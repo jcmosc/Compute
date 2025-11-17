@@ -112,6 +112,26 @@ let package = Package(
             ],
             swiftSettings: [
                 .interoperabilityMode(.Cxx),
+                .enableExperimentalFeature("Extern"),
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
+        .testTarget(
+            name: "ComputeLayoutDescriptorTests",
+            dependencies: [
+                "Compute"
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("Extern")
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
+        .testTarget(
+            name: "ComputeLayoutDescriptorCompatibilityTests",
+            dependencies: [
+                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks")
+            ],
+            swiftSettings: [
                 .enableExperimentalFeature("Extern")
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]

@@ -19,7 +19,7 @@ struct AttributeTests {
             try await #require(processExitsWith: .success) {
                 setenv("AG_PREFETCH_LAYOUTS", "1", 1)
                 setenv("AG_ASYNC_LAYOUTS", "0", 1)
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
@@ -27,10 +27,10 @@ struct AttributeTests {
                 let attribute = Attribute(value: 1)
                 #expect(attribute.value == 1)
 
-                let expectedlayout = prefetchCompareValues(
-                    of: Int.self,
-                    options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                    priority: 0
+                let expectedlayout = __AGPrefetchCompareValues(
+                    Metadata(Int.self),
+                    [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
+                    0
                 )
 
                 let attributeType = attribute.identifier.info.type.pointee
@@ -39,7 +39,7 @@ struct AttributeTests {
 
                 #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
                 #expect(attributeType.internal_offset == 28)
-                #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
+                #expect(attributeType.value_layout == expectedlayout)
 
                 let attributeBody = unsafeBitCast(
                     _External.self as any _AttributeBody.Type,
@@ -55,27 +55,27 @@ struct AttributeTests {
             try await #require(processExitsWith: .success) {
                 setenv("AG_PREFETCH_LAYOUTS", "1", 1)
                 setenv("AG_ASYNC_LAYOUTS", "0", 1)
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
-                
+
                 let attribute = Attribute(type: Int.self)
-                
-                let expectedlayout = prefetchCompareValues(
-                    of: Int.self,
-                    options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                    priority: 0
+
+                let expectedlayout = __AGPrefetchCompareValues(
+                    Metadata(Int.self),
+                    [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
+                    0
                 )
-                
+
                 let attributeType = attribute.identifier.info.type.pointee
                 #expect(attributeType.self_id == Metadata(_External.self))
                 #expect(attributeType.value_id == Metadata(Int.self))
-                
+
                 #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
                 #expect(attributeType.internal_offset == 28)
-                #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
-                
+                #expect(attributeType.value_layout == expectedlayout)
+
                 let attributeBody = unsafeBitCast(
                     _External.self as any _AttributeBody.Type,
                     to: (type: Metadata, witnessTable: UnsafeRawPointer).self
@@ -90,7 +90,7 @@ struct AttributeTests {
             try await #require(processExitsWith: .success) {
                 setenv("AG_PREFETCH_LAYOUTS", "1", 1)
                 setenv("AG_ASYNC_LAYOUTS", "0", 1)
-                
+
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
                 Subgraph.current = subgraph
@@ -110,10 +110,10 @@ struct AttributeTests {
                 }
                 #expect(attribute.value == "test value")
 
-                let expectedlayout = prefetchCompareValues(
-                    of: String.self,
-                    options: [.comparisonModeEquatableUnlessPOD, .fetchLayoutsSynchronously],
-                    priority: 0
+                let expectedlayout = __AGPrefetchCompareValues(
+                    Metadata(String.self),
+                    [.comparisonModeEquatableUnlessPOD, .fetchLayoutsSynchronously],
+                    0
                 )
 
                 let attributeType = attribute.identifier.info.type.pointee
@@ -122,7 +122,7 @@ struct AttributeTests {
 
                 #expect(attributeType.flags == [.mainThread, .comparisonModeEquatableUnlessPOD])
                 #expect(attributeType.internal_offset == 28)
-                #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
+                #expect(attributeType.value_layout == expectedlayout)
 
                 let attributeBody = unsafeBitCast(
                     TestBody.self as any _AttributeBody.Type,

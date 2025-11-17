@@ -15,6 +15,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        respository: swiftlang/swift
+        path: swift-project/swift
+      - uses: actions/checkout@v4
+        path: Compute
+      - run: cd Compute
       - name: Build
         run: swift build -v
       - name: Run tests

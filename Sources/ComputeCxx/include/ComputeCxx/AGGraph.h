@@ -162,12 +162,12 @@ AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
-AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.indirectSource(self:));
+AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) CF_SWIFT_NAME(getter:AGAttribute.source(self:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void AGGraphSetIndirectAttribute(AGAttribute attribute, AGAttribute source)
-    CF_SWIFT_NAME(setter:AGAttribute.indirectSource(self:_:));
+    CF_SWIFT_NAME(setter:AGAttribute.source(self:_:));
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

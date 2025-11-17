@@ -4,6 +4,35 @@ import PackageDescription
 
 let swiftProjectPath = "\(Context.packageDirectory)/../swift-project"
 
+var dependencies: [Package.Dependency] = [
+    .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
+    .package(url: "https://github.com/groue/Semaphore", from: "0.1.0"),
+]
+
+if let useLocalDepsEnv = Context.environment["COMPUTE_USE_LOCAL_DEPS"], !useLocalDepsEnv.isEmpty {
+    let root: String
+    if useLocalDepsEnv == "1" {
+        root = ".."
+    } else {
+        root = useLocalDepsEnv
+    }
+    dependencies +=
+        [
+            .package(
+                name: "DarwinPrivateFrameworks",
+                path: "\(root)/DarwinPrivateFrameworks"
+            )
+        ]
+} else {
+    dependencies +=
+        [
+            .package(
+                url: "https://github.com/OpenSwiftUIProject/DarwinPrivateFrameworks",
+                from: "0.0.4"
+            )
+        ]
+}
+
 extension Target {
     fileprivate static func swiftRuntimeTarget(
         name: String,
@@ -40,14 +69,11 @@ extension Target {
 
 let package = Package(
     name: "Compute",
-    platforms: [.macOS(.v15)],
+    platforms: [.macOS(.v26)],
     products: [
         .library(name: "Compute", targets: ["Compute"])
     ],
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
-        .package(path: "../DarwinPrivateFrameworks"),
-    ],
+    dependencies: dependencies,
     targets: [
         .target(
             name: "Utilities"
@@ -67,7 +93,9 @@ let package = Package(
             name: "ComputeTests",
             dependencies: [
                 "Compute",
+                "_ComputeTestSupport",
                 .product(name: "Algorithms", package: "swift-algorithms"),
+                .product(name: "Semaphore", package: "Semaphore"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")
@@ -77,12 +105,14 @@ let package = Package(
         .testTarget(
             name: "ComputeCompatibilityTests",
             dependencies: [
+                "_ComputeTestSupport",
                 .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks"),
                 .product(name: "Algorithms", package: "swift-algorithms"),
+                .product(name: "Semaphore", package: "Semaphore"),
             ],
             swiftSettings: [
                 .interoperabilityMode(.Cxx),
-                .enableExperimentalFeature("Extern"),
+                .enableExperimentalFeature("Extern")
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
@@ -92,6 +122,7 @@ let package = Package(
             cxxSettings: [.headerSearchPath(""), .unsafeFlags(["-Wno-elaborated-enum-base"])]
         ),
         .target(name: "ComputeCxxSwiftSupport"),
+        .target(name: "_ComputeTestSupport"),
     ],
     cxxLanguageStandard: .cxx20,
 )

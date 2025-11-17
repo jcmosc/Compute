@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import _ComputeTestSupport
 
 @Suite
 struct GraphTests {
@@ -134,34 +135,40 @@ struct GraphTests {
         nonisolated(unsafe) static var internedAttributeType: UnsafeMutablePointer<_AttributeType>? = nil
 
         @Test
-        func internAttributeTypeInitializesSelfOffsetAndLayout() throws {
-            try #require(ProcessInfo.processInfo.environment["AG_PREFETCH_LAYOUTS"] == "1")
+        func internAttributeTypeInitializesSelfOffsetAndLayout() async throws {
+            try await #require(processExitsWith: .success) {
+                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
-            let graph = Graph()
+                let graph = Graph()
 
-            let _ = __AGGraphInternAttributeType(
-                graph.graphContext,
-                Metadata(External<Int>.self),
-                { _ in
-                    let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
-                    pointer.pointee.self_id = Metadata(External<Int>.self)
-                    pointer.pointee.value_id = Metadata(Int.self)
-                    withUnsafePointer(to: &InternAttributeTypeTests.testVtable) { testVtablePointer in
-                        pointer.pointee.vtable = testVtablePointer
-                    }
+                let _ = __AGGraphInternAttributeType(
+                    graph.graphContext,
+                    Metadata(External<Int>.self),
+                    { _ in
+                        let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
+                        pointer.pointee.self_id = Metadata(External<Int>.self)
+                        pointer.pointee.value_id = Metadata(Int.self)
 
-                    GraphTests.InternAttributeTypeTests.internedAttributeType = pointer
+                        let vtablePointer = UnsafeMutablePointer<_AttributeVTable>.allocate(capacity: 1)
+                        vtablePointer.pointee.type_destroy = { (pointer: UnsafeMutablePointer<_AttributeType>) in
+                            pointer.deallocate()
+                        }
+                        pointer.pointee.vtable = UnsafePointer(vtablePointer)
 
-                    return UnsafePointer(pointer)
-                },
-                nil
-            )
+                        GraphTests.InternAttributeTypeTests.internedAttributeType = pointer
 
-            let attributeType = GraphTests.InternAttributeTypeTests.internedAttributeType?.pointee
-            #expect(attributeType?.self_id == Metadata(External<Int>.self))
-            #expect(attributeType?.value_id == Metadata(Int.self))
-            #expect(attributeType?.value_layout == ValueLayout.trivial.storage)
-            #expect(attributeType?.internal_offset == 28)  // size of Node rounded up to alignment of External<Int>
+                        return UnsafePointer(pointer)
+                    },
+                    nil
+                )
+
+                let attributeType = GraphTests.InternAttributeTypeTests.internedAttributeType?.pointee
+                #expect(attributeType?.self_id == Metadata(External<Int>.self))
+                #expect(attributeType?.value_id == Metadata(Int.self))
+                #expect(attributeType?.value_layout == ValueLayout.trivial.storage)
+                #expect(attributeType?.internal_offset == 28)  // size of Node rounded up to alignment of External<Int>
+            }
         }
     }
 
@@ -293,90 +300,83 @@ struct GraphTests {
         struct GraphDictFormatTests {
 
             @Test
-            func initialDescription() throws {
-                let description =
-                    try #require(
-                        Graph.description(nil, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
-                            as? NSDictionary
-                    )
+            func initialDescription() async throws {
+                await try #require(processExitsWith: .success) {
+                    let description =
+                        try #require(
+                            Graph.description(nil, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
+                                as? NSDictionary
+                        )
 
-                let json = try JSONSerialization.data(
-                    withJSONObject: description,
-                    options: [.prettyPrinted, .sortedKeys]
-                )
-                #expect(
-                    String(data: json, encoding: .utf8) == """
+                    let json = try JSONSerialization.data(
+                        withJSONObject: description,
+                        options: [.prettyPrinted, .sortedKeys]
+                    )
+                    let jsonString = try #require(String(data: json, encoding: .utf8))
+                    assertStringsEqualWithDiff(
+                        jsonString,
+                        """
                         {
+                          "counters" : {
+                            "bytes" : 0,
+                            "max_bytes" : 0
+                          },
                           "graphs" : [
 
                           ],
                           "version" : 2
                         }
                         """
-                )
+                    )
+                }
             }
 
             // FIXME:
             // This sometimes fails because the subgraphs vector is sorted by pointer address,
             // which we can't predict deterministically.
             @Test
-            func graphDescription() throws {
-                let graph = Graph()
+            func graphDescription() async throws {
+                await try #require(processExitsWith: .success) {
+                    let graph = Graph()
 
-                let subgraph = Subgraph(graph: graph)
-                let child = Subgraph(graph: graph)
-                subgraph.addChild(child, tag: 1)
+                    let subgraph = Subgraph(graph: graph)
+                    let child = Subgraph(graph: graph)
+                    subgraph.addChild(child, tag: 1)
 
-                let description =
-                    try #require(
-                        Graph.description(graph, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
-                            as? NSDictionary
+                    let description = graph.dictionaryDescription()
+                    let expectedDescription = Graph.DictionaryDescription(
+                        version: 2,
+                        counters: .init(bytes: 0, maxBytes: 0),
+                        graphs: [
+                            Graph.DictionaryDescription.Graph(
+                                id: Int(graph.counter(for: .graphID)),
+                                counters: .init(
+                                    nodes: 0,
+                                    createdNodes: 0,
+                                    maxNodes: 0,
+                                    subgraphs: 2,
+                                    createdSubgraphs: 2,
+                                    maxSubgraphs: 2,
+                                    updates: 0,
+                                    changes: 0,
+                                    transactions: 0
+                                ),
+                                types: [],
+                                nodes: [],
+                                edges: [],
+                                subgraphs: [
+                                    .init(id: 1, contextID: 2, children: [1]),
+                                    .init(id: 2, contextID: 2, parents: [0]),
+                                ],
+                                updateCount: 0,
+                                changeCount: 0,
+                                transactionCount: 0
+                            )
+                        ]
                     )
 
-                let json = try JSONSerialization.data(
-                    withJSONObject: description,
-                    options: [.prettyPrinted, .sortedKeys]
-                )
-                #expect(
-                    String(data: json, encoding: .utf8) == """
-                        {
-                          "graphs" : [
-                            {
-                              "change_count" : 0,
-                              "edges" : [
-
-                              ],
-                              "id" : \(graph.counter(for: .graphID)),
-                              "nodes" : [
-
-                              ],
-                              "subgraphs" : [
-                                {
-                                  "children" : [
-                                    1
-                                  ],
-                                  "context_id" : 2,
-                                  "id" : 1
-                                },
-                                {
-                                  "context_id" : 2,
-                                  "id" : 2,
-                                  "parents" : [
-                                    0
-                                  ]
-                                }
-                              ],
-                              "transaction_count" : 0,
-                              "types" : [
-
-                              ],
-                              "update_count" : 0
-                            }
-                          ],
-                          "version" : 2
-                        }
-                        """
-                )
+                    assertValuesEqualWithDiff(description, expectedDescription)
+                }
             }
         }
 
@@ -401,18 +401,8 @@ struct GraphTests {
                     }
                 }
 
-                let description =
-                    try #require(
-                        Graph.description(graph, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
-                            as? NSDictionary
-                    )
-                let data = try JSONSerialization.data(
-                    withJSONObject: description,
-                    options: [.prettyPrinted, .sortedKeys]
-                )
-
-                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
-                #expect(graphDescription.graphs[0].nodes[0].desc == "Custom Description")
+                let graphDescription = try #require(graph.dictionaryDescription())
+                #expect(graphDescription.graphs[0].nodes[0].description == "Custom Description")
             }
 
             @Test
@@ -431,19 +421,9 @@ struct GraphTests {
                     }
                 }
 
-                let description =
-                    try #require(
-                        Graph.description(graph, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
-                            as? NSDictionary
-                    )
-                let data = try JSONSerialization.data(
-                    withJSONObject: description,
-                    options: [.prettyPrinted, .sortedKeys]
-                )
-
-                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                let graphDescription = try #require(graph.dictionaryDescription())
                 #expect(
-                    graphDescription.graphs[0].nodes[0].desc
+                    graphDescription.graphs[0].nodes[0].description
                         == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody"
                 )
             }
@@ -468,25 +448,12 @@ struct GraphTests {
 
                 let _ = Attribute(value: TestValue())
 
-                let description =
-                    try #require(
-                        Graph.description(
-                            graph,
-                            options: [DescriptionOption.format: "graph/dict", DescriptionOption.includeValues: true] as NSDictionary
-                        )
-                            as? NSDictionary
-                    )
-                let data = try JSONSerialization.data(
-                    withJSONObject: description,
-                    options: [.prettyPrinted, .sortedKeys]
-                )
-
-                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                let graphDescription = try #require(graph.dictionaryDescription(includeValues: true))
                 #expect(graphDescription.graphs[0].nodes[0].value == "Custom Value")
             }
 
             @Test
-            func defaultValueDescription() throws {
+            func defaultValueDescription() async throws {
                 struct TestValue {
                     var field: Int = 0
                 }
@@ -497,23 +464,10 @@ struct GraphTests {
 
                 let _ = Attribute(value: TestValue())
 
-                let description =
-                    try #require(
-                        Graph.description(
-                            graph,
-                            options: [DescriptionOption.format: "graph/dict", DescriptionOption.includeValues: true] as NSDictionary
-                        )
-                            as? NSDictionary
-                    )
-                let data = try JSONSerialization.data(
-                    withJSONObject: description,
-                    options: [.prettyPrinted, .sortedKeys]
-                )
-
-                let graphDescription = try JSONDecoder().decode(GraphDescription.self, from: data)
+                let graphDescription = try #require(graph.dictionaryDescription(includeValues: true))
                 #expect(
-                    graphDescription.graphs[0].nodes[0].desc
-                        == "GraphTests.DescriptionTests.ValueDescriptionTests.TestValue"
+                    graphDescription.graphs[0].nodes[0].value
+                        == "TestValue(field: 0)"
                 )
             }
 

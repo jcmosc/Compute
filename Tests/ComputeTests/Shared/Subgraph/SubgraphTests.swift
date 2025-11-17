@@ -114,7 +114,7 @@ struct SubgraphTests {
                 let observerID = subgraph.addObserver {
                     notifiedCount += 1
                 }
-                subgraph.removeObserver(observerID: observerID)
+                subgraph.removeObserver(observerID)
             }
 
             #expect(notifiedCount == 0)

@@ -4,8 +4,9 @@ import Testing
 @Suite
 struct IndirectAttributeTests {
 
-    @Suite
-    final class InitTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct InitTests {
 
         @Test
         func initWithSource() {
@@ -24,8 +25,9 @@ struct IndirectAttributeTests {
 
     }
 
-    @Suite
-    final class SourceTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct SourceTests {
 
         @Test
         func source() {
@@ -71,8 +73,9 @@ struct IndirectAttributeTests {
 
     }
 
-    @Suite
-    final class DependencyTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    class DependencyTests {
 
         @Test
         func dependency() {

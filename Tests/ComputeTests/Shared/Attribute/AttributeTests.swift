@@ -8,109 +8,129 @@ struct Triple<A, B, C> {
 
 extension Triple: Sendable where A: Sendable, B: Sendable, C: Sendable {}
 
-// This suite needs to run serialized to avoid creating duplicate layouts
-@Suite(.serialized)
+@Suite
 struct AttributeTests {
 
     @Suite
-    final class InitTests: GraphHost {
+    struct InitTests {
 
         @Test
-        func initWithValue() {
-            let attribute = Attribute(value: 1)
-            #expect(attribute.value == 1)
-            #expect(attribute.graph == graph)
-            #expect(attribute.subgraph == subgraph)
+        func initWithValue() async throws {
+            try await #require(processExitsWith: .success) {
+                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
 
-            let expectedlayout = prefetchCompareValues(
-                of: Int.self,
-                options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                priority: 0
-            )
+                let attribute = Attribute(value: 1)
+                #expect(attribute.value == 1)
 
-            let attributeType = attribute.identifier.info.type.pointee
-            #expect(attributeType.self_id == Metadata(External<Int>.self))
-            #expect(attributeType.value_id == Metadata(Int.self))
+                let expectedlayout = prefetchCompareValues(
+                    of: Int.self,
+                    options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
+                    priority: 0
+                )
 
-            #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
-            #expect(attributeType.internal_offset == 28)
-            #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
+                let attributeType = attribute.identifier.info.type.pointee
+                #expect(attributeType.self_id == Metadata(_External.self))
+                #expect(attributeType.value_id == Metadata(Int.self))
 
-            let attributeBody = unsafeBitCast(
-                External<Int>.self as any _AttributeBody.Type,
-                to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-            )
-            #expect(attributeType.body_conformance.type_id == attributeBody.type)
-            #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
-        }
+                #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
+                #expect(attributeType.internal_offset == 28)
+                #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
 
-        @Test
-        func initWithType() {
-            let attribute = Attribute(type: Int.self)
-            #expect(attribute.graph == graph)
-            #expect(attribute.subgraph == subgraph)
-
-            let expectedlayout = prefetchCompareValues(
-                of: Int.self,
-                options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                priority: 0
-            )
-
-            let attributeType = attribute.identifier.info.type.pointee
-            #expect(attributeType.self_id == Metadata(External<Int>.self))
-            #expect(attributeType.value_id == Metadata(Int.self))
-
-            #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
-            #expect(attributeType.internal_offset == 28)
-            #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
-
-            let attributeBody = unsafeBitCast(
-                External<Int>.self as any _AttributeBody.Type,
-                to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-            )
-            #expect(attributeType.body_conformance.type_id == attributeBody.type)
-            #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
-        }
-
-        @Test
-        func initWithBody() {
-            struct TestBody: _AttributeBody {
-
+                let attributeBody = unsafeBitCast(
+                    _External.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
+                #expect(attributeType.body_conformance.type_id == attributeBody.type)
+                #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
             }
+        }
 
-            let attribute = withUnsafePointer(to: "test value") { valuePointer in
-                withUnsafePointer(to: TestBody()) { bodyPointer in
-                    Attribute(body: bodyPointer, value: valuePointer, flags: []) {
-                        return { _, _ in
+        @Test
+        func initWithType() async throws {
+            try await #require(processExitsWith: .success) {
+                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
+                
+                let attribute = Attribute(type: Int.self)
+                
+                let expectedlayout = prefetchCompareValues(
+                    of: Int.self,
+                    options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
+                    priority: 0
+                )
+                
+                let attributeType = attribute.identifier.info.type.pointee
+                #expect(attributeType.self_id == Metadata(_External.self))
+                #expect(attributeType.value_id == Metadata(Int.self))
+                
+                #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
+                #expect(attributeType.internal_offset == 28)
+                #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
+                
+                let attributeBody = unsafeBitCast(
+                    _External.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
+                #expect(attributeType.body_conformance.type_id == attributeBody.type)
+                #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
+            }
+        }
 
+        @Test
+        func initWithBody() async throws {
+            try await #require(processExitsWith: .success) {
+                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                
+                let graph = Graph()
+                let subgraph = Subgraph(graph: graph)
+                Subgraph.current = subgraph
+
+                struct TestBody: _AttributeBody {
+
+                }
+
+                let attribute = withUnsafePointer(to: "test value") { valuePointer in
+                    withUnsafePointer(to: TestBody()) { bodyPointer in
+                        Attribute(body: bodyPointer, value: valuePointer, flags: []) {
+                            return { _, _ in
+
+                            }
                         }
                     }
                 }
+                #expect(attribute.value == "test value")
+
+                let expectedlayout = prefetchCompareValues(
+                    of: String.self,
+                    options: [.comparisonModeEquatableUnlessPOD, .fetchLayoutsSynchronously],
+                    priority: 0
+                )
+
+                let attributeType = attribute.identifier.info.type.pointee
+                #expect(attributeType.self_id == Metadata(TestBody.self))
+                #expect(attributeType.value_id == Metadata(String.self))
+
+                #expect(attributeType.flags == [.mainThread, .comparisonModeEquatableUnlessPOD])
+                #expect(attributeType.internal_offset == 28)
+                #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
+
+                let attributeBody = unsafeBitCast(
+                    TestBody.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
+                #expect(attributeType.body_conformance.type_id == attributeBody.type)
+                #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
             }
-            #expect(attribute.value == "test value")
-            #expect(attribute.graph == graph)
-            #expect(attribute.subgraph == subgraph)
-
-            let expectedlayout = prefetchCompareValues(
-                of: String.self,
-                options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                priority: 0
-            )
-
-            let attributeType = attribute.identifier.info.type.pointee
-            #expect(attributeType.self_id == Metadata(TestBody.self))
-            #expect(attributeType.value_id == Metadata(String.self))
-
-            #expect(attributeType.flags == [.external, .comparisonModeEquatableAlways])
-            #expect(attributeType.internal_offset == 28)
-            #expect(attributeType.value_layout.map { ValueLayout(storage: $0) } == expectedlayout)
-
-            let attributeBody = unsafeBitCast(
-                External<Int>.self as any _AttributeBody.Type,
-                to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-            )
-            #expect(attributeType.body_conformance.type_id == attributeBody.type)
-            #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
         }
 
         @Test
@@ -119,18 +139,24 @@ struct AttributeTests {
             // main_ref should be true
         }
 
-        @Test
-        func incrementsGraphCounters() {
+        @MainActor
+        @Test(.applySubgraph)
+        func incrementsGraphCounters() throws {
+            let currentSubgraph = try #require(Subgraph.current)
+            let nodes = currentSubgraph.graph.counter(for: .nodes)
+            let createdNodes = currentSubgraph.graph.counter(for: .createdNodes)
+
             let attribute = Attribute(value: 1)
 
-            #expect(attribute.graph.counter(for: .nodes) == 1)
-            #expect(attribute.graph.counter(for: .createdNodes) == 1)
+            #expect(attribute.graph.counter(for: .nodes) == nodes + 1)
+            #expect(attribute.graph.counter(for: .createdNodes) == createdNodes + 1)
         }
 
     }
 
-    @Suite
-    class BodyTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct BodyTests {
 
         @Test
         func visitBody() async {
@@ -163,8 +189,9 @@ struct AttributeTests {
 
     }
 
-    @Suite
-    final class FlagsTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct FlagsTests {
 
         @Test
         func initialFlags() {
@@ -188,28 +215,31 @@ struct AttributeTests {
             #expect(attribute.flags == [])
         }
 
+        // An apparent bug in swift-testing means that we have to compare .rawValue,
+        // because Subgraph.Flags is compared as a word instead of a UInt8
         @Test
         func masked() {
             let attribute = AnyAttribute(Attribute(value: 0))
 
             attribute.flags = []
             attribute.setFlags(Subgraph.Flags(rawValue: 1), mask: [Subgraph.Flags(rawValue: 1)])
-            #expect(attribute.flags == [Subgraph.Flags(rawValue: 1)])
+            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 1).rawValue)
 
             attribute.setFlags(Subgraph.Flags(rawValue: 2), mask: [Subgraph.Flags(rawValue: 2)])
-            #expect(attribute.flags == Subgraph.Flags(rawValue: 3))
+            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 3).rawValue)
 
             attribute.setFlags(Subgraph.Flags(rawValue: 4), mask: [Subgraph.Flags(rawValue: 1)])
-            #expect(attribute.flags == [Subgraph.Flags(rawValue: 2)])
+            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 2).rawValue)
 
             attribute.setFlags(Subgraph.Flags(rawValue: 5), mask: Subgraph.Flags(rawValue: 7))
-            #expect(attribute.flags == Subgraph.Flags(rawValue: 5))
+            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 5).rawValue)
         }
 
     }
 
-    @Suite
-    final class OffsetTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct OffsetTests {
 
         @Test
         func pointerOffset() {
@@ -245,8 +275,9 @@ struct AttributeTests {
 
     }
 
-    @Suite
-    final class InputTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct InputTests {
 
         @Test
         func addInput() {
@@ -275,10 +306,12 @@ struct AttributeTests {
         }
 
         @Test
-        func addInputFromDifferentContext() {
+        func addInputFromDifferentContext() throws {
+            let currentSubgraph = try #require(Subgraph.current)
+
             let attribute = Attribute(value: 0)
 
-            let otherGraph = Graph(shared: graph)
+            let otherGraph = Graph(shared: currentSubgraph.graph)
             let otherSubgraph = Subgraph(graph: otherGraph)
             Subgraph.current = otherSubgraph
 
@@ -307,15 +340,16 @@ struct AttributeTests {
 
     }
 
-    @Suite
-    final class ValueTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct ValueTests {
 
         @Test
         func validate() {
             let attribute = Attribute(value: 1)
             attribute.validate()
         }
-        
+
         @Test
         func value() {
             let attribute = Attribute(value: 1)
@@ -325,8 +359,9 @@ struct AttributeTests {
 
     }
 
-    @Suite
-    final class SubscriptTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct SubscriptTests {
 
         struct TestStruct {
             var a: Int
@@ -345,8 +380,9 @@ struct AttributeTests {
 
     }
 
-    @Suite
-    final class DescriptionTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct DescriptionTests {
 
         @Test
         func description() throws {
@@ -362,7 +398,6 @@ struct AttributeTests {
 
     }
 
-    @Suite
     struct HashableTests {
 
         @Test

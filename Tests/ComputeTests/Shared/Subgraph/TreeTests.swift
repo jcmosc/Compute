@@ -1,16 +1,49 @@
+import Foundation
 import Testing
 
+// does endTree clear tree if it is the root?
+// create subgraph while update or no update
+// create subgraph with owner attribute
+
+@MainActor
 @Suite
-final class TreeTests: GraphHost {
+struct TreeTests {
 
     @Test
-    func shouldRecordTree() {
-        #expect(Subgraph.shouldRecordTree == false)
-        Subgraph.setShouldRecordTree()
-        #expect(Subgraph.shouldRecordTree == true)
+    func shouldRecordTree() async throws {
+        try await #require(processExitsWith: .success) {
+            try #require(Subgraph.shouldRecordTree == false)
+
+            Subgraph.setShouldRecordTree()
+            #expect(Subgraph.shouldRecordTree == true)
+        }
     }
-    
+
     @Test
+    func subgraphInitialization() async throws {
+        try await #require(processExitsWith: .success) {
+            try #require(Subgraph.shouldRecordTree == false)
+
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+            #expect(subgraph.treeRoot == nil)
+        }
+        try await #require(processExitsWith: .success) {
+            Subgraph.setShouldRecordTree()
+            try #require(Subgraph.shouldRecordTree == true)
+
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            let treeRoot = try #require(subgraph.treeRoot)
+            #expect(treeRoot.type.rawValue == UnsafePointer(bitPattern: 0))
+            #expect(treeRoot.value == nil)
+            #expect(treeRoot.flags == 0)
+            #expect(treeRoot.parent == nil)
+        }
+    }
+
+    @Test(.applySubgraph)
     func treeRoot() throws {
         struct TestRule: Rule {
             var value: String {
@@ -19,21 +52,24 @@ final class TreeTests: GraphHost {
         }
 
         Subgraph.setShouldRecordTree()
+        let originalTreeRoot = Subgraph.current?.treeRoot
 
         let attribute = Attribute(TestRule())
 
         Subgraph.beginTreeElement(value: attribute, flags: 1)
-        Subgraph.endTreeElement(value: attribute)
+        defer {
+            Subgraph.endTreeElement(value: attribute)
+        }
 
         let treeRoot = try #require(Subgraph.current?.treeRoot)
         #expect(treeRoot.type == Metadata(String.self))
         #expect(treeRoot.value == attribute.identifier)
         #expect(treeRoot.flags == 1)
-        #expect(treeRoot.parent == nil)
+        #expect(treeRoot.parent == originalTreeRoot)
     }
 
-    @Test
-    func values() throws {
+    @Test(.applySubgraph)
+    func values() async throws {
         struct TestRule: Rule {
             var value: String {
                 return ""
@@ -47,11 +83,16 @@ final class TreeTests: GraphHost {
         let inputB = Attribute(value: 100)
 
         Subgraph.beginTreeElement(value: attribute, flags: 1)
+        defer {
+            Subgraph.endTreeElement(value: attribute)
+        }
+
         Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
         Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
-        Subgraph.endTreeElement(value: attribute)
 
         let treeRoot = try #require(Subgraph.current?.treeRoot)
+        #expect(treeRoot.value == attribute.identifier)
+
         var values = treeRoot.values
 
         let firstOrNil = values.next()
@@ -71,7 +112,7 @@ final class TreeTests: GraphHost {
         #expect(values.next() == nil)
     }
 
-    @Test
+    @Test(.applySubgraph)
     func children() throws {
         struct TestRule: Rule {
             var value: String {
@@ -86,6 +127,9 @@ final class TreeTests: GraphHost {
         let inputB = Attribute(value: 100)
 
         Subgraph.beginTreeElement(value: attribute, flags: 1)
+        defer {
+            Subgraph.endTreeElement(value: attribute)
+        }
 
         let childAttribute = Attribute(TestRule())
         let childInputA = Attribute(value: "Child Input A")
@@ -98,7 +142,6 @@ final class TreeTests: GraphHost {
 
         Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
         Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
-        Subgraph.endTreeElement(value: attribute)
 
         let treeRoot = try #require(Subgraph.current?.treeRoot)
         var children = treeRoot.children
@@ -113,7 +156,7 @@ final class TreeTests: GraphHost {
         #expect(children.next() == nil)
     }
 
-    @Test
+    @Test(.applySubgraph)
     func nodes() throws {
         struct TestRule: Rule {
             var value: String {
@@ -128,6 +171,9 @@ final class TreeTests: GraphHost {
         let inputB = Attribute(value: 100)
 
         Subgraph.beginTreeElement(value: attribute, flags: 1)
+        defer {
+            Subgraph.endTreeElement(value: attribute)
+        }
 
         let childAttribute = Attribute(TestRule())
         let childInputA = Attribute(value: "Child Input A")
@@ -140,7 +186,6 @@ final class TreeTests: GraphHost {
 
         Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
         Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
-        Subgraph.endTreeElement(value: attribute)
 
         let treeRoot = try #require(Subgraph.current?.treeRoot)
         var nodes = treeRoot.nodes

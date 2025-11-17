@@ -3,8 +3,9 @@ import Testing
 @Suite
 struct AnyAttributeTests {
 
-    @Suite
-    final class InitTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct InitTests {
 
         @Test
         func nilAttribute() {

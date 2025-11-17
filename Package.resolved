@@ -1,6 +1,24 @@
 {
-  "originHash" : "d5a74a2bc3e7341b5a26dd2a67cc7e3657b4adc4fec92d36cc0ae8cd14c0fa09",
+  "originHash" : "4cf189cb4efdb66c68fe77b7823a66ab1b93e0017d80eccbae8ac327811f76ec",
   "pins" : [
+    {
+      "identity" : "darwinprivateframeworks",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/OpenSwiftUIProject/DarwinPrivateFrameworks",
+      "state" : {
+        "revision" : "5eb0f26ea5a5bbd5068f6b3daf3a97dd3682b234",
+        "version" : "0.0.4"
+      }
+    },
+    {
+      "identity" : "semaphore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/Semaphore",
+      "state" : {
+        "revision" : "2543679282aa6f6c8ecf2138acd613ed20790bc2",
+        "version" : "0.1.0"
+      }
+    },
     {
       "identity" : "swift-algorithms",
       "kind" : "remoteSourceControl",

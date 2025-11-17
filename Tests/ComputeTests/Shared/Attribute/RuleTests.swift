@@ -3,8 +3,9 @@ import Testing
 @Suite
 struct RuleTests {
 
-    @Suite
-    final class ValueTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct ValueTests {
 
         struct TestRule: Rule {
             var value: String {
@@ -36,8 +37,9 @@ struct RuleTests {
 
     }
 
-    @Suite
-    final class InputTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct InputTests {
         struct TestRule1: Rule {
             var value: String {
                 return "rule 1 computed value"

@@ -3,8 +3,9 @@ import Testing
 @Suite
 struct WeakAttributeTests {
     
-    @Suite
-    final class InitTests: GraphHost {
+    @MainActor
+    @Suite(.applySubgraph)
+    struct InitTests {
         
         @Test
         func initDefault() {
@@ -26,12 +27,16 @@ struct WeakAttributeTests {
         }
         
     }
-
+    
     @Suite
-    final class SubgraphTraversalTests: GraphHost {
+    struct SubgraphTraversalTests {
 
         @Test
         func invalidatingSubgraphNilsWeakAttribute() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+            Subgraph.current = subgraph
+            
             let attribute = Attribute(value: 0)
             let weakAttribute = WeakAttribute(attribute)
             #expect(weakAttribute.attribute == attribute)
@@ -39,6 +44,8 @@ struct WeakAttributeTests {
             subgraph.invalidate()
             
             #expect(weakAttribute.attribute == nil)
+            
+            Subgraph.current = nil
         }
 
     }

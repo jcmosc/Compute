@@ -27,12 +27,12 @@ extension Metadata {
     @_extern(c, "AGTypeApplyFields2")
     static func applyFields2(
         type: Metadata,
-        options: AGTypeApplyOptions,
+        options: Metadata.ApplyOptions,
         body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
     )
         -> Bool
 
-    public func forEachField(options: AGTypeApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
+    public func forEachField(options: Metadata.ApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
         -> Bool
     {
         return Metadata.applyFields2(type: self, options: options) { fieldName, fieldOffset, fieldType in

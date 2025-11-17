@@ -1,7 +1,7 @@
 import Algorithms
 import Testing
 
-@Suite("Metadata tests")
+@Suite
 struct MetadataTests {
 
     @Test(
@@ -380,7 +380,7 @@ struct MetadataTests {
 
         @Test
         func enumeratesStructFields() {
-            let options: AGTypeApplyOptions = []
+            let options: Metadata.ApplyOptions = []
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(StructFields.self).forEachField(options: options) {
@@ -407,7 +407,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumerateStructFieldsWhenEnumerateClassFieldsIsSpecified() {
-            let options: AGTypeApplyOptions = [.enumerateClassFields]
+            let options: Metadata.ApplyOptions = [.enumerateClassFields]
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(StructFields.self).forEachField(options: options) {
@@ -424,7 +424,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumerateStructFieldsWhenEnumerateEnumCasesIsSpecified() {
-            let options: AGTypeApplyOptions = [.enumerateEnumCases]
+            let options: Metadata.ApplyOptions = [.enumerateEnumCases]
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(StructFields.self).forEachField(options: options) {
@@ -445,7 +445,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumerateNestedStructFields() {
-            let options: AGTypeApplyOptions = []
+            let options: Metadata.ApplyOptions = []
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(NestedStructFields.self).forEachField(options: options) {
@@ -472,7 +472,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumeratesClassFields() {
-            let options: AGTypeApplyOptions = []
+            let options: Metadata.ApplyOptions = []
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(ClassFields.self).forEachField(options: options) {
@@ -489,7 +489,7 @@ struct MetadataTests {
 
         @Test
         func enumeratesClassFieldsWhenEnumerateClassFieldsIsSpecified() {
-            let options: AGTypeApplyOptions = [.enumerateClassFields]
+            let options: Metadata.ApplyOptions = [.enumerateClassFields]
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(ClassFields.self).forEachField(options: options) {
@@ -520,7 +520,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumerateNestedClassFields() {
-            let options: AGTypeApplyOptions = [.enumerateClassFields]
+            let options: Metadata.ApplyOptions = [.enumerateClassFields]
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(NestedClassFields.self).forEachField(options: options) {
@@ -547,7 +547,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumerateEnumFields() {
-            let options: AGTypeApplyOptions = []
+            let options: Metadata.ApplyOptions = []
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(EnumFields.self).forEachField(options: options) {
@@ -564,7 +564,7 @@ struct MetadataTests {
 
         @Test
         func enumeratesEnumFieldsWhenEnumerateEnumCasesIsSpecified() {
-            let options: AGTypeApplyOptions = [.enumerateEnumCases]
+            let options: Metadata.ApplyOptions = [.enumerateEnumCases]
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(EnumFields.self).forEachField(options: options) {
@@ -592,7 +592,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumerateNestedEnumFields() {
-            let options: AGTypeApplyOptions = [.enumerateEnumCases]
+            let options: Metadata.ApplyOptions = [.enumerateEnumCases]
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(NestedEnumFields.self).forEachField(options: options) {
@@ -615,7 +615,7 @@ struct MetadataTests {
 
         @Test
         func doesNotEnumeratesTupleFields() {
-            let options: AGTypeApplyOptions = []
+            let options: Metadata.ApplyOptions = []
 
             var fields: [(String, Int, any Any.Type)] = []
             let finished = Metadata(TupleFields.self).forEachField(options: options) {

@@ -64,7 +64,7 @@ typedef CF_OPTIONS(uint32_t, AGTypeApplyOptions) {
     AGTypeApplyOptionsEnumerateClassFields = 1 << 0,
     AGTypeApplyOptionsContinueAfterUnknownField = 1 << 1,
     AGTypeApplyOptionsEnumerateEnumCases = 1 << 2,
-};
+} CF_SWIFT_NAME(Metadata.ApplyOptions);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT

@@ -20,7 +20,7 @@ jobs:
         with:
           repository: swiftlang/swift
           path: swift-project/swift
-      - run: utils/update-checkout --clone-with-ssh
+      - run: utils/update-checkout --clone
         working-directory: ./swift-project/swift
       - name: Build toolchain
         run: |

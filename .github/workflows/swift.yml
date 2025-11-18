@@ -28,6 +28,7 @@ jobs:
             --swift-darwin-supported-archs "$(uname -m)" \
             --release-debuginfo --swift-disable-dead-stripping \
             --bootstrapping=hosttools
+        working-directory: ./swift-project/swift
       - uses: actions/checkout@v4
         with:
           path: Compute

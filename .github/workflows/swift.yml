@@ -29,6 +29,11 @@ jobs:
             --release-debuginfo --swift-disable-dead-stripping \
             --bootstrapping=hosttools
         working-directory: ./swift-project/swift
+      - run: |
+          mkdir -p build/Default
+          ln -s ../Ninja-RelWithDebInfoAssert/swift-macosx-arm64 build/Default/swift
+          ln -s ../Ninja-RelWithDebInfoAssert/llvm-macosx-arm64 build/Default/llvm
+        working-directory: ./swift-project
       - uses: actions/checkout@v4
         with:
           path: Compute

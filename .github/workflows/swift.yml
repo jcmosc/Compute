@@ -43,7 +43,9 @@ jobs:
         with:
           path: Compute
       - name: Build
-        run: swift build -v
+        run: |
+          swift build -v --target ComputeCxx
+          swift build -v
         working-directory: ./Compute
       - name: Run tests
         run: swift test -v

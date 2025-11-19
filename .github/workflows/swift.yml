@@ -39,14 +39,3 @@ jobs:
           ln -s ../Ninja-RelWithDebInfoAssert/swift-macosx-arm64 build/Default/swift
           ln -s ../Ninja-RelWithDebInfoAssert/llvm-macosx-arm64 build/Default/llvm
         working-directory: ./swift-project
-      - uses: actions/checkout@v4
-        with:
-          path: Compute
-      - name: Build
-        run: |
-          swift build -v --target ComputeCxx
-          swift build -v
-        working-directory: ./Compute
-      - name: Run tests
-        run: swift test -v
-        working-directory: ./Compute

@@ -26,18 +26,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: swift-project/build
-          key: swift-project-build-6.2-${{ runner.os }}
+          key: swift-project-build-6.2-Ninja-Release-${{ runner.os }}
       - name: Build toolchain
         run: |
           utils/build-script --skip-build-benchmarks \
             --swift-darwin-supported-archs "$(uname -m)" \
-            --release-debuginfo --swift-disable-dead-stripping \
+            --release --swift-disable-dead-stripping \
             --bootstrapping=hosttools
         working-directory: ./swift-project/swift
       - run: |
           mkdir -p build/Default
-          ln -s ../Ninja-RelWithDebInfoAssert/swift-macosx-arm64 build/Default/swift
-          ln -s ../Ninja-RelWithDebInfoAssert/llvm-macosx-arm64 build/Default/llvm
+          ln -s ../Ninja-Release/swift-macosx-arm64 build/Default/swift
+          ln -s ../Ninja-Release/llvm-macosx-arm64 build/Default/llvm
         working-directory: ./swift-project
       - uses: actions/checkout@v4
         with:

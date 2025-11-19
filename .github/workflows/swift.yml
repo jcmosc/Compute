@@ -32,12 +32,14 @@ jobs:
           utils/build-script --skip-build-benchmarks \
             --swift-darwin-supported-archs "$(uname -m)" \
             --release --swift-disable-dead-stripping \
+            --skip-build \
             --bootstrapping=hosttools
+          ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 swift
         working-directory: ./swift-project/swift
       - run: |
           mkdir -p build/Default
-          ln -s ../Ninja-Release/swift-macosx-arm64 build/Default/swift
-          ln -s ../Ninja-Release/llvm-macosx-arm64 build/Default/llvm
+          ln -s ../Ninja-ReleaseAssert/swift-macosx-arm64 build/Default/swift
+          ln -s ../Ninja-ReleaseAssert/llvm-macosx-arm64 build/Default/llvm
         working-directory: ./swift-project
       - uses: actions/checkout@v4
         with:

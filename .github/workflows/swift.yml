@@ -22,6 +22,11 @@ jobs:
           path: swift-project/swift
       - run: utils/update-checkout --clone --scheme release/6.2
         working-directory: ./swift-project/swift
+      - name: Cache toolchain build
+        uses: actions/cache@v4
+        with:
+          path: swift-project/build
+          key: swift-project-build-6.2-${{ runner.os }}
       - name: Build toolchain
         run: |
           utils/build-script --skip-build-benchmarks \

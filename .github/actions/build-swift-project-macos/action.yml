@@ -31,6 +31,10 @@ runs:
       run: |
         ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64
       working-directory: ./swift-project/swift
+    - name: Build cmark
+      run: |
+        ninja -C ../build/Ninja-ReleaseAssert/cmark-macosx-arm64
+      working-directory: ./swift-project/swift
     - name: Build swift-frontend
       run: |
         ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 swift-frontend

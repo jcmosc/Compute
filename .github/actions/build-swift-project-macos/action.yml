@@ -8,14 +8,16 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install dependencies
-      run: brew install ninja sccache
     - uses: actions/checkout@v4
       with:
         repository: swiftlang/swift
         path: swift-project/swift
+    - name: Install dependencies
+      run: brew install ninja sccache
+      shell: bash
     - name: Update checkout
       run: utils/update-checkout --clone --scheme $CHECKOUT_SCHEME
+      shell: bash
       working-directory: ./swift-project/swift
       env:
         CHECKOUT_SCHEME: ${{ inputs.checkout-scheme }}
@@ -26,22 +28,27 @@ runs:
           --release --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
           --skip-build
+      shell: bash
       working-directory: ./swift-project/swift
     - name: Build llvm
       run: |
         ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64
+      shell: bash
       working-directory: ./swift-project/swift
     - name: Build cmark
       run: |
         ninja -C ../build/Ninja-ReleaseAssert/cmark-macosx-arm64
+      shell: bash
       working-directory: ./swift-project/swift
     - name: Build swift-frontend
       run: |
         ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 swift-frontend
+      shell: bash
       working-directory: ./swift-project/swift
     - name: Create symbolic links to build directories
       run: |
         mkdir -p build/Default
         ln -s ../Ninja-ReleaseAssert/swift-macosx-arm64 build/Default/swift
         ln -s ../Ninja-ReleaseAssert/llvm-macosx-arm64 build/Default/llvm
+      shell: bash
       working-directory: ./swift-project

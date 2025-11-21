@@ -23,30 +23,22 @@ runs:
       working-directory: ./swift-project/swift
       env:
         CHECKOUT_SCHEME: ${{ inputs.checkout-scheme }}
-    - name: Build toolchain
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.9
+    - name: Build swift-frontend
       run: |
         utils/build-script --skip-build-benchmarks \
           --swift-darwin-supported-archs "$(uname -m)" \
           --release --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
           --skip-build
-      shell: bash
-      working-directory: ./swift-project/swift
-    - name: Build llvm
-      run: |
         ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64
-      shell: bash
-      working-directory: ./swift-project/swift
-    - name: Build cmark
-      run: |
         ninja -C ../build/Ninja-ReleaseAssert/cmark-macosx-arm64
-      shell: bash
-      working-directory: ./swift-project/swift
-    - name: Build swift-frontend
-      run: |
         ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 swift-frontend
       shell: bash
       working-directory: ./swift-project/swift
+      env:
+        SCCACHE_GHA_ENABLED: "true"
     - name: Create symbolic links to build directories
       run: |
         mkdir -p build/Default

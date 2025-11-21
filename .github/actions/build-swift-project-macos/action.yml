@@ -13,7 +13,7 @@ runs:
         repository: swiftlang/swift
         path: swift-project/swift
     - name: Install dependencies
-      run: brew install ninja sccache
+      run: brew install ninja sccache distcc
       shell: bash
     - name: Update checkout
       run: |
@@ -29,6 +29,7 @@ runs:
           --swift-darwin-supported-archs "$(uname -m)" \
           --release --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
+          --distcc \
           --skip-build
       shell: bash
       working-directory: ./swift-project/swift

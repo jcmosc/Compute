@@ -16,7 +16,9 @@ runs:
       run: brew install ninja sccache
       shell: bash
     - name: Update checkout
-      run: utils/update-checkout --clone --scheme $CHECKOUT_SCHEME
+      run: |
+        utils/update-checkout --clone --scheme $CHECKOUT_SCHEME \
+          --skip-repository swift-foundation-icu
       shell: bash
       working-directory: ./swift-project/swift
       env:

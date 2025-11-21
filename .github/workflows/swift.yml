@@ -14,9 +14,9 @@ jobs:
     runs-on: macos-26
 
     steps:
-      - uses: ./.github/actions/build-swift-project-macos
-        with:
-          checkout-scheme: release/6.2
       - uses: actions/checkout@v4
         with:
           path: Compute
+      - uses: ./.github/actions/build-swift-project-macos
+        with:
+          checkout-scheme: release/6.2

@@ -25,16 +25,12 @@ runs:
         CHECKOUT_SCHEME: ${{ inputs.checkout-scheme }}
     - name: Run sccache-cache
       uses: mozilla-actions/sccache-action@v0.0.9
-    - name: Build swift-frontend
+    - name: Build Swift
       run: |
         utils/build-script --skip-build-benchmarks \
           --swift-darwin-supported-archs "$(uname -m)" \
           --release --swift-disable-dead-stripping \
-          --bootstrapping=hosttools \
-          --skip-build
-        ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64
-        ninja -C ../build/Ninja-ReleaseAssert/cmark-macosx-arm64
-        ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 swift-frontend
+          --bootstrapping=bootstrapping-with-hostlibs
       shell: bash
       working-directory: ./swift-project/swift
       env:

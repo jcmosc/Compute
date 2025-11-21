@@ -17,6 +17,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: Compute
-      - uses: ./.github/actions/build-swift-project-macos
+      - uses: ./Compute/.github/actions/build-swift-project-macos
         with:
           checkout-scheme: release/6.2

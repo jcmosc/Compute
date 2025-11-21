@@ -14,33 +14,9 @@ jobs:
     runs-on: macos-26
 
     steps:
-      - name: Install dependencies
-        run: brew install ninja sccache
-      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-swift-project-macos
         with:
-          repository: swiftlang/swift
-          path: swift-project/swift
-      - run: utils/update-checkout --clone --scheme release/6.2
-        working-directory: ./swift-project/swift
-      - name: Cache toolchain build
-        uses: actions/cache@v4
-        with:
-          path: swift-project/build
-          key: swift-project-build-6.2-Ninja-Release-${{ runner.os }}
-      - name: Build toolchain
-        run: |
-          utils/build-script --skip-build-benchmarks \
-            --swift-darwin-supported-archs "$(uname -m)" \
-            --release --swift-disable-dead-stripping \
-            --skip-build \
-            --bootstrapping=hosttools
-          ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 swift
-        working-directory: ./swift-project/swift
-      - run: |
-          mkdir -p build/Default
-          ln -s ../Ninja-ReleaseAssert/swift-macosx-arm64 build/Default/swift
-          ln -s ../Ninja-ReleaseAssert/llvm-macosx-arm64 build/Default/llvm
-        working-directory: ./swift-project
+          checkout-scheme: release/6.2
       - uses: actions/checkout@v4
         with:
           path: Compute

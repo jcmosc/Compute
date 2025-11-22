@@ -20,3 +20,6 @@ jobs:
       - uses: ./Compute/.github/actions/build-swift-project-macos
         with:
           checkout-scheme: release/6.2
+      - name: Build
+        run: swift build
+        working-directory: ./Compute

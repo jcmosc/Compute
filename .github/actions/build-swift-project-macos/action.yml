@@ -1,0 +1,46 @@
+name: Build Swift Project
+
+inputs:
+  checkout-scheme:
+    description: The schema passed to utils/update-checkout
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: swiftlang/swift
+        path: swift-project/swift
+    - name: Install dependencies
+      run: brew install ninja sccache
+      shell: bash
+    - name: Update checkout
+      run: |
+        utils/update-checkout --clone --scheme $CHECKOUT_SCHEME \
+          --skip-history \
+          --skip-repository swift-foundation-icu
+      shell: bash
+      working-directory: ./swift-project/swift
+      env:
+        CHECKOUT_SCHEME: ${{ inputs.checkout-scheme }}
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.9
+    - name: Build Swift
+      run: |
+        utils/build-script --skip-build-benchmarks \
+          --swift-darwin-supported-archs "$(uname -m)" \
+          --release --swift-disable-dead-stripping \
+          --bootstrapping=hosttools \
+          --sccache
+      shell: bash
+      working-directory: ./swift-project/swift
+      env:
+        SCCACHE_GHA_ENABLED: "true"
+    - name: Create symbolic links to build directories
+      run: |
+        mkdir -p build/Default
+        ln -s ../Ninja-ReleaseAssert/swift-macosx-arm64 build/Default/swift
+        ln -s ../Ninja-ReleaseAssert/llvm-macosx-arm64 build/Default/llvm
+      shell: bash
+      working-directory: ./swift-project

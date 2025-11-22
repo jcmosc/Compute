@@ -87,7 +87,14 @@ let package = Package(
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],
-            swiftSettings: [.enableExperimentalFeature("Extern"), .unsafeFlags(["-enable-library-evolution"])]
+            swiftSettings: [
+                .enableExperimentalFeature("Extern"),
+                .unsafeFlags([
+                    "-enable-library-evolution",
+                    // When -enable-library-evolution is specified verify-emitted-module-interface command fails
+                    "-no-verify-emitted-module-interface",
+                ]),
+            ]
         ),
         .testTarget(
             name: "ComputeTests",

@@ -18,6 +18,7 @@ runs:
     - name: Update checkout
       run: |
         utils/update-checkout --clone --scheme $CHECKOUT_SCHEME \
+          --skip-history \
           --skip-repository swift-foundation-icu
       shell: bash
       working-directory: ./swift-project/swift

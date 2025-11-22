@@ -30,7 +30,7 @@ runs:
         utils/build-script --skip-build-benchmarks \
           --swift-darwin-supported-archs "$(uname -m)" \
           --release --swift-disable-dead-stripping \
-          --bootstrapping=bootstrapping-with-hostlibs \
+          --bootstrapping=hosttools \
           --sccache
       shell: bash
       working-directory: ./swift-project/swift

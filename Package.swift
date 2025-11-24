@@ -73,6 +73,9 @@ let package = Package(
     products: [
         .library(name: "Compute", targets: ["Compute"])
     ],
+    traits: [
+        .trait(name: "CompatibilityModeAttributeGraphV6")
+    ],
     dependencies: dependencies,
     targets: [
         .target(

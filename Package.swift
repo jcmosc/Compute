@@ -27,8 +27,8 @@ if let useLocalDepsEnv = Context.environment["COMPUTE_USE_LOCAL_DEPS"], !useLoca
     dependencies +=
         [
             .package(
-                url: "https://github.com/OpenSwiftUIProject/DarwinPrivateFrameworks",
-                from: "0.0.4"
+                url: "https://github.com/jcmosc/DarwinPrivateFrameworks",
+                branch: "main"
             )
         ]
 }

@@ -301,7 +301,7 @@ struct GraphTests {
 
             @Test
             func initialDescription() async throws {
-                await try #require(processExitsWith: .success) {
+                try await #require(processExitsWith: .success) {
                     let description =
                         try #require(
                             Graph.description(nil, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
@@ -336,7 +336,7 @@ struct GraphTests {
             // which we can't predict deterministically.
             @Test
             func graphDescription() async throws {
-                await try #require(processExitsWith: .success) {
+                try await #require(processExitsWith: .success) {
                     let graph = Graph()
 
                     let subgraph = Subgraph(graph: graph)

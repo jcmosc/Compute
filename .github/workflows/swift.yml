@@ -21,11 +21,11 @@ jobs:
         with:
           checkout-scheme: release/6.2
       - name: Build
-        run: swift build
+        run: swift build --traits CompatibilityModeAttributeGraphV6
         working-directory: ./Compute
       - name: Test
         run: |
-          swift test --filter UtilitiesTests
-          swift test --filter ComputeLayoutDescriptorTests
-          swift test --filter ComputeTests
+          swift test --traits CompatibilityModeAttributeGraphV6 --filter UtilitiesTests
+          swift test --traits CompatibilityModeAttributeGraphV6 --filter ComputeLayoutDescriptorTests
+          swift test --traits CompatibilityModeAttributeGraphV6 --filter ComputeTests
         working-directory: ./Compute

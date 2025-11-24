@@ -10,7 +10,7 @@ extension Graph {
         _ attribute: AnyAttribute,
         type: Metadata,
         invalidating: Bool,
-        modify: (UnsafeMutableRawPointer) -> Void
+        modify: @escaping (UnsafeMutableRawPointer) -> Void
     )
 
 }
@@ -35,8 +35,10 @@ extension AnyAttribute {
     }
 
     public func mutateBody<Body>(as type: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
-        Graph.mutateAttribute(self, type: Metadata(type), invalidating: invalidating) { pointer in
-            mutator(&pointer.assumingMemoryBound(to: Body.self).pointee)
+        withoutActuallyEscaping(mutator) { escapingMutator in
+            Graph.mutateAttribute(self, type: Metadata(type), invalidating: invalidating) { pointer in
+                escapingMutator(&pointer.assumingMemoryBound(to: Body.self).pointee)
+            }
         }
     }
 

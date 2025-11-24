@@ -45,9 +45,15 @@ public struct Attribute<Value> {
         let typeID = graphContext.internAttributeType(
             type: Metadata(Body.self)
         ) {
+            let bodyType: _AttributeBody.Type
+            #if CompatibilityModeAttributeGraphV6
+                bodyType = Body.self
+            #else
+                bodyType = flags.contains(.external) ? _External.self : Body.self
+            #endif
             let attributeType =
                 _AttributeType(
-                    selfType: flags.contains(.external) ? _External.self : Body.self,
+                    selfType: bodyType,
                     valueType: Value.self,
                     flags: flags,
                     update: update()

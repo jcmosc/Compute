@@ -801,7 +801,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
     }
 
     uint64_t source_subgraph_id = source && !source.is_nil() ? source.subgraph()->subgraph_id() : 0;
-    indirect_node->modify(WeakAttributeID(source, source_subgraph_id), resolved_source.offset());
+    indirect_node->modify(WeakAttributeID(source, uint32_t(source_subgraph_id)), resolved_source.offset());
     indirect_node->set_traverses_contexts(AttributeID(indirect_node).subgraph()->context_id() !=
                                           source.subgraph()->context_id());
 

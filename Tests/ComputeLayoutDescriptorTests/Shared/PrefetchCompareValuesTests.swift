@@ -57,7 +57,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForNever() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -105,7 +104,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForVoid(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             let layout = prefetchCompareValues(of: Void.self, options: options, priority: 0)
@@ -114,7 +112,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForBool() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -168,7 +165,6 @@ struct PrefetchCompareValuesTests {
             ] as [(Any.Type, Int)]
         )
         func layoutForNumericNonEquatable(of type: Any.Type, size: Int) async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -188,7 +184,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForIntEquatable() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -211,7 +206,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForDoubleEquatable() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -238,7 +232,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForFloatEquatable() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -265,7 +258,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForString() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -326,7 +318,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForStaticString(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             let layout = prefetchCompareValues(of: StaticString.self, options: options, priority: 0)
@@ -348,7 +339,6 @@ struct PrefetchCompareValuesTests {
 
         @Test("Layout for struct enclosing single element equals the layout of the enclosed element")
         func layoutForStructEnclosingSingleElement() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             struct StructEnclosingSingleElement {
@@ -395,7 +385,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForTrivialStruct() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -455,7 +444,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForStructWithAlignedElement() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -566,7 +554,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForStructWithComplexProperty() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -701,7 +688,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForEmptyClass(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             class EmptyClass {}
@@ -712,7 +698,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForTrivialClass(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             class TrivialClass {
@@ -725,7 +710,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForStructWithWeakVar(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             class EmptyClass {}
@@ -744,7 +728,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForEmptyEnum(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             enum EmptyEnum {}
@@ -755,7 +738,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForBasicEnum() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -808,7 +790,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForIntEnum() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -861,7 +842,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForTaggedUnionEnum() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -987,7 +967,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForIndirectEnum() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1095,7 +1074,6 @@ struct PrefetchCompareValuesTests {
         
         @Test
         func layoutForIndirectEnumCase() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
             
@@ -1208,7 +1186,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForTuple() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1288,7 +1265,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForTupleWithAlignedElement() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1399,7 +1375,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForArray() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1460,7 +1435,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForArrayOfNotEquatable(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             class NotEquatable {}
@@ -1471,7 +1445,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForDictionary() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1532,7 +1505,6 @@ struct PrefetchCompareValuesTests {
 
         @Test(arguments: allOptions)
         func layoutForDictionaryOfNotEquatable(with options: ComparisonOptions) {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
             class NotEquatable {}
@@ -1547,7 +1519,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForSet() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1613,7 +1584,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForEquatableStruct() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1668,7 +1638,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForEquatableClass() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1741,7 +1710,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForAny() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1803,7 +1771,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForAnyError() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 
@@ -1882,7 +1849,6 @@ struct PrefetchCompareValuesTests {
 
         @Test
         func layoutForFunction() async {
-            setenv("AG_PREFETCH_LAYOUTS", "1", 1)
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
 

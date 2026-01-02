@@ -103,3 +103,7 @@ extension AnyAttribute: @retroactive CustomStringConvertible {
 extension AnyAttribute: @retroactive Equatable {}
 
 extension AnyAttribute: @retroactive Hashable {}
+
+extension AnyAttribute {
+    public typealias _ObjectiveCType = Self.RawValue  // Fixes compiler crash
+}

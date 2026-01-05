@@ -268,6 +268,7 @@ const void *metadata::signature() const {
 const equatable_witness_table *metadata::equatable() const {
     switch (getKind()) {
     case ::swift::MetadataKind::Class: {
+#if TARGET_OS_MAC
         static const equatable_witness_table *nsobject_conformance = []() -> const equatable_witness_table * {
             Class nsobject = objc_getClass("NSObject");
             if (!nsobject) {
@@ -277,14 +278,18 @@ const equatable_witness_table *metadata::equatable() const {
             if (!nsobject_metadata) {
                 return nullptr;
             }
-            auto witness_table = swift_conformsToProtocol(nsobject_metadata, EquatableProtocolDescriptor);
+            auto witness_table =
+                swift_conformsToProtocol(nsobject_metadata, &EquatableProtocolDescriptor);
             return reinterpret_cast<const equatable_witness_table *>(witness_table);
         }();
+#endif
         auto conformance = reinterpret_cast<const equatable_witness_table *>(
             swift_conformsToProtocol(this, &EquatableProtocolDescriptor));
+#if TARGET_OS_MAC
         if (conformance == nsobject_conformance) {
             return nullptr;
         }
+#endif
         return conformance;
     }
     case ::swift::MetadataKind::Struct:
@@ -612,10 +617,12 @@ bool metadata::visit_heap(metadata_visitor &visitor, LayoutDescriptor::HeapMode 
 bool metadata::visit_heap_class(metadata_visitor &visitor) const {
     const auto class_type = static_cast<const ::swift::ClassMetadata *>(base());
 
+#if SWIFT_OBJC_INTEROP
     if ((class_type->Data & 3) == 0) {
         // Pure Objective-C class unsupported
         return visitor.unknown_result();
     }
+#endif
 
     auto context = descriptor();
     if (!context) {
@@ -652,6 +659,7 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
     if ((class_type->Flags & ::swift::ClassFlags::UsesSwiftRefcounting) == 0) {
         size_t *ivar_offsets = nullptr; // TODO: use new
 
+#if SWIFT_OBJC_INTEROP
         unsigned int ivar_count;
         Ivar *ivar_list = class_copyIvarList(reinterpret_cast<const Class>((void *)this), &ivar_count);
         if (ivar_list) {
@@ -663,6 +671,7 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
             }
             free(ivar_list);
         }
+#endif
 
         if (ivar_offsets && *ivar_offsets != 0) {
             unsigned index = 0;

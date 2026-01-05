@@ -1,5 +1,7 @@
 #include "AGGraph-Private.h"
 
+#if TARGET_OS_MAC
+
 #import <Foundation/Foundation.h>
 
 #include "Context.h"
@@ -18,3 +20,5 @@ CFTypeRef AGGraphDescription(AGGraphRef graph, CFDictionaryRef options) {
     }
     return (__bridge CFTypeRef)AG::Graph::description(&graph_context->graph(), (__bridge NSDictionary *)options);
 }
+
+#endif

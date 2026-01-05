@@ -1,8 +1,14 @@
 #pragma once
 
 #include "ComputeCxx/AGBase.h"
+
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFDictionary.h>
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFDictionary.h>
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 
 AG_ASSUME_NONNULL_BEGIN
 

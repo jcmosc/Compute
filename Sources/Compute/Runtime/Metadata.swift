@@ -1,5 +1,4 @@
 import ComputeCxx
-import Foundation
 
 extension Metadata {
 
@@ -45,7 +44,11 @@ extension Metadata {
 extension Metadata: @retroactive CustomStringConvertible {
 
     public var description: String {
-        return __AGTypeDescription(self) as String
+        #if os(macOS)
+            return __AGTypeDescription(self) as String
+        #else
+            return String(__AGTypeCopyDescription(self))
+        #endif
     }
 
 }

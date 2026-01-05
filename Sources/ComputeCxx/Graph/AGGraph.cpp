@@ -1,6 +1,12 @@
 #include "AGGraph-Private.h"
 
+#if TARGET_OS_MAC
+#include "CoreFoundationPrivate/CFRuntime.h"
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFRuntime.h>
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 
 #include <Utilities/FreeDeleter.h>
 #include <platform/lock.h>
@@ -9,7 +15,6 @@
 #include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Context.h"
 #include "Graph.h"
-#include "Private/CFRuntime.h"
 #include "Trace/ExternalTrace.h"
 #include "UpdateStack.h"
 

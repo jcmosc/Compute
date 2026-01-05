@@ -1,6 +1,10 @@
 #include "Graph.h"
 
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 #include <ranges>
 #include <set>
 

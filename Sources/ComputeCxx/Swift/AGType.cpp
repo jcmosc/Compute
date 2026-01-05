@@ -1,21 +1,34 @@
 #include "ComputeCxx/AGType.h"
 
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 
 #include "Closure/ClosureFunction.h"
 #include "ContextDescriptor.h"
 #include "Metadata.h"
 #include "MetadataVisitor.h"
 
+#if TARGET_OS_MAC
 CFStringRef AGTypeDescription(AGTypeID typeID) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
-
     CFMutableStringRef description =
         CFStringCreateMutable(kCFAllocatorDefault, 0);
     type->append_description(description);
     CFAutorelease(description);
     return description;
 }
+#else
+CFStringRef AGTypeCopyDescription(AGTypeID typeID) {
+    auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
+    CFMutableStringRef description =
+        CFStringCreateMutable(kCFAllocatorDefault, 0);
+    type->append_description(description);
+    return description;
+}
+#endif
 
 AGTypeKind AGTypeGetKind(AGTypeID typeID) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);

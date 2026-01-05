@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ComputeCxx/AGBase.h"
-#include <CoreFoundation/CFDictionary.h>
+
 #include <memory>
 #include <span>
 

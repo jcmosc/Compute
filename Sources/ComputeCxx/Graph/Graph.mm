@@ -177,6 +177,7 @@ NSString *Graph::description(data::ptr<Node> node) {
     [array addObject:[NSString stringWithFormat:@"dirty = %d", node->is_dirty()]];
     [array addObject:[NSString stringWithFormat:@"updating = %d", node->count()]]; // TODO: check is count and not bool
 
+#if TARGET_OS_MAC
     if (auto selfDescription = type.vtable().self_description) {
         if (node->is_self_initialized()) {
             void *body = node->get_self(type);
@@ -193,6 +194,26 @@ NSString *Graph::description(data::ptr<Node> node) {
             }
         }
     }
+#else
+    if (auto copySelfDescription = type.vtable().copy_self_description) {
+        if (node->is_self_initialized()) {
+            void *body = node->get_self(type);
+            if (auto desc = copySelfDescription(reinterpret_cast<const AGAttributeType *>(&type), body)) {
+                [array addObject:[NSString stringWithFormat:@"self = %@", desc]];
+                CFRelease(desc);
+            }
+        }
+    }
+    if (auto copyValueDescription = type.vtable().copy_value_description) {
+        if (node->is_value_initialized()) {
+            void *value = node->get_value();
+            if (auto desc = copyValueDescription(reinterpret_cast<const AGAttributeType *>(&type), value)) {
+                [array addObject:[NSString stringWithFormat:@"value = %@", desc]];
+                CFRelease(desc);
+            }
+        }
+    }
+#endif
 
     // TODO: test what actual deliminator is
     return [array componentsJoinedByString:@","];
@@ -330,6 +351,8 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                         node_dict[@"id"] = @(node.offset());
 
                         const AttributeType &attribute_type = graph->attribute_type(type_id);
+
+#if TARGET_OS_MAC
                         if (node->is_self_initialized()) {
                             void *body = node->get_self(attribute_type);
                             if (auto desc = attribute_type.self_description(body)) {
@@ -343,6 +366,23 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                                 node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
                             }
                         }
+#else
+                        if (node->is_self_initialized()) {
+                            void *body = node->get_self(attribute_type);
+                            if (auto desc = attribute_type.copy_self_description(body)) {
+                                node_dict[@"desc"] = escaped_string((__bridge NSString *)desc, truncation_limit);
+                                CFRelease(desc);
+                            }
+                        }
+
+                        if (include_values && node->is_value_initialized()) {
+                            void *value = node->get_value();
+                            if (auto value_desc = attribute_type.copy_value_description(value)) {
+                                node_dict[@"value"] = escaped_string((__bridge NSString *)value_desc, truncation_limit);
+                                CFRelease(value_desc);
+                            }
+                        }
+#endif
 
                         auto flags = node->flags();
                         if (flags) {

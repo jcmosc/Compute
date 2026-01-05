@@ -1,5 +1,6 @@
 #pragma once
 
+#include <platform/lock.h>
 
 #include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGComparison.h"
@@ -110,11 +111,11 @@ class Builder : public swift::metadata_visitor {
     };
 
   private:
-    static os_unfair_lock _lock;
+    static platform_lock _lock;
     static size_t _avail;
     static unsigned char *_buffer;
-    static void lock() { os_unfair_lock_lock(&_lock); };
-    static void unlock() { os_unfair_lock_unlock(&_lock); };
+    static void lock() { platform_lock_lock(&_lock); };
+    static void unlock() { platform_lock_unlock(&_lock); };
 
     AGComparisonMode _current_comparison_mode;
     HeapMode _heap_mode;

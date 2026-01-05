@@ -1,8 +1,9 @@
 #include "LayoutDescriptor.h"
 
-#include <os/lock.h>
 #include <variant>
 
+#include <platform/lock.h>
+#include <platform/once.h>
 #include <Utilities/HashTable.h>
 
 #include "Builder.h"
@@ -46,7 +47,7 @@ class TypeDescriptorCache {
     };
 
   private:
-    os_unfair_lock _lock;
+    platform_lock _lock;
     util::UntypedTable _table;
     vector<QueueEntry, 8, uint64_t> _async_queue;
     void *_field_0xf0;
@@ -59,20 +60,20 @@ class TypeDescriptorCache {
     double _sync_total_seconds;
 
     static TypeDescriptorCache *_shared_cache;
-    static dispatch_once_t _shared_once;
+    static platform_once_t _shared_once;
 
   public:
-    static void init_shared_cache(void *_Nullable context) {
+    static void init_shared_cache() {
         _shared_cache = new TypeDescriptorCache();
         LayoutDescriptor::base_address += 1;
     };
     static TypeDescriptorCache &shared_cache() {
-        dispatch_once_f(&_shared_once, nullptr, init_shared_cache);
+        platform_once(&_shared_once, init_shared_cache);
         return *_shared_cache;
     };
 
-    void lock() { os_unfair_lock_lock(&_lock); };
-    void unlock() { os_unfair_lock_unlock(&_lock); };
+    void lock() { platform_lock_lock(&_lock); };
+    void unlock() { platform_lock_unlock(&_lock); };
 
     vector<std::pair<const swift::context_descriptor *, AGComparisonMode>> &modes() { return _modes; };
 
@@ -85,7 +86,7 @@ class TypeDescriptorCache {
 };
 
 TypeDescriptorCache *TypeDescriptorCache::_shared_cache = nullptr;
-dispatch_once_t TypeDescriptorCache::_shared_once = 0;
+platform_once_t TypeDescriptorCache::_shared_once = 0;
 
 void *TypeDescriptorCache::make_key(const swift::metadata *type, AGComparisonMode comparison_mode,
                                     LayoutDescriptor::HeapMode heap_mode) {
@@ -901,7 +902,7 @@ void print(std::string &output, ValueLayout layout) {
 
 #pragma mark - Builder
 
-os_unfair_lock Builder::_lock = OS_UNFAIR_LOCK_INIT;
+platform_lock Builder::_lock = PLATFORM_LOCK_INIT;
 size_t Builder::_avail = 0;
 unsigned char *Builder::_buffer = nullptr;
 

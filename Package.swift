@@ -22,7 +22,11 @@ let package = Package(
     dependencies: dependencies,
     targets: [
         .target(
-            name: "Utilities"
+            name: "Platform"
+        ),
+        .target(
+            name: "Utilities",
+            dependencies: ["Platform"]
         ),
         .testTarget(
             name: "UtilitiesTests",
@@ -67,7 +71,11 @@ let package = Package(
         ),
         .target(
             name: "ComputeCxx",
-            dependencies: ["Utilities", "ComputeCxxSwiftSupport"],
+            dependencies: [
+                "Platform",
+                "Utilities",
+                "ComputeCxxSwiftSupport"
+            ],
             cxxSettings: [
                 .headerSearchPath(""),
                 .unsafeFlags([

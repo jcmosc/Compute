@@ -200,7 +200,7 @@ void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
         AGUnsafeMutableTuple tuple = {tuple_type, buffer};
         function(context, tuple);
     } else {
-        void *buffer = malloc_type_malloc(buffer_size, 0x100004077774924);
+        void *buffer = malloc(buffer_size);
         if (buffer == nullptr) {
             AG::precondition_failure("memory allocation failure");
         }

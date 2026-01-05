@@ -1,11 +1,12 @@
 #include "Zone.h"
 
-#include <malloc/malloc.h>
+#include <stdio.h>
+
+#include <platform/malloc.h>
 
 #include "Errors/Errors.h"
 #include "Page.h"
 #include "Table.h"
-#include <stdio.h>
 
 namespace AG {
 namespace data {

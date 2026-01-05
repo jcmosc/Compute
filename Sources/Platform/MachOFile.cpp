@@ -1,5 +1,7 @@
 #include "MachOFile.h"
 
+#if __APPLE__
+
 #include <cstring>
 
 bool MachOFile::hasMachOMagic() const { return magic == MH_MAGIC || magic == MH_MAGIC_64; }
@@ -58,3 +60,5 @@ void MachOFile::forEachLoadCommand(/* Diagnostics& diag, */ void (^callback)(con
         cmd = nextCmd;
     }
 }
+
+#endif

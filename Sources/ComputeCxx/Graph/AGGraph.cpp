@@ -1,9 +1,9 @@
 #include "AGGraph-Private.h"
 
 #include <CoreFoundation/CFString.h>
-#include <os/lock.h>
 
 #include <Utilities/FreeDeleter.h>
+#include <platform/lock.h>
 
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeID/OffsetAttributeID.h"
@@ -946,7 +946,7 @@ void AGGraphAddNamedTraceEvent(AGGraphRef graph, uint32_t event_id, uint32_t eve
 
 namespace NamedEvents {
 
-static os_unfair_lock lock = OS_UNFAIR_LOCK_INIT;
+static platform_lock lock = PLATFORM_LOCK_INIT;
 static AG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
 
 } // namespace NamedEvents
@@ -954,11 +954,11 @@ static AG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
 const char *AGGraphGetTraceEventName(uint32_t event_id) {
     const char *event_name = nullptr;
 
-    os_unfair_lock_lock(&NamedEvents::lock);
+    platform_lock_lock(&NamedEvents::lock);
     if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
         event_name = (*NamedEvents::names)[event_id].second;
     }
-    os_unfair_lock_unlock(&NamedEvents::lock);
+    platform_lock_unlock(&NamedEvents::lock);
 
     return event_name;
 }
@@ -966,17 +966,17 @@ const char *AGGraphGetTraceEventName(uint32_t event_id) {
 const char *AGGraphGetTraceEventSubsystem(uint32_t event_id) {
     const char *event_subsystem = nullptr;
 
-    os_unfair_lock_lock(&NamedEvents::lock);
+    platform_lock_lock(&NamedEvents::lock);
     if (NamedEvents::names != nullptr && event_id < NamedEvents::names->size()) {
         event_subsystem = (*NamedEvents::names)[event_id].first;
     }
-    os_unfair_lock_unlock(&NamedEvents::lock);
+    platform_lock_unlock(&NamedEvents::lock);
 
     return event_subsystem;
 }
 
 uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
-    os_unfair_lock_lock(&NamedEvents::lock);
+    platform_lock_lock(&NamedEvents::lock);
 
     if (!NamedEvents::names) {
         NamedEvents::names = new AG::vector<std::pair<const char *, const char *>, 0, uint32_t>();
@@ -990,7 +990,7 @@ uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *even
     event_name = strdup(event_name);
     NamedEvents::names->push_back({event_subsystem, event_name});
 
-    os_unfair_lock_unlock(&NamedEvents::lock);
+    platform_lock_unlock(&NamedEvents::lock);
 
     return event_id;
 }

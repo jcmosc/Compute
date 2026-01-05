@@ -1,8 +1,6 @@
 #include "TraceRecorder.h"
 
 #include <dlfcn.h>
-#include <mach/mach_vm.h>
-#include <os/log.h>
 #include <ptrauth.h>
 
 #include "Attribute/AttributeData/Node/IndirectNode.h"

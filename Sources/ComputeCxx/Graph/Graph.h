@@ -3,13 +3,13 @@
 #include "ComputeCxx/AGBase.h"
 #include <CoreFoundation/CFDictionary.h>
 #include <memory>
-#include <os/lock.h>
 #include <span>
 
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #endif
 
+#include <platform/lock.h>
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
 #include <Utilities/TaggedPointer.h>
@@ -67,7 +67,7 @@ class Graph {
 
   private:
     static Graph *_Nullable _all_graphs;
-    static os_unfair_lock _all_graphs_lock;
+    static platform_lock _all_graphs_lock;
 
     Graph *_Nullable _next;
     Graph *_Nullable _previous;
@@ -121,9 +121,9 @@ class Graph {
     uint64_t _change_count = 0;
     uint64_t _version = 0;
 
-    static void all_lock() { os_unfair_lock_lock(&_all_graphs_lock); };
-    static bool all_try_lock() { return os_unfair_lock_trylock(&_all_graphs_lock); };
-    static void all_unlock() { os_unfair_lock_unlock(&_all_graphs_lock); };
+    static void all_lock() { platform_lock_lock(&_all_graphs_lock); };
+    static bool all_try_lock() { return platform_lock_trylock(&_all_graphs_lock); };
+    static void all_unlock() { platform_lock_unlock(&_all_graphs_lock); };
 
     // Main handler
 

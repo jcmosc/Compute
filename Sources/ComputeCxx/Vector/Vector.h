@@ -4,9 +4,9 @@
 #include <cassert>
 #include <concepts>
 #include <iterator>
-#include <malloc/malloc.h>
 #include <memory>
 
+#include <platform/malloc.h>
 
 #include "ComputeCxx/AGBase.h"
 #include "Errors/Errors.h"

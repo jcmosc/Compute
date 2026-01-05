@@ -1,5 +1,7 @@
 #include "AGSubgraph-Private.h"
 
+#include <platform/once.h>
+
 #include "Graph/Context.h"
 #include "Private/CFRuntime.h"
 #include "Subgraph.h"
@@ -345,10 +347,10 @@ void AGSubgraphEndTreeElement(AGAttribute value) {
     current_subgraph->end_tree();
 }
 
-static dispatch_once_t should_record_tree_once = 0;
+static platform_once_t should_record_tree_once = 0;
 static bool should_record_tree = true;
 
-void init_should_record_tree(void *context) {
+void init_should_record_tree() {
     char *result = getenv("AG_TREE");
     if (result) {
         should_record_tree = atoi(result) != 0;
@@ -358,11 +360,11 @@ void init_should_record_tree(void *context) {
 }
 
 bool AGSubgraphShouldRecordTree() {
-    dispatch_once_f(&should_record_tree_once, nullptr, init_should_record_tree);
+    platform_once(&should_record_tree_once, init_should_record_tree);
     return should_record_tree;
 }
 
 void AGSubgraphSetShouldRecordTree() {
-    dispatch_once_f(&should_record_tree_once, nullptr, init_should_record_tree);
+    platform_once(&should_record_tree_once, init_should_record_tree);
     should_record_tree = true;
 }

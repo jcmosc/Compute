@@ -2,11 +2,17 @@
 
 #include <algorithm>
 #include <cerrno>
-#include <dispatch/dispatch.h>
-#include <mach/mach.h>
-#include <malloc/malloc.h>
-#include <os/lock.h>
 #include <sys/mman.h>
+#if TARGET_OS_MAC
+#include <mach/mach.h>
+#else
+#include <unistd.h>
+#include <sys/mman.h>
+#endif
+
+#include <platform/lock.h>
+#include <platform/malloc.h>
+#include <platform/once.h>
 
 #include "Errors/Errors.h"
 #include "Page.h"
@@ -20,8 +26,8 @@ namespace data {
 table _shared_table_bytes;
 
 table &table::ensure_shared() {
-    static dispatch_once_t onceToken;
-    dispatch_once_f(&onceToken, nullptr, [](void *_Nullable context) { new (&_shared_table_bytes) table(); });
+    static platform_once_t onceToken;
+    platform_once(&onceToken, []() { new (&_shared_table_bytes) table(); });
     return _shared_table_bytes;
 }
 
@@ -40,10 +46,26 @@ std::unique_ptr<void, table::malloc_zone_deleter> table::alloc_persistent(size_t
 table::table() {
     constexpr vm_size_t initial_size = 32 * pages_per_map * page_size;
 
+#if TARGET_OS_MAC
     void *region = mmap(nullptr, initial_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     if (region == MAP_FAILED) {
         precondition_failure("memory allocation failure (%u bytes, %u)", initial_size, errno);
     }
+#else
+    _vm_region_fd = memfd_create("AGGraphVMRegion", MFD_CLOEXEC);
+    if (_vm_region_fd < 0) {
+        precondition_failure("memfd_create failure (%u)", errno);
+    }
+
+    if (ftruncate(_vm_region_fd, initial_size) != 0) {
+        precondition_failure("ftruncate failure (%u bytes, %u)", initial_size, errno);
+    }
+    
+    void *region = mmap(nullptr, initial_size, PROT_READ | PROT_WRITE, MAP_SHARED, _vm_region_fd, 0);
+    if (region == MAP_FAILED) {
+        precondition_failure("memory allocation failure (%u bytes, %u)", initial_size, errno);
+    }
+#endif
 
     _vm_region_base_address = reinterpret_cast<vm_address_t>(region);
     _vm_region_size = initial_size;
@@ -60,14 +82,17 @@ table::table() {
 }
 
 table::~table() {
+#if !TARGET_OS_MAC
+    close(_vm_region_fd);
+#endif
     if (_malloc_zone) {
         malloc_destroy_zone(_malloc_zone);
     }
 }
 
-void table::lock() { os_unfair_lock_lock(&_lock); }
+void table::lock() { platform_lock_lock(&_lock); }
 
-void table::unlock() { os_unfair_lock_unlock(&_lock); }
+void table::unlock() { platform_lock_unlock(&_lock); }
 
 #pragma mark - Region
 
@@ -79,6 +104,7 @@ void table::grow_region() {
         precondition_failure("exhausted data space");
     }
 
+#if TARGET_OS_MAC
     void *new_region = mmap(nullptr, new_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     if (new_region == MAP_FAILED) {
         precondition_failure("memory allocation failure (%u bytes, %u)", new_size, errno);
@@ -86,13 +112,22 @@ void table::grow_region() {
 
     vm_prot_t cur_protection = VM_PROT_NONE;
     vm_prot_t max_protection = VM_PROT_NONE;
-    kern_return_t error =
-        vm_remap(mach_task_self(), reinterpret_cast<vm_address_t *>(&new_region), _vm_region_size, 0,
-                 VM_FLAGS_OVERWRITE, mach_task_self(), reinterpret_cast<vm_address_t>(_vm_region_base_address), false,
-                 &cur_protection, &max_protection, VM_INHERIT_NONE);
-    if (error) {
-        precondition_failure("vm_remap failure: 0x%x", error);
+    kern_return_t kr = vm_remap(mach_task_self(), reinterpret_cast<vm_address_t *>(&new_region), _vm_region_size, 0,
+                                VM_FLAGS_OVERWRITE, mach_task_self(), _vm_region_base_address, false, &cur_protection,
+                                &max_protection, VM_INHERIT_NONE);
+    if (kr != KERN_SUCCESS) {
+        precondition_failure("vm_remap failure: 0x%x", kr);
     }
+#else
+    if (ftruncate(_vm_region_fd, new_size) != 0) {
+        precondition_failure("ftruncate failure (%u bytes, %u)", new_size, errno);
+    }
+
+    void *new_region = mmap(nullptr, new_size, PROT_READ | PROT_WRITE, MAP_SHARED, _vm_region_fd, 0);
+    if (new_region == MAP_FAILED) {
+        precondition_failure("memory allocation failure (%u bytes, %u)", new_size, errno);
+    }
+#endif
 
     _remapped_regions.push_back({this->_vm_region_base_address, this->_vm_region_size});
 
@@ -240,7 +275,11 @@ void table::make_pages_reusable(uint32_t page_index, bool reusable) {
     void *mapped_pages_address =
         reinterpret_cast<void *>(_vm_region_base_address + ((page_index * page_size) & ~(mapped_pages_size - 1)));
 
+#if TARGET_OS_MAC
     int advice = reusable ? MADV_FREE_REUSABLE : MADV_FREE_REUSE;
+#else
+    int advice = reusable ? MADV_FREE : MADV_NORMAL;
+#endif
     madvise(mapped_pages_address, mapped_pages_size, advice);
 
     static bool unmap_reusable = []() -> bool {

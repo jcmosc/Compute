@@ -15,14 +15,6 @@
 
 namespace AG {
 
-namespace {
-
-uint64_t uuid_hash(const uuid_t key) { return *key; }
-
-bool uuid_equal(const uuid_t a, const uuid_t b) { return uuid_compare(a, b) == 0; }
-
-} // namespace
-
 Graph::TraceRecorder::TraceRecorder(Graph *graph, AGTraceFlags trace_flags, std::span<const char *> subsystems) {
     // TODO: not implemented
 }

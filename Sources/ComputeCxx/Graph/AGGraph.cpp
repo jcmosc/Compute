@@ -830,10 +830,13 @@ void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef
                 continue;
             }
 
-            char *subsystem;
-            if (CFStringGetCString((CFStringRef)value, subsystem, CFStringGetLength((CFStringRef)value),
-                                   kCFStringEncodingUTF8)) {
+            CFIndex length = CFStringGetLength((CFStringRef)value);
+            CFIndex bufferSize = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8) + 1;
+            char *subsystem = (char *)malloc(bufferSize);
+            if (CFStringGetCString((CFStringRef)value, subsystem, bufferSize, kCFStringEncodingUTF8)) {
                 subsystems_vector.push_back(std::unique_ptr<const char, util::free_deleter>(subsystem));
+            } else {
+                free(subsystem);
             }
         }
     }

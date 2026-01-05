@@ -14,6 +14,8 @@ AG_ASSUME_NONNULL_BEGIN
 
 AG_EXTERN_C_BEGIN
 
+#if TARGET_OS_MAC
+
 typedef CFStringRef AGDescriptionOption AG_SWIFT_STRUCT AG_SWIFT_NAME(DescriptionOption);
 
 AG_EXPORT
@@ -28,6 +30,7 @@ const AGDescriptionOption AGDescriptionIncludeValues AG_SWIFT_NAME(AGDescription
 AG_EXPORT
 const AGDescriptionOption AGDescriptionTruncationLimit AG_SWIFT_NAME(AGDescriptionOption.truncationLimit);
 
+#endif
 
 AG_EXTERN_C_END
 

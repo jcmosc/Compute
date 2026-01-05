@@ -1002,8 +1002,10 @@ uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *even
 
 // MARK: Description
 
+#if TARGET_OS_MAC
 void AGGraphArchiveJSON(const char *filename) { AG::Graph::write_to_file(nullptr, filename, false); }
 
 void AGGraphArchiveJSON2(const char *filename, bool exclude_values) {
     AG::Graph::write_to_file(nullptr, filename, exclude_values);
 }
+#endif

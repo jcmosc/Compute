@@ -1,5 +1,7 @@
 #include "Graph.h"
 
+#if TARGET_OS_MAC
+
 #import <Foundation/Foundation.h>
 #include <iostream>
 #include <ranges>
@@ -1066,3 +1068,5 @@ void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exc
 }
 
 } // namespace AG
+
+#endif

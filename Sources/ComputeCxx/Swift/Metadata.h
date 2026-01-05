@@ -30,6 +30,7 @@ class metadata : public ::swift::Metadata {
     static const metadata *from_base(const ::swift::Metadata *base) { return static_cast<const metadata *>(base); };
 
     bool is_type_metadata() const {
+#if SWIFT_OBJC_INTEROP
         if (::swift::ClassMetadata::classof(this)) {
             const auto class_type = static_cast<const ::swift::ClassMetadata *>(base());
             // Depending on the deployment target a binary was compiled for,
@@ -39,6 +40,7 @@ class metadata : public ::swift::Metadata {
             // https://github.com/swiftlang/swift/blob/main/include/swift/ABI/Metadata.h
             return class_type->Data & 0x3;
         }
+#endif
         return true;
     }
 

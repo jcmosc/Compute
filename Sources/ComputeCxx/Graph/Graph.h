@@ -5,8 +5,10 @@
 #include <memory>
 #include <span>
 
+#if TARGET_OS_MAC
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
+#endif
 #endif
 
 #include <platform/lock.h>
@@ -426,6 +428,7 @@ class Graph {
 
     // MARK: Description
 
+#if TARGET_OS_MAC
 #ifdef __OBJC__
     NSString *description(data::ptr<Node> node);
 
@@ -438,6 +441,7 @@ class Graph {
 #endif
 
     static void write_to_file(Graph *_Nullable graph, const char *_Nullable filename, bool exclude_values);
+#endif
 };
 
 } // namespace AG

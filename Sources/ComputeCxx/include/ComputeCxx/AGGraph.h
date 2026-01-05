@@ -425,6 +425,7 @@ uint32_t AGGraphRegisterNamedTraceEvent(const char *event_name, const char *even
 
 // MARK: Description
 
+#if TARGET_OS_MAC
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 CFTypeRef _Nullable AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options)
@@ -438,6 +439,7 @@ AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphArchiveJSON2(const char *filename, bool exclude_values)
     AG_SWIFT_NAME(AGGraphRef.archiveJSON(name:excludeValues:));
+#endif
 
 AG_EXTERN_C_END
 

@@ -82,7 +82,16 @@ class TypeDescriptorCache {
 
     ValueLayout fetch(const swift::metadata &type, AGComparisonOptions options, LayoutDescriptor::HeapMode heap_mode,
                       uint32_t priority);
+    
+    ValueLayout insert_sync(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+                            LayoutDescriptor::HeapMode heap_mode);
+    
+#if TARGET_OS_MAC
+    void insert_async(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+                      LayoutDescriptor::HeapMode heap_mode, uint32_t priority);
+    
     static void drain_queue(void *cache);
+#endif
 };
 
 TypeDescriptorCache *TypeDescriptorCache::_shared_cache = nullptr;
@@ -116,6 +125,7 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, AGComparison
     _cache_miss_count += 1;
     unlock();
 
+#if TARGET_OS_MAC
     static bool async_layouts = []() {
         char *result = getenv("AG_ASYNC_LAYOUTS");
         if (result) {
@@ -125,29 +135,43 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, AGComparison
     }();
 
     if ((options & AGComparisonOptionsFetchLayoutsSynchronously) || !async_layouts) {
-        // insert layout synchronously
-        double start_time = current_time();
-        layout = LayoutDescriptor::make_layout(type, comparison_mode, heap_mode);
-        double end_time = current_time();
-
-        if (comparison_mode < 0) {
-            lock();
-        } else {
-            double time = end_time - start_time;
-            if ((print_layouts() & 4) != 0) {
-                const char *name = type.name(false);
-                std::fprintf(stdout, "!! synchronous layout creation for %s: %g ms\n", name, time * 1000.0);
-            }
-            lock();
-            _sync_total_seconds += time;
-        }
-
-        _table.insert((void *)key, layout);
-        unlock();
-        return layout;
+        return insert_sync(key, type, comparison_mode, heap_mode);
     }
 
-    // insert layout asynchronously
+    insert_async(key, type, comparison_mode, heap_mode, priority);
+    return nullptr;
+#else
+    return insert_sync(key, type, comparison_mode, heap_mode);
+#endif
+}
+
+ValueLayout TypeDescriptorCache::insert_sync(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+                                             LayoutDescriptor::HeapMode heap_mode) {
+    double start_time = current_time();
+    ValueLayout layout = LayoutDescriptor::make_layout(type, comparison_mode, heap_mode);
+    double end_time = current_time();
+
+    if (comparison_mode < 0) {
+        lock();
+    } else {
+        double time = end_time - start_time;
+        if ((print_layouts() & 4) != 0) {
+            const char *name = type.name(false);
+            std::fprintf(stdout, "!! synchronous layout creation for %s: %g ms\n", name, time * 1000.0);
+        }
+        lock();
+        _sync_total_seconds += time;
+    }
+
+    _table.insert((void *)key, layout);
+    unlock();
+    return layout;
+}
+
+#if TARGET_OS_MAC
+
+void TypeDescriptorCache::insert_async(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+                                       LayoutDescriptor::HeapMode heap_mode, uint32_t priority) {
     lock();
     _table.insert((void *)key, nullptr);
 
@@ -166,7 +190,6 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, AGComparison
     }
 
     unlock();
-    return nullptr;
 }
 
 void TypeDescriptorCache::drain_queue(void *context) {
@@ -211,6 +234,8 @@ void TypeDescriptorCache::drain_queue(void *context) {
     cache->_async_total_seconds += time;
     cache->unlock();
 }
+
+#endif
 
 } // namespace
 

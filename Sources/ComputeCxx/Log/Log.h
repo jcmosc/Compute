@@ -1,6 +1,6 @@
 #pragma once
 
-#include <os/log.h>
+#include <platform/log.h>
 
 #include "ComputeCxx/AGBase.h"
 
@@ -8,7 +8,7 @@ AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
-os_log_t misc_log();
+platform_log_t misc_log();
 
 } // namespace AG
 

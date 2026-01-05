@@ -1,10 +1,11 @@
 #pragma once
 
 #include <bitset>
-#include <mach/vm_types.h>
-#include <malloc/malloc.h>
-#include <os/lock.h>
 #include <utility>
+
+#include <platform/lock.h>
+#include <platform/malloc.h>
+#include <platform/vm.h>
 
 #include "ComputeCxx/AGBase.h"
 #include "Vector/Vector.h"
@@ -29,9 +30,12 @@ class table {
     static std::unique_ptr<void, malloc_zone_deleter> alloc_persistent(size_t size);
 
   private:
+#if !TARGET_OS_MAC
+    int _vm_region_fd;
+#endif
     vm_address_t _ptr_base;
     vm_address_t _vm_region_base_address;
-    os_unfair_lock _lock = OS_UNFAIR_LOCK_INIT;
+    platform_lock _lock = PLATFORM_LOCK_INIT;
     uint32_t _vm_region_size;
     uint32_t _ptr_max_offset;
 

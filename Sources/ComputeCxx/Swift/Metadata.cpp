@@ -1,18 +1,19 @@
 #include "Metadata.h"
 
-#include <CommonCrypto/CommonDigest.h>
 #include <CoreFoundation/CFString.h>
 #include <swift/Runtime/Casting.h>
 #include <swift/Runtime/ExistentialContainer.h>
 #include <swift/Runtime/HeapObject.h>
 
+#include <platform/lock.h>
+#include <platform/image.h>
+#include <platform/sha.h>
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
 
 #include "ContextDescriptor.h"
 #include "Errors/Errors.h"
 #include "MetadataVisitor.h"
-#include "Swift/mach-o/dyld.h"
 #include "_SwiftStdlibCxxOverlay.h"
 
 namespace AG {
@@ -174,14 +175,14 @@ namespace {
 
 class TypeSignatureCache {
   private:
-    os_unfair_lock _lock;
+    platform_lock _lock;
     util::Table<const metadata *, const unsigned char *> _table;
 
   public:
-    TypeSignatureCache() : _lock(OS_UNFAIR_LOCK_INIT), _table() {};
+    TypeSignatureCache() : _lock(PLATFORM_LOCK_INIT), _table() {};
 
-    void lock() { os_unfair_lock_lock(&_lock); };
-    void unlock() { os_unfair_lock_unlock(&_lock); };
+    void lock() { platform_lock_lock(&_lock); };
+    void unlock() { platform_lock_unlock(&_lock); };
 
     const unsigned char *lookup(const metadata *type, const metadata **_Nullable found) {
         return _table.lookup(type, found);
@@ -226,27 +227,27 @@ const void *metadata::signature() const {
             }
         }
     }
-
+    
     if (descriptors.size()) {
-        auto context = CC_SHA1_CTX();
-        CC_SHA1_Init(&context);
+        auto context = PLATFORM_SHA1_CTX();
+        PLATFORM_SHA1_Init(&context);
 
         const char prefix[] = "AGTypeSignature";
-        CC_SHA1_Update(&context, prefix, sizeof(prefix));
+        PLATFORM_SHA1_Update(&context, prefix, sizeof(prefix));
 
-        auto infos = vector<dyld_image_uuid_offset, 8, uint64_t>();
+        auto infos = vector<platform_image_info_t, 8, uint64_t>();
         infos.reserve(descriptors.size());
 
-        dyld_images_for_addresses((unsigned)descriptors.size(), static_cast<const void *[]>(descriptors.data()),
+        platform_image_infos_for_addresses((unsigned)descriptors.size(), static_cast<const void *[]>(descriptors.data()),
                                   infos.data());
 
         for (auto info : infos) {
-            CC_SHA1_Update(&context, info.uuid, sizeof(((dyld_image_uuid_offset *)0)->uuid));
-            CC_SHA1_Update(&context, &info.offsetInImage, sizeof(((dyld_image_uuid_offset *)0)->offsetInImage));
+            PLATFORM_SHA1_Update(&context, info.identifier, sizeof(((platform_image_info_t *)0)->identifier));
+            PLATFORM_SHA1_Update(&context, &info.offset, sizeof(((platform_image_info_t *)0)->offset));
         }
 
-        auto digest = new unsigned char[CC_SHA1_DIGEST_LENGTH];
-        CC_SHA1_Final(digest, &context);
+        auto digest = new unsigned char[PLATFORM_SHA1_DIGEST_LENGTH];
+        PLATFORM_SHA1_Final(digest, &context);
 
         signature = digest;
     } else {
@@ -406,14 +407,14 @@ class TypeCache {
     using value_info = std::pair<const metadata *, metadata::ref_kind>;
 
   private:
-    os_unfair_lock _lock;
+    platform_lock _lock;
     util::Heap _heap;
     char _heap_buffer[4096];
     util::Table<const key_info *, const value_info *> _table;
 
   public:
     TypeCache()
-        : _lock(OS_UNFAIR_LOCK_INIT), _heap(_heap_buffer, 4096, 0),
+        : _lock(PLATFORM_LOCK_INIT), _heap(_heap_buffer, 4096, 0),
           _table([](const key_info *key) -> uint64_t { return uintptr_t(key->first) * 0x21 ^ uintptr_t(key->second); },
                  [](const key_info *a, const key_info *b) -> bool {
                      if (a->first != b->first) {
@@ -423,8 +424,8 @@ class TypeCache {
                  },
                  nullptr, nullptr, &_heap) {};
 
-    void lock() { os_unfair_lock_lock(&_lock); };
-    void unlock() { os_unfair_lock_unlock(&_lock); };
+    void lock() { platform_lock_lock(&_lock); };
+    void unlock() { platform_lock_unlock(&_lock); };
 
     const value_info *lookup(const key_info *type, const key_info **_Nullable found) {
         return _table.lookup(type, found);

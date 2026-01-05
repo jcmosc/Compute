@@ -1,5 +1,7 @@
 #pragma once
 
+#if __APPLE__
+
 #include <mach-o/loader.h>
 #include <uuid/uuid.h>
 
@@ -13,3 +15,5 @@ struct MachOFile : mach_header {
     bool hasMachOBigEndianMagic() const;
     void forEachLoadCommand(/* Diagnostics &diag, */ void (^callback)(const load_command *cmd, bool &stop)) const;
 };
+
+#endif

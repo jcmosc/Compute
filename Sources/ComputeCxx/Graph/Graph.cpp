@@ -1,11 +1,13 @@
 #include "Graph.h"
 
 #include <CoreFoundation/CFString.h>
-#include <mach/mach_time.h>
 #include <ranges>
 #include <set>
 
 #include <Utilities/List.h>
+#include <platform/lock.h>
+#include <platform/once.h>
+#include <platform/time.h>
 
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
@@ -24,7 +26,7 @@
 namespace AG {
 
 Graph *Graph::_all_graphs = nullptr;
-os_unfair_lock Graph::_all_graphs_lock = OS_UNFAIR_LOCK_INIT;
+platform_lock Graph::_all_graphs_lock = PLATFORM_LOCK_INIT;
 
 pthread_key_t Graph::_current_update_key = 0;
 
@@ -32,8 +34,8 @@ Graph::Graph()
     : _heap(nullptr, 0, 0), _interned_types(nullptr, nullptr, nullptr, nullptr, &_heap),
       _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _id(AGMakeUniqueID()) {
 
-    static dispatch_once_t make_keys;
-    dispatch_once_f(&make_keys, nullptr, [](void *context) {
+    static platform_once_t make_keys;
+          platform_once(&make_keys, []() {
         pthread_key_create(&Graph::_current_update_key, 0);
         Subgraph::make_current_subgraph_key();
     });
@@ -249,14 +251,14 @@ uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<c
 
     size_t self_size = type->body_metadata().vw_size();
     if (self_size >= 0x2000) {
-        os_log_info(misc_log(), "large attribute self: %u bytes, %s", uint(self_size),
-                    type->body_metadata().name(false));
+        platform_log_info(misc_log(), "large attribute self: %u bytes, %s", uint(self_size),
+                          type->body_metadata().name(false));
     }
 
     size_t value_size = type->value_metadata().vw_size();
     if (value_size >= 0x2000) {
-        os_log_info(misc_log(), "large attribute value: %u bytes, %s -> %s", uint(value_size),
-                    type->body_metadata().name(false), type->value_metadata().name(false));
+        platform_log_info(misc_log(), "large attribute value: %u bytes, %s -> %s", uint(value_size),
+                          type->body_metadata().name(false), type->value_metadata().name(false));
     }
 
     return type_id;
@@ -1002,7 +1004,7 @@ bool Graph::passed_deadline_slow() {
         return true;
     }
 
-    uint64_t time = mach_absolute_time();
+    platform_time_t time = platform_absolute_time();
     if (time < _deadline) {
         return false;
     }
@@ -1808,10 +1810,10 @@ void Graph::start_tracing(AGTraceFlags trace_flags, std::span<const char *> subs
         }
         add_trace(_trace_recorder);
 
-        static dispatch_once_t cleanup;
-        dispatch_once(&cleanup, ^{
-                          // TODO
-                      });
+        static platform_once_t cleanup;
+        platform_once(&cleanup, []() {
+            // TODO
+        });
     }
 }
 

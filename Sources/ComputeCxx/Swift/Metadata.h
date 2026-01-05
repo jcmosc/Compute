@@ -1,12 +1,12 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <swift/Demangling/ManglingMacros.h>
 #include <swift/Runtime/Metadata.h>
+#include <swift/Demangling/ManglingMacros.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "Comparison/LayoutDescriptor.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 CF_EXPORT
 const void *PROTOCOL_DESCR_SYM(SQ);
@@ -95,4 +95,4 @@ class existential_type_metadata : public ::swift::ExistentialTypeMetadata {
 } // namespace swift
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

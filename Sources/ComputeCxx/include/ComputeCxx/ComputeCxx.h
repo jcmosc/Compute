@@ -3,6 +3,7 @@
 #include <ComputeCxx/AGAttribute.h>
 #include <ComputeCxx/AGAttributeInfo.h>
 #include <ComputeCxx/AGAttributeType.h>
+#include <ComputeCxx/AGBase.h>
 #include <ComputeCxx/AGChangedValue.h>
 #include <ComputeCxx/AGClosure.h>
 #include <ComputeCxx/AGComparison.h>
@@ -12,6 +13,7 @@
 #include <ComputeCxx/AGInputOptions.h>
 #include <ComputeCxx/AGSearchOptions.h>
 #include <ComputeCxx/AGSubgraph.h>
+#include <ComputeCxx/AGTargetConditionals.h>
 #include <ComputeCxx/AGTrace.h>
 #include <ComputeCxx/AGTraceFlags.h>
 #include <ComputeCxx/AGTreeElement.h>

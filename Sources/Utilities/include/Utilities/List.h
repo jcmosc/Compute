@@ -1,11 +1,11 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <swift/bridging>
 
-#include <Utilities/SwiftBridging.h>
+#include <Utilities/Base.h>
 #include <Utilities/Heap.h>
 
-CF_ASSUME_NONNULL_BEGIN
+UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
@@ -170,4 +170,4 @@ void UInt64ForwardList::pop_front() { ForwardList<uint64_t>::pop_front(); }
 
 } // namespace util
 
-CF_ASSUME_NONNULL_END
+UTIL_ASSUME_NONNULL_END

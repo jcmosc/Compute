@@ -2,10 +2,11 @@
 
 #include "LayoutDescriptor.h"
 
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGComparison.h"
 #include "Vector/Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace LayoutDescriptor {
@@ -67,4 +68,4 @@ class Compare {
 } // namespace LayoutDescriptor
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

@@ -1,14 +1,13 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <llvm/ADT/ArrayRef.h>
-#include <stdint.h>
 #include <swift/Runtime/Metadata.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "Metadata.h"
 #include "Vector/Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace swift {
@@ -65,4 +64,4 @@ class class_type_descriptor {
 } // namespace swift
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

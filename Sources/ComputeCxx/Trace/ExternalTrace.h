@@ -1,7 +1,6 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGAttribute.h"
 #include "ComputeCxx/AGComparison.h"
 #include "ComputeCxx/AGGraph.h"
@@ -10,7 +9,7 @@
 #include "Subgraph/Subgraph.h"
 #include "Trace/Trace.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 class ExternalTrace : public AG::Trace {
   public:
@@ -92,4 +91,4 @@ class ExternalTrace : public AG::Trace {
                         size_t range_size, const AG::swift::metadata *_Nullable type) override;
 };
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

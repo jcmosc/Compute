@@ -1,14 +1,12 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 
-#include <ComputeCxx/AGSwiftSupport.h>
+AG_ASSUME_NONNULL_BEGIN
 
-CF_ASSUME_NONNULL_BEGIN
+AG_EXTERN_C_BEGIN
 
-CF_EXTERN_C_BEGIN
-
-typedef CF_OPTIONS(uint8_t, AGChangedValueFlags) {
+typedef AG_OPTIONS(uint8_t, AGChangedValueFlags) {
     AGChangedValueFlagsChanged = 1 << 0,
     AGChangedValueFlagsRequiresMainThread = 1 << 1,
 };
@@ -23,6 +21,6 @@ typedef struct AGWeakChangedValue {
     AGChangedValueFlags flags;
 } AGWeakChangedValue;
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

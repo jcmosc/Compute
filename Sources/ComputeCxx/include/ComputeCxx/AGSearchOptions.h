@@ -1,17 +1,17 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
-typedef CF_OPTIONS(uint32_t, AGSearchOptions) {
+typedef AG_OPTIONS(uint32_t, AGSearchOptions) {
     AGSearchOptionsSearchInputs = 1 << 0,
     AGSearchOptionsSearchOutputs = 1 << 1,
     AGSearchOptionsTraverseGraphContexts = 1 << 2,
-} CF_SWIFT_NAME(SearchOptions);
+} AG_SWIFT_NAME(SearchOptions);
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

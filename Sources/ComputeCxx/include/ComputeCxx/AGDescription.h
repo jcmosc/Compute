@@ -1,29 +1,29 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 #include <CoreFoundation/CFString.h>
 
 #include <ComputeCxx/AGGraph.h>
-#include <ComputeCxx/AGSwiftSupport.h>
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
-typedef CFStringRef AGDescriptionOption AG_SWIFT_STRUCT CF_SWIFT_NAME(DescriptionOption);
+typedef CFStringRef AGDescriptionOption AG_SWIFT_STRUCT AG_SWIFT_NAME(DescriptionOption);
 
-CF_EXPORT
-const AGDescriptionOption AGDescriptionFormat CF_SWIFT_NAME(AGDescriptionOption.format);
+AG_EXPORT
+const AGDescriptionOption AGDescriptionFormat AG_SWIFT_NAME(AGDescriptionOption.format);
 
-CF_EXPORT
-const AGDescriptionOption AGDescriptionMaxFrames CF_SWIFT_NAME(AGDescriptionOption.maxFrames);
+AG_EXPORT
+const AGDescriptionOption AGDescriptionMaxFrames AG_SWIFT_NAME(AGDescriptionOption.maxFrames);
 
-CF_EXPORT
-const AGDescriptionOption AGDescriptionIncludeValues CF_SWIFT_NAME(AGDescriptionOption.includeValues);
+AG_EXPORT
+const AGDescriptionOption AGDescriptionIncludeValues AG_SWIFT_NAME(AGDescriptionOption.includeValues);
 
-CF_EXPORT
-const AGDescriptionOption AGDescriptionTruncationLimit CF_SWIFT_NAME(AGDescriptionOption.truncationLimit);
+AG_EXPORT
+const AGDescriptionOption AGDescriptionTruncationLimit AG_SWIFT_NAME(AGDescriptionOption.truncationLimit);
 
-CF_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_EXTERN_C_END
+
+AG_ASSUME_NONNULL_END

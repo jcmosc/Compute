@@ -1,6 +1,7 @@
 #include "Utilities/Heap.h"
 
 #include <algorithm>
+#include <stdio.h>
 
 namespace util {
 

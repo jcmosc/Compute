@@ -1,8 +1,8 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include "ComputeCxx/AGBase.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -11,4 +11,4 @@ void non_fatal_precondition_failure(const char *format, ...);
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

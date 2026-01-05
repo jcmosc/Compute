@@ -1,13 +1,12 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <malloc/malloc.h>
+#include "ComputeCxx/AGBase.h"
 
 #include "Page.h"
 #include "Pointer.h"
 #include "Table.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
@@ -73,4 +72,4 @@ class zone {
 } // namespace data
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

@@ -1,27 +1,25 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 
-#include "AGSwiftSupport.h"
+AG_ASSUME_NONNULL_BEGIN
 
-CF_ASSUME_NONNULL_BEGIN
+AG_EXTERN_C_BEGIN
 
-CF_EXTERN_C_BEGIN
-
-typedef struct CF_SWIFT_NAME(_AGClosureStorage) AGClosureStorage {
+typedef struct AG_SWIFT_NAME(_AGClosureStorage) AGClosureStorage {
     const void *thunk;
     const void *_Nullable context;
 } AGClosureStorage;
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
+AG_EXPORT
+AG_REFINED_FOR_SWIFT
 AGClosureStorage AGRetainClosure(void (*closure)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                  void *_Nullable closure_context);
 
-CF_EXPORT
-CF_REFINED_FOR_SWIFT
+AG_EXPORT
+AG_REFINED_FOR_SWIFT
 void AGReleaseClosure(AGClosureStorage closure);
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

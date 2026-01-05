@@ -1,16 +1,15 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <bitset>
 #include <mach/vm_types.h>
 #include <malloc/malloc.h>
 #include <os/lock.h>
-#include <stdint.h>
 #include <utility>
 
+#include "ComputeCxx/AGBase.h"
 #include "Vector/Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
@@ -87,4 +86,4 @@ class table {
 } // namespace data
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

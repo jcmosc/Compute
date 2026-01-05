@@ -1,14 +1,12 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 
-#include <ComputeCxx/AGSwiftSupport.h>
+AG_ASSUME_NONNULL_BEGIN
 
-CF_ASSUME_NONNULL_BEGIN
+AG_EXTERN_C_BEGIN
 
-CF_EXTERN_C_BEGIN
-
-typedef CF_OPTIONS(uint32_t, AGValueOptions) {
+typedef AG_OPTIONS(uint32_t, AGValueOptions) {
     AGValueOptionsNone = 0,
     AGValueOptionsInputOptionsUnprefetched = 1 << 0,
     AGValueOptionsInputOptionsSyncMainRef = 1 << 1,
@@ -17,7 +15,7 @@ typedef CF_OPTIONS(uint32_t, AGValueOptions) {
     AGValueOptionsIncrementGraphVersion = 1 << 2, // AsTopLevelOutput
 };
 
-typedef CF_OPTIONS(uint8_t, AGValueState) {
+typedef AG_OPTIONS(uint8_t, AGValueState) {
     AGValueStateNone = 0,
     AGValueStateDirty = 1 << 0,
     AGValueStatePending = 1 << 1,
@@ -29,6 +27,6 @@ typedef CF_OPTIONS(uint8_t, AGValueState) {
     AGValueStateSelfModified = 1 << 7,
 };
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

@@ -1,12 +1,11 @@
 #pragma once
 
-#include "CoreFoundation/CFBase.h"
 #include <iterator>
-#include <stdint.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -280,4 +279,4 @@ void indirect_pointer_vector<T, size_type>::resize(size_type count) {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

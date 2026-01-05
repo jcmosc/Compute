@@ -1,13 +1,13 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGComparison.h"
 #include "LayoutDescriptor.h"
 #include "Swift/MetadataVisitor.h"
 #include "Vector/Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace LayoutDescriptor {
@@ -157,4 +157,4 @@ class Builder : public swift::metadata_visitor {
 } // namespace LayoutDescriptor
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

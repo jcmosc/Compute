@@ -1,9 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <objc/runtime.h>
 
-CF_ASSUME_NONNULL_BEGIN
+#include <Utilities/Base.h>
+
+UTIL_ASSUME_NONNULL_BEGIN
 
 // Redeclare APIs from the Objective-C runtime.
 // These functions are not available through public headers, but are guaranteed
@@ -99,4 +100,4 @@ template <typename T> class objc_ptr {
 
 } // namespace util
 
-CF_ASSUME_NONNULL_END
+UTIL_ASSUME_NONNULL_END

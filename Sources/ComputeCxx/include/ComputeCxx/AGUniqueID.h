@@ -1,16 +1,15 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <stdint.h>
+#include <ComputeCxx/AGBase.h>
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
 typedef long AGUniqueID;
 
-AGUniqueID AGMakeUniqueID(void) CF_SWIFT_NAME(makeUniqueID());
+AGUniqueID AGMakeUniqueID(void) AG_SWIFT_NAME(makeUniqueID());
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

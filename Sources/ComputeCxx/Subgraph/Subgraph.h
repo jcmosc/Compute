@@ -1,17 +1,16 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
 #include "AGSubgraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Closure/ClosureFunction.h"
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGUniqueID.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
 #include "Graph/Tree/TreeElement.h"
 #include "Vector/IndirectPointerVector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 struct AGSubgraphStorage;
 
@@ -202,4 +201,4 @@ class Subgraph : public data::zone {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

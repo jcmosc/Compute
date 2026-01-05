@@ -1,12 +1,12 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
-typedef CF_OPTIONS(uint8_t, AGInputOptions) {
+typedef AG_OPTIONS(uint8_t, AGInputOptions) {
     AGInputOptionsNone = 0,
     AGInputOptionsUnprefetched = 1 << 0,
     AGInputOptionsSyncMainRef = 1 << 1,
@@ -15,6 +15,6 @@ typedef CF_OPTIONS(uint8_t, AGInputOptions) {
     AGInputOptionsEnabled = 1 << 4,
 };
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

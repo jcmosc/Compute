@@ -1,8 +1,8 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <Utilities/Base.h>
 
-CF_ASSUME_NONNULL_BEGIN
+UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
@@ -32,4 +32,4 @@ template <typename T> class tagged_ptr {
 
 } // namespace util
 
-CF_ASSUME_NONNULL_END
+UTIL_ASSUME_NONNULL_END

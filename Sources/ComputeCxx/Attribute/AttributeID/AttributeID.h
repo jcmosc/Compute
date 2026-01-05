@@ -1,16 +1,15 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <cassert>
 #include <optional>
-#include <stdint.h>
 
 #include "ComputeCxx/AGAttribute.h"
+#include "ComputeCxx/AGBase.h"
 #include "Data/Page.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -132,4 +131,4 @@ class AttributeID {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

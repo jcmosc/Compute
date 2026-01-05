@@ -1,8 +1,8 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <ComputeCxx/AGBase.h>
 
-typedef CF_ENUM(uint32_t, AGGraphCounterQueryType) {
+typedef AG_ENUM(uint32_t, AGGraphCounterQueryType) {
     AGGraphCounterQueryTypeNodes,
     AGGraphCounterQueryTypeTransactions,
     AGGraphCounterQueryTypeUpdates,
@@ -17,4 +17,4 @@ typedef CF_ENUM(uint32_t, AGGraphCounterQueryType) {
     AGGraphCounterQueryTypeCreatedNodes,
     AGGraphCounterQueryTypeSubgraphs,
     AGGraphCounterQueryTypeCreatedSubgraphs,
-} CF_SWIFT_NAME(AGGraphRef.CounterQueryType);
+} AG_SWIFT_NAME(AGGraphRef.CounterQueryType);

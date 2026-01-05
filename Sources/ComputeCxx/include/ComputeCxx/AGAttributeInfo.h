@@ -1,19 +1,17 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
 #include <ComputeCxx/AGAttributeType.h>
-#include <ComputeCxx/AGSwiftSupport.h>
+#include <ComputeCxx/AGBase.h>
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
 typedef struct AGAttributeInfo {
     const AGAttributeType *type;
     const void *body;
 } AGAttributeInfo;
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

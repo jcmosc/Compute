@@ -1,10 +1,9 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGComparison.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 typedef struct AGComparisonStateStorage {
     const void *destination;
@@ -13,4 +12,4 @@ typedef struct AGComparisonStateStorage {
     AGTypeID field_type;
 } AGComparisonStateStorage;
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

@@ -1,9 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <iterator>
 
-CF_ASSUME_NONNULL_BEGIN
+#include <ComputeCxx/AGBase.h>
+
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -62,4 +63,4 @@ template <typename T> class ArrayRef {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

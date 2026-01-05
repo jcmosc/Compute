@@ -1,15 +1,14 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
+#include <ComputeCxx/AGBase.h>
 #include <ComputeCxx/AGGraph.h>
 #include <ComputeCxx/AGSubgraph.h>
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
-typedef CF_ENUM(uint64_t, AGTraceEvents) {
+typedef AG_ENUM(uint64_t, AGTraceEvents) {
     AGTraceEventsCustom = 1,
     AGTraceEventsNamed = 2,
     AGTraceEventsDeadline = 3,
@@ -77,6 +76,6 @@ typedef struct AGTrace {
     void (*_Nullable compare_failed)(void *_Nullable context, AGAttribute attribute, AGComparisonState comparisonState);
 } AGTrace;
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

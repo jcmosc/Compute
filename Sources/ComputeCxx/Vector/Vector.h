@@ -1,6 +1,5 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <algorithm>
 #include <cassert>
 #include <concepts>
@@ -8,9 +7,11 @@
 #include <malloc/malloc.h>
 #include <memory>
 
+
+#include "ComputeCxx/AGBase.h"
 #include "Errors/Errors.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -806,4 +807,4 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::uniq
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

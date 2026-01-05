@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Utilities/Base.h>
 #include <Utilities/CFPointer.h>
 #include <Utilities/FreeDeleter.h>
 #include <Utilities/HashTable.h>

@@ -1,11 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <stdint.h>
+#include "ComputeCxx/AGBase.h"
 
 #include "Pointer.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
@@ -57,4 +56,4 @@ class page_ptr_list {
 } // namespace data
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

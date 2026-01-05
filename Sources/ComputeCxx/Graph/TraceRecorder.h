@@ -1,14 +1,12 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <execinfo.h>
-
 #include <Utilities/HashTable.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGGraph.h"
 #include "Trace/Trace.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -98,4 +96,4 @@ class Graph::TraceRecorder : public Trace {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

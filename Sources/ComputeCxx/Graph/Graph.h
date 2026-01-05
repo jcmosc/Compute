@@ -1,11 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include "ComputeCxx/AGBase.h"
 #include <CoreFoundation/CFDictionary.h>
 #include <memory>
 #include <os/lock.h>
 #include <span>
-#include <stdint.h>
 
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
@@ -22,7 +21,7 @@
 #include "Swift/Metadata.h"
 #include "Vector/Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -443,4 +442,4 @@ class Graph {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

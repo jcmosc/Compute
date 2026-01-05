@@ -1,12 +1,14 @@
 #pragma once
 
+#include "ComputeCxx/AGBase.h"
+
 #include <CoreFoundation/CFData.h>
 
 #include "ComputeCxx/AGGraph.h"
 #include "ComputeCxx/AGUniqueID.h"
 #include "Graph/Graph.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -100,4 +102,4 @@ class Trace {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

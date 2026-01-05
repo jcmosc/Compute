@@ -1,12 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <stdint.h>
-
 #include "AttributeID.h"
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGWeakAttribute.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -35,4 +33,4 @@ class WeakAttributeID {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

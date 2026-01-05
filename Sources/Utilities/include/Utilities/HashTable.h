@@ -1,10 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include <swift/bridging>
 
-#include <Utilities/SwiftBridging.h>
+#include <Utilities/Base.h>
 
-CF_ASSUME_NONNULL_BEGIN
+UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
@@ -125,4 +125,4 @@ template <typename Key, typename Value> class Table : public UntypedTable {
 
 } // namespace util
 
-CF_ASSUME_NONNULL_END
+UTIL_ASSUME_NONNULL_END

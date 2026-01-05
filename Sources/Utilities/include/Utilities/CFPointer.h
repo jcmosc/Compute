@@ -3,7 +3,9 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <utility>
 
-CF_ASSUME_NONNULL_BEGIN
+#include <Utilities/Base.h>
+
+UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
@@ -93,4 +95,4 @@ template <typename T> class cf_ptr {
 
 } // namespace util
 
-CF_ASSUME_NONNULL_END
+UTIL_ASSUME_NONNULL_END

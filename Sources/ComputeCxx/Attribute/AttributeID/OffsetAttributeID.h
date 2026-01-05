@@ -1,11 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <stdint.h>
+#include "ComputeCxx/AGBase.h"
 
 #include "AttributeID.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -25,4 +24,4 @@ class OffsetAttributeID {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

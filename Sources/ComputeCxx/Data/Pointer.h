@@ -1,14 +1,14 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <cassert>
-#include <stdint.h>
 #include <type_traits>
+
+#include "ComputeCxx/AGBase.h"
 
 #include "Constants.h"
 #include "Table.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
@@ -94,4 +94,4 @@ template <typename T> class hash<AG::data::ptr<T>> {
 
 } // namespace std
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

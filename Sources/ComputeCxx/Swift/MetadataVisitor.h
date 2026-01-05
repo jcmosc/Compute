@@ -4,12 +4,12 @@
 #include <cassert>
 #include <type_traits>
 
-#include <CoreFoundation/CFBase.h>
 #include <swift/RemoteInspection/Records.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "Metadata.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace swift {
@@ -35,4 +35,4 @@ class metadata_visitor {
 } // namespace swift
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

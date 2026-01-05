@@ -1,14 +1,13 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
 #include "Attribute/AttributeData/Edge/OutputEdge.h"
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeID/RelativeAttributeID.h"
 #include "Attribute/AttributeID/WeakAttributeID.h"
+#include "ComputeCxx/AGBase.h"
 #include "Data/Vector.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -92,4 +91,4 @@ class MutableIndirectNode : public IndirectNode {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

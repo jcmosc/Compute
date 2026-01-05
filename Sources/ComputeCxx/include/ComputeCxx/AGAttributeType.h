@@ -1,16 +1,18 @@
 #pragma once
 
+#include <ComputeCxx/AGBase.h>
+
 #include <ComputeCxx/AGClosure.h>
 #include <ComputeCxx/AGType.h>
 
-CF_ASSUME_NONNULL_BEGIN
-CF_IMPLICIT_BRIDGING_ENABLED
+AG_ASSUME_NONNULL_BEGIN
+AG_IMPLICIT_BRIDGING_ENABLED
 
-CF_EXTERN_C_BEGIN
+AG_EXTERN_C_BEGIN
 
 typedef struct AGAttributeType AGAttributeType;
 
-typedef struct CF_SWIFT_NAME(_AttributeVTable) AGAttributeVTable {
+typedef struct AG_SWIFT_NAME(_AttributeVTable) AGAttributeVTable {
     unsigned long version;
     void (*_Nullable type_destroy)(AGAttributeType *);
     void (*_Nullable self_destroy)(const AGAttributeType *, void *);
@@ -19,7 +21,7 @@ typedef struct CF_SWIFT_NAME(_AttributeVTable) AGAttributeVTable {
     void (*_Nullable update_default)(const AGAttributeType *, void *);
 } AGAttributeVTable;
 
-typedef CF_OPTIONS(uint32_t, AGAttributeTypeFlags) {
+typedef AG_OPTIONS(uint32_t, AGAttributeTypeFlags) {
     AGAttributeTypeFlagsComparisonModeBitwise = 0,
     AGAttributeTypeFlagsComparisonModeIndirect = 1,
     AGAttributeTypeFlagsComparisonModeEquatableUnlessPOD = 2,
@@ -30,9 +32,9 @@ typedef CF_OPTIONS(uint32_t, AGAttributeTypeFlags) {
     AGAttributeTypeFlagsMainThread = 1 << 3,
     AGAttributeTypeFlagsExternal = 1 << 4,
     AGAttributeTypeFlagsAsyncThread = 1 << 5,
-} CF_SWIFT_NAME(_AttributeType.Flags);
+} AG_SWIFT_NAME(_AttributeType.Flags);
 
-typedef struct CF_SWIFT_NAME(_AttributeType) AGAttributeType {
+typedef struct AG_SWIFT_NAME(_AttributeType) AGAttributeType {
     AGTypeID self_id;
     AGTypeID value_id;
     AGClosureStorage update;
@@ -48,7 +50,7 @@ typedef struct CF_SWIFT_NAME(_AttributeType) AGAttributeType {
     } body_conformance;
 } AGAttributeType;
 
-CF_EXTERN_C_END
+AG_EXTERN_C_END
 
-CF_IMPLICIT_BRIDGING_DISABLED
-CF_ASSUME_NONNULL_END
+AG_IMPLICIT_BRIDGING_DISABLED
+AG_ASSUME_NONNULL_END

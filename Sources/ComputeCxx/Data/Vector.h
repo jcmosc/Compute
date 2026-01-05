@@ -1,11 +1,10 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
+#include "ComputeCxx/AGBase.h"
 #include "Pointer.h"
 #include "Zone.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
@@ -205,4 +204,4 @@ template <typename T> void vector<T>::push_back(zone *zone, T &&value) {
 } // namespace data
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

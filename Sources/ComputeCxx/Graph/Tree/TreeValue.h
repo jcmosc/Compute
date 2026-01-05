@@ -1,12 +1,11 @@
 #pragma once
 
-#include <stdint.h>
-
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGTreeValue.h"
 #include "Data/Pointer.h"
 #include "Graph/Graph.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -42,4 +41,4 @@ static_assert(sizeof(Graph::TreeValue) == 0x18);
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

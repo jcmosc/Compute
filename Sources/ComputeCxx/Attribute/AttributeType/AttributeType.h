@@ -1,15 +1,14 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Comparison/LayoutDescriptor.h"
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGAttribute.h"
 #include "ComputeCxx/AGAttributeType.h"
 #include "ComputeCxx/AGComparison.h"
 #include "Swift/Metadata.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -113,4 +112,4 @@ class AttributeType {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

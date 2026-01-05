@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ComputeCxx/AGSwiftSupport.h"
+#include "ComputeCxx/AGBase.h"
 
 extern "C" const ::swift::Metadata *_Nullable swift_getTypeByMangledNameInContext(
     const char *_Nullable typeNameStart, size_t typeNameLength, const void *_Nullable context,

@@ -1,11 +1,11 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
+#include "ComputeCxx/AGBase.h"
 
 #include "Graph.h"
 #include "Private/CFRuntime.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 struct AGGraphStorage;
 
@@ -70,4 +70,4 @@ class Graph::Context {
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

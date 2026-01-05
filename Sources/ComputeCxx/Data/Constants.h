@@ -1,9 +1,8 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-#include <stdint.h>
+#include "ComputeCxx/AGBase.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 namespace data {
@@ -14,4 +13,4 @@ constexpr uint32_t page_alignment_mask = page_size - 1;
 } // namespace data
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

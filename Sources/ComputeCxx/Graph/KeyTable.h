@@ -1,12 +1,11 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
-
 #include <Utilities/HashTable.h>
 
+#include "ComputeCxx/AGBase.h"
 #include "Graph.h"
 
-CF_ASSUME_NONNULL_BEGIN
+AG_ASSUME_NONNULL_BEGIN
 
 namespace AG {
 
@@ -28,4 +27,4 @@ public:
 
 } // namespace AG
 
-CF_ASSUME_NONNULL_END
+AG_ASSUME_NONNULL_END

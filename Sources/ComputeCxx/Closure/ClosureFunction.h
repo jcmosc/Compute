@@ -1,9 +1,8 @@
 #pragma once
 
-#include <CoreFoundation/CFBase.h>
 #include <swift/Runtime/HeapObject.h>
 
-#include "ComputeCxx/AGSwiftSupport.h"
+#include "ComputeCxx/AGBase.h"
 
 namespace AG {
 

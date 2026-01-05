@@ -50,8 +50,6 @@
 #include "CFNumber.h"
 #include "CFString.h"
 
-#endif
-
 #if TARGET_OS_OSX || TARGET_OS_IPHONE
 #endif
 

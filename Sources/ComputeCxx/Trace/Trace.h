@@ -2,7 +2,11 @@
 
 #include "ComputeCxx/AGBase.h"
 
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFData.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFData.h>
+#endif
 
 #include "ComputeCxx/AGGraph.h"
 #include "ComputeCxx/AGUniqueID.h"

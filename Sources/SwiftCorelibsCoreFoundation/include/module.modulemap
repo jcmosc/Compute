@@ -1,0 +1,3 @@
+module SwiftCorelibsCoreFoundation {
+    header "SwiftCorelibsCoreFoundation/CoreFoundation.h"
+}

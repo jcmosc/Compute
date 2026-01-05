@@ -1,6 +1,10 @@
 #include "Metadata.h"
 
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 #include <swift/Runtime/Casting.h>
 #include <swift/Runtime/ExistentialContainer.h>
 #include <swift/Runtime/HeapObject.h>

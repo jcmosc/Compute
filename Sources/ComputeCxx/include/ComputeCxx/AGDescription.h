@@ -1,7 +1,12 @@
 #pragma once
 
 #include <ComputeCxx/AGBase.h>
+
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 
 #include <ComputeCxx/AGGraph.h>
 

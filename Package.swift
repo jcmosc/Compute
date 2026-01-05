@@ -25,8 +25,14 @@ let package = Package(
             name: "Platform"
         ),
         .target(
+            name: "SwiftCorelibsCoreFoundation"
+        ),
+        .target(
             name: "Utilities",
-            dependencies: ["Platform"]
+            dependencies: [
+                "Platform",
+                .target(name: "SwiftCorelibsCoreFoundation", condition: .when(platforms: [.linux])),
+            ]
         ),
         .testTarget(
             name: "UtilitiesTests",
@@ -74,10 +80,12 @@ let package = Package(
             dependencies: [
                 "Platform",
                 "Utilities",
-                "ComputeCxxSwiftSupport"
+                "ComputeCxxSwiftSupport",
+                .target(name: "SwiftCorelibsCoreFoundation", condition: .when(platforms: [.linux])),
             ],
             cxxSettings: [
                 .headerSearchPath(""),
+                .headerSearchPath("internalInclude"),
                 .unsafeFlags([
                     "-Wno-elaborated-enum-base",
                     "-static",

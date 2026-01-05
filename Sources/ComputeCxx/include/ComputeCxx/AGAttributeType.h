@@ -2,6 +2,12 @@
 
 #include <ComputeCxx/AGBase.h>
 
+#if TARGET_OS_MAC
+#include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
+
 #include <ComputeCxx/AGClosure.h>
 #include <ComputeCxx/AGType.h>
 
@@ -16,8 +22,13 @@ typedef struct AG_SWIFT_NAME(_AttributeVTable) AGAttributeVTable {
     unsigned long version;
     void (*_Nullable type_destroy)(AGAttributeType *);
     void (*_Nullable self_destroy)(const AGAttributeType *, void *);
+#if TARGET_OS_MAC
     CFStringRef _Nullable (*_Nullable self_description)(const AGAttributeType *, const void *);
     CFStringRef _Nullable (*_Nullable value_description)(const AGAttributeType *, const void *);
+#else
+    CFStringRef _Nullable (*_Nullable copy_self_description)(const AGAttributeType *, const void *);
+    CFStringRef _Nullable (*_Nullable copy_value_description)(const AGAttributeType *, const void *);
+#endif
     void (*_Nullable update_default)(const AGAttributeType *, void *);
 } AGAttributeVTable;
 

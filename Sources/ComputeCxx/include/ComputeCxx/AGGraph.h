@@ -2,9 +2,15 @@
 
 #include <ComputeCxx/AGBase.h>
 
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFArray.h>
 #include <CoreFoundation/CFData.h>
 #include <CoreFoundation/CFDictionary.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFArray.h>
+#include <SwiftCorelibsCoreFoundation/CFData.h>
+#include <SwiftCorelibsCoreFoundation/CFDictionary.h>
+#endif
 
 #include <ComputeCxx/AGAttribute.h>
 #include <ComputeCxx/AGAttributeInfo.h>

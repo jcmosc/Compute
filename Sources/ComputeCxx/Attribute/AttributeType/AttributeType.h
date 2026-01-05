@@ -95,6 +95,7 @@ class AttributeType {
         body_metadata().vw_destroy(static_cast<swift::opaque_value *>(body));
     }
 
+#if TARGET_OS_MAC
     CFStringRef _Nullable self_description(void *body) const {
         if (auto self_description = vtable().self_description) {
             return self_description(reinterpret_cast<const AGAttributeType *>(this), body);
@@ -108,6 +109,21 @@ class AttributeType {
         }
         return nullptr;
     }
+#else
+    CFStringRef _Nullable copy_self_description(void *body) const {
+        if (auto copy_self_description = vtable().copy_self_description) {
+            return copy_self_description(reinterpret_cast<const AGAttributeType *>(this), body);
+        }
+        return nullptr;
+    }
+
+    CFStringRef _Nullable copy_value_description(void *value) const {
+        if (auto copy_value_description = vtable().copy_value_description) {
+            return copy_value_description(reinterpret_cast<const AGAttributeType *>(this), value);
+        }
+        return nullptr;
+    }
+#endif
 };
 
 } // namespace AG

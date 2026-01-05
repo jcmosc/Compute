@@ -2,7 +2,11 @@
 
 #include <ComputeCxx/AGBase.h>
 
+#if TARGET_OS_MAC
 #include <CoreFoundation/CFString.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CFString.h>
+#endif
 
 AG_ASSUME_NONNULL_BEGIN
 AG_IMPLICIT_BRIDGING_ENABLED
@@ -33,9 +37,15 @@ typedef AG_CLOSED_ENUM(uint32_t, AGTypeKind) {
     AGTypeKindMetatype,
 } AG_SWIFT_NAME(Metadata.Kind);
 
+#if TARGET_OS_MAC
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 CFStringRef AGTypeDescription(AGTypeID typeID);
+#else
+AG_EXPORT
+AG_REFINED_FOR_SWIFT
+CFStringRef AGTypeCopyDescription(AGTypeID typeID);
+#endif
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

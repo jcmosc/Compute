@@ -2,6 +2,12 @@
 
 #include <utility>
 
+#if __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#else
+#include <SwiftCorelibsCoreFoundation/CoreFoundation.h>
+#endif
+
 #include <Utilities/Base.h>
 
 UTIL_ASSUME_NONNULL_BEGIN

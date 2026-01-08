@@ -5,7 +5,7 @@
 #if __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #else
-#include <SwiftCorelibsCoreFoundation/CoreFoundation.h>
+#include <SwiftCorelibsCoreFoundation/CFBase.h>
 #endif
 
 #include <Utilities/Base.h>

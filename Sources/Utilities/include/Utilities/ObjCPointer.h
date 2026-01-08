@@ -1,5 +1,7 @@
 #pragma once
 
+#ifdef __OBJC__
+
 #include <objc/runtime.h>
 
 #include <Utilities/Base.h>
@@ -101,3 +103,5 @@ template <typename T> class objc_ptr {
 } // namespace util
 
 UTIL_ASSUME_NONNULL_END
+
+#endif

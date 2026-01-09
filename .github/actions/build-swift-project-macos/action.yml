@@ -87,7 +87,6 @@ runs:
           --bootstrapping=hosttools \
           --skip-build \
           --skip-early-swift-driver \
-          --skip-build-cmark \
           --skip-build-llvm \
           --sccache
       shell: bash
@@ -97,7 +96,7 @@ runs:
     - name: Create symbolic links to build directories
       run: |
         mkdir -p build/Default
-        ln -s ../Ninja-ReleaseAssert/swift-macosx-arm64 build/Default/swift
-        ln -s ../Ninja-ReleaseAssert/llvm-macosx-arm64 build/Default/llvm
+        ln -s ../Ninja-Release/swift-macosx-arm64 build/Default/swift
+        ln -s ../Ninja-Release/llvm-macosx-arm64 build/Default/llvm
       shell: bash
       working-directory: ./swift-project

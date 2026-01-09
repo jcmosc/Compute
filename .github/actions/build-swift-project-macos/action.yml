@@ -21,7 +21,6 @@ runs:
           --skip-history \
           --skip-repository brotli \
           --skip-repository cmake \
-          --skip-repository cmark \
           --skip-repository curl \
           --skip-repository icu \
           --skip-repository indexstore-db \
@@ -46,7 +45,6 @@ runs:
           --skip-repository swift-docc \
           --skip-repository swift-docc-render-artifact \
           --skip-repository swift-docc-symbolkit \
-          --skip-repository swift-driver \
           --skip-repository swift-experimental-string-processing \
           --skip-repository swift-format \
           --skip-repository swift-foundation \
@@ -88,9 +86,6 @@ runs:
           --release --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
           --skip-build \
-          --skip-early-swift-driver \
-          --skip-build-cmark \
-          --skip-test-swift \
           --sccache
         ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64 include/llvm/all
         ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 include/swift/all

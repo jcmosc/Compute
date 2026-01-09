@@ -32,7 +32,10 @@ runs:
           --swift-darwin-supported-archs "$(uname -m)" \
           --release --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
+          --skip-build \
           --sccache
+        ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64 include/llvm/all
+        ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 include/swift/all
       shell: bash
       working-directory: ./swift-project/swift
       env:

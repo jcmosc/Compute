@@ -88,6 +88,7 @@ runs:
           --release --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
           --skip-build \
+          --skip-early-swift-driver \
           --sccache
         ninja -C ../build/Ninja-ReleaseAssert/llvm-macosx-arm64 include/llvm/all
         ninja -C ../build/Ninja-ReleaseAssert/swift-macosx-arm64 include/swift/all

@@ -86,6 +86,9 @@ let package = Package(
                 "ComputeCxxSwiftSupport",
                 .target(name: "SwiftCorelibsCoreFoundation", condition: .when(platforms: [.linux])),
             ],
+            cSettings: [
+                .unsafeFlags(["-Wno-elaborated-enum-base"])
+            ],
             cxxSettings: [
                 .headerSearchPath(""),
                 .headerSearchPath("internalInclude"),

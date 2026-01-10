@@ -16,8 +16,8 @@ jobs:
     steps:
       - id: swift-version
         run: |
-          MAJOR=$(echo "${{ matrix.swift-version }}" | cut -d. -f1)
-          MINOR=$(echo "${{ matrix.swift-version }}" | cut -d. -f2)
+          MAJOR=$(echo "${{ matrix.swift }}" | cut -d. -f1)
+          MINOR=$(echo "${{ matrix.swift }}" | cut -d. -f2)
           echo "major=$MAJOR" >> $GITHUB_OUTPUT
           echo "minor=$MINOR" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
@@ -36,12 +36,12 @@ jobs:
       matrix:
         swift: ["6.2"]
     container:
-      image: swift:${{ matrix.swift_version }}-jammy
+      image: swift:${{ matrix.swift }}-jammy
     steps:
       - id: swift-version
         run: |
-          MAJOR=$(echo "${{ matrix.swift-version }}" | cut -d. -f1)
-          MINOR=$(echo "${{ matrix.swift-version }}" | cut -d. -f2)
+          MAJOR=$(echo "${{ matrix.swift }}" | cut -d. -f1)
+          MINOR=$(echo "${{ matrix.swift }}" | cut -d. -f2)
           echo "major=$MAJOR" >> $GITHUB_OUTPUT
           echo "minor=$MINOR" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4

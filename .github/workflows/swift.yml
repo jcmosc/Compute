@@ -23,7 +23,7 @@ jobs:
       - id: swift-version
         uses: booxmedialtd/ws-action-parse-semver@v1
         with:
-          input_string: ${{ matrix.swift }}
+          input_string: ${{ matrix.swift }}.0
       - uses: swift-actions/setup-swift@v3
         with:
           swift-version: ${{ matrix.swift }}

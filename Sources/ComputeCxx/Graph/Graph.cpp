@@ -5,6 +5,7 @@
 #else
 #include <SwiftCorelibsCoreFoundation/CFString.h>
 #endif
+#include <deque>
 #include <ranges>
 #include <set>
 

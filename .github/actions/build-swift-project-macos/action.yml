@@ -86,9 +86,6 @@ runs:
           --release --no-assertions --swift-disable-dead-stripping \
           --bootstrapping=hosttools \
           --skip-build \
-          --skip-early-swift-driver \
-          --skip-build-llvm \
-          --build-embedded-stdlib=0 \
           --sccache
       shell: bash
       working-directory: ./swift-project/swift

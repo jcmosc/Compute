@@ -40,8 +40,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libssl-dev
+          apt-get update
+          apt-get install -y libssl-dev
       - name: Swift version
         id: swift-version
         run: |

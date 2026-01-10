@@ -17,7 +17,7 @@ struct MetadataTests {
             (TestTuple.self, "(String, Int)"),
             (TestFunction.self, "(String) -> Int"),
             (TestExistential.self, "Hashable"),
-            (TestConstrainedExistential.self, "<<< invalid type >>>"),
+            (TestConstrainedExistential.self, "any Sequence<Self.Sequence.Element == String>"),
             (TestComposedExistential.self, "CustomStringConvertible & Hashable"),
             (TestMetatype.self, "TestClass.Type"),
             (TestObjCClass.self, "NSDate"),

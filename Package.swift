@@ -33,33 +33,6 @@ if let useLocalDepsEnv = Context.environment["COMPUTE_USE_LOCAL_DEPS"], !useLoca
         ]
 }
 
-extension Target {
-    fileprivate static func swiftRuntimeTarget(
-        name: String,
-        dependencies: [Dependency] = [],
-        path: String? = nil,
-        sources: [String]? = nil,
-        cxxSettings: [CXXSetting] = []
-    ) -> Target {
-        .target(
-            name: name,
-            dependencies: dependencies,
-            path: path ?? "Sources/\(name)",
-            sources: sources,
-            cxxSettings: [
-                .unsafeFlags([
-                    "-static",
-                    "-DCOMPILED_WITH_SWIFT",
-                    "-DPURE_BRIDGING_MODE",
-                    "-isystem", "\(swiftCheckoutPath)/include",
-                    "-isystem", "\(swiftCheckoutPath)/stdlib/include",
-                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims"
-                ])
-            ] + cxxSettings
-        )
-    }
-}
-
 let package = Package(
     name: "Compute",
     platforms: [.macOS(.v26)],
@@ -139,10 +112,21 @@ let package = Package(
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
-        .swiftRuntimeTarget(
+        .target(
             name: "ComputeCxx",
             dependencies: ["Utilities", "ComputeCxxSwiftSupport"],
-            cxxSettings: [.headerSearchPath(""), .unsafeFlags(["-Wno-elaborated-enum-base"])]
+            cxxSettings: [
+                .headerSearchPath(""),
+                .unsafeFlags([
+                    "-Wno-elaborated-enum-base",
+                    "-static",
+                    "-DCOMPILED_WITH_SWIFT",
+                    "-DPURE_BRIDGING_MODE",
+                    "-isystem", "\(swiftCheckoutPath)/include",
+                    "-isystem", "\(swiftCheckoutPath)/stdlib/include",
+                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims"
+                ])
+            ]
         ),
         .target(name: "ComputeCxxSwiftSupport"),
         .target(name: "_ComputeTestSupport"),

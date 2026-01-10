@@ -1,5 +1,6 @@
 #include "Zone.h"
 
+#include <cstring> 
 #include <stdio.h>
 
 #include <platform/malloc.h>

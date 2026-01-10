@@ -1,6 +1,7 @@
 #include "LayoutDescriptor.h"
 
 #include <variant>
+#include <stdio.h>
 
 #include <platform/lock.h>
 #include <platform/once.h>

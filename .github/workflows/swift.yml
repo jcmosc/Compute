@@ -56,4 +56,4 @@ jobs:
           swift-version-major: ${{ steps.swift-version.outputs.major }}
           swift-version-minor: ${{ steps.swift-version.outputs.minor }}
       - name: Build
-        run: swift build
+        run: swift build -Xcc -Wno-elaborated-enum-base

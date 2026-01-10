@@ -10,7 +10,7 @@ class RelativeAttributeID {
     uint16_t _value;
 
   public:
-    explicit constexpr RelativeAttributeID(nullptr_t = nullptr) : _value(0) {};
+    explicit constexpr RelativeAttributeID(std::nullptr_t = nullptr) : _value(0) {};
     explicit constexpr RelativeAttributeID(uint16_t value) : _value(value) {};
     constexpr RelativeAttributeID(AttributeID attribute)
         : _value(((attribute & ~AttributeID::KindMask) - attribute.page_ptr().offset()) | attribute.kind()) {};

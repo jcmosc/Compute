@@ -26,8 +26,8 @@ template <typename T> class tagged_ptr {
     T *_Nullable get() { return reinterpret_cast<T *>(_value & ~mask); };
     const T *_Nullable get() const { return reinterpret_cast<const T *>(_value & ~mask); };
 
-    bool operator==(nullptr_t) const noexcept { return _value == 0; };
-    bool operator!=(nullptr_t) const noexcept { return _value != 0; };
+    bool operator==(std::nullptr_t) const noexcept { return _value == 0; };
+    bool operator!=(std::nullptr_t) const noexcept { return _value != 0; };
 };
 
 } // namespace util

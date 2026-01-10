@@ -28,7 +28,7 @@ template <typename T> class ptr {
 
   public:
     constexpr ptr(offset_type offset = 0) : _offset(offset) {};
-    constexpr ptr(nullptr_t): _offset(0) {};
+    constexpr ptr(std::nullptr_t): _offset(0) {};
 
     void assert_valid() const {
         if (_offset >= table::shared().ptr_max_offset()) {
@@ -62,8 +62,8 @@ template <typename T> class ptr {
 
     bool operator==(const ptr<T> &other) const noexcept { return _offset == other._offset; };
     bool operator!=(const ptr<T> &other) const noexcept { return _offset != other._offset; };
-    bool operator==(nullptr_t) const noexcept { return _offset == 0; };
-    bool operator!=(nullptr_t) const noexcept { return _offset != 0; };
+    bool operator==(std::nullptr_t) const noexcept { return _offset == 0; };
+    bool operator!=(std::nullptr_t) const noexcept { return _offset != 0; };
 
     bool operator<(offset_type offset) const noexcept { return _offset < offset; };
     bool operator<=(offset_type offset) const noexcept { return _offset <= offset; };

@@ -16,7 +16,7 @@ class metadata;
 
 class Graph::TreeElementID : public data::ptr<Graph::TreeElement> {
   public:
-    explicit constexpr TreeElementID(nullptr_t = nullptr) : ptr(nullptr) {}
+    explicit constexpr TreeElementID(std::nullptr_t = nullptr) : ptr(nullptr) {}
     explicit TreeElementID(data::ptr<Graph::TreeElement> tree_element)
         : ptr(tree_element.offset()) {};
 

@@ -9,35 +9,12 @@ var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/groue/Semaphore", from: "0.1.0"),
 ]
 
-if let useLocalDepsEnv = Context.environment["COMPUTE_USE_LOCAL_DEPS"], !useLocalDepsEnv.isEmpty {
-    let root: String
-    if useLocalDepsEnv == "1" {
-        root = ".."
-    } else {
-        root = useLocalDepsEnv
-    }
-    dependencies +=
-        [
-            .package(
-                name: "DarwinPrivateFrameworks",
-                path: "\(root)/DarwinPrivateFrameworks"
-            )
-        ]
-} else {
-    dependencies +=
-        [
-            .package(
-                url: "https://github.com/OpenSwiftUIProject/DarwinPrivateFrameworks",
-                from: "0.0.4"
-            )
-        ]
-}
-
 let package = Package(
     name: "Compute",
     platforms: [.macOS(.v26)],
     products: [
-        .library(name: "Compute", targets: ["Compute"])
+        .library(name: "Compute", targets: ["Compute"]),
+        .library(name: "_ComputeTestSupport", targets: ["_ComputeTestSupport"])
     ],
     traits: [
         .trait(name: "CompatibilityModeAttributeGraphV6")
@@ -79,33 +56,9 @@ let package = Package(
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
         .testTarget(
-            name: "ComputeCompatibilityTests",
-            dependencies: [
-                "_ComputeTestSupport",
-                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks"),
-                .product(name: "Algorithms", package: "swift-algorithms"),
-                .product(name: "Semaphore", package: "Semaphore"),
-            ],
-            swiftSettings: [
-                .interoperabilityMode(.Cxx),
-                .enableExperimentalFeature("Extern"),
-            ],
-            linkerSettings: [.linkedLibrary("swiftDemangle")]
-        ),
-        .testTarget(
             name: "ComputeLayoutDescriptorTests",
             dependencies: [
                 "Compute"
-            ],
-            swiftSettings: [
-                .enableExperimentalFeature("Extern")
-            ],
-            linkerSettings: [.linkedLibrary("swiftDemangle")]
-        ),
-        .testTarget(
-            name: "ComputeLayoutDescriptorCompatibilityTests",
-            dependencies: [
-                .product(name: "AttributeGraph", package: "DarwinPrivateFrameworks")
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")

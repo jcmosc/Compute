@@ -51,11 +51,9 @@ extension Target {
                     "-static",
                     "-DCOMPILED_WITH_SWIFT",
                     "-DPURE_BRIDGING_MODE",
-                    "-UIBOutlet", "-UIBAction", "-UIBInspectable",
                     "-isystem", "\(swiftCheckoutPath)/include",
                     "-isystem", "\(swiftCheckoutPath)/stdlib/include",
-                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims",
-                    "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING",
+                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims"
                 ])
             ] + cxxSettings
         )

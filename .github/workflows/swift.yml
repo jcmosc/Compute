@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./Compute/.github/actions/checkout-swift-headers
+      - uses: ./.github/actions/checkout-swift-headers
         with:
           path: Checkouts/swift
           swift-version-major: 6

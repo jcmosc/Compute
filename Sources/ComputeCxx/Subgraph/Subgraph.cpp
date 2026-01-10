@@ -1,5 +1,6 @@
 #include "Subgraph.h"
 
+#include <cstring>
 #include <ranges>
 #include <stack>
 

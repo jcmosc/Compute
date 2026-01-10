@@ -1,4 +1,5 @@
 #include <platform/log.h>
+#include <stdio.h>
 
 #include "Graph/Graph.h"
 

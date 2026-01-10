@@ -15,17 +15,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: ./Compute/.github/actions/checkout-swift-headers
         with:
-          path: Compute
-      - uses: ./Compute/.github/actions/build-swift-project-macos
-        with:
-          checkout-scheme: release/6.2
+          path: Checkouts/swift
+          swift-version-major: 6
+          swift-version-minor: 2
       - name: Build
         run: swift build
-        working-directory: ./Compute
       - name: Test
         run: |
           swift test --filter UtilitiesTests
           swift test --filter ComputeLayoutDescriptorTests
           swift test --filter ComputeTests
-        working-directory: ./Compute

@@ -11,14 +11,27 @@ on:
 
 jobs:
   build:
-    runs-on: macos-26
+    name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-26, ubuntu-latest]
+        swift: ["6.2"]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
+      - id: swift-version
+        uses: booxmedialtd/ws-action-parse-semver@v1
+        with:
+          input_string: ${{ matrix.swift }}
+      - uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: ${{ matrix.swift }}
       - uses: actions/checkout@v4
       - uses: ./.github/actions/checkout-swift-headers
         with:
           path: Checkouts/swift
-          swift-version-major: 6
-          swift-version-minor: 2
+          swift-version-major: ${{ steps.swift-version.outputs.major }}
+          swift-version-minor: ${{ steps.swift-version.outputs.minor }}
       - name: Build
         run: swift build

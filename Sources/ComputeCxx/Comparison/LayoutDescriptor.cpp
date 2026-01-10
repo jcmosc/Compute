@@ -1,5 +1,6 @@
 #include "LayoutDescriptor.h"
 
+#include <cstring> 
 #include <variant>
 #include <stdio.h>
 

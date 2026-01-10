@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring> 
+
 namespace AG {
 namespace LayoutDescriptor {
 

@@ -4,3 +4,6 @@
 # Swift
 .build
 .swiftpm
+
+# Dependencies
+Checkouts

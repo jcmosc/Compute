@@ -2,7 +2,7 @@
 
 import PackageDescription
 
-let swiftProjectPath = "\(Context.packageDirectory)/../swift-project"
+let swiftCheckoutPath = "\(Context.packageDirectory)/Checkouts/swift"
 
 var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
@@ -51,16 +51,9 @@ extension Target {
                     "-static",
                     "-DCOMPILED_WITH_SWIFT",
                     "-DPURE_BRIDGING_MODE",
-                    "-UIBOutlet", "-UIBAction", "-UIBInspectable",
-                    "-isystem", "\(swiftProjectPath)/swift/include",
-                    "-isystem", "\(swiftProjectPath)/swift/stdlib/public/SwiftShims",
-                    "-isystem", "\(swiftProjectPath)/swift/stdlib/public/runtime",
-                    "-isystem", "\(swiftProjectPath)/llvm-project/llvm/include",
-                    "-isystem", "\(swiftProjectPath)/llvm-project/clang/include",
-                    "-isystem", "\(swiftProjectPath)/build/Default/swift/include",
-                    "-isystem", "\(swiftProjectPath)/build/Default/llvm/include",
-                    "-isystem", "\(swiftProjectPath)/build/Default/llvm/tools/clang/include",
-                    "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING",
+                    "-isystem", "\(swiftCheckoutPath)/include",
+                    "-isystem", "\(swiftCheckoutPath)/stdlib/include",
+                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims"
                 ])
             ] + cxxSettings
         )

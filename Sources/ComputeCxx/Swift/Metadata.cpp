@@ -2,7 +2,6 @@
 
 #include <CommonCrypto/CommonDigest.h>
 #include <CoreFoundation/CFString.h>
-#include <SwiftEquatableSupport.h>
 #include <swift/Runtime/Casting.h>
 #include <swift/Runtime/ExistentialContainer.h>
 #include <swift/Runtime/HeapObject.h>
@@ -273,12 +272,11 @@ const equatable_witness_table *metadata::equatable() const {
             if (!nsobject_metadata) {
                 return nullptr;
             }
-            auto witness_table =
-                swift_conformsToProtocol(nsobject_metadata, &::swift::equatable_support::EquatableProtocolDescriptor);
+            auto witness_table = swift_conformsToProtocol(nsobject_metadata, EquatableProtocolDescriptor);
             return reinterpret_cast<const equatable_witness_table *>(witness_table);
         }();
         auto conformance = reinterpret_cast<const equatable_witness_table *>(
-            swift_conformsToProtocol(this, &::swift::equatable_support::EquatableProtocolDescriptor));
+            swift_conformsToProtocol(this, &EquatableProtocolDescriptor));
         if (conformance == nsobject_conformance) {
             return nullptr;
         }
@@ -288,7 +286,7 @@ const equatable_witness_table *metadata::equatable() const {
     case ::swift::MetadataKind::Enum:
     case ::swift::MetadataKind::Optional:
     case ::swift::MetadataKind::Tuple: {
-        auto witness_table = swift_conformsToProtocol(this, &::swift::equatable_support::EquatableProtocolDescriptor);
+        auto witness_table = swift_conformsToProtocol(this, &EquatableProtocolDescriptor);
         return reinterpret_cast<const equatable_witness_table *>(witness_table);
     }
     default:

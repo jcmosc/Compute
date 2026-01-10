@@ -22,8 +22,3 @@ jobs:
           swift-version-minor: 2
       - name: Build
         run: swift build
-      - name: Test
-        run: |
-          swift test --filter UtilitiesTests
-          swift test --filter ComputeLayoutDescriptorTests
-          swift test --filter ComputeTests

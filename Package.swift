@@ -22,7 +22,10 @@ let package = Package(
     dependencies: dependencies,
     targets: [
         .target(
-            name: "Platform"
+            name: "Platform",
+            cSettings: [
+                .define("_GNU_SOURCE", .when(platforms: [.linux]))
+            ]
         ),
         .target(
             name: "SwiftCorelibsCoreFoundation"
@@ -86,6 +89,7 @@ let package = Package(
             cxxSettings: [
                 .headerSearchPath(""),
                 .headerSearchPath("internalInclude"),
+                .define("_GNU_SOURCE", .when(platforms: [.linux])),
                 .unsafeFlags([
                     "-Wno-elaborated-enum-base",
                     "-static",

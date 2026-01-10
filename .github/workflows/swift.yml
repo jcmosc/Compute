@@ -38,7 +38,8 @@ jobs:
     container:
       image: swift:${{ matrix.swift }}-jammy
     steps:
-      - id: swift-version
+      - name: Swift version
+        id: swift-version
         run: |
           MAJOR=$(echo "${{ matrix.swift }}" | cut -d. -f1)
           MINOR=$(echo "${{ matrix.swift }}" | cut -d. -f2)

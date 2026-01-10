@@ -1,18 +1,24 @@
 #pragma once
 
 #include <CoreFoundation/CFBase.h>
-#include <SwiftEquatableSupport.h>
+#include <swift/Demangling/ManglingMacros.h>
 #include <swift/Runtime/Metadata.h>
 
 #include "Comparison/LayoutDescriptor.h"
 
 CF_ASSUME_NONNULL_BEGIN
 
+CF_EXPORT
+const void *PROTOCOL_DESCR_SYM(SQ);
+
 namespace AG {
 namespace swift {
 
+static constexpr auto &EquatableProtocolDescriptor = PROTOCOL_DESCR_SYM(SQ);
+
+struct equatable_witness_table;
+
 using opaque_value = ::swift::OpaqueValue;
-using equatable_witness_table = ::swift::equatable_support::EquatableWitnessTable;
 
 class metadata_visitor;
 class context_descriptor;

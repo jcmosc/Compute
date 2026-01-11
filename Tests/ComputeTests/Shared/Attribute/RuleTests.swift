@@ -59,7 +59,7 @@ struct RuleTests {
             let value = attribute2.value
             #expect(value == "derived: rule 1 computed value")
         }
-        
+
         @Test
         func initialValue() {
             let attribute1 = Attribute(TestRule1(), initialValue: "rule 1 initial value")
@@ -67,7 +67,7 @@ struct RuleTests {
             let value = attribute2.value
             #expect(value == "derived: rule 1 initial value")
         }
-        
+
         @Test
         func invalidateValue() {
             let attribute1 = Attribute(TestRule1(), initialValue: "rule 1 initial value")
@@ -77,7 +77,6 @@ struct RuleTests {
             #expect(value == "derived: rule 1 computed value")
         }
 
-        
     }
 
 }

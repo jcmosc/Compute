@@ -100,7 +100,10 @@ extension UnsafeTuple {
         return value.assumingMemoryBound(to: expectedType)
     }
 
-    public func address<T>(of index: Int, as elementType: T.Type)
+    public func address<T>(
+        of index: Int,
+        as elementType: T.Type
+    )
         -> UnsafePointer<T>
     {
         return value.advanced(
@@ -180,7 +183,10 @@ extension UnsafeMutableTuple {
         return value.assumingMemoryBound(to: expectedType)
     }
 
-    public func address<T>(of index: Int, as elementType: T.Type)
+    public func address<T>(
+        of index: Int,
+        as elementType: T.Type
+    )
         -> UnsafeMutablePointer<T>
     {
         return value.advanced(

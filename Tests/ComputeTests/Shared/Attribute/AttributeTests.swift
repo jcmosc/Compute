@@ -35,9 +35,9 @@ struct AttributeTests {
 
                 let attributeType = attribute.identifier.info.type.pointee
                 #if CompatibilityModeAttributeGraphV6
-                    #expect(attributeType.self_id == Metadata(External<Int>.self))
+                #expect(attributeType.self_id == Metadata(External<Int>.self))
                 #else
-                    #expect(attributeType.self_id == Metadata(_External.self))
+                #expect(attributeType.self_id == Metadata(_External.self))
                 #endif
                 #expect(attributeType.value_id == Metadata(Int.self))
 
@@ -46,15 +46,15 @@ struct AttributeTests {
                 #expect(attributeType.value_layout == expectedlayout)
 
                 #if CompatibilityModeAttributeGraphV6
-                    let attributeBody = unsafeBitCast(
-                        External<Int>.self as any _AttributeBody.Type,
-                        to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-                    )
+                let attributeBody = unsafeBitCast(
+                    External<Int>.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
                 #else
-                    let attributeBody = unsafeBitCast(
-                        _External.self as any _AttributeBody.Type,
-                        to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-                    )
+                let attributeBody = unsafeBitCast(
+                    _External.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
                 #endif
                 #expect(attributeType.body_conformance.type_id == attributeBody.type)
                 #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)
@@ -81,9 +81,9 @@ struct AttributeTests {
 
                 let attributeType = attribute.identifier.info.type.pointee
                 #if CompatibilityModeAttributeGraphV6
-                    #expect(attributeType.self_id == Metadata(External<Int>.self))
+                #expect(attributeType.self_id == Metadata(External<Int>.self))
                 #else
-                    #expect(attributeType.self_id == Metadata(_External.self))
+                #expect(attributeType.self_id == Metadata(_External.self))
                 #endif
                 #expect(attributeType.value_id == Metadata(Int.self))
 
@@ -92,15 +92,15 @@ struct AttributeTests {
                 #expect(attributeType.value_layout == expectedlayout)
 
                 #if CompatibilityModeAttributeGraphV6
-                    let attributeBody = unsafeBitCast(
-                        External<Int>.self as any _AttributeBody.Type,
-                        to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-                    )
+                let attributeBody = unsafeBitCast(
+                    External<Int>.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
                 #else
-                    let attributeBody = unsafeBitCast(
-                        _External.self as any _AttributeBody.Type,
-                        to: (type: Metadata, witnessTable: UnsafeRawPointer).self
-                    )
+                let attributeBody = unsafeBitCast(
+                    _External.self as any _AttributeBody.Type,
+                    to: (type: Metadata, witnessTable: UnsafeRawPointer).self
+                )
                 #endif
                 #expect(attributeType.body_conformance.type_id == attributeBody.type)
                 #expect(attributeType.body_conformance.witness_table == attributeBody.witnessTable)

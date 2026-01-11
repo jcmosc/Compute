@@ -1,11 +1,11 @@
 import ComputeCxx
 
 public struct _External {
-    
+
     public init() {}
 
     public static func _update(_: UnsafeMutableRawPointer, attribute: AnyAttribute) {}
-    
+
 }
 
 extension _External: CustomStringConvertible {

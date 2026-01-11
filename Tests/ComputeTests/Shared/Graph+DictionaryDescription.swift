@@ -179,8 +179,11 @@ extension Graph {
         let data = try! JSONSerialization.data(withJSONObject: description, options: [.prettyPrinted, .sortedKeys])
         return try! JSONDecoder().decode(DictionaryDescription.self, from: data)
     }
-    
-    public static func dictionaryDescription(allGraphs: Bool = false, includeValues: Bool = false)
+
+    public static func dictionaryDescription(
+        allGraphs: Bool = false,
+        includeValues: Bool = false
+    )
         -> DictionaryDescription?
     {
         let options =
@@ -198,8 +201,11 @@ extension Graph {
         }
         return try? JSONDecoder().decode(DictionaryDescription.self, from: data)
     }
-    
-    public static func dictionaryDescriptionJSON(allGraphs: Bool = false, includeValues: Bool = false)
+
+    public static func dictionaryDescriptionJSON(
+        allGraphs: Bool = false,
+        includeValues: Bool = false
+    )
         -> Data?
     {
         let options =

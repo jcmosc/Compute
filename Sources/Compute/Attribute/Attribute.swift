@@ -47,9 +47,9 @@ public struct Attribute<Value> {
         ) {
             let bodyType: _AttributeBody.Type
             #if CompatibilityModeAttributeGraphV6
-                bodyType = Body.self
+            bodyType = Body.self
             #else
-                bodyType = flags.contains(.external) ? _External.self : Body.self
+            bodyType = flags.contains(.external) ? _External.self : Body.self
             #endif
             let attributeType =
                 _AttributeType(

@@ -5,7 +5,7 @@ public struct RuleContext<Value> {
     public init(attribute: Attribute<Value>) {
         self.attribute = attribute
     }
-    
+
     @_extern(c, "AGGraphWithUpdate")
     private static func withUpdate(_ attribute: AnyAttribute, body: @escaping () -> Void)
 
@@ -42,7 +42,10 @@ public struct RuleContext<Value> {
         )
     }
 
-    public func valueAndFlags<InputValue>(of input: Attribute<InputValue>, options: AGValueOptions) -> (
+    public func valueAndFlags<InputValue>(
+        of input: Attribute<InputValue>,
+        options: AGValueOptions
+    ) -> (
         value: InputValue, flags: AGChangedValueFlags
     ) {
         let value = __AGGraphGetInputValue(

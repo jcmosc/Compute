@@ -26,7 +26,10 @@ public struct AnyRuleContext {
         }
     }
 
-    public func changedValue<Value>(of input: Attribute<Value>, options: AGValueOptions) -> (
+    public func changedValue<Value>(
+        of input: Attribute<Value>,
+        options: AGValueOptions
+    ) -> (
         value: Value, changed: Bool
     ) {
         let result = __AGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
@@ -36,7 +39,10 @@ public struct AnyRuleContext {
         )
     }
 
-    public func valueAndFlags<Value>(of input: Attribute<Value>, options: AGValueOptions) -> (
+    public func valueAndFlags<Value>(
+        of input: Attribute<Value>,
+        options: AGValueOptions
+    ) -> (
         value: Value, flags: AGChangedValueFlags
     ) {
         let result = __AGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))

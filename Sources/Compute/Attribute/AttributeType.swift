@@ -51,7 +51,7 @@ extension _AttributeType {
         vtable.pointee.self_destroy = { attributeType, body in
             attributeType.pointee.attributeBody._destroySelf(body)
         }
-#if os(macOS)
+        #if os(macOS)
         vtable.pointee.self_description = { attributeType, body in
             let description: String
             if let selfType = attributeType.pointee.self_id.type
@@ -68,7 +68,7 @@ extension _AttributeType {
             let description = String._describing(value, of: valueType)
             return Unmanaged<CFString>.passRetained(description as CFString).autorelease()
         }
-#else
+        #else
         vtable.pointee.copy_self_description = { attributeType, body in
             let description: String
             if let selfType = attributeType.pointee.self_id.type
@@ -85,7 +85,7 @@ extension _AttributeType {
             let description = String._describing(value, of: valueType)
             return Unmanaged<CFString>.passRetained(description.cfString)
         }
-#endif
+        #endif
         vtable.pointee.update_default = { attributeType, body in
             attributeType.pointee.attributeBody._updateDefault(body)
         }

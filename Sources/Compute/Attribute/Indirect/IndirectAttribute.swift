@@ -12,13 +12,13 @@ public struct IndirectAttribute<Value> {
 
     public var source: Attribute<Value> {
         get {
-            return Attribute(identifier:  identifier.source)
+            return Attribute(identifier: identifier.source)
         }
         nonmutating set {
             identifier.source = newValue.identifier
         }
     }
-    
+
     public var attribute: Attribute<Value> {
         return Attribute(identifier: identifier)
     }

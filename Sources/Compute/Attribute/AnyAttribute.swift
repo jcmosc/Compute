@@ -3,7 +3,11 @@ import ComputeCxx
 extension Graph {
 
     @_extern(c, "AGGraphSearch")
-    static func search(attribute: AnyAttribute, options: SearchOptions, predicate: @escaping (AnyAttribute) -> Bool) -> Bool
+    static func search(
+        attribute: AnyAttribute,
+        options: SearchOptions,
+        predicate: @escaping (AnyAttribute) -> Bool
+    ) -> Bool
 
     @_extern(c, "AGGraphMutateAttribute")
     static func mutateAttribute(

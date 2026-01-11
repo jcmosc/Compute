@@ -31,7 +31,10 @@ extension Metadata {
     )
         -> Bool
 
-    public func forEachField(options: Metadata.ApplyOptions, do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool)
+    public func forEachField(
+        options: Metadata.ApplyOptions,
+        do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool
+    )
         -> Bool
     {
         return Metadata.applyFields2(type: self, options: options) { fieldName, fieldOffset, fieldType in
@@ -45,9 +48,9 @@ extension Metadata: @retroactive CustomStringConvertible {
 
     public var description: String {
         #if os(macOS)
-            return __AGTypeDescription(self) as String
+        return __AGTypeDescription(self) as String
         #else
-            return String(__AGTypeCopyDescription(self))
+        return String(__AGTypeCopyDescription(self))
         #endif
     }
 

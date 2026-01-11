@@ -9,7 +9,9 @@ public struct WeakAttribute<Value> {
     }
 
     public init() {
-        base = AnyWeakAttribute(_details: AnyWeakAttribute.__Unnamed_struct__details(identifier: AnyAttribute(rawValue: 0), seed: 0))
+        base = AnyWeakAttribute(
+            _details: AnyWeakAttribute.__Unnamed_struct__details(identifier: AnyAttribute(rawValue: 0), seed: 0)
+        )
     }
 
     public init(_ attribute: Attribute<Value>) {

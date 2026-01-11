@@ -422,29 +422,29 @@ struct SubgraphTests {
         }
 
     }
-    
+
     @Suite
     struct FlagsTests {
-        
+
         @Test
         func intersects() {
             let graph = Graph()
             let subgraph = Subgraph(graph: graph)
-            
+
             let child = Subgraph(graph: graph)
             subgraph.addChild(child)
-            
+
             Subgraph.current = child
-            
+
             let attribute = Attribute(value: 1)
             #expect(subgraph.intersects(flags: Subgraph.Flags(rawValue: 1)) == false)
             #expect(child.intersects(flags: Subgraph.Flags(rawValue: 1)) == false)
-            
+
             attribute.flags = Subgraph.Flags(rawValue: 1)
             #expect(subgraph.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
             #expect(child.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
         }
-        
+
     }
 
 }

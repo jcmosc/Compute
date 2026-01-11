@@ -56,7 +56,7 @@ extension StatefulRule {
     public var attribute: Attribute<Value> {
         return Attribute<Value>(identifier: AnyAttribute.current!)
     }
-    
+
     public var context: RuleContext<Value> {
         return RuleContext<Value>(attribute: attribute)
     }

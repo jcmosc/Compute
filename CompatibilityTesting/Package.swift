@@ -63,6 +63,6 @@ let package = Package(
                 .enableExperimentalFeature("Extern")
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
-        )
+        ),
     ]
 )

@@ -1,7 +1,7 @@
 public protocol ObservedAttribute: _AttributeBody {
 
     mutating func destroy()
-    
+
 }
 
 extension ObservedAttribute {

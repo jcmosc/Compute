@@ -14,7 +14,7 @@ let package = Package(
     platforms: [.macOS(.v26)],
     products: [
         .library(name: "Compute", targets: ["Compute"]),
-        .library(name: "_ComputeTestSupport", targets: ["_ComputeTestSupport"])
+        .library(name: "_ComputeTestSupport", targets: ["_ComputeTestSupport"]),
     ],
     traits: [
         .trait(name: "CompatibilityModeAttributeGraphV6")
@@ -100,8 +100,8 @@ let package = Package(
                     "-DPURE_BRIDGING_MODE",
                     "-isystem", "\(swiftCheckoutPath)/include",
                     "-isystem", "\(swiftCheckoutPath)/stdlib/include",
-                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims"
-                ])
+                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims",
+                ]),
             ]
         ),
         .target(name: "ComputeCxxSwiftSupport"),

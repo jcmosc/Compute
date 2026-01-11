@@ -27,7 +27,11 @@ extension Optional: @retroactive CustomStringConvertible where Wrapped == ValueL
 
 }
 
-func prefetchCompareValues<Value>(of type: Value.Type, options: ComparisonOptions, priority: Int)
+func prefetchCompareValues<Value>(
+    of type: Value.Type,
+    options: ComparisonOptions,
+    priority: Int
+)
     -> ValueLayout?
 {
 
@@ -1071,14 +1075,14 @@ struct PrefetchCompareValuesTests {
                 )
             }
         }
-        
+
         @Test
         func layoutForIndirectEnumCase() async {
             setenv("AG_ASYNC_LAYOUTS", "0", 1)
             setenv("AG_PRINT_LAYOUTS", "1", 1)
-            
+
             protocol NodeProtocol {
-                
+
             }
             struct Node {
                 let field0: NodeProtocol.Type
@@ -1107,7 +1111,7 @@ struct PrefetchCompareValuesTests {
                            (enum #:size 8 #:type Stack<Node>
                              (case 0
                                (read 8))))
-                        
+
                         """
                 )
             }
@@ -1129,7 +1133,7 @@ struct PrefetchCompareValuesTests {
                            (enum #:size 8 #:type Stack<Node>
                              (case 0
                                (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
-                        
+
                         """
                 )
             }
@@ -1151,7 +1155,7 @@ struct PrefetchCompareValuesTests {
                            (enum #:size 8 #:type Stack<Node>
                              (case 0
                                (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
-                        
+
                         """
                 )
             }
@@ -1173,7 +1177,7 @@ struct PrefetchCompareValuesTests {
                            (enum #:size 8 #:type Stack<Node>
                              (case 0
                                (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
-                        
+
                         """
                 )
             }
@@ -1760,11 +1764,11 @@ struct PrefetchCompareValuesTests {
                 #expect(layout3 != nil)
                 #expect(
                     output3 == """
-                    == Any, 32 bytes ==
-                    (layout #:length 10 #:address \(String(describing: layout3))
-                       (existential #:size 32 #:type Any))
-                    
-                    """
+                        == Any, 32 bytes ==
+                        (layout #:length 10 #:address \(String(describing: layout3))
+                           (existential #:size 32 #:type Any))
+
+                        """
                 )
             }
         }

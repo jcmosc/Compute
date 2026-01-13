@@ -5,5 +5,8 @@
 .build
 .swiftpm
 
+# Xcode
+xcuserdata
+
 # Dependencies
 Checkouts

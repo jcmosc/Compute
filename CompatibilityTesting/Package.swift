@@ -2,8 +2,6 @@
 
 import PackageDescription
 
-let swiftCheckoutPath = "\(Context.packageDirectory)/Checkouts/swift"
-
 var dependencies: [Package.Dependency] = [
     .package(name: "Compute", path: ".."),
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),

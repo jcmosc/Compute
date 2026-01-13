@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public func withUnsafeTuple(
     of type: TupleType,
     count: Int,

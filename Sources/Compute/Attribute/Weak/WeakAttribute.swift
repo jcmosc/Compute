@@ -1,3 +1,5 @@
+import ComputeCxx
+
 @propertyWrapper
 @dynamicMemberLookup
 public struct WeakAttribute<Value> {

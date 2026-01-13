@@ -6,15 +6,93 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1AEE2EA42F16D270009CBD65 /* libswiftDemangle.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEE2EA32F16D26B009CBD65 /* libswiftDemangle.tbd */; };
+		1AEE2EA62F16D2AE009CBD65 /* libswiftCore.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AEE2EA52F16D2A7009CBD65 /* libswiftCore.tbd */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		1AD6DB892F16AA0D00D4C5D6 /* Compute.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Compute.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AEE2EA32F16D26B009CBD65 /* libswiftDemangle.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftDemangle.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk/usr/lib/swift/libswiftDemangle.tbd; sourceTree = DEVELOPER_DIR; };
+		1AEE2EA52F16D2A7009CBD65 /* libswiftCore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCore.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk/usr/lib/swift/libswiftCore.tbd; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		1AEE30612F16D8B2009CBD65 /* Exceptions for "ComputeCxx" folder in "Compute" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			publicHeaders = (
+				include/ComputeCxx/AGAttribute.h,
+				include/ComputeCxx/AGAttributeInfo.h,
+				include/ComputeCxx/AGAttributeType.h,
+				include/ComputeCxx/AGBase.h,
+				include/ComputeCxx/AGChangedValue.h,
+				include/ComputeCxx/AGClosure.h,
+				include/ComputeCxx/AGComparison.h,
+				include/ComputeCxx/AGDescription.h,
+				include/ComputeCxx/AGGraph.h,
+				include/ComputeCxx/AGGraphCounterQueryType.h,
+				include/ComputeCxx/AGInputOptions.h,
+				include/ComputeCxx/AGSearchOptions.h,
+				include/ComputeCxx/AGSubgraph.h,
+				include/ComputeCxx/AGTargetConditionals.h,
+				include/ComputeCxx/AGTrace.h,
+				include/ComputeCxx/AGTraceFlags.h,
+				include/ComputeCxx/AGTreeElement.h,
+				include/ComputeCxx/AGTreeValue.h,
+				include/ComputeCxx/AGTuple.h,
+				include/ComputeCxx/AGType.h,
+				include/ComputeCxx/AGUniqueID.h,
+				include/ComputeCxx/AGValue.h,
+				include/ComputeCxx/AGWeakAttribute.h,
+				include/ComputeCxx/ComputeCxx.h,
+			);
+			target = 1AD6DB882F16AA0D00D4C5D6 /* Compute */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		1AEE2D3B2F16D0BF009CBD65 /* Platform */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Platform;
+			path = Sources/Platform;
+			sourceTree = "<group>";
+		};
+		1AEE2DA62F16D158009CBD65 /* Utilities */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Utilities;
+			path = Sources/Utilities;
+			sourceTree = "<group>";
+		};
+		1AEE2E362F16D1DB009CBD65 /* ComputeCxx */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				1AEE30612F16D8B2009CBD65 /* Exceptions for "ComputeCxx" folder in "Compute" target */,
+			);
+			name = ComputeCxx;
+			path = Sources/ComputeCxx;
+			sourceTree = "<group>";
+		};
+		1AEE2EA82F16D2CC009CBD65 /* ComputeCxxSwiftSupport */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = ComputeCxxSwiftSupport;
+			path = Sources/ComputeCxxSwiftSupport;
+			sourceTree = "<group>";
+		};
+		1AEE2ED32F16D309009CBD65 /* Compute */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = Compute;
+			path = Sources/Compute;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		1AD6DB862F16AA0D00D4C5D6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1AEE2EA42F16D270009CBD65 /* libswiftDemangle.tbd in Frameworks */,
+				1AEE2EA62F16D2AE009CBD65 /* libswiftCore.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -24,6 +102,12 @@
 		1AD6DB7D2F16A95B00D4C5D6 = {
 			isa = PBXGroup;
 			children = (
+				1AEE2D3B2F16D0BF009CBD65 /* Platform */,
+				1AEE2DA62F16D158009CBD65 /* Utilities */,
+				1AEE2E362F16D1DB009CBD65 /* ComputeCxx */,
+				1AEE2EA82F16D2CC009CBD65 /* ComputeCxxSwiftSupport */,
+				1AEE2ED32F16D309009CBD65 /* Compute */,
+				1AEE2EA22F16D26B009CBD65 /* Frameworks */,
 				1AD6DB8A2F16AA0D00D4C5D6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -34,6 +118,15 @@
 				1AD6DB892F16AA0D00D4C5D6 /* Compute.framework */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		1AEE2EA22F16D26B009CBD65 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1AEE2EA52F16D2A7009CBD65 /* libswiftCore.tbd */,
+				1AEE2EA32F16D26B009CBD65 /* libswiftDemangle.tbd */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -61,6 +154,13 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				1AEE2D3B2F16D0BF009CBD65 /* Platform */,
+				1AEE2DA62F16D158009CBD65 /* Utilities */,
+				1AEE2E362F16D1DB009CBD65 /* ComputeCxx */,
+				1AEE2EA82F16D2CC009CBD65 /* ComputeCxxSwiftSupport */,
+				1AEE2ED32F16D309009CBD65 /* Compute */,
 			);
 			name = Compute;
 			packageProductDependencies = (
@@ -197,6 +297,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					Sources/Platform/include,
+					Sources/Utilities/include,
+					Sources/ComputeCxx/include,
+				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -216,6 +321,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_SWIFT_FLAGS = "-enable-experimental-feature Extern";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.incrematic.Compute;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = auto;
@@ -225,12 +331,23 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = Sources/ComputeCxx/include;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
+				SYSTEM_HEADER_SEARCH_PATHS = (
+					Checkouts/swift/include,
+					Checkouts/swift/stdlib/include,
+					Checkouts/swift/stdlib/public/SwiftShims,
+				);
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				USER_HEADER_SEARCH_PATHS = (
+					Sources/ComputeCxx,
+					Sources/ComputeCxx/internalInclude,
+				);
+				USE_HEADERMAP = NO;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 				XROS_DEPLOYMENT_TARGET = 26.2;
@@ -292,6 +409,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					Sources/Platform/include,
+					Sources/Utilities/include,
+					Sources/ComputeCxx/include,
+				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
@@ -310,6 +432,7 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "-enable-experimental-feature Extern";
 				PRODUCT_BUNDLE_IDENTIFIER = dev.incrematic.Compute;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = auto;
@@ -319,11 +442,22 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = Sources/ComputeCxx/include;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
+				SYSTEM_HEADER_SEARCH_PATHS = (
+					Checkouts/swift/include,
+					Checkouts/swift/stdlib/include,
+					Checkouts/swift/stdlib/public/SwiftShims,
+				);
 				TARGETED_DEVICE_FAMILY = "1,2,7";
+				USER_HEADER_SEARCH_PATHS = (
+					Sources/ComputeCxx,
+					Sources/ComputeCxx/internalInclude,
+				);
+				USE_HEADERMAP = NO;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 				XROS_DEPLOYMENT_TARGET = 26.2;

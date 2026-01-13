@@ -1,3 +1,5 @@
+import ComputeCxx
+
 public struct Map<Arg, Value> {
 
     public var arg: Attribute<Arg>

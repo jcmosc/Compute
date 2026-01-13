@@ -1,0 +1,5 @@
+module ComputeCxx {
+    umbrella header "ComputeCxx/ComputeCxx.h"
+
+    export *
+}

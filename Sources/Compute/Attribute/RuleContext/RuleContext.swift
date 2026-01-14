@@ -6,11 +6,8 @@ public struct RuleContext<Value> {
         self.attribute = attribute
     }
 
-    @_extern(c, "AGGraphWithUpdate")
-    private static func withUpdate(_ attribute: AnyAttribute, body: @escaping () -> Void)
-
-    public func update(body: @escaping () -> Void) {
-        RuleContext.withUpdate(attribute.identifier, body: body)
+    public func update(body: () -> Void) {
+        AnyRuleContext(attribute: attribute.identifier).update(body: body)
     }
 
     public var value: Value {

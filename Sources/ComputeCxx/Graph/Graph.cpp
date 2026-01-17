@@ -40,7 +40,7 @@ Graph::Graph()
       _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _id(AGMakeUniqueID()) {
 
     static platform_once_t make_keys;
-          platform_once(&make_keys, []() {
+    platform_once(&make_keys, []() {
         pthread_key_create(&Graph::_current_update_key, 0);
         Subgraph::make_current_subgraph_key();
     });
@@ -188,6 +188,12 @@ void Graph::remove_subgraph(Subgraph &subgraph) {
         }
     }
 
+    if (subgraph.has_cached_nodes()) {
+        subgraph.set_has_cached_nodes(false);
+        auto iter = std::remove(_subgraphs_with_cached_nodes.begin(), _subgraphs_with_cached_nodes.end(), &subgraph);
+        _subgraphs_with_cached_nodes.erase(iter);
+    }
+
     _num_subgraphs -= 1;
 }
 
@@ -208,6 +214,19 @@ void Graph::invalidate_subgraphs() {
     }
 
     if (_main_handler == nullptr) {
+        auto iter = _subgraphs_with_cached_nodes.begin(), end = _subgraphs_with_cached_nodes.end();
+        while (iter != end) {
+            auto subgraph = *iter;
+            subgraph->set_graph_invalidating_subgraphs(true);
+            subgraph->cache_collect();
+            subgraph->set_graph_invalidating_subgraphs(false);
+
+            if (!subgraph->has_cached_nodes()) {
+                end = _subgraphs_with_cached_nodes.erase(iter);
+            } else {
+                ++iter;
+            }
+        }
         while (!_invalidating_subgraphs.empty()) {
             auto subgraph = _invalidating_subgraphs.back();
             _invalidating_subgraphs.pop_back();

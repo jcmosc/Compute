@@ -105,6 +105,7 @@ class Graph {
 
     // Subgraphs
     vector<Subgraph *, 0, uint32_t> _subgraphs;
+    vector<Subgraph *, 0, uint32_t> _subgraphs_with_cached_nodes;
     vector<Subgraph *, 2, uint32_t> _invalidating_subgraphs;
     bool _deferring_subgraph_invalidation;
 
@@ -138,7 +139,6 @@ class Graph {
 
     void remove_input(data::ptr<Node> node, uint32_t index);
     void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index);
-    void remove_all_inputs(data::ptr<Node> node);
     void all_inputs_removed(data::ptr<Node> node);
 
     template <typename T> void add_output_edge(data::ptr<T> node, AttributeID output);
@@ -236,6 +236,8 @@ class Graph {
 
     void add_subgraph(Subgraph &subgraph);
     void remove_subgraph(Subgraph &subgraph);
+    
+    void add_subgraphs_with_cached_nodes(Subgraph &subgraph) { _subgraphs_with_cached_nodes.push_back(&subgraph); };
 
     class without_invalidating {
       private:
@@ -292,6 +294,7 @@ class Graph {
     void remove_indirect_node(data::ptr<IndirectNode> node);
 
     uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
+    void remove_all_inputs(data::ptr<Node> node);
 
     void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);
     bool indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool non_nil);

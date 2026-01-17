@@ -16,6 +16,7 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
     Context _context;
 
   public:
+    inline ClosureFunction(std::nullptr_t): _function(nullptr), _context(nullptr) {}
     inline ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
         void *mutable_context = const_cast<void *>(_context);
         ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(mutable_context));
@@ -93,5 +94,9 @@ using ClosureFunctionAB = ClosureFunction<ReturnType, Arg>;
 template <typename ReturnType, typename Arg>
     requires std::same_as<ReturnType, void>
 using ClosureFunctionPV = ClosureFunction<ReturnType, Arg>;
+
+template <typename ReturnType, typename Arg>
+    requires std::unsigned_integral<ReturnType>
+using ClosureFunctionCI = ClosureFunction<ReturnType, Arg>;
 
 } // namespace AG

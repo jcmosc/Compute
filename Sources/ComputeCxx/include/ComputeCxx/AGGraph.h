@@ -15,6 +15,7 @@
 #include <ComputeCxx/AGAttribute.h>
 #include <ComputeCxx/AGAttributeInfo.h>
 #include <ComputeCxx/AGAttributeType.h>
+#include <ComputeCxx/AGCachedValueOptions.h>
 #include <ComputeCxx/AGChangedValue.h>
 #include <ComputeCxx/AGComparison.h>
 #include <ComputeCxx/AGGraphCounterQueryType.h>
@@ -53,7 +54,8 @@ AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph) AG_SWIFT_NAME(AGGraph
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) AG_SWIFT_NAME(getter:AGGraphRef.graphContext(self:));
+AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph)
+    AG_SWIFT_NAME(getter:AGGraphRef.graphContext(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -261,6 +263,22 @@ void AGGraphSetInvalidationCallback(AGGraphRef graph,
                                     void (*callback)(const void *context AG_SWIFT_CONTEXT, AGAttribute)
                                         AG_SWIFT_CC(swift),
                                     const void *callback_context);
+
+// MARK: Cached value
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void *AGGraphReadCachedAttribute(size_t hash, AGTypeID type, const void *body, AGTypeID value_type,
+                                 AGCachedValueOptions options, AGAttribute owner, bool *_Nullable changed_out,
+                                 uint32_t (*closure)(const void *context AG_SWIFT_CONTEXT,
+                                                     AGUnownedGraphContextRef graph_context) AG_SWIFT_CC(swift),
+                                 const void *closure_context);
+
+CF_EXPORT
+CF_REFINED_FOR_SWIFT
+void *_Nullable AGGraphReadCachedAttributeIfExists(size_t hash, AGTypeID type, const void *body, AGTypeID value_type,
+                                                   AGCachedValueOptions options, AGAttribute owner,
+                                                   bool *_Nullable changed_out);
 
 // MARK: Update
 

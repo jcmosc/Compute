@@ -27,6 +27,7 @@ class SubgraphObject {
 
 class Subgraph : public data::zone {
   public:
+    class NodeCache;
     class SubgraphChild {
       private:
         enum {
@@ -60,6 +61,7 @@ class Subgraph : public data::zone {
     uint32_t _traversal_seed;
     uint32_t _index;
 
+    data::ptr<NodeCache> _cache = nullptr;
     Graph::TreeElementID _tree_root;
 
     AGAttributeFlags _flags;
@@ -76,6 +78,14 @@ class Subgraph : public data::zone {
 
     InvalidationState _invalidation_state = InvalidationState::None;
 
+    enum class CacheState : uint8_t {
+        None = 0,
+        HasCachedNodes = 1,
+        GraphInvalidatingSubgraphs = 2,
+    };
+
+    CacheState _cache_state = CacheState::None;
+
     // Attribute list
     void insert_attribute(AttributeID attribute, bool updatable);
     void unlink_attribute(AttributeID attribute);
@@ -83,11 +93,11 @@ class Subgraph : public data::zone {
   public:
     Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute);
     ~Subgraph();
-    
+
     // Non-copyable
     Subgraph(const Subgraph &) = delete;
     Subgraph &operator=(const Subgraph &) = delete;
-    
+
     // Non-movable
     Subgraph(Subgraph &&) = delete;
     Subgraph &operator=(Subgraph &&) = delete;
@@ -128,9 +138,7 @@ class Subgraph : public data::zone {
         return _invalidation_state >= InvalidationState::Deferred &&
                _invalidation_state <= InvalidationState::GraphDestroyed;
     }
-    bool is_invalidated() const {
-        return _invalidation_state == InvalidationState::Completed;
-    }
+    bool is_invalidated() const { return _invalidation_state == InvalidationState::Completed; }
     void invalidate_and_delete_(bool delete_zone_data);
     void invalidate_deferred(Graph &graph);
     void invalidate_now(Graph &graph);
@@ -178,8 +186,33 @@ class Subgraph : public data::zone {
     static std::atomic<uint32_t> _last_traversal_seed;
 
     void apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body);
-    
+
     void update(AGAttributeFlags mask);
+
+    // MARK: Cache
+
+    bool has_cached_nodes() const { return ((uint8_t)_cache_state & (uint8_t)CacheState::HasCachedNodes) != 0; };
+    void set_has_cached_nodes(bool value) {
+        if (value) {
+            _cache_state = CacheState((uint8_t)_cache_state | (uint8_t)CacheState::HasCachedNodes);
+        } else {
+            _cache_state = CacheState((uint8_t)_cache_state & ~(uint8_t)CacheState::HasCachedNodes);
+        }
+    };
+    bool is_graph_invalidating_subgraphs() const { return ((uint8_t)_cache_state & (uint8_t)CacheState::GraphInvalidatingSubgraphs) != 0; };
+    void set_graph_invalidating_subgraphs(bool value) {
+        if (value) {
+            _cache_state = CacheState((uint8_t)_cache_state | (uint8_t)CacheState::GraphInvalidatingSubgraphs);
+        } else {
+            _cache_state = CacheState((uint8_t)_cache_state & ~(uint8_t)CacheState::GraphInvalidatingSubgraphs);
+        }
+    };
+
+    data::ptr<Node> cache_fetch(size_t hash, const swift::metadata &metadata, const void *body,
+                                ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> get_attribute_type_id);
+    void cache_insert(data::ptr<Node> node);
+
+    void cache_collect();
 
     // MARK: Tree
 
@@ -193,9 +226,9 @@ class Subgraph : public data::zone {
 
     AttributeID tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index);
     Graph::TreeElementID tree_subgraph_child(Graph::TreeElementID tree_element);
-    
+
     // MARK: Printing
-    
+
     void print(uint32_t indent_level);
 };
 

@@ -3,6 +3,7 @@
 #include <ComputeCxx/AGAttribute.h>
 #include <ComputeCxx/AGAttributeInfo.h>
 #include <ComputeCxx/AGAttributeType.h>
+#include <ComputeCxx/AGCachedValueOptions.h>
 #include <ComputeCxx/AGBase.h>
 #include <ComputeCxx/AGChangedValue.h>
 #include <ComputeCxx/AGClosure.h>

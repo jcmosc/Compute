@@ -74,7 +74,7 @@ class Trace {
 
     virtual void added(data::ptr<Node> node) {};
 
-    virtual void add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) {};
+    virtual void add_edge(data::ptr<Node> node, AttributeID input, AGInputOptions input_options) {};
     virtual void remove_edge(data::ptr<Node> node, uint32_t input_index) {};
     virtual void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) {};
 

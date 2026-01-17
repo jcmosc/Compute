@@ -12,7 +12,7 @@ namespace AG {
 
 class Graph::TraceRecorder : public Trace {
   public:
-    TraceRecorder(Graph *graph, AGTraceFlags trace_flags, std::span<const char *> subsystems);
+    TraceRecorder(Graph *graph, AGGraphTraceOptions trace_options, std::span<const char *> subsystems);
     ~TraceRecorder();
 
     uint64_t id() { return _id; };
@@ -65,7 +65,7 @@ class Graph::TraceRecorder : public Trace {
 
     void added(data::ptr<Node> node) override;
 
-    void add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) override;
+    void add_edge(data::ptr<Node> node, AttributeID input, AGInputOptions input_options) override;
     void remove_edge(data::ptr<Node> node, uint32_t input_index) override;
     void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) override;
 

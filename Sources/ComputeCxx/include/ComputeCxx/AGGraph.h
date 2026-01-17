@@ -19,9 +19,9 @@
 #include <ComputeCxx/AGChangedValue.h>
 #include <ComputeCxx/AGComparison.h>
 #include <ComputeCxx/AGGraphCounterQueryType.h>
+#include <ComputeCxx/AGGraphTracing.h>
 #include <ComputeCxx/AGInputOptions.h>
 #include <ComputeCxx/AGSearchOptions.h>
-#include <ComputeCxx/AGTraceFlags.h>
 #include <ComputeCxx/AGType.h>
 #include <ComputeCxx/AGValue.h>
 #include <ComputeCxx/AGWeakAttribute.h>
@@ -36,7 +36,7 @@ AG_EXTERN_C_BEGIN
 typedef struct AG_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
 typedef void *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
 
-typedef struct AGTrace *AGTraceRef;
+typedef struct AGTraceType *AGTraceTypeRef;
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -365,13 +365,13 @@ void AGGraphSetOutputValue(const void *value, AGTypeID type);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphStartTracing(AGGraphRef _Nullable graph, AGTraceFlags trace_flags)
+void AGGraphStartTracing(AGGraphRef _Nullable graph, AGGraphTraceOptions trace_options)
     AG_SWIFT_NAME(AGGraphRef.startTracing(_:flags:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphStartTracing2(AGGraphRef _Nullable graph, AGTraceFlags trace_flags, CFArrayRef _Nullable subsystems)
-    AG_SWIFT_NAME(AGGraphRef.startTracing(_:flags:subsystems:)); // TODO: flags or options
+void AGGraphStartTracing2(AGGraphRef _Nullable graph, AGGraphTraceOptions trace_options, CFArrayRef _Nullable subsystems)
+    AG_SWIFT_NAME(AGGraphRef.startTracing(_:options:subsystems:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -387,7 +387,7 @@ CFStringRef AGGraphCopyTracePath(AGGraphRef graph) AG_SWIFT_NAME(getter:AGGraphR
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context)
+uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceTypeRef trace, void *_Nullable context)
     AG_SWIFT_NAME(AGGraphRef.addTrace(self:_:context:));
 
 AG_EXPORT
@@ -396,7 +396,7 @@ void AGGraphRemoveTrace(AGGraphRef graph, uint64_t trace_id) AG_SWIFT_NAME(AGGra
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context)
+void AGGraphSetTrace(AGGraphRef graph, const AGTraceTypeRef trace, void *_Nullable context)
     AG_SWIFT_NAME(AGGraphRef.setTrace(self:_:context:));
 
 AG_EXPORT
@@ -409,7 +409,7 @@ bool AGGraphIsTracingActive(AGGraphRef graph) AG_SWIFT_NAME(getter:AGGraphRef.is
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphPrepareTrace(AGGraphRef graph, const AGTraceRef trace, void *_Nullable context);
+void AGGraphPrepareTrace(AGGraphRef graph, const AGTraceTypeRef trace, void *_Nullable context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

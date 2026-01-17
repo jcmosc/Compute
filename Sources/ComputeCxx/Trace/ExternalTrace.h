@@ -1,9 +1,10 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGAttribute.h"
+#include "ComputeCxx/AGBase.h"
 #include "ComputeCxx/AGComparison.h"
 #include "ComputeCxx/AGGraph.h"
+#include "ComputeCxx/AGTraceType.h"
 #include "ComputeCxx/AGType.h"
 #include "Graph/Context.h"
 #include "Subgraph/Subgraph.h"
@@ -14,12 +15,12 @@ AG_ASSUME_NONNULL_BEGIN
 class ExternalTrace : public AG::Trace {
   public:
   private:
-    const AGTrace *_trace;
+    const AGTraceTypeRef _trace;
     void *_Nullable _context;
 
   public:
-    ExternalTrace(AGTrace *trace, void *context) : _trace(trace), _context(context) {};
-    ExternalTrace(uint64_t id, const AGTrace *trace, void *context)
+    ExternalTrace(AGTraceTypeRef trace, void *context) : _trace(trace), _context(context) {};
+    ExternalTrace(uint64_t id, const AGTraceTypeRef trace, void *context)
         : AG::Trace(id), _trace(trace), _context(context) {};
 
     void graph_destroyed() override;
@@ -62,7 +63,7 @@ class ExternalTrace : public AG::Trace {
 
     void added(AG::data::ptr<AG::Node> node) override;
 
-    void add_edge(AG::data::ptr<AG::Node> node, AG::AttributeID input, uint8_t input_edge_flags) override;
+    void add_edge(AG::data::ptr<AG::Node> node, AG::AttributeID input, AGInputOptions input_options) override;
     void remove_edge(AG::data::ptr<AG::Node> node, uint32_t input_index) override;
     void set_edge_pending(AG::data::ptr<AG::Node> node, AG::AttributeID input, bool pending) override;
 

@@ -6,7 +6,7 @@
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "ComputeCxx/AGGraph.h"
-#include "ComputeCxx/AGTrace.h"
+#include "ComputeCxx/AGGraphTracing.h"
 #include "ComputeCxx/AGUniqueID.h"
 #include "Context.h"
 #include "Log/Log.h"
@@ -15,7 +15,7 @@
 
 namespace AG {
 
-Graph::TraceRecorder::TraceRecorder(Graph *graph, AGTraceFlags trace_flags, std::span<const char *> subsystems) {
+Graph::TraceRecorder::TraceRecorder(Graph *graph, AGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
     // TODO: not implemented
 }
 
@@ -139,7 +139,7 @@ void Graph::TraceRecorder::added(data::ptr<Node> node) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, uint8_t input_edge_flags) {
+void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, AGInputOptions input_options) {
     // TODO: not implemented
 }
 

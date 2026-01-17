@@ -11,15 +11,15 @@
 #endif
 #endif
 
-#include <platform/lock.h>
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
 #include <Utilities/TaggedPointer.h>
+#include <platform/lock.h>
 
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
-#include "ComputeCxx/AGTrace.h"
+#include "ComputeCxx/AGGraphTracing.h"
 #include "Swift/Metadata.h"
 #include "Vector/Vector.h"
 
@@ -236,7 +236,7 @@ class Graph {
 
     void add_subgraph(Subgraph &subgraph);
     void remove_subgraph(Subgraph &subgraph);
-    
+
     void add_subgraphs_with_cached_nodes(Subgraph &subgraph) { _subgraphs_with_cached_nodes.push_back(&subgraph); };
 
     class without_invalidating {
@@ -389,7 +389,7 @@ class Graph {
 
     // MARK: Trace
 
-    void start_tracing(AGTraceFlags trace_flags, std::span<const char *> subsystems);
+    void start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> subsystems);
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();
@@ -399,7 +399,7 @@ class Graph {
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    static void all_start_tracing(AGTraceFlags trace_flags, std::span<const char *> span);
+    static void all_start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> span);
     static void all_stop_tracing();
     static void all_sync_tracing();
     static CFStringRef all_copy_trace_path();

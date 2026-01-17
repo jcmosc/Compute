@@ -901,9 +901,9 @@ void AGGraphSetOutputValue(const void *value, AGTypeID type) {
 
 #pragma mark - Trace
 
-void AGGraphStartTracing(AGGraphRef graph, AGTraceFlags trace_flags) { AGGraphStartTracing2(graph, trace_flags, NULL); }
+void AGGraphStartTracing(AGGraphRef graph, AGGraphTraceOptions trace_options) { AGGraphStartTracing2(graph, trace_options, NULL); }
 
-void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef subsystems) {
+void AGGraphStartTracing2(AGGraphRef graph, AGGraphTraceOptions trace_options, CFArrayRef subsystems) {
     auto subsystems_vector = AG::vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>();
     if (subsystems) {
         auto subsystems_count = CFArrayGetCount(subsystems);
@@ -928,12 +928,12 @@ void AGGraphStartTracing2(AGGraphRef graph, AGTraceFlags trace_flags, CFArrayRef
         std::span<const char *>((const char **)subsystems_vector.data(), subsystems_vector.size());
 
     if (graph == nullptr) {
-        AG::Graph::all_start_tracing(trace_flags, subsystems_span);
+        AG::Graph::all_start_tracing(trace_options, subsystems_span);
         return;
     }
 
     auto graph_context = AG::Graph::Context::from_cf(graph);
-    graph_context->graph().start_tracing(trace_flags, subsystems_span);
+    graph_context->graph().start_tracing(trace_options, subsystems_span);
 }
 
 void AGGraphStopTracing(AGGraphRef graph) {
@@ -965,7 +965,7 @@ CFStringRef AGGraphCopyTracePath(AGGraphRef graph) {
     return graph_context->graph().copy_trace_path();
 }
 
-uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+uint64_t AGGraphAddTrace(AGGraphRef graph, const AGTraceTypeRef trace, void *context) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     auto external_trace = new ExternalTrace(trace, context);
     graph_context->graph().add_trace(external_trace);
@@ -977,7 +977,7 @@ void AGGraphRemoveTrace(AGGraphRef graph, uint64_t trace_id) {
     graph_context->graph().remove_trace(trace_id);
 }
 
-void AGGraphSetTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+void AGGraphSetTrace(AGGraphRef graph, const AGTraceTypeRef trace, void *context) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
 
@@ -995,7 +995,7 @@ bool AGGraphIsTracingActive(AGGraphRef graph) {
     return graph_context->graph().traces().size() > 0;
 }
 
-void AGGraphPrepareTrace(AGGraphRef graph, const AGTraceRef trace, void *context) {
+void AGGraphPrepareTrace(AGGraphRef graph, const AGTraceTypeRef trace, void *context) {
     auto graph_context = AG::Graph::Context::from_cf(graph);
     auto external_trace = new ExternalTrace(trace, context);
     graph_context->graph().prepare_trace(*external_trace);

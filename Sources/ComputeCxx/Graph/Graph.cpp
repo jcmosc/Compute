@@ -19,7 +19,7 @@
 #include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Attribute/AttributeView/AttributeView.h"
-#include "ComputeCxx/AGTrace.h"
+#include "ComputeCxx/AGGraphTracing.h"
 #include "ComputeCxx/AGUniqueID.h"
 #include "Context.h"
 #include "KeyTable.h"
@@ -1826,10 +1826,10 @@ void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value
 
 #pragma mark - Trace
 
-void Graph::start_tracing(AGTraceFlags trace_flags, std::span<const char *> subsystems) {
-    if (trace_flags & AGTraceFlagsEnabled && _trace_recorder == nullptr) {
-        _trace_recorder = new TraceRecorder(this, trace_flags, subsystems);
-        if (trace_flags & AGTraceFlagsPrepare) {
+void Graph::start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
+    if (trace_options & AGGraphTraceOptionsEnabled && _trace_recorder == nullptr) {
+        _trace_recorder = new TraceRecorder(this, trace_options, subsystems);
+        if (trace_options & AGGraphTraceOptionsPrepare) {
             prepare_trace(*_trace_recorder);
         }
         add_trace(_trace_recorder);
@@ -1883,10 +1883,10 @@ void Graph::remove_trace(uint64_t trace_id) {
     }
 }
 
-void Graph::all_start_tracing(AGTraceFlags trace_flags, std::span<const char *> span) {
+void Graph::all_start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> span) {
     all_lock();
     for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
-        graph->start_tracing(trace_flags, span);
+        graph->start_tracing(trace_options, span);
     }
     all_unlock();
 }

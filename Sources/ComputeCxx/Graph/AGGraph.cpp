@@ -639,6 +639,84 @@ void AGGraphSetInvalidationCallback(AGGraphRef graph,
     graph_context->set_invalidation_callback(AG::ClosureFunctionAV<void, AGAttribute>(callback, callback_context));
 }
 
+#pragma mark - Cached value
+
+namespace {
+
+void *read_cached_attribute(size_t hash, const AG::swift::metadata &metadata, const void *body,
+                            const AG::swift::metadata &value_metadata, AGCachedValueOptions options,
+                            AG::AttributeID owner_id, AGChangedValueFlags *flags_out,
+                            AG::ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> get_attribute_type_id) {
+    auto update = AG::Graph::current_update();
+    auto update_stack = update.tag() == 0 ? update.get() : nullptr;
+
+    AG::Subgraph *subgraph = nullptr;
+    if (owner_id && !owner_id.is_nil()) {
+        owner_id.validate_data_offset();
+        subgraph = owner_id.subgraph();
+    } else {
+        if (update_stack != nullptr) {
+            subgraph = AG::AttributeID(update_stack->frames().back().attribute).subgraph();
+        } else {
+            subgraph = AG::Subgraph::current_subgraph();
+        }
+    }
+    if (subgraph == nullptr) {
+        AG::precondition_failure("no subgraph");
+    }
+
+    AG::data::ptr<AG::Node> cached_node = subgraph->cache_fetch(hash, metadata, body, get_attribute_type_id);
+    if (cached_node == nullptr) {
+        return nullptr;
+    }
+
+    if (update_stack == nullptr) {
+        void *value = subgraph->graph()->value_ref(AG::AttributeID(cached_node), 0, value_metadata, flags_out);
+        subgraph->cache_insert(cached_node); // TODO: when this becomes an input, is it removed from cache?
+        return value;
+    }
+
+    AGInputOptions input_options = options & AGCachedValueOptionsUnprefetched ? AGInputOptionsUnprefetched : AGInputOptionsNone;
+    return subgraph->graph()->input_value_ref(update_stack->frames().back().attribute, AG::AttributeID(cached_node), 0,
+                                              input_options, value_metadata, flags_out);
+}
+
+} // namespace
+
+void *AGGraphReadCachedAttribute(size_t hash, AGTypeID type, const void *body, AGTypeID value_type,
+                                 AGCachedValueOptions options, AGAttribute owner, bool *_Nullable changed_out,
+                                 uint32_t (*closure)(const void *context AG_SWIFT_CONTEXT,
+                                                     AGUnownedGraphContextRef graph_context) AG_SWIFT_CC(swift),
+                                 const void *closure_context) {
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
+    auto owner_id = AG::AttributeID(owner);
+
+    AGChangedValueFlags flags = 0;
+    void *value =
+        read_cached_attribute(hash, *metadata, body, *value_metadata, options, owner_id, &flags,
+                              AG::ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef>(closure, closure_context));
+    if (changed_out) {
+        *changed_out = flags & AGChangedValueFlagsChanged ? true : false;
+    }
+    return value;
+}
+
+void *AGGraphReadCachedAttributeIfExists(size_t hash, AGTypeID type, const void *body, AGTypeID value_type,
+                                         AGCachedValueOptions options, AGAttribute owner, bool *_Nullable changed_out) {
+
+    auto metadata = reinterpret_cast<const AG::swift::metadata *>(type);
+    auto value_metadata = reinterpret_cast<const AG::swift::metadata *>(value_type);
+    auto owner_id = AG::AttributeID(owner);
+
+    AGChangedValueFlags flags = 0;
+    void *value = read_cached_attribute(hash, *metadata, body, *value_metadata, options, owner_id, &flags, nullptr);
+    if (changed_out) {
+        *changed_out = flags & AGChangedValueFlagsChanged ? true : false;
+    }
+    return value;
+}
+
 #pragma mark - Update
 
 void AGGraphSetUpdate(const void *update) {

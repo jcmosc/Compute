@@ -53,7 +53,7 @@ class Node {
     unsigned int _has_indirect_value : 1 = 0;
     unsigned int _input_edges_traverse_contexts : 1 = 0;
     unsigned int _needs_sort_input_edges : 1 = 0;
-    unsigned int _cacheable : 1 = 0;
+    unsigned int _cached : 1 = 0;
     unsigned int _main_ref : 1 = 0;
     unsigned int _self_modified : 1 = 0;
 
@@ -142,6 +142,9 @@ class Node {
             std::sort(_input_edges.begin(), _input_edges.end());
         }
     }
+
+    bool is_cached() const { return _cached; }
+    void set_cached(bool value) { _cached = value; }
 
     bool is_main_ref() const { return _main_ref; }
     void set_main_ref(bool value) { _main_ref = value; }

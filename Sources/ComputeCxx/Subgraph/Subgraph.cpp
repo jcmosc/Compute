@@ -14,6 +14,7 @@
 #include "Graph/Context.h"
 #include "Graph/Tree/TreeElement.h"
 #include "Graph/UpdateStack.h"
+#include "NodeCache.h"
 #include "Trace/Trace.h"
 
 namespace AG {
@@ -50,6 +51,9 @@ Subgraph::~Subgraph() {
 
         notify_observers();
         delete observers;
+    }
+    if (_cache) {
+        _cache->~NodeCache();
     }
 }
 
@@ -711,6 +715,181 @@ void Subgraph::update(AGAttributeFlags mask) {
 
     _graph->invalidate_subgraphs();
     _graph->foreach_trace([this](Trace &trace) { trace.end_update(*this); });
+}
+
+#pragma mark - Cache
+
+// age = 0x00: recently fetched, in items(), removed from recycle list
+// age = 0x01: recently inserted, in items(), inserted in recycle list as mru
+// age = 0xff: collected, removed from items(), in recycle list
+
+data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metadata, const void *body,
+                                      ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> get_attribute_type_id) {
+    if (_cache == nullptr) {
+        _cache = alloc_bytes(sizeof(NodeCache), 7).unsafe_cast<NodeCache>();
+        new (_cache.get()) NodeCache();
+    }
+
+    data::ptr<NodeCache::Type> type = _cache->types().lookup(&metadata, nullptr);
+    if (type == nullptr) {
+        auto equatable = metadata.equatable();
+        if (equatable == nullptr) {
+            precondition_failure("cache key must be equatable: %s", metadata.name(false));
+        }
+
+        type = alloc_bytes(sizeof(NodeCache::Type), 7).unsafe_cast<NodeCache::Type>();
+        type->type = &metadata;
+        type->equatable = equatable;
+        type->mru = nullptr;
+        type->lru = nullptr;
+        type->type_id = get_attribute_type_id(_graph);
+        _cache->types().insert(&metadata, type);
+    }
+
+    NodeCache::ItemKey item_key = {hash << 8, type, nullptr, body};
+    NodeCache::Item *item = _cache->items().lookup(&item_key, nullptr);
+    if (item) {
+        // cache hit: remove from lru (now active)
+        if (item->age() > 0) {
+            // remove item from list
+            if (item->next != nullptr) {
+                item->next->prev = item->prev;
+            } else {
+                type->lru = item->prev;
+            }
+            if (item->prev != nullptr) {
+                item->prev->next = item->next;
+            } else {
+                type->mru = item->next;
+            }
+
+            item->reset_age();
+        }
+    } else {
+        // cache miss
+        if (!get_attribute_type_id) {
+            return nullptr;
+        }
+
+        // try reusing a lru item, only if it has been collected at least once to prevent trashing
+        if (type->lru && type->lru->age() >= 2) {
+            item = type->lru;
+
+            // remove item from list
+            if (item->next != nullptr) {
+                item->next->prev = item->prev;
+            } else {
+                type->lru = item->prev;
+            }
+            if (item->prev != nullptr) {
+                item->prev->next = item->next;
+            } else {
+                type->mru = item->next;
+            }
+
+            // remove item
+            if (item->age() != 0xff) {
+                _cache->items().remove_ptr((const NodeCache::ItemKey *)item);
+            }
+
+            // reset node data
+            _graph->remove_all_inputs(item->node);
+            item->node->set_dirty(true);
+            item->node->set_pending(true);
+            item->node->update_self(*_graph, body);
+            item->hash_and_age = hash << 8;
+        } else {
+            data::ptr<Node> node = graph()->add_attribute(*this, type->type_id, body, nullptr);
+            item = new NodeCache::Item(item_key.hash_and_age, item_key.type, node, nullptr, nullptr);
+            node->set_cached(true);
+            _cache->items_by_node().insert(node, item);
+        }
+
+        // reinsert in lookup map
+        _cache->items().insert((const NodeCache::ItemKey *)item, item);
+    }
+
+    return item->node;
+}
+
+void Subgraph::cache_insert(data::ptr<Node> node) {
+    if (!is_valid()) {
+        return;
+    }
+
+    if (!node->output_edges().empty()) {
+        return;
+    }
+    if (node->is_updating()) {
+        return;
+    }
+
+    if (!node->is_cached()) {
+        return;
+    }
+
+    auto attribute_type = graph()->attribute_type(node->type_id());
+    data::ptr<NodeCache::Type> type = _cache->types().lookup(&attribute_type.body_metadata(), nullptr);
+    NodeCache::Item *item = _cache->items_by_node().lookup(node, nullptr);
+    if (!item) {
+        return; // shouldn't happen
+    }
+
+    if (item->age() < 0xff) {
+        item->increment_age();
+    }
+
+    // insert as mru
+    item->next = type->mru;
+    item->prev = nullptr;
+    type->mru = item;
+    if (item->next) {
+        item->next->prev = item;
+    } else {
+        type->lru = item;
+    }
+
+    if (!has_cached_nodes()) {
+        if (!is_graph_invalidating_subgraphs()) {
+            _graph->add_subgraphs_with_cached_nodes(*this);
+        }
+        set_has_cached_nodes(true);
+    }
+}
+
+void Subgraph::cache_collect() {
+    set_has_cached_nodes(false);
+
+    if (_cache == nullptr || !is_valid()) {
+        return;
+    }
+
+    std::pair<Subgraph *, NodeCache *> context = {this, _cache.get()};
+    _cache->types().for_each(
+        [](const swift::metadata *metadata, const data::ptr<NodeCache::Type> type, void *context) {
+            auto inner_context = reinterpret_cast<std::pair<Subgraph *, NodeCache *> *>(context);
+            Subgraph *subgraph = inner_context->first;
+            NodeCache *cache = inner_context->second;
+
+            for (NodeCache::Item *item = type->mru; item != nullptr; item = item->next) {
+                if (item->age() == 0xff) {
+                    // stop processing, all subsequent items will have age == 0xff too
+                    break;
+                }
+
+                item->increment_age();
+
+                if (item->age() == 0xff) {
+                    cache->items().remove_ptr((const NodeCache::ItemKey *)item);
+                    item->node->destroy_self(*subgraph->graph());
+                    item->node->destroy_value(*subgraph->graph());
+                    subgraph->graph()->remove_all_inputs(item->node);
+                } else {
+                    subgraph->set_has_cached_nodes(true);
+                }
+            }
+        },
+        &context);
 }
 
 #pragma mark - Tree

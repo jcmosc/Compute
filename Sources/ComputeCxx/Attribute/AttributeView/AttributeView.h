@@ -38,7 +38,7 @@ class attribute_iterator {
 };
 
 class attribute_view {
-  private:
+  protected:
     data::ptr<data::page> _page;
 
   public:
@@ -48,12 +48,9 @@ class attribute_view {
     attribute_iterator end() { return attribute_iterator(_page, RelativeAttributeID(nullptr)); };
 };
 
-class const_attribute_view {
-  private:
-    data::ptr<data::page> _page;
-
+class const_attribute_view: public attribute_view {
   public:
-    const_attribute_view(data::ptr<data::page> page) : _page(page) {};
+    const_attribute_view(data::ptr<data::page> page) : attribute_view(page) {};
 
     attribute_iterator begin() { return attribute_iterator(_page, RelativeAttributeID(_page->const_bytes_list)); };
     attribute_iterator end() { return attribute_iterator(_page, RelativeAttributeID(nullptr)); };

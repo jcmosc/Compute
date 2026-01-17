@@ -1925,7 +1925,77 @@ CFStringRef Graph::copy_trace_path() {
 }
 
 void Graph::prepare_trace(Trace &trace) {
-    // TODO: Not implemented
+    _contexts_by_id.for_each([](const uint64_t context_id, Context *const context,
+                                void *trace_ref) { ((Trace *)trace_ref)->created(*context); },
+                             &trace);
+    for (auto subgraph : _subgraphs) {
+        trace.created(*subgraph);
+    }
+    for (auto subgraph : _subgraphs) {
+        for (auto child : subgraph->children()) {
+            trace.add_child(*subgraph, *child.subgraph());
+        }
+    }
+    for (auto subgraph : _subgraphs) {
+        for (uint32_t iteration = 0; iteration < 2; ++iteration) {
+            for (auto page : subgraph->pages()) {
+                bool found_nil_attribute = false;
+                auto view = iteration == 0 ? const_attribute_view(page) : attribute_view(page);
+                for (auto attribute : view) {
+                    if (auto node = attribute.get_node()) {
+                        trace.added(node);
+                        if (node->is_dirty()) {
+                            trace.set_dirty(node, true);
+                        }
+                        if (node->is_pending()) {
+                            trace.set_pending(node, true);
+                        }
+                        if (node->is_value_initialized()) {
+                            void *value = node->get_value();
+                            trace.set_value(node, value);
+                        }
+                    } else if (auto indirect_node = attribute.get_indirect_node()) {
+                        trace.added(indirect_node);
+                    } else if (attribute.is_nil()) {
+                        found_nil_attribute = true;
+                        break;
+                    }
+                }
+                if (found_nil_attribute) {
+                    break;
+                }
+            }
+        }
+    }
+    for (auto subgraph : _subgraphs) {
+        for (uint32_t iteration = 0; iteration < 2; ++iteration) {
+            for (auto page : subgraph->pages()) {
+                bool found_nil_attribute = false;
+                auto view = iteration == 0 ? const_attribute_view(page) : attribute_view(page);
+                for (auto attribute : view) {
+                    if (auto node = attribute.get_node()) {
+                        for (auto input_edge : node->input_edges()) {
+                            trace.add_edge(node, input_edge.attribute, input_edge.options);
+                            if (input_edge.options & AGInputOptionsChanged) {
+                                trace.set_edge_pending(node, input_edge.attribute, true);
+                            }
+                        }
+                    } else if (auto indirect_node = attribute.get_indirect_node()) {
+                        trace.set_source(indirect_node, indirect_node->source().identifier());
+                        if (indirect_node->is_mutable() && indirect_node->to_mutable().dependency() != 0) {
+                            trace.set_dependency(indirect_node, indirect_node->to_mutable().dependency());
+                        }
+                    } else if (attribute.is_nil()) {
+                        found_nil_attribute = true;
+                        break;
+                    }
+                }
+                if (found_nil_attribute) {
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void Graph::add_trace(Trace *_Nullable trace) {

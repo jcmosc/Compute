@@ -3,7 +3,7 @@
 #include <ComputeCxx/AGBase.h>
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
-#include <platform/platform.h>
+#include <platform/lock.h>
 
 #include "Subgraph.h"
 

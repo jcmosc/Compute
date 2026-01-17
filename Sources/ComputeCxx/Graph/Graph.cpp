@@ -9,6 +9,7 @@
 #include <ranges>
 #include <set>
 
+#include <Utilities/FreeDeleter.h>
 #include <Utilities/List.h>
 #include <platform/lock.h>
 #include <platform/once.h>
@@ -46,6 +47,62 @@ Graph::Graph()
     });
 
     _types.push_back(nullptr);
+
+    static auto [trace_options, trace_subsystems] =
+        []() -> std::tuple<uint32_t, vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>> {
+        // TODO: debug server
+        // TODO: profile
+
+        vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> trace_subsystems = {};
+
+        AGGraphTraceOptions trace_options = 0;
+        const char *trace_string = getenv("AG_TRACE");
+        if (trace_string) {
+            char *endptr = nullptr;
+            trace_options = (uint32_t)strtol(trace_string, &endptr, 0);
+
+            if (endptr) {
+                const char *c = endptr + strspn(endptr, ", \t\n\f\r");
+                while (c) {
+                    size_t option_length = strcspn(c, ", \t\n\f\r");
+
+                    char *option = (char *)malloc(option_length + 1);
+                    memcpy(option, c, option_length);
+                    option[option_length] = 0;
+
+                    if (strcasecmp(option, "enabled") == 0) {
+                        trace_options |= AGGraphTraceOptionsEnabled;
+                        free(option);
+                    } else if (strcasecmp(option, "full") == 0) {
+                        trace_options |= AGGraphTraceOptionsFull;
+                        free(option);
+                    } else if (strcasecmp(option, "backtrace") == 0) {
+                        trace_options |= AGGraphTraceOptionsBacktrace;
+                        free(option);
+                    } else if (strcasecmp(option, "prepare") == 0) {
+                        trace_options |= AGGraphTraceOptionsPrepare;
+                        free(option);
+                    } else if (strcasecmp(option, "custom") == 0) {
+                        trace_options |= AGGraphTraceOptionsCustom;
+                        free(option);
+                    } else if (strcasecmp(option, "all") == 0) {
+                        trace_options |= AGGraphTraceOptionsAll;
+                        free(option);
+                    } else {
+                        trace_subsystems.push_back(std::unique_ptr<const char, util::free_deleter>(option));
+                    }
+
+                    c += strspn(c + option_length, ", \t\n\f\r");
+                }
+            }
+        }
+
+        return {trace_options, std::move(trace_subsystems)};
+    }();
+          
+    if (trace_options && !trace_subsystems.empty()) {
+        start_tracing(trace_options, std::span((const char **)trace_subsystems.data(), trace_subsystems.size()));
+    }
 
     // Prepend this graph
     all_lock();

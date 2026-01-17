@@ -99,7 +99,7 @@ Graph::Graph()
 
         return {trace_options, std::move(trace_subsystems)};
     }();
-          
+
     if (trace_options && !trace_subsystems.empty()) {
         start_tracing(trace_options, std::span((const char **)trace_subsystems.data(), trace_subsystems.size()));
     }
@@ -1884,18 +1884,25 @@ void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value
 #pragma mark - Trace
 
 void Graph::start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
-    if (trace_options & AGGraphTraceOptionsEnabled && _trace_recorder == nullptr) {
-        _trace_recorder = new TraceRecorder(this, trace_options, subsystems);
-        if (trace_options & AGGraphTraceOptionsPrepare) {
-            prepare_trace(*_trace_recorder);
-        }
-        add_trace(_trace_recorder);
-
-        static platform_once_t cleanup;
-        platform_once(&cleanup, []() {
-            // TODO
-        });
+    if ((trace_options & AGGraphTraceOptionsEnabled) == 0) {
+        return;
     }
+    if (_trace_recorder) {
+        return;
+    }
+
+    _trace_recorder = new TraceRecorder(this, trace_options, subsystems);
+    if (trace_options & AGGraphTraceOptionsPrepare) {
+        prepare_trace(*_trace_recorder);
+    }
+    add_trace(_trace_recorder);
+
+    static platform_once_t cleanup;
+    platform_once(&cleanup, []() {
+        atexit([]() {
+            Graph::trace_assertion_failure(true, "process exiting");
+        });
+    });
 }
 
 void Graph::stop_tracing() {

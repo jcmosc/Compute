@@ -21,7 +21,7 @@ AG_EXTERN_C_BEGIN
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphStartTracing(AGGraphRef _Nullable graph, AGGraphTraceOptions trace_options)
-    AG_SWIFT_NAME(AGGraphRef.startTracing(_:flags:));
+    AG_SWIFT_NAME(AGGraphRef.startTracing(_:options:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

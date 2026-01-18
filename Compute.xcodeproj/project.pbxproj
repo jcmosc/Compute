@@ -17,39 +17,6 @@
 		1AEE2EA52F16D2A7009CBD65 /* libswiftCore.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libswiftCore.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.2.sdk/usr/lib/swift/libswiftCore.tbd; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		1AEE30612F16D8B2009CBD65 /* Exceptions for "ComputeCxx" folder in "Compute" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			publicHeaders = (
-				include/ComputeCxx/AGAttribute.h,
-				include/ComputeCxx/AGAttributeInfo.h,
-				include/ComputeCxx/AGAttributeType.h,
-				include/ComputeCxx/AGBase.h,
-				include/ComputeCxx/AGChangedValue.h,
-				include/ComputeCxx/AGClosure.h,
-				include/ComputeCxx/AGComparison.h,
-				include/ComputeCxx/AGDescription.h,
-				include/ComputeCxx/AGGraph.h,
-				include/ComputeCxx/AGGraphCounterQueryType.h,
-				include/ComputeCxx/AGInputOptions.h,
-				include/ComputeCxx/AGSearchOptions.h,
-				include/ComputeCxx/AGSubgraph.h,
-				include/ComputeCxx/AGTargetConditionals.h,
-				include/ComputeCxx/AGTrace.h,
-				include/ComputeCxx/AGTraceFlags.h,
-				include/ComputeCxx/AGTreeElement.h,
-				include/ComputeCxx/AGTreeValue.h,
-				include/ComputeCxx/AGTuple.h,
-				include/ComputeCxx/AGType.h,
-				include/ComputeCxx/AGUniqueID.h,
-				include/ComputeCxx/AGValue.h,
-				include/ComputeCxx/AGWeakAttribute.h,
-				include/ComputeCxx/ComputeCxx.h,
-			);
-			target = 1AD6DB882F16AA0D00D4C5D6 /* Compute */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1AEE2D3B2F16D0BF009CBD65 /* Platform */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -65,9 +32,6 @@
 		};
 		1AEE2E362F16D1DB009CBD65 /* ComputeCxx */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				1AEE30612F16D8B2009CBD65 /* Exceptions for "ComputeCxx" folder in "Compute" target */,
-			);
 			name = ComputeCxx;
 			path = Sources/ComputeCxx;
 			sourceTree = "<group>";
@@ -147,6 +111,7 @@
 			buildConfigurationList = 1AD6DB902F16AA0D00D4C5D6 /* Build configuration list for PBXNativeTarget "Compute" */;
 			buildPhases = (
 				1AD6DB842F16AA0D00D4C5D6 /* Headers */,
+				1A628D742F1D506100C17ED9 /* Process Headers */,
 				1AD6DB852F16AA0D00D4C5D6 /* Sources */,
 				1AD6DB862F16AA0D00D4C5D6 /* Frameworks */,
 				1AD6DB872F16AA0D00D4C5D6 /* Resources */,
@@ -212,6 +177,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1A628D742F1D506100C17ED9 /* Process Headers */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"$(SRCROOT)/Scripts/Xcode/process_headers_inputs.xcfilelist",
+			);
+			inputPaths = (
+				"$(SRCROOT)/Scripts/Xcode/process_headers.sh",
+			);
+			name = "Process Headers";
+			outputFileListPaths = (
+				"$(SRCROOT)/Scripts/Xcode/process_headers_outputs.xcfilelist",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nScripts/Xcode/process_headers.sh\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1AD6DB852F16AA0D00D4C5D6 /* Sources */ = {

@@ -1,0 +1,8 @@
+framework module Compute {
+    umbrella header "Compute.h"
+
+    export *
+    module * {
+        export *
+    }
+}

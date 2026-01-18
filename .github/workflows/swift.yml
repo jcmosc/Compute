@@ -30,6 +30,11 @@ jobs:
         run: swift build
       - name: Build XCFramework
         run: ./Scripts/create-xcframework.sh
+      - name: Upload XCFramework
+        uses: actions/upload-artifact@v6
+        with:
+          name: Compute.xcframework
+          path: .build/Xcode/Frameworks/Compute.xcframework
 
   linux-build:
     name: Linux

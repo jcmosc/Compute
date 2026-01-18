@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "AGTargetConditionals.h"
+#include <ComputeCxx/AGTargetConditionals.h>
 
 #ifndef __has_include
 #define __has_include(x) 0

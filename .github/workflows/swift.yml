@@ -28,6 +28,8 @@ jobs:
           swift-version-minor: ${{ steps.swift-version.outputs.minor }}
       - name: Build
         run: swift build
+      - name: Build XCFramework
+        run: ./Scripts/create-xcframework.sh
 
   linux-build:
     name: Linux

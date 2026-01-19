@@ -327,9 +327,9 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
 				SYSTEM_HEADER_SEARCH_PATHS = (
-					Checkouts/swift/include,
-					Checkouts/swift/stdlib/include,
-					Checkouts/swift/stdlib/public/SwiftShims,
+					.build/checkouts/swift/include,
+					.build/checkouts/swift/stdlib/include,
+					.build/checkouts/swift/stdlib/public/SwiftShims,
 				);
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				USER_HEADER_SEARCH_PATHS = (
@@ -437,9 +437,9 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
 				SYSTEM_HEADER_SEARCH_PATHS = (
-					Checkouts/swift/include,
-					Checkouts/swift/stdlib/include,
-					Checkouts/swift/stdlib/public/SwiftShims,
+					.build/checkouts/swift/include,
+					.build/checkouts/swift/stdlib/include,
+					.build/checkouts/swift/stdlib/public/SwiftShims,
 				);
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				USER_HEADER_SEARCH_PATHS = (

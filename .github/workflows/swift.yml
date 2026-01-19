@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/checkout-swift-headers
         with:
-          path: Checkouts/swift
+          path: .build/checkouts/swift
           swift-version-major: ${{ steps.swift-version.outputs.major }}
           swift-version-minor: ${{ steps.swift-version.outputs.minor }}
       - name: Build
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/checkout-swift-headers
         with:
-          path: Checkouts/swift
+          path: .build/checkouts/swift
           swift-version-major: ${{ steps.swift-version.outputs.major }}
           swift-version-minor: ${{ steps.swift-version.outputs.minor }}
       - name: Build

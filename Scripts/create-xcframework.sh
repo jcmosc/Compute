@@ -36,3 +36,8 @@ find "$BUILD_DIR/Frameworks/Compute.xcframework" -type d -name "Compute.framewor
         echo "Added Headers symlink to: $framework_dir"
     fi
 done
+
+# Zip the framework, preserving symlinks
+cd "$BUILD_DIR/Frameworks"
+zip -r -y Compute.xcframework.zip Compute.xcframework
+echo "Created Compute.xcframework.zip"

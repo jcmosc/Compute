@@ -58,203 +58,209 @@ extension RecursiveEnum: Equatable where Value: Equatable {
 struct CompareValuesTests {
 
     @Test
-    func compareInlineEnumValues() {
-        setenv("AG_ASYNC_LAYOUTS", "0", 1)
+    func compareInlineEnumValues() async {
+        await #expect(processExitsWith: .success) {
+            setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.empty,
-                InlineEnum<Parity>.empty
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.empty,
+                    InlineEnum<Parity>.empty
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.empty
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.empty
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.empty,
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0))
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.empty,
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0))
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0))
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0))
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.node(value: Parity(rawValue: 1))
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 1))
+                ) == false
+            )
 
-        // default mode is .equatableAlways
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.node(value: Parity(rawValue: 2))
-            ) == true
-        )
+            // default mode is .equatableAlways
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 2))
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.node(value: Parity(rawValue: 2)),
-                mode: .bitwise
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 2)),
+                    mode: .bitwise
+                ) == false
+            )
 
-        // POD because case is inline
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.node(value: Parity(rawValue: 2)),
-                mode: .equatableUnlessPOD
-            ) == false
-        )
+            // POD because case is inline
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 2)),
+                    mode: .equatableUnlessPOD
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
-                InlineEnum<Parity>.node(value: Parity(rawValue: 2)),
-                mode: .equatableAlways
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 0)),
+                    InlineEnum<Parity>.node(value: Parity(rawValue: 2)),
+                    mode: .equatableAlways
+                ) == true
+            )
+        }
     }
 
     @Test
-    func compareRecursiveEnumValues() {
-        setenv("AG_ASYNC_LAYOUTS", "0", 1)
+    func compareRecursiveEnumValues() async {
+        await #expect(processExitsWith: .success) {
+            setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.empty,
-                RecursiveEnum<Parity>.empty
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.empty,
+                    RecursiveEnum<Parity>.empty
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.empty
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.empty
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.empty,
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty)
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.empty,
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty)
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty)
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty)
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 1), next: .empty)
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 1), next: .empty)
+                ) == false
+            )
 
-        // default mode is .equatableAlways
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty)
-            ) == true
-        )
+            // default mode is .equatableAlways
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty)
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty),
-                mode: .bitwise
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty),
+                    mode: .bitwise
+                ) == false
+            )
 
-        // not POD because case is indirect
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty),
-                mode: .equatableUnlessPOD
-            ) == true
-        )
+            // not POD because case is indirect
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty),
+                    mode: .equatableUnlessPOD
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
-                RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty),
-                mode: .equatableAlways
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 0), next: .empty),
+                    RecursiveEnum<Parity>.node(value: Parity(rawValue: 2), next: .empty),
+                    mode: .equatableAlways
+                ) == true
+            )
+        }
     }
 
     @Test
-    func compareRecursiveEnumNonEquatableValues() {
-        setenv("AG_ASYNC_LAYOUTS", "0", 1)
+    func compareRecursiveEnumNonEquatableValues() async {
+        await #expect(processExitsWith: .success) {
+            setenv("AG_ASYNC_LAYOUTS", "0", 1)
 
-        #expect(
-            compareValues(
-                RecursiveEnum<WithExistential>.empty,
-                RecursiveEnum<WithExistential>.empty
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<WithExistential>.empty,
+                    RecursiveEnum<WithExistential>.empty
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
-                RecursiveEnum<WithExistential>.empty
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
+                    RecursiveEnum<WithExistential>.empty
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<WithExistential>.empty,
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty)
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<WithExistential>.empty,
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty)
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<Int>.node(value: 62, next: .empty),
-                RecursiveEnum<Int>.node(value: 62, next: .empty)
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<Int>.node(value: 62, next: .empty),
+                    RecursiveEnum<Int>.node(value: 62, next: .empty)
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty)
-            ) == true
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty)
+                ) == true
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 1), next: .empty)
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 1), next: .empty)
+                ) == false
+            )
 
-        #expect(
-            compareValues(
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
-                RecursiveEnum<WithExistential>.node(value: WithExistential(type: String.self, int: 0), next: .empty)
-            ) == false
-        )
+            #expect(
+                compareValues(
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: Int.self, int: 0), next: .empty),
+                    RecursiveEnum<WithExistential>.node(value: WithExistential(type: String.self, int: 0), next: .empty)
+                ) == false
+            )
+        }
     }
 
 }

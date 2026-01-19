@@ -11,10 +11,26 @@ xcodebuild archive \
     -archivePath "$BUILD_DIR/Archives/Compute-macOS.xcarchive" \
     ENABLE_USER_SCRIPT_SANDBOXING=NO
 
+xcodebuild archive \
+    -project Compute.xcodeproj \
+    -scheme Compute \
+    -destination "generic/platform=iOS" \
+    -archivePath "$BUILD_DIR/Archives/Compute-iOS.xcarchive" \
+    ENABLE_USER_SCRIPT_SANDBOXING=NO
+
+xcodebuild archive \
+    -project Compute.xcodeproj \
+    -scheme Compute \
+    -destination "generic/platform=iOS Simulator" \
+    -archivePath "$BUILD_DIR/Archives/Compute-iOS-Simulator.xcarchive" \
+    ENABLE_USER_SCRIPT_SANDBOXING=NO
+
 rm -rf "$BUILD_DIR/Frameworks/Compute.xcframework"
 
 xcodebuild -create-xcframework \
     -archive "$BUILD_DIR/Archives/Compute-macOS.xcarchive" -framework Compute.framework \
+    -archive "$BUILD_DIR/Archives/Compute-iOS.xcarchive" -framework Compute.framework \
+    -archive "$BUILD_DIR/Archives/Compute-iOS-Simulator.xcarchive" -framework Compute.framework \
     -output "$BUILD_DIR/Frameworks/Compute.xcframework"
 
 # Post-process swiftinterface files to replace ComputeCxx references with Compute
@@ -36,3 +52,8 @@ find "$BUILD_DIR/Frameworks/Compute.xcframework" -type d -name "Compute.framewor
         echo "Added Headers symlink to: $framework_dir"
     fi
 done
+
+# Zip the framework, preserving symlinks
+cd "$BUILD_DIR/Frameworks"
+zip -r -y Compute.xcframework.zip Compute.xcframework
+echo "Created Compute.xcframework.zip"

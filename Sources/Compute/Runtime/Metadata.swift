@@ -47,7 +47,7 @@ extension Metadata {
 extension Metadata: @retroactive CustomStringConvertible {
 
     public var description: String {
-        #if os(macOS)
+        #if os(iOS) || os(macOS)
         return __AGTypeDescription(self) as String
         #else
         return String(__AGTypeCopyDescription(self))

@@ -181,7 +181,7 @@ struct GraphTests {
                 var traceCalls: [(name: String, graph: Graph)] = []
             }
 
-            var trace = AGTrace()
+            var trace = AGTraceType()
             trace.begin_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "beginTrace", graph: graph))
@@ -225,7 +225,7 @@ struct GraphTests {
                 var traceCalls: [(name: String, graph: Graph)] = []
             }
 
-            var trace = AGTrace()
+            var trace = AGTraceType()
             trace.begin_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "beginTrace", graph: graph))

@@ -202,14 +202,14 @@ struct SubgraphTests {
 
         @Test
         func invalidateSubgraph() async throws {
-            var trace = AGTrace()
-            trace.created_subgraph = { context, graph in
+            var trace = AGTraceType()
+            trace.subgraph_created = { context, graph in
                 guard let reporter = context?.assumingMemoryBound(to: TraceReporter.self).pointee else {
                     return
                 }
                 reporter.createdSubgraphCount += 1
             }
-            trace.invalidate_subgraph = { context, graph in
+            trace.subgraph_destroy = { context, graph in
                 guard let reporter = context?.assumingMemoryBound(to: TraceReporter.self).pointee else {
                     return
                 }

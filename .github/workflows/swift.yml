@@ -33,8 +33,8 @@ jobs:
       - name: Upload XCFramework
         uses: actions/upload-artifact@v6
         with:
-          name: Compute.xcframework
-          path: .build/Xcode/Frameworks/Compute.xcframework
+          name: Compute.xcframework.zip
+          path: .build/Xcode/Frameworks/Compute.xcframework.zip
 
   linux-build:
     name: Linux

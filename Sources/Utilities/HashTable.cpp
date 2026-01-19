@@ -133,10 +133,13 @@ void UntypedTable::grow_buckets() {
     if (new_buckets) {
         _bucket_mask = num_buckets - 1;
         for (uint32_t i = 0; !(i >> old_width); i++) {
-            for (UntypedTable::HashNode *node = old_buckets[i]; node != nullptr; node = node->next) {
+            UntypedTable::HashNode *node = old_buckets[i];
+            while (node != nullptr) {
+                UntypedTable::HashNode *next = node->next;
                 uint64_t new_bucket = _bucket_mask & node->hash_value;
                 node->next = new_buckets[new_bucket];
                 new_buckets[new_bucket] = node;
+                node = next;
             }
         }
         _buckets = new_buckets;
@@ -242,11 +245,16 @@ bool UntypedTable::remove(key_type key) {
         return this->remove_ptr(key);
     }
     uint64_t hash_value = _hash(key);
-    HashNode *node = _buckets[_bucket_mask & hash_value];
+    uint64_t bucket = _bucket_mask & hash_value;
+    HashNode *prev = nullptr;
 
-    for (HashNode *candidate = node; candidate != nullptr; candidate = candidate->next) {
+    for (HashNode *candidate = _buckets[bucket]; candidate != nullptr; candidate = candidate->next) {
         if (candidate->hash_value == hash_value && _compare(candidate->key, key)) {
-            node->next = candidate->next;
+            if (prev == nullptr) {
+                _buckets[bucket] = candidate->next;
+            } else {
+                prev->next = candidate->next;
+            }
             if (_did_remove_key) {
                 _did_remove_key(candidate->key);
             }
@@ -258,7 +266,7 @@ bool UntypedTable::remove(key_type key) {
             _count -= 1;
             return true;
         }
-        node = candidate;
+        prev = candidate;
     }
 
     return false;
@@ -269,10 +277,16 @@ bool UntypedTable::remove_ptr(key_type key) {
         return false;
     }
 
-    HashNode *node = _buckets[_bucket_mask & _hash(key)];
-    for (HashNode *candidate = node; candidate != nullptr; candidate = candidate->next) {
+    uint64_t bucket = _bucket_mask & _hash(key);
+    HashNode *prev = nullptr;
+
+    for (HashNode *candidate = _buckets[bucket]; candidate != nullptr; candidate = candidate->next) {
         if (candidate->key == key) {
-            node->next = candidate->next;
+            if (prev == nullptr) {
+                _buckets[bucket] = candidate->next;
+            } else {
+                prev->next = candidate->next;
+            }
             if (_did_remove_key) {
                 _did_remove_key(candidate->key);
             }
@@ -284,7 +298,7 @@ bool UntypedTable::remove_ptr(key_type key) {
             _count -= 1;
             return true;
         }
-        node = candidate;
+        prev = candidate;
     }
     return false;
 }

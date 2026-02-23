@@ -21,11 +21,8 @@ jobs:
           echo "major=$MAJOR" >> $GITHUB_OUTPUT
           echo "minor=$MINOR" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/checkout-swift-headers
         with:
-          path: .build/checkouts/swift
-          swift-version-major: ${{ steps.swift-version.outputs.major }}
-          swift-version-minor: ${{ steps.swift-version.outputs.minor }}
+          submodules: true
       - name: Build
         run: swift build
       - name: Build XCFramework
@@ -49,18 +46,8 @@ jobs:
         run: |
           apt-get update
           apt-get install -y libssl-dev
-      - name: Swift version
-        id: swift-version
-        run: |
-          MAJOR=$(echo "${{ matrix.swift }}" | cut -d. -f1)
-          MINOR=$(echo "${{ matrix.swift }}" | cut -d. -f2)
-          echo "major=$MAJOR" >> $GITHUB_OUTPUT
-          echo "minor=$MINOR" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/checkout-swift-headers
         with:
-          path: .build/checkouts/swift
-          swift-version-major: ${{ steps.swift-version.outputs.major }}
-          swift-version-minor: ${{ steps.swift-version.outputs.minor }}
+          submodules: true
       - name: Build
         run: swift build -Xcc -Wno-elaborated-enum-base

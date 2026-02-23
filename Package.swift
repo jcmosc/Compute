@@ -2,7 +2,7 @@
 
 import PackageDescription
 
-let swiftCheckoutPath = "\(Context.packageDirectory)/.build/checkouts/swift"
+let swiftCheckoutPath = "\(Context.packageDirectory)/Checkouts/swift-runtime-headers"
 
 var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),

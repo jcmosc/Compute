@@ -9,15 +9,12 @@ platforms.
 
 ### Project setup
 
-This project has a dependency on the Swift language codebase, which must be
-cloned separately:
+This project has a dependency on a mirror of the the Swift language codebase,
+which must be checked out as a submodule separately:
 
 ```sh
-./Scripts/clone-swift.sh
+git submodule update --init --recursive
 ```
-
-This script will clone the Swift language repository to
-`.build/checkouts/swift`.
 
 ### Build as a Swift package
 

@@ -46,6 +46,9 @@ let package = Package(
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],
+            cSettings: [
+                .unsafeFlags(["-Wno-elaborated-enum-base"])
+            ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern"),
                 .unsafeFlags([

@@ -50,4 +50,4 @@ jobs:
         with:
           submodules: true
       - name: Build
-        run: swift build -Xcc -Wno-elaborated-enum-base
+        run: swift build

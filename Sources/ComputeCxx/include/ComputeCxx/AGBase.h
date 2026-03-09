@@ -128,12 +128,27 @@
 #define __AG_ENUM_FIXED_IS_AVAILABLE (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && (__has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum)))
 
 #if __AG_ENUM_FIXED_IS_AVAILABLE
-#define AG_ENUM(_type, _name)     enum __AG_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
-#define AG_CLOSED_ENUM(_type, _name)      enum __AG_CLOSED_ENUM_ATTRIBUTES _name : _type _name; enum _name : _type
+#define AG_ENUM(_type, _name) \
+  _Pragma("clang diagnostic push") \
+  _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"") \
+  enum __AG_ENUM_ATTRIBUTES _name : _type _name; \
+  enum _name : _type \
+  _Pragma("clang diagnostic pop")
+#define AG_CLOSED_ENUM(_type, _name) \
+  _Pragma("clang diagnostic push") \
+  _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"") \
+  enum __AG_CLOSED_ENUM_ATTRIBUTES _name : _type _name; \
+  enum _name : _type \
+  _Pragma("clang diagnostic pop")
 #if (__cplusplus)
 #define AG_OPTIONS(_type, _name) __attribute__((availability(swift,unavailable))) _type _name; enum __AG_OPTIONS_ATTRIBUTES : _name
 #else
-#define AG_OPTIONS(_type, _name) enum __AG_OPTIONS_ATTRIBUTES _name : _type _name; enum _name : _type
+#define AG_OPTIONS(_type, _name) \
+  _Pragma("clang diagnostic push") \
+  _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"") \
+  enum __AG_OPTIONS_ATTRIBUTES _name : _type _name; \
+  enum _name : _type \
+  _Pragma("clang diagnostic pop")
 #endif
 #else
 #define AG_ENUM(_type, _name) _type _name; enum

@@ -46,9 +46,6 @@ let package = Package(
         .target(
             name: "Compute",
             dependencies: ["ComputeCxx"],
-            cSettings: [
-                .unsafeFlags(["-Wno-elaborated-enum-base"])
-            ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern"),
                 .unsafeFlags([
@@ -89,15 +86,11 @@ let package = Package(
                 "ComputeCxxSwiftSupport",
                 .target(name: "SwiftCorelibsCoreFoundation", condition: .when(platforms: [.linux])),
             ],
-            cSettings: [
-                .unsafeFlags(["-Wno-elaborated-enum-base"])
-            ],
             cxxSettings: [
                 .headerSearchPath(""),
                 .headerSearchPath("internalInclude"),
                 .define("_GNU_SOURCE", .when(platforms: [.linux])),
                 .unsafeFlags([
-                    "-Wno-elaborated-enum-base",
                     "-static",
                     "-DCOMPILED_WITH_SWIFT",
                     "-DPURE_BRIDGING_MODE",

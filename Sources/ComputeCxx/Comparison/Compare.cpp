@@ -49,6 +49,10 @@ Compare::Enum::~Enum() {
     }
 }
 
+Compare::Frame::Frame(vector<Enum, 8, uint64_t> *enums): _enums(enums), _start(enums->size()) {
+    
+}
+
 Compare::Frame::~Frame() {
     while (_enums->size() > _start) {
         _enums->pop_back();
@@ -57,6 +61,8 @@ Compare::Frame::~Frame() {
 
 bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                          size_t size, AGComparisonOptions options) {
+    Frame frame = Frame(&_enums);
+    
     size_t end = size < 0 ? ~0 : offset + size;
 
     ValueLayoutReader reader = ValueLayoutReader(layout);

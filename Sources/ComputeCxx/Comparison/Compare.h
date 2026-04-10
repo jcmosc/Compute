@@ -51,6 +51,7 @@ class Compare {
         uint64_t _start;
 
       public:
+        Frame(vector<Enum, 8, uint64_t> *enums);
         ~Frame();
     };
 

@@ -49,8 +49,8 @@ class vector {
 
     // Move
 
-    vector(vector &&);
-    vector &operator=(vector &&);
+    vector(vector &&) noexcept;
+    vector &operator=(vector &&) noexcept;
 
     // Element access
 
@@ -160,6 +160,50 @@ vector<T, _inline_capacity, size_type>::~vector() {
     if (_buffer) {
         free((void *)_buffer);
     }
+}
+
+template <typename T, unsigned int _inline_capacity, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<T, _inline_capacity, size_type>::vector(vector &&other) noexcept
+    : _size(std::exchange(other._size, 0)), _capacity(std::exchange(other._capacity, _inline_capacity)) {
+    if (other._buffer) {
+        _buffer = std::exchange(other._buffer, nullptr);
+    } else {
+        for (auto i = 0; i < _size; ++i) {
+            new (&_inline_buffer[i]) T(std::move(other._inline_buffer[i]));
+            other._inline_buffer[i].~T();
+        }
+        _buffer = nullptr;
+    }
+}
+
+template <typename T, unsigned int _inline_capacity, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<T, _inline_capacity, size_type> &vector<T, _inline_capacity, size_type>::operator=(vector &&other) noexcept {
+    if (this != &other) {
+        for (auto i = 0; i < _size; i++) {
+            data()[i].~T();
+        }
+        if (_buffer) {
+            free(_buffer);
+        }
+        if (other._buffer) {
+            _buffer = std::exchange(other._buffer, nullptr);
+            _size = other._size;
+            _capacity = other._capacity;
+        } else {
+            for (auto i = 0; i < other._size; ++i) {
+                new (&_inline_buffer[i]) T(std::move(other._inline_buffer[i]));
+                other._inline_buffer[i].~T();
+            }
+            _buffer = nullptr;
+            _size = other._size;
+            _capacity = other._capacity;
+        }
+        other._size = 0;
+        other._capacity = _inline_capacity;
+    }
+    return *this;
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>

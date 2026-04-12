@@ -300,8 +300,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             // Restore actual data
             if (enum_item.mode) {
-                lhs = enum_item.lhs - offset;
-                rhs = enum_item.rhs - offset;
+                lhs = enum_item.lhs - enum_item.offset;
+                rhs = enum_item.rhs - enum_item.offset;
             }
 
             offset = enum_item.offset + enum_item.type->vw_size();

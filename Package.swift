@@ -60,7 +60,6 @@ let package = Package(
             dependencies: [
                 "Compute",
                 "_ComputeTestSupport",
-                .product(name: "Algorithms", package: "swift-algorithms"),
                 .product(name: "Semaphore", package: "Semaphore"),
             ],
             swiftSettings: [
@@ -72,6 +71,17 @@ let package = Package(
             name: "ComputeLayoutDescriptorTests",
             dependencies: [
                 "Compute"
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("Extern")
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
+        .testTarget(
+            name: "ComputeSwiftTests",
+            dependencies: [
+                "Compute",
+                .product(name: "Algorithms", package: "swift-algorithms"),
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")

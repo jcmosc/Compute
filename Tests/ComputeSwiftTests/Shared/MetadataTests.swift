@@ -24,9 +24,13 @@ struct MetadataTests {
             (TestExistentialMetatype.self, "Hashable.Protocol"),
             (TestNamespace.TestNestedStruct.self, "TestNamespace.TestNestedStruct"),
             (
+                TestGenericStruct<String>.self, "TestGenericStruct<String>"
+            ),
+            (
                 TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                 "TestGenericStruct<String>.TestNestedGenericStruct<Int>"
             ),
+            (TestPackedGenericStruct<String, Int>.self, "TestPackedGenericStruct<Pack{String, Int}>"),
         ] as [(Any.Type, String)]
     )
     func description(of type: Any.Type, equals expectedDescription: String) {
@@ -52,10 +56,12 @@ struct MetadataTests {
             (TestObjCClass.self, .none),
             (TestExistentialMetatype.self, .metatype),
             (TestNamespace.TestNestedStruct.self, .struct),
+            (TestGenericStruct<String>.self, .struct),
             (
                 TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                 .struct
             ),
+            (TestPackedGenericStruct<String, Int>.self, .struct),
         ] as [(Any.Type, Metadata.Kind)]
     )
     func kind(of type: Any.Type, equals expectedKind: Metadata.Kind) {
@@ -84,11 +90,13 @@ struct MetadataTests {
                 (TestMetatype.self, false),
                 (TestObjCClass.self, false),
                 (TestExistentialMetatype.self, false),
+                (TestNamespace.self, true),
                 (TestNamespace.TestNestedStruct.self, true),
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     true
                 ),
+                (TestPackedGenericStruct<String, Int>.self, true),
             ] as [(Any.Type, Bool)]
         )
         func signature(of type: Any.Type, isValid: Bool) {
@@ -110,9 +118,15 @@ struct MetadataTests {
             signatures.append(Metadata(TestOptionalClass.self).signature)
             signatures.append(Metadata(TestOptionalStruct.self).signature)
             signatures.append(Metadata(TestNamespace.TestNestedStruct.self).signature)
+            signatures.append(Metadata(TestGenericStruct<String>.self).signature)
+            signatures.append(Metadata(TestGenericStruct<Int>.self).signature)
+            signatures.append(Metadata(TestGenericStruct<String>.TestNestedGenericStruct<String>.self).signature)
             signatures.append(Metadata(TestGenericStruct<String>.TestNestedGenericStruct<Int>.self).signature)
+            signatures.append(Metadata(TestGenericStruct<Int>.TestNestedGenericStruct<String>.self).signature)
+            signatures.append(Metadata(TestGenericStruct<Int>.TestNestedGenericStruct<Int>.self).signature)
+            signatures.append(Metadata(TestPackedGenericStruct<String, Int>.self).signature)
+            signatures.append(Metadata(TestPackedGenericStruct<String, Int, Bool>.self).signature)
 
-            #expect(signatures.count == 9)
             signatures.combinations(ofCount: 2).forEach { elements in
                 #expect(elements[0] != elements[1])
             }
@@ -143,10 +157,12 @@ struct MetadataTests {
                 (TestObjCClass.self, false),
                 (TestExistentialMetatype.self, false),
                 (TestNamespace.TestNestedStruct.self, true),
+                (TestGenericStruct<String>.self, true),
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     true
                 ),
+                (TestPackedGenericStruct<String, Int>.self, true),
             ] as [(Any.Type, Bool)]
         )
         func descriptor(of type: Any.Type, hasDescriptor: Bool) {
@@ -177,10 +193,12 @@ struct MetadataTests {
                 (TestObjCClass.self, false),
                 (TestExistentialMetatype.self, false),
                 (TestNamespace.TestNestedStruct.self, true),
+                (TestGenericStruct<String>.self, true),
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     true
                 ),
+                (TestPackedGenericStruct<String, Int>.self, true),
             ] as [(Any.Type, Bool)]
         )
         func nominalDescriptor(of type: Any.Type, hasNominalDescriptor: Bool) {
@@ -211,10 +229,12 @@ struct MetadataTests {
                 (TestObjCClass.self, nil),
                 (TestExistentialMetatype.self, nil),
                 (TestNamespace.TestNestedStruct.self, "TestNestedStruct"),
+                (TestGenericStruct<String>.self, "TestGenericStruct"),
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     "TestNestedGenericStruct"
                 ),
+                (TestPackedGenericStruct<String, Int>.self, "TestPackedGenericStruct"),
             ] as [(Any.Type, String?)]
         )
         func nominalDescriptorName(of type: Any.Type, equals expectedNominalDescriptorName: String?) {

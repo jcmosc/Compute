@@ -2,9 +2,9 @@
 
 #include <swift/Runtime/HeapObject.h>
 
-AGClosureStorage AGRetainClosure(void (*thunk)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                 void *_Nullable context) {
-    const void *retained_context = ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(context));
+AGClosureStorage AGRetainClosure(const void *thunk, const void *_Nullable context) {
+    void *mutable_context = const_cast<void *>(context);
+    const void *retained_context = ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(mutable_context));
     return AGClosureStorage((void *)thunk, retained_context);
 }
 

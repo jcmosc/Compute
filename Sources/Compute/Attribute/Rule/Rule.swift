@@ -50,19 +50,17 @@ extension Rule {
 
 }
 
-extension Graph {
-    @_extern(c, "AGGraphReadCachedAttribute")
-    static func readCachedAttribute(
-        hash: Int,
-        type: Metadata,
-        body: UnsafeRawPointer,
-        valueType: Metadata,
-        options: CachedValueOptions,
-        owner: AnyAttribute,
-        changed: UnsafeMutablePointer<Bool>?,
-        attributeTypeID: (AGUnownedGraphContextRef) -> UInt32
-    ) -> UnsafeRawPointer
-}
+@_silgen_name("AGGraphReadCachedAttribute")
+func AGGraphReadCachedAttribute(
+    hash: Int,
+    type: Metadata,
+    body: UnsafeRawPointer,
+    valueType: Metadata,
+    options: CachedValueOptions,
+    owner: AnyAttribute,
+    changed: UnsafeMutablePointer<Bool>?,
+    attributeTypeID: (AGUnownedGraphContextRef) -> UInt32
+) -> UnsafeRawPointer
 
 extension Rule where Self: Hashable {
 
@@ -103,7 +101,7 @@ extension Rule where Self: Hashable {
         bodyPtr: UnsafeRawPointer,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafePointer<Value> {
-        let value = Graph.readCachedAttribute(
+        let value = AGGraphReadCachedAttribute(
             hash: hashValue,
             type: Metadata(Self.self),
             body: bodyPtr,

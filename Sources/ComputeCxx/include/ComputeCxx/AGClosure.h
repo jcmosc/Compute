@@ -13,8 +13,7 @@ typedef struct AG_SWIFT_NAME(_AGClosureStorage) AGClosureStorage {
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGClosureStorage AGRetainClosure(void (*closure)(void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                 void *_Nullable closure_context);
+AGClosureStorage AGRetainClosure(const void *thunk, const void *_Nullable context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

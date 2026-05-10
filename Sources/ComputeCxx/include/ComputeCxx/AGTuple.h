@@ -79,7 +79,7 @@ void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, size_t ind
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
-                       void (*function)(void *context AG_SWIFT_CONTEXT, const AGUnsafeMutableTuple mutable_tuple)
+                       void (*function)(const AGUnsafeMutableTuple mutable_tuple, void *context AG_SWIFT_CONTEXT)
                            AG_SWIFT_CC(swift),
                        void *context);
 

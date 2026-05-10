@@ -142,7 +142,7 @@ AGSubgraphRef _Nullable AGGraphGetAttributeSubgraph2(AGAttribute attribute)
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift),
+                     void (*body)(AGAttribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                      const void *body_context);
 
 AG_EXPORT

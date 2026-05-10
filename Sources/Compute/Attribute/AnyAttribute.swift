@@ -1,23 +1,19 @@
 import ComputeCxx
 
-extension Graph {
+@_silgen_name("AGGraphMutateAttribute")
+func AGGraphMutateAttribute(
+    _ attribute: AnyAttribute,
+    type: Metadata,
+    invalidating: Bool,
+    modify: (UnsafeMutableRawPointer) -> Void
+)
 
-    @_extern(c, "AGGraphSearch")
-    static func search(
-        attribute: AnyAttribute,
-        options: SearchOptions,
-        predicate: @escaping (AnyAttribute) -> Bool
-    ) -> Bool
-
-    @_extern(c, "AGGraphMutateAttribute")
-    static func mutateAttribute(
-        _ attribute: AnyAttribute,
-        type: Metadata,
-        invalidating: Bool,
-        modify: @escaping (UnsafeMutableRawPointer) -> Void
-    )
-
-}
+@_silgen_name("AGGraphSearch")
+func AGGraphSearch(
+    attribute: AnyAttribute,
+    options: SearchOptions,
+    predicate: (AnyAttribute) -> Bool
+) -> Bool
 
 extension AnyAttribute {
 
@@ -40,9 +36,15 @@ extension AnyAttribute {
 
     public func mutateBody<Body>(as type: Body.Type, invalidating: Bool, _ mutator: (inout Body) -> Void) {
         withoutActuallyEscaping(mutator) { escapingMutator in
-            Graph.mutateAttribute(self, type: Metadata(type), invalidating: invalidating) { pointer in
+            let modify: (UnsafeMutableRawPointer) -> Void = { pointer in
                 escapingMutator(&pointer.assumingMemoryBound(to: Body.self).pointee)
             }
+            AGGraphMutateAttribute(
+                self,
+                type: Metadata(type),
+                invalidating: invalidating,
+                modify: modify
+            )
         }
     }
 
@@ -78,7 +80,7 @@ extension AnyAttribute {
 
     public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
         return withoutActuallyEscaping(predicate) { escapingPredicate in
-            return Graph.search(attribute: self, options: options, predicate: escapingPredicate)
+            return AGGraphSearch(attribute: self, options: options, predicate: escapingPredicate)
         }
     }
 

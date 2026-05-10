@@ -87,22 +87,26 @@ const char *AGTypeNominalDescriptorName(AGTypeID typeID) {
 }
 
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*apply)(const void *context AG_SWIFT_CONTEXT,
-                                     const char *field_name,
-                                     size_t field_offset, AGTypeID field_type)
+                       void (*apply)(const char *field_name,
+                                     size_t field_offset,
+                                     AGTypeID field_type,
+                                     const void *context AG_SWIFT_CONTEXT)
                            AG_SWIFT_CC(swift),
                        const void *apply_context) {
     class Visitor : public AG::swift::metadata_visitor {
       private:
-        void (*_body)(const void *context AG_SWIFT_CONTEXT, const char *field_name,
-                      size_t field_offset, AGTypeID field_type)
+        void (*_body)(const char *field_name,
+                      size_t field_offset,
+                      AGTypeID field_type,
+                      const void *context AG_SWIFT_CONTEXT)
             AG_SWIFT_CC(swift);
         const void *_body_context;
 
       public:
-        Visitor(void (*body)(const void *context AG_SWIFT_CONTEXT,
-                             const char *field_name, size_t field_offset,
-                             AGTypeID field_type) AG_SWIFT_CC(swift),
+        Visitor(void (*body)(const char *field_name,
+                             size_t field_offset,
+                             AGTypeID field_type,
+                             const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                 const void *body_context)
             : _body(body), _body_context(body_context) {}
 
@@ -115,8 +119,7 @@ void AGTypeApplyFields(AGTypeID typeID,
                 type.mangled_type_name_ref(mangled_name, true, nullptr);
             if (field_type) {
                 auto field_name = field.FieldName.get();
-                _body(_body_context, field_name, field_offset,
-                      AGTypeID(field_type));
+                _body(field_name, field_offset, AGTypeID(field_type), _body_context);
             }
             return true;
         }
@@ -129,9 +132,10 @@ void AGTypeApplyFields(AGTypeID typeID,
 }
 
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*apply)(const void *context AG_SWIFT_CONTEXT,
-                                      const char *field_name,
-                                      size_t field_offset, AGTypeID field_type)
+                        bool (*apply)(const char *field_name,
+                                      size_t field_offset,
+                                      AGTypeID field_type,
+                                      const void *context AG_SWIFT_CONTEXT)
                             AG_SWIFT_CC(swift),
                         const void *apply_context) {
     class Visitor : public AG::swift::metadata_visitor {
@@ -213,9 +217,10 @@ bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
 }
 
 bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
-                         void (*body)(void *context AG_SWIFT_CONTEXT,
-                                      uint32_t tag, AGTypeID field_type,
-                                      const void *field_value)
+                         void (*body)(uint32_t tag,
+                                      AGTypeID field_type,
+                                      const void *field_value,
+                                      void *context AG_SWIFT_CONTEXT)
                              AG_SWIFT_CC(swift),
                          void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
@@ -253,7 +258,7 @@ bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
                                 ~alignment_mask;
                             field_value = *(char **)value + offset;
                         }
-                        body(context, tag, AGTypeID(field_type), field_value);
+                        body(tag, AGTypeID(field_type), field_value, context);
 
                         enum_value_witness->destructiveInjectEnumTag(
                             reinterpret_cast<AG::swift::opaque_value *>(value),
@@ -268,9 +273,10 @@ bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
 }
 
 bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
-                                void (*body)(void *context AG_SWIFT_CONTEXT,
-                                             uint32_t tag, AGTypeID field_type,
-                                             void *field_value)
+                                void (*body)(uint32_t tag,
+                                             AGTypeID field_type,
+                                             void *field_value,
+                                             void *context AG_SWIFT_CONTEXT)
                                     AG_SWIFT_CC(swift),
                                 void *context) {
     auto type = reinterpret_cast<const AG::swift::metadata *>(typeID);
@@ -310,7 +316,7 @@ bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
                                 ~alignment_mask;
                             field_value = *(char **)value + offset;
                         }
-                        body(context, tag, AGTypeID(field_type), field_value);
+                        body(tag, AGTypeID(field_type), field_value, context);
 
                         enum_value_witness->destructiveInjectEnumTag(
                             reinterpret_cast<AG::swift::opaque_value *>(value),

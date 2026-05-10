@@ -64,8 +64,9 @@ class Graph {
         NeedsCallMainHandler = 3,
     };
 
-    typedef void (*MainHandler)(const void *_Nullable context AG_SWIFT_CONTEXT, void (*trampoline_thunk)(const void *),
-                                const void *trampoline) AG_SWIFT_CC(swift);
+    typedef void (*MainHandler)(void (*trampoline_thunk)(const void *),
+                                const void *trampoline,
+                                const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
 
   private:
     static Graph *_Nullable _all_graphs;

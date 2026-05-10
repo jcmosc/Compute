@@ -283,7 +283,7 @@ AGSubgraphRef AGGraphGetAttributeSubgraph2(AGAttribute attribute) {
 }
 
 void AGSubgraphApply(AGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(const void *context AG_SWIFT_CONTEXT, AGAttribute) AG_SWIFT_CC(swift), const void *body_context) {
+                     void (*body)(AGAttribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift), const void *body_context) {
     if (AG::Subgraph::from_cf(subgraph) == nullptr) {
         return;
     }

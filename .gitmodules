@@ -1,4 +1,4 @@
-[submodule "Checkouts/swift-runtime-headers"]
-	path = Checkouts/swift-runtime-headers
+[submodule "Submodules/swift-runtime-headers"]
+	path = Submodules/swift-runtime-headers
 	url = https://github.com/jcmosc/swift-runtime-headers.git
-	branch = release/6.2
+	branch = release/6.3

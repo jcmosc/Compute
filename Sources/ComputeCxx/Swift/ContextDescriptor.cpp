@@ -104,20 +104,22 @@ void context_descriptor::push_generic_args(const metadata &type,
         case ::swift::GenericParamKind::TypePack: {
             const metadata *types = nullptr;
             uint64_t num_types = 0;
-            if (info.generic_args[arg_index] != nullptr) {
-                types = info.generic_args[arg_index];
+            auto generic_arg = info.generic_args[arg_index];
+            if (generic_arg != nullptr) {
+                types = reinterpret_cast<const metadata *>(reinterpret_cast<uintptr_t>(generic_arg) & ~0x1);
+                
                 // The shape class is represented as the length of the type parameter pack
                 num_types =
                     reinterpret_cast<uint64_t>(info.generic_args[info.pack_shape_descriptors[pack_index].ShapeClass]);
             }
-
-            pack_index += 1;
 
             generic_args_vector.push_back({
                 types,
                 num_types,
                 true,
             });
+            
+            pack_index += 1;
             break;
         }
         default:

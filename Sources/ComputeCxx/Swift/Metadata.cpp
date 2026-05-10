@@ -159,7 +159,13 @@ void metadata::append_description(CFMutableStringRef description) const {
                         if (j > 0) {
                             CFStringAppendCString(description, ", ", kCFStringEncodingUTF8);
                         }
-                        arg.types[j].append_description(description);
+                        if (arg.is_pack) {
+                            // types points to an array of metadata pointers
+                            auto pack_types = reinterpret_cast<const metadata * const *>(arg.types);
+                            pack_types[j]->append_description(description);
+                        } else {
+                            arg.types[j].append_description(description);
+                        }
                     }
                     if (arg.is_pack) {
                         CFStringAppendCString(description, "}", kCFStringEncodingUTF8);
@@ -227,7 +233,15 @@ const void *metadata::signature() const {
         }
         for (auto generic_arg : generic_args) {
             for (int i = 0; i < generic_arg.num_types; i++) {
-                metadata_queue.push_back(&generic_arg.types[i]);
+                if (generic_arg.is_pack) {
+                    // types points to an array of metadata pointers
+                    auto pack_types = reinterpret_cast<const AG::swift::metadata * const *>(generic_arg.types);
+                    for (int j = 0; j < generic_arg.num_types; j++) {
+                        metadata_queue.push_back(pack_types[j]);
+                    }
+                } else {
+                    metadata_queue.push_back(&generic_arg.types[i]);
+                }
             }
         }
     }

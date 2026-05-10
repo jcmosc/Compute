@@ -12,7 +12,7 @@ jobs:
     runs-on: macos-26
     strategy:
       matrix:
-        swift: ["6.2"]
+        swift: ["6.3"]
     steps:
       - id: swift-version
         run: |
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        swift: ["6.2"]
+        swift: ["6.3"]
     container:
       image: swift:${{ matrix.swift }}-jammy
     steps:

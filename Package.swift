@@ -2,7 +2,7 @@
 
 import PackageDescription
 
-let swiftCheckoutPath = "\(Context.packageDirectory)/Checkouts/swift-runtime-headers"
+let swiftRuntimeHeadersPath = "\(Context.packageDirectory)/Submodules/swift-runtime-headers"
 
 var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
@@ -94,9 +94,9 @@ let package = Package(
                     "-static",
                     "-DCOMPILED_WITH_SWIFT",
                     "-DPURE_BRIDGING_MODE",
-                    "-isystem", "\(swiftCheckoutPath)/include",
-                    "-isystem", "\(swiftCheckoutPath)/stdlib/include",
-                    "-isystem", "\(swiftCheckoutPath)/stdlib/public/SwiftShims",
+                    "-isystem", "\(swiftRuntimeHeadersPath)/include",
+                    "-isystem", "\(swiftRuntimeHeadersPath)/stdlib/include",
+                    "-isystem", "\(swiftRuntimeHeadersPath)/stdlib/public/SwiftShims",
                 ]),
             ]
         ),

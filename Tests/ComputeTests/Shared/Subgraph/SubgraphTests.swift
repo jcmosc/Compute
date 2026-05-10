@@ -1,18 +1,6 @@
 import Foundation
 import Testing
 
-// Why do I have to redeclare this?
-extension Subgraph {
-
-    @_extern(c, "AGSubgraphAddObserver")
-    fileprivate static func addObserver(_ subgraph: UnsafeRawPointer, observer: @escaping () -> Void) -> Int
-
-    func addObserver(_ observer: @escaping () -> Void) -> Int {
-        return Subgraph.addObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
-    }
-
-}
-
 @Suite
 struct SubgraphTests {
 

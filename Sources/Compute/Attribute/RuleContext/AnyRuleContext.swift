@@ -1,5 +1,8 @@
 import ComputeCxx
 
+@_silgen_name("AGGraphWithUpdate")
+func AGGraphWithUpdate(_ attribute: AnyAttribute, body: () -> Void)
+
 public struct AnyRuleContext {
 
     public var attribute: AnyAttribute
@@ -16,14 +19,8 @@ public struct AnyRuleContext {
         return RuleContext<Value>(attribute: Attribute(identifier: attribute))
     }
 
-    @_extern(c, "AGGraphWithUpdate")
-    private static func withUpdate(_ attribute: AnyAttribute, body: @escaping () -> Void)
-
     public func update(body: () -> Void) {
-        // TODO: double check needs to be escaping
-        withoutActuallyEscaping(body) { escapingBody in
-            AnyRuleContext.withUpdate(attribute, body: escapingBody)
-        }
+        AGGraphWithUpdate(attribute, body: body)
     }
 
     public func changedValue<Value>(

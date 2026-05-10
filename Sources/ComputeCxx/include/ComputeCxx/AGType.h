@@ -78,29 +78,37 @@ typedef AG_OPTIONS(uint32_t, AGTypeApplyOptions) {
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGTypeApplyFields(AGTypeID typeID,
-                       void (*apply)(const void *_Nullable context AG_SWIFT_CONTEXT, const char *field_name,
-                                     size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
+                       void (*apply)(const char *field_name,
+                                     size_t field_offset,
+                                     AGTypeID field_type,
+                                     const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                        const void *apply_context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 bool AGTypeApplyFields2(AGTypeID typeID, AGTypeApplyOptions options,
-                        bool (*_Nonnull apply)(const void *context AG_SWIFT_CONTEXT, const char *field_name,
-                                               size_t field_offset, AGTypeID field_type) AG_SWIFT_CC(swift),
+                        bool (*_Nonnull apply)(const char *field_name,
+                                               size_t field_offset,
+                                               AGTypeID field_type,
+                                               const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                         const void *apply_context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 bool AGTypeApplyEnumData(AGTypeID typeID, void *value,
-                         void (*body)(void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
-                                      const void *field_value) AG_SWIFT_CC(swift),
+                         void (*body)(uint32_t tag,
+                                      AGTypeID field_type,
+                                      const void *field_value,
+                                      void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                          void *context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 bool AGTypeApplyMutableEnumData(AGTypeID typeID, void *value,
-                                void (*body)(void *context AG_SWIFT_CONTEXT, uint32_t tag, AGTypeID field_type,
-                                             void *field_value) AG_SWIFT_CC(swift),
+                                void (*body)(uint32_t tag,
+                                             AGTypeID field_type,
+                                             void *field_value,
+                                             void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
                                 void *context);
 
 AG_EXPORT

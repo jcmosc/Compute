@@ -1,21 +1,21 @@
 import ComputeCxx
 
+@_silgen_name("AGTupleWithBuffer")
+func AGTupleWithBuffer(
+    of type: TupleType,
+    count: Int,
+    body: (UnsafeMutableTuple) -> Void
+)
+
 public func withUnsafeTuple(
     of type: TupleType,
     count: Int,
     body: (UnsafeMutableTuple) -> Void
 ) {
-    return TupleType.withUnsafeTuple(of: type, count: count, body: body)
+    return AGTupleWithBuffer(of: type, count: count, body: body)
 }
 
 extension TupleType {
-
-    @_extern(c, "AGTupleWithBuffer")
-    fileprivate static func withUnsafeTuple(
-        of type: TupleType,
-        count: Int,
-        body: (UnsafeMutableTuple) -> Void
-    )
 
     public init(_ types: [Any.Type]) {
         self.init(count: types.count, elements: types.map(Metadata.init))

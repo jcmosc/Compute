@@ -1,17 +1,20 @@
 import ComputeCxx
 
-extension Metadata {
-
-    @_extern(c, "AGTypeApplyFields")
-    static func applyFields(type: Metadata, body: (UnsafePointer<CChar>, Int, Metadata) -> Void)
-
-}
+@_silgen_name("AGTypeApplyFields")
+func AGTypeApplyFields(_ type: Metadata, body: (UnsafePointer<CChar>, Int, Metadata) -> Void)
 
 public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, Any.Type) -> Void) {
-    Metadata.applyFields(type: Metadata(type)) { fieldName, fieldOffset, fieldType in
+    AGTypeApplyFields(Metadata(type)) { fieldName, fieldOffset, fieldType in
         body(fieldName, fieldOffset, fieldType.type)
     }
 }
+
+@_silgen_name("AGTypeApplyFields2")
+func AGTypeApplyFields2(
+    _ type: Metadata,
+    options: Metadata.ApplyOptions,
+    body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
+) -> Bool
 
 extension Metadata {
 
@@ -23,21 +26,13 @@ extension Metadata {
         return unsafeBitCast(rawValue, to: Any.Type.self)
     }
 
-    @_extern(c, "AGTypeApplyFields2")
-    static func applyFields2(
-        type: Metadata,
-        options: Metadata.ApplyOptions,
-        body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
-    )
-        -> Bool
-
     public func forEachField(
         options: Metadata.ApplyOptions,
         do body: (UnsafePointer<CChar>, Int, Any.Type) -> Bool
     )
         -> Bool
     {
-        return Metadata.applyFields2(type: self, options: options) { fieldName, fieldOffset, fieldType in
+        return AGTypeApplyFields2(self, options: options) { fieldName, fieldOffset, fieldType in
             return body(fieldName, fieldOffset, fieldType.type)
         }
     }

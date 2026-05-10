@@ -217,7 +217,7 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
     _main_handler_context = nullptr;
 
     MainTrampoline trampoline = {this, current_update_thread, context, body};
-    main_handler(main_handler_context, MainTrampoline::thunk, &trampoline);
+    main_handler(MainTrampoline::thunk, &trampoline, main_handler_context);
 
     _main_handler = main_handler;
     _main_handler_context = main_handler_context;

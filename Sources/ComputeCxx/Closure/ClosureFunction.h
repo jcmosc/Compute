@@ -6,10 +6,11 @@
 
 namespace AG {
 
-template <typename ReturnType, typename... Args> class ClosureFunction {
+/// C++ function type that is equivalent to the lowered Swift closure type.
+template <typename Result, typename... Args> class ClosureFunction {
   public:
     using Context = const void *_Nullable;
-    using Function = AG_SWIFT_CC(swift) ReturnType (*_Nullable)(Context AG_SWIFT_CONTEXT, Args...);
+    using Function = AG_SWIFT_CC(swift) Result (*_Nullable)(Args..., Context AG_SWIFT_CONTEXT);
 
   private:
     Function _function;
@@ -70,33 +71,33 @@ template <typename ReturnType, typename... Args> class ClosureFunction {
 
     explicit operator bool() { return _function != nullptr; }
 
-    const ReturnType operator()(Args... args) const noexcept {
-        return _function(_context, std::forward<Args>(args)...);
+    const Result operator()(Args... args) const noexcept {
+        return _function(std::forward<Args>(args)..., _context);
     }
 };
 
-template <typename ReturnType>
-    requires std::is_pointer_v<ReturnType>
-using ClosureFunctionVP = ClosureFunction<ReturnType>;
+template <typename Result>
+    requires std::is_pointer_v<Result>
+using ClosureFunctionVP = ClosureFunction<Result>;
 
-template <typename ReturnType>
-    requires std::same_as<ReturnType, void>
-using ClosureFunctionVV = ClosureFunction<ReturnType>;
+template <typename Result>
+    requires std::same_as<Result, void>
+using ClosureFunctionVV = ClosureFunction<Result>;
 
-template <typename ReturnType, typename Arg>
-    requires std::same_as<ReturnType, void> && std::unsigned_integral<Arg>
-using ClosureFunctionAV = ClosureFunction<ReturnType, Arg>;
+template <typename Result, typename Arg>
+    requires std::same_as<Result, void> && std::unsigned_integral<Arg>
+using ClosureFunctionAV = ClosureFunction<Result, Arg>;
 
-template <typename ReturnType, typename Arg>
-    requires std::same_as<ReturnType, bool> && std::unsigned_integral<Arg>
-using ClosureFunctionAB = ClosureFunction<ReturnType, Arg>;
+template <typename Result, typename Arg>
+    requires std::same_as<Result, bool> && std::unsigned_integral<Arg>
+using ClosureFunctionAB = ClosureFunction<Result, Arg>;
 
-template <typename ReturnType, typename Arg>
-    requires std::same_as<ReturnType, void>
-using ClosureFunctionPV = ClosureFunction<ReturnType, Arg>;
+template <typename Result, typename Arg>
+    requires std::same_as<Result, void>
+using ClosureFunctionPV = ClosureFunction<Result, Arg>;
 
-template <typename ReturnType, typename Arg>
-    requires std::unsigned_integral<ReturnType>
-using ClosureFunctionCI = ClosureFunction<ReturnType, Arg>;
+template <typename Result, typename Arg>
+    requires std::unsigned_integral<Result>
+using ClosureFunctionCI = ClosureFunction<Result, Arg>;
 
 } // namespace AG

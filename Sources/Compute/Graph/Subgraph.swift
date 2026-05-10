@@ -1,19 +1,25 @@
 import ComputeCxx
 
+@_silgen_name("AGSubgraphAddObserver")
+func AGSubgraphAddObserver(
+    _ subgraph: UnsafeRawPointer,
+    observer: () -> Void
+) -> Int
+
 extension Subgraph {
-
-    @_extern(c, "AGSubgraphAddObserver")
-    static func addObserver(
-        _ subgraph: UnsafeRawPointer,
-        observer: @escaping () -> Void
-    ) -> Int
-
     public func addObserver(_ observer: @escaping () -> Void) -> Int {
-        return Subgraph.addObserver(
-            unsafeBitCast(self, to: UnsafeRawPointer.self),
-            observer: observer
-        )
+        AGSubgraphAddObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
     }
+}
+
+@_silgen_name("AGSubgraphApply")
+func AGSubgraphApply(
+    _ subgraph: UnsafeRawPointer,
+    _ flags: Subgraph.Flags,
+    _ body: (AnyAttribute) -> Void
+)
+
+extension Subgraph {
 
     public func apply<T>(_ body: () -> T) -> T {
         let update = Graph.clearUpdate()
@@ -26,18 +32,11 @@ extension Subgraph {
         return body()
     }
 
-    @_extern(c, "AGSubgraphApply")
-    private static func forEach(
-        _ subgraph: UnsafeRawPointer,
-        _ flags: Subgraph.Flags,
-        _ body: (AnyAttribute) -> Void
-    )
-
     public func forEach(
         _ flags: Subgraph.Flags,
         _ body: (AnyAttribute) -> Void
     ) {
-        Subgraph.forEach(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, body)
+        AGSubgraphApply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, body)
     }
 
 }

@@ -154,7 +154,6 @@ Graph::Context *Graph::primary_context() const {
     Info info = {nullptr, UINT64_MAX};
     _contexts_by_id.for_each(
         [](const uint64_t context_id, Context *const context, void *info_ref) {
-            auto typed_info_ref = (std::pair<Context *, uint64_t> *)info_ref;
             if (context_id < ((Info *)info_ref)->context_id) {
                 ((Info *)info_ref)->context = context;
                 ((Info *)info_ref)->context_id = context_id;
@@ -872,7 +871,6 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
 
     OffsetAttributeID resolved_source = source.resolve(TraversalOptions::SkipMutableReference);
     source = resolved_source.attribute();
-    uint32_t offset = resolved_source.offset();
 
     AttributeID old_source = indirect_node->source().identifier();
     if (source == old_source) {
@@ -2052,8 +2050,6 @@ CFStringRef Graph::all_copy_trace_path() {
 }
 
 void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, ...) {
-    char *message = nullptr;
-
     va_list args;
     va_start(args, format);
 

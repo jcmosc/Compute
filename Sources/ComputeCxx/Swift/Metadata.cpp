@@ -535,7 +535,6 @@ bool metadata::visit(metadata_visitor &visitor) const {
     }
     case ::swift::MetadataKind::Enum:
     case ::swift::MetadataKind::Optional: {
-        auto enum_type = reinterpret_cast<const ::swift::EnumMetadata *>(this);
         auto context = descriptor();
         if (context && ::swift::EnumDescriptor::classof(context)) {
             auto enum_context = reinterpret_cast<const ::swift::EnumDescriptor *>(context);

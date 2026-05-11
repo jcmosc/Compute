@@ -547,7 +547,6 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                         data::ptr<Graph::TreeElement> tree = tree_stack.top();
                         tree_stack.pop();
 
-                        uint64_t tree_element_index;
                         auto found_tree_element = tree_element_indices.find(tree);
                         if (found_tree_element != tree_element_indices.end()) {
                             auto index = trees.size();
@@ -939,7 +938,6 @@ NSArray *Graph::description_stack_nodes(NSDictionary *options) {
 
     int frame_count = 0;
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
-        auto &frames = update.get()->frames();
         for (auto &frame : std::ranges::reverse_view(update.get()->frames())) {
             [nodes addObject:[NSNumber numberWithUnsignedInt:frame.attribute.offset()]];
 

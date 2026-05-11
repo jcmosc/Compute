@@ -35,8 +35,8 @@ void MachOFile::forEachLoadCommand(/* Diagnostics& diag, */ void (^callback)(con
     } else if (hasMachOBigEndianMagic()) {
         return; // can't process big endian mach-o
     } else {
-        const uint32_t *h = (uint32_t *)this;
-        /* diag.error("file does not start with MH_MAGIC[_64]: 0x%08X 0x%08X", h[0], h[1]); */
+        /* const uint32_t *h = (uint32_t *)this;
+        diag.error("file does not start with MH_MAGIC[_64]: 0x%08X 0x%08X", h[0], h[1]); */
         return; // not a mach-o file
     }
     const load_command *const cmdsEnd = (load_command *)((char *)startCmds + this->sizeofcmds);

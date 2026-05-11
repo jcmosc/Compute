@@ -593,7 +593,7 @@ bool compare_existential_values(const swift::existential_type_metadata &type, co
                 }
 
                 ValueLayout wrapped_layout = fetch(reinterpret_cast<const swift::metadata &>(type), options, 0);
-                ValueLayout layout = wrapped_layout == ValueLayoutTrivial ? nullptr : layout;
+                ValueLayout layout = wrapped_layout == ValueLayoutTrivial ? nullptr : wrapped_layout;
 
                 return compare(layout, lhs_value, rhs_value, type.vw_size(), options);
             }

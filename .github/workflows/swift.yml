@@ -24,10 +24,10 @@ jobs:
       - name: Build XCFramework
         run: ./Scripts/create-xcframework.sh
       - name: Upload XCFramework
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: Compute.xcframework.zip
           path: .build/Xcode/Frameworks/Compute.xcframework.zip
+          archive: false
 
   linux-build:
     name: Linux

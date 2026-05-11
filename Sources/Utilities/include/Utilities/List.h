@@ -131,7 +131,6 @@ template <typename T> void ForwardList<T>::pop_front() {
     }
 
     Node *next = _front->next;
-    T value = _front->value;
 
     _front->next = _spare;
     _spare = _front;

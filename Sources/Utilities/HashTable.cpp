@@ -189,8 +189,6 @@ bool UntypedTable::insert(key_type key, value_type value) {
         this->create_buckets();
     }
 
-    void *result;
-
     uint64_t hash_value = _hash(key);
     HashNode *node = _buckets[hash_value & _bucket_mask];
 

@@ -173,10 +173,18 @@ struct PrefetchCompareValuesTests {
 
                 let types: [Any.Type] = [Int.self, Double.self, Float.self]
                 for type in types {
-                    let layout0 = prefetchCompareValues(of: type, options: ComparisonOptions(mode: .bitwise), priority: 0)
+                    let layout0 = prefetchCompareValues(
+                        of: type,
+                        options: ComparisonOptions(mode: .bitwise),
+                        priority: 0
+                    )
                     #expect(layout0 == .trivial)
 
-                    let layout1 = prefetchCompareValues(of: type, options: ComparisonOptions(mode: .indirect), priority: 0)
+                    let layout1 = prefetchCompareValues(
+                        of: type,
+                        options: ComparisonOptions(mode: .indirect),
+                        priority: 0
+                    )
                     #expect(layout1 == .trivial)
 
                     let layout2 = prefetchCompareValues(

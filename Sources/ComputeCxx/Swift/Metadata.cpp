@@ -737,27 +737,34 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
 
 bool metadata::visit_heap_locals(metadata_visitor &visitor) const {
     auto local_type = reinterpret_cast<const ::swift::HeapLocalVariableMetadata *>(this);
-    if (!local_type->CaptureDescription || local_type->CaptureDescription[1] != '\0' ||
-        local_type->OffsetToFirstCapture == 0) {
+    if (!local_type->CaptureDescription) {
         return visitor.unknown_result();
     }
 
     auto descriptor = reinterpret_cast<const ::swift::reflection::CaptureDescriptor *>(local_type->CaptureDescription);
+    if (descriptor->NumMetadataSources != 0) {
+        return visitor.unknown_result();
+    }
+
+    size_t offset = local_type->OffsetToFirstCapture;
+    if (offset == 0) {
+        return visitor.unknown_result();
+    }
 
     if (descriptor->NumBindings) {
-        size_t offset = local_type->OffsetToFirstCapture;
+        // Builtin.RawPointer, see https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst
+        static const metadata *pointer_type = mangled_type_name_ref("Bp", true, nullptr);
+        if (pointer_type == nullptr) {
+            return visitor.unknown_result();
+        }
         for (unsigned i = 0; i < descriptor->NumBindings; ++i) {
-            // Builtin.RawPointer, see https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst
-            static const metadata *pointer_type = mangled_type_name_ref("Bp", true, nullptr);
-            if (pointer_type == nullptr) {
-                return visitor.unknown_result();
+            if (!visitor.visit_element(*pointer_type, metadata::ref_kind::unmanaged, offset, vw_size())) {
+                return false;
             }
-            visitor.visit_element(*pointer_type, metadata::ref_kind::unmanaged, offset, vw_size());
             offset += sizeof(void *);
         }
     }
 
-    size_t offset = local_type->OffsetToFirstCapture;
     for (auto capture_type_record = descriptor->capture_begin(), end = descriptor->capture_end();
          capture_type_record != end; ++capture_type_record) {
         const char *mangled_name = nullptr;
@@ -772,13 +779,13 @@ bool metadata::visit_heap_locals(metadata_visitor &visitor) const {
 
         size_t size = element_type->vw_size();
         size_t alignment_mask = element_type->getValueWitnesses()->getAlignmentMask();
-        size_t offset = (offset + alignment_mask) & ~alignment_mask;
+        size_t aligned_offset = (offset + alignment_mask) & ~alignment_mask;
 
-        if (!visitor.visit_element(*element_type, kind, offset, size)) {
+        if (!visitor.visit_element(*element_type, kind, aligned_offset, size)) {
             return false;
         }
 
-        offset += size;
+        offset = aligned_offset + size;
     }
 
     return true;

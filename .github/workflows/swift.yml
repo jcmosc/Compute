@@ -16,12 +16,6 @@ jobs:
     steps:
       - name: Set up Xcode
         run: sudo xcode-select -s "/Applications/Xcode_26.4.app"
-      - id: swift-version
-        run: |
-          MAJOR=$(echo "${{ matrix.swift }}" | cut -d. -f1)
-          MINOR=$(echo "${{ matrix.swift }}" | cut -d. -f2)
-          echo "major=$MAJOR" >> $GITHUB_OUTPUT
-          echo "minor=$MINOR" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
         with:
           submodules: true

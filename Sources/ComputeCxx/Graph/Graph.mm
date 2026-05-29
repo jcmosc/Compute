@@ -921,7 +921,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
             }
 
             frame_count += 1;
-            if (frame_count >= max_frames) {
+            if (max_frames >= 0 && frame_count >= max_frames) {
                 return description;
             }
         }
@@ -942,7 +942,7 @@ NSArray *Graph::description_stack_nodes(NSDictionary *options) {
             [nodes addObject:[NSNumber numberWithUnsignedInt:frame.attribute.offset()]];
 
             frame_count += 1;
-            if (frame_count >= max_frames) {
+            if (max_frames >= 0 && frame_count >= max_frames) {
                 return nodes;
             }
         }

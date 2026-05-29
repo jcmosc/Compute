@@ -63,7 +63,7 @@ class IndirectNode {
     const RelativeAttributeID next_attribute() const { return _next_attribute; }
     void set_next_attribute(RelativeAttributeID next_attribute) { _next_attribute = next_attribute; }
 
-    void modify(WeakAttributeID source, size_t size);
+    void modify(WeakAttributeID source, size_t offset);
 };
 
 class MutableIndirectNode : public IndirectNode {

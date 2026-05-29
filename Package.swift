@@ -11,7 +11,7 @@ var dependencies: [Package.Dependency] = [
 
 let package = Package(
     name: "Compute",
-    platforms: [.macOS(.v26)],
+    platforms: [.macOS(.v15)],
     products: [
         .library(name: "Compute", targets: ["Compute"]),
         .library(name: "_ComputeTestSupport", targets: ["_ComputeTestSupport"]),

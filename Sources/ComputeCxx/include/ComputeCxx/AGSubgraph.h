@@ -166,7 +166,7 @@ void AGSubgraphEndTreeElement(AGAttribute value);
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGSubgraphSetTreeOwner(AGSubgraphRef subgraph, AGAttribute owner)
-    AG_SWIFT_NAME(setter:AGSubgraphRef.treeOwner(self:_:));
+    AG_SWIFT_NAME(AGSubgraphRef.setTreeOwner(self:_:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

@@ -18,34 +18,39 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		1AB344D32FD1EDDE009243EA /* Configs */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Configs;
+			sourceTree = "<group>";
+		};
 		1AEE2D3B2F16D0BF009CBD65 /* Platform */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = Platform;
-			path = Sources/Platform;
+			path = ../Sources/Platform;
 			sourceTree = "<group>";
 		};
 		1AEE2DA62F16D158009CBD65 /* Utilities */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = Utilities;
-			path = Sources/Utilities;
+			path = ../Sources/Utilities;
 			sourceTree = "<group>";
 		};
 		1AEE2E362F16D1DB009CBD65 /* ComputeCxx */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = ComputeCxx;
-			path = Sources/ComputeCxx;
+			path = ../Sources/ComputeCxx;
 			sourceTree = "<group>";
 		};
 		1AEE2EA82F16D2CC009CBD65 /* ComputeCxxSwiftSupport */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = ComputeCxxSwiftSupport;
-			path = Sources/ComputeCxxSwiftSupport;
+			path = ../Sources/ComputeCxxSwiftSupport;
 			sourceTree = "<group>";
 		};
 		1AEE2ED32F16D309009CBD65 /* Compute */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			name = Compute;
-			path = Sources/Compute;
+			path = ../Sources/Compute;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -66,6 +71,7 @@
 		1AD6DB7D2F16A95B00D4C5D6 = {
 			isa = PBXGroup;
 			children = (
+				1AB344D32FD1EDDE009243EA /* Configs */,
 				1AEE2D3B2F16D0BF009CBD65 /* Platform */,
 				1AEE2DA62F16D158009CBD65 /* Utilities */,
 				1AEE2E362F16D1DB009CBD65 /* ComputeCxx */,
@@ -121,6 +127,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				1AB344D32FD1EDDE009243EA /* Configs */,
 				1AEE2D3B2F16D0BF009CBD65 /* Platform */,
 				1AEE2DA62F16D158009CBD65 /* Utilities */,
 				1AEE2E362F16D1DB009CBD65 /* ComputeCxx */,
@@ -185,20 +192,20 @@
 			files = (
 			);
 			inputFileListPaths = (
-				"$(SRCROOT)/Scripts/Xcode/process_headers_inputs.xcfilelist",
+				"$(SRCROOT)/Scripts/process_headers_inputs.xcfilelist",
 			);
 			inputPaths = (
-				"$(SRCROOT)/Scripts/Xcode/process_headers.sh",
+				"$(SRCROOT)/Scripts/process_headers.sh",
 			);
 			name = "Process Headers";
 			outputFileListPaths = (
-				"$(SRCROOT)/Scripts/Xcode/process_headers_outputs.xcfilelist",
+				"$(SRCROOT)/Scripts/process_headers_outputs.xcfilelist",
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nScripts/Xcode/process_headers.sh\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nScripts/process_headers.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -215,18 +222,24 @@
 /* Begin XCBuildConfiguration section */
 		1AD6DB822F16A95B00D4C5D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 1AB344D32FD1EDDE009243EA /* Configs */;
+			baseConfigurationReferenceRelativePath = Shared.xcconfig;
 			buildSettings = {
 			};
 			name = Debug;
 		};
 		1AD6DB832F16A95B00D4C5D6 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 1AB344D32FD1EDDE009243EA /* Configs */;
+			baseConfigurationReferenceRelativePath = Shared.xcconfig;
 			buildSettings = {
 			};
 			name = Release;
 		};
 		1AD6DB8E2F16AA0D00D4C5D6 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 1AB344D32FD1EDDE009243EA /* Configs */;
+			baseConfigurationReferenceRelativePath = Compute.xcconfig;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -287,9 +300,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					Sources/Platform/include,
-					Sources/Utilities/include,
-					Sources/ComputeCxx/include,
+					../Sources/Platform/include,
+					../Sources/Utilities/include,
+					../Sources/ComputeCxx/include,
 				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -320,21 +333,21 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = Sources/ComputeCxx/include;
+				SWIFT_INCLUDE_PATHS = ../Sources/ComputeCxx/include;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
 				SYSTEM_HEADER_SEARCH_PATHS = (
-					"Submodules/swift-runtime-headers/include",
-					"Submodules/swift-runtime-headers/stdlib/include",
-					"Submodules/swift-runtime-headers/stdlib/public/SwiftShims",
+					"../Submodules/swift-runtime-headers/include",
+					"../Submodules/swift-runtime-headers/stdlib/include",
+					"../Submodules/swift-runtime-headers/stdlib/public/SwiftShims",
 				);
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				USER_HEADER_SEARCH_PATHS = (
-					Sources/ComputeCxx,
-					Sources/ComputeCxx/internalInclude,
+					../Sources/ComputeCxx,
+					../Sources/ComputeCxx/internalInclude,
 				);
 				USE_HEADERMAP = NO;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -345,6 +358,8 @@
 		};
 		1AD6DB8F2F16AA0D00D4C5D6 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 1AB344D32FD1EDDE009243EA /* Configs */;
+			baseConfigurationReferenceRelativePath = Compute.xcconfig;
 			buildSettings = {
 				ALLOW_TARGET_PLATFORM_SPECIALIZATION = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -399,9 +414,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
-					Sources/Platform/include,
-					Sources/Utilities/include,
-					Sources/ComputeCxx/include,
+					../Sources/Platform/include,
+					../Sources/Utilities/include,
+					../Sources/ComputeCxx/include,
 				);
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -431,20 +446,20 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_INCLUDE_PATHS = Sources/ComputeCxx/include;
+				SWIFT_INCLUDE_PATHS = ../Sources/ComputeCxx/include;
 				SWIFT_INSTALL_MODULE = YES;
 				SWIFT_INSTALL_OBJC_HEADER = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 6.0;
 				SYSTEM_HEADER_SEARCH_PATHS = (
-					"Submodules/swift-runtime-headers/include",
-					"Submodules/swift-runtime-headers/stdlib/include",
-					"Submodules/swift-runtime-headers/stdlib/public/SwiftShims",
+					"../Submodules/swift-runtime-headers/include",
+					"../Submodules/swift-runtime-headers/stdlib/include",
+					"../Submodules/swift-runtime-headers/stdlib/public/SwiftShims",
 				);
 				TARGETED_DEVICE_FAMILY = "1,2,7";
 				USER_HEADER_SEARCH_PATHS = (
-					Sources/ComputeCxx,
-					Sources/ComputeCxx/internalInclude,
+					../Sources/ComputeCxx,
+					../Sources/ComputeCxx/internalInclude,
 				);
 				USE_HEADERMAP = NO;
 				VERSIONING_SYSTEM = "apple-generic";

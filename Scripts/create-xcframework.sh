@@ -5,21 +5,21 @@ set -e
 BUILD_DIR=".build/Xcode"
 
 xcodebuild archive \
-    -project Compute.xcodeproj \
+    -project Xcode/Compute.xcodeproj \
     -scheme Compute \
     -destination "generic/platform=macOS" \
     -archivePath "$BUILD_DIR/Archives/Compute-macOS.xcarchive" \
     ENABLE_USER_SCRIPT_SANDBOXING=NO
 
 xcodebuild archive \
-    -project Compute.xcodeproj \
+    -project Xcode/Compute.xcodeproj \
     -scheme Compute \
     -destination "generic/platform=iOS" \
     -archivePath "$BUILD_DIR/Archives/Compute-iOS.xcarchive" \
     ENABLE_USER_SCRIPT_SANDBOXING=NO
 
 xcodebuild archive \
-    -project Compute.xcodeproj \
+    -project Xcode/Compute.xcodeproj \
     -scheme Compute \
     -destination "generic/platform=iOS Simulator" \
     -archivePath "$BUILD_DIR/Archives/Compute-iOS-Simulator.xcarchive" \

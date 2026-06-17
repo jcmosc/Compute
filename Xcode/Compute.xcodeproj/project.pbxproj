@@ -127,7 +127,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1AB344D32FD1EDDE009243EA /* Configs */,
 				1AEE2D3B2F16D0BF009CBD65 /* Platform */,
 				1AEE2DA62F16D158009CBD65 /* Utilities */,
 				1AEE2E362F16D1DB009CBD65 /* ComputeCxx */,

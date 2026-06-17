@@ -43,26 +43,13 @@ public struct Attribute<Value> {
             preconditionFailure("attempting to create attribute with no subgraph: \(Body.self)")
         }
 
-        let typeID = graphContext.internAttributeType(
-            type: Metadata(Body.self)
-        ) {
-            let bodyType: _AttributeBody.Type
-            #if CompatibilityModeAttributeGraphV6
-            bodyType = Body.self
-            #else
-            bodyType = flags.contains(.external) ? _External.self : Body.self
-            #endif
-            let attributeType =
-                _AttributeType(
-                    selfType: bodyType,
-                    valueType: Value.self,
-                    flags: flags,
-                    update: update()
-                )
-            let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
-            pointer.initialize(to: attributeType)
-            return UnsafePointer(pointer)
-        }
+        let typeID = Graph.typeIndex(
+            ctx: graphContext,
+            body: Body.self,
+            valueType: Metadata(Value.self),
+            flags: flags,
+            update: update
+        )
         identifier = AnyAttribute(type: typeID, body: body, value: value)
     }
 

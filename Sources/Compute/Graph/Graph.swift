@@ -1,5 +1,46 @@
 import ComputeCxx
 
+@_silgen_name("IAGGraphInternAttributeType")
+public func internAttributeType(
+    ctx: UnownedGraphContext,
+    body: Metadata,
+    makeAttributeType: () -> UnsafePointer<_AttributeType>
+) -> UInt32
+
+extension Graph {
+    static func typeIndex(
+        ctx: UnownedGraphContext,
+        body: any _AttributeBody.Type,
+        valueType: Metadata,
+        flags: _AttributeType.Flags,
+        update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
+    ) -> UInt32 {
+        let makeAttributeType: () -> UnsafePointer<_AttributeType> = {
+            let bodyType: _AttributeBody.Type
+            #if CompatibilityModeAttributeGraphV6
+            bodyType = Body.self
+            #else
+            bodyType = flags.contains(.external) ? _External.self : body
+            #endif
+            let attributeType =
+                _AttributeType(
+                    selfType: bodyType,
+                    valueType: valueType,
+                    flags: flags,
+                    update: update()
+                )
+            let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
+            pointer.initialize(to: attributeType)
+            return UnsafePointer(pointer)
+        }
+        return internAttributeType(
+            ctx: ctx,
+            body: Metadata(body),
+            makeAttributeType: makeAttributeType
+        )
+    }
+}
+
 @_silgen_name("IAGGraphSetOutputValue")
 @inline(__always)
 @inlinable

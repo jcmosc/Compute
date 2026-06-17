@@ -6,29 +6,6 @@ struct ProtocolConformance {
     var witnessTable: UnsafeRawPointer
 }
 
-@_silgen_name("IAGGraphInternAttributeType")
-func IAGGraphInternAttributeType(
-    _ graph: UnsafeRawPointer,
-    type: Metadata,
-    makeAttributeType: () -> UnsafePointer<_AttributeType>
-) -> UInt32
-
-extension IAGUnownedGraphContextRef {
-
-    @inline(__always)
-    func internAttributeType(
-        type: Metadata,
-        makeAttributeType: () -> UnsafePointer<_AttributeType>
-    ) -> UInt32 {
-        return IAGGraphInternAttributeType(
-            unsafeBitCast(self, to: UnsafeRawPointer.self),
-            type: type,
-            makeAttributeType: makeAttributeType
-        )
-    }
-
-}
-
 extension String {
 
     static func _describing<Subject>(_ subject: UnsafeRawPointer, of type: Subject.Type) -> String {
@@ -98,7 +75,7 @@ extension _AttributeType {
 
     init(
         selfType: _AttributeBody.Type,
-        valueType: Any.Type,
+        valueType: Metadata,
         flags: Flags,
         update: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void,
     ) {
@@ -116,7 +93,7 @@ extension _AttributeType {
         )
         self.init(
             self_id: Metadata(selfType),
-            value_id: Metadata(valueType),
+            value_id: valueType,
             update: retainedUpdate,
             vtable: _AttributeType.vtable,
             flags: flags,

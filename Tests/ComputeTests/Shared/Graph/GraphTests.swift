@@ -85,10 +85,10 @@ struct GraphTests {
             let graph = Graph()
 
             // First type index is not 0
-            let intTypeIndex = __IAGGraphInternAttributeType(
-                graph.graphContext,
-                Metadata(External<Int>.self),
-                { _ in
+            let intTypeIndex = internAttributeType(
+                ctx: graph.graphContext,
+                body: Metadata(External<Int>.self),
+                makeAttributeType: {
                     let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
                     pointer.pointee.self_id = Metadata(External<Int>.self)
                     pointer.pointee.value_id = Metadata(Int.self)
@@ -96,16 +96,15 @@ struct GraphTests {
                         pointer.pointee.vtable = testVtablePointer
                     }
                     return UnsafePointer(pointer)
-                },
-                nil
+                }
             )
             #expect(intTypeIndex == 1)
 
             // A new type is assigned a new index
-            let stringTypeIndex = __IAGGraphInternAttributeType(
-                graph.graphContext,
-                Metadata(External<String>.self),
-                { _ in
+            let stringTypeIndex = internAttributeType(
+                ctx: graph.graphContext,
+                body: Metadata(External<String>.self),
+                makeAttributeType: {
                     let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
                     pointer.pointee.self_id = Metadata(External<String>.self)
                     pointer.pointee.value_id = Metadata(String.self)
@@ -113,16 +112,15 @@ struct GraphTests {
                         pointer.pointee.vtable = testVtablePointer
                     }
                     return UnsafePointer(pointer)
-                },
-                nil
+                }
             )
             #expect(stringTypeIndex == 2)
 
             // Interning the same type reuses the same index
-            let cachedIntTypeIndex = __IAGGraphInternAttributeType(
-                graph.graphContext,
-                Metadata(External<Int>.self),
-                { _ in
+            let cachedIntTypeIndex = internAttributeType(
+                ctx: graph.graphContext,
+                body: Metadata(External<Int>.self),
+                makeAttributeType: {
                     let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
                     pointer.pointee.self_id = Metadata(External<Int>.self)
                     pointer.pointee.value_id = Metadata(Int.self)
@@ -130,8 +128,7 @@ struct GraphTests {
                         pointer.pointee.vtable = testVtablePointer
                     }
                     return UnsafePointer(pointer)
-                },
-                nil
+                }
             )
             #expect(cachedIntTypeIndex == intTypeIndex)
         }
@@ -146,10 +143,10 @@ struct GraphTests {
 
                 let graph = Graph()
 
-                let _ = __IAGGraphInternAttributeType(
-                    graph.graphContext,
-                    Metadata(External<Int>.self),
-                    { _ in
+                let _ = internAttributeType(
+                    ctx: graph.graphContext,
+                    body: Metadata(External<Int>.self),
+                    makeAttributeType: {
                         let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
                         pointer.pointee.self_id = Metadata(External<Int>.self)
                         pointer.pointee.value_id = Metadata(Int.self)
@@ -163,8 +160,7 @@ struct GraphTests {
                         GraphTests.InternAttributeTypeTests.internedAttributeType = pointer
 
                         return UnsafePointer(pointer)
-                    },
-                    nil
+                    }
                 )
 
                 let attributeType = GraphTests.InternAttributeTypeTests.internedAttributeType?.pointee

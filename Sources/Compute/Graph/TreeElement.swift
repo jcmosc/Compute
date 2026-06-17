@@ -12,7 +12,7 @@ extension TreeElement {
 extension Nodes: @retroactive IteratorProtocol {
     public typealias Element = AnyAttribute
 
-    @inlinable
+    @_alwaysEmitIntoClient
     public mutating func next() -> AnyAttribute? {
         let result = __IAGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result

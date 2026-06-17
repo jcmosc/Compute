@@ -11,7 +11,11 @@ struct GraphTests {
         @Test
         func typeID() {
             let description = CFCopyTypeIDDescription(Graph.typeID) as String?
+            #if COMPATIBILITY_TESTS
+            #expect(description == "AGGraphStorage")
+            #else
             #expect(description == "IAGGraphStorage")
+            #endif
         }
 
         @Test

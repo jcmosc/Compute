@@ -23,6 +23,7 @@ let package = Package(
                 .product(name: "SExp", package: "swift-sexp"),
             ],
             swiftSettings: [
+                .define("COMPATIBILITY_TESTS"),
                 .enableExperimentalFeature("Extern"),
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
@@ -33,7 +34,8 @@ let package = Package(
                 "AttributeGraph"
             ],
             swiftSettings: [
-                .enableExperimentalFeature("Extern")
+                .define("COMPATIBILITY_TESTS"),
+                .enableExperimentalFeature("Extern"),
             ],
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),

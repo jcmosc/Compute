@@ -10,7 +10,7 @@ struct SubgraphTests {
         @Test
         func typeID() {
             let description = CFCopyTypeIDDescription(Subgraph.typeID) as String?
-            #expect(description == "AGSubgraph")
+            #expect(description == "IAGSubgraph")
         }
 
         @Test
@@ -190,7 +190,7 @@ struct SubgraphTests {
 
         @Test
         func invalidateSubgraph() async throws {
-            var trace = AGTraceType()
+            var trace = IAGTraceType()
             trace.subgraph_created = { context, graph in
                 guard let reporter = context?.assumingMemoryBound(to: TraceReporter.self).pointee else {
                     return

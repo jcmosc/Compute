@@ -1,16 +1,16 @@
 import ComputeCxx
 
-@_silgen_name("AGTypeApplyFields")
-func AGTypeApplyFields(_ type: Metadata, body: (UnsafePointer<CChar>, Int, Metadata) -> Void)
+@_silgen_name("IAGTypeApplyFields")
+func IAGTypeApplyFields(_ type: Metadata, body: (UnsafePointer<CChar>, Int, Metadata) -> Void)
 
 public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, Any.Type) -> Void) {
-    AGTypeApplyFields(Metadata(type)) { fieldName, fieldOffset, fieldType in
+    IAGTypeApplyFields(Metadata(type)) { fieldName, fieldOffset, fieldType in
         body(fieldName, fieldOffset, fieldType.type)
     }
 }
 
-@_silgen_name("AGTypeApplyFields2")
-func AGTypeApplyFields2(
+@_silgen_name("IAGTypeApplyFields2")
+func IAGTypeApplyFields2(
     _ type: Metadata,
     options: Metadata.ApplyOptions,
     body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
@@ -32,7 +32,7 @@ extension Metadata {
     )
         -> Bool
     {
-        return AGTypeApplyFields2(self, options: options) { fieldName, fieldOffset, fieldType in
+        return IAGTypeApplyFields2(self, options: options) { fieldName, fieldOffset, fieldType in
             return body(fieldName, fieldOffset, fieldType.type)
         }
     }
@@ -43,9 +43,9 @@ extension Metadata: @retroactive CustomStringConvertible {
 
     public var description: String {
         #if os(iOS) || os(macOS)
-        return __AGTypeDescription(self) as String
+        return __IAGTypeDescription(self) as String
         #else
-        return String(__AGTypeCopyDescription(self))
+        return String(__IAGTypeCopyDescription(self))
         #endif
     }
 

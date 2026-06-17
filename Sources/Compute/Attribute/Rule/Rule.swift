@@ -50,8 +50,8 @@ extension Rule {
 
 }
 
-@_silgen_name("AGGraphReadCachedAttribute")
-func AGGraphReadCachedAttribute(
+@_silgen_name("IAGGraphReadCachedAttribute")
+func IAGGraphReadCachedAttribute(
     hash: Int,
     type: Metadata,
     body: UnsafeRawPointer,
@@ -59,7 +59,7 @@ func AGGraphReadCachedAttribute(
     options: CachedValueOptions,
     owner: AnyAttribute,
     changed: UnsafeMutablePointer<Bool>?,
-    attributeTypeID: (AGUnownedGraphContextRef) -> UInt32
+    attributeTypeID: (IAGUnownedGraphContextRef) -> UInt32
 ) -> UnsafeRawPointer
 
 extension Rule where Self: Hashable {
@@ -78,7 +78,7 @@ extension Rule where Self: Hashable {
 
     public func cachedValueIfExists(options: CachedValueOptions, owner: AnyAttribute?) -> Value? {
         return withUnsafePointer(to: self) { bodyPointer in
-            let value = __AGGraphReadCachedAttributeIfExists(
+            let value = __IAGGraphReadCachedAttributeIfExists(
                 hashValue,
                 Metadata(Self.self),
                 bodyPointer,
@@ -101,7 +101,7 @@ extension Rule where Self: Hashable {
         bodyPtr: UnsafeRawPointer,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> UnsafePointer<Value> {
-        let value = AGGraphReadCachedAttribute(
+        let value = IAGGraphReadCachedAttribute(
             hash: hashValue,
             type: Metadata(Self.self),
             body: bodyPtr,

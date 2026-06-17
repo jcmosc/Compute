@@ -8,7 +8,7 @@
 
 #include "Attribute/AttributeID/OffsetAttributeID.h"
 #include "Attribute/AttributeView/AttributeView.h"
-#include "ComputeCxx/AGDescription.h"
+#include "ComputeCxx/IAGDescription.h"
 #include "Graph/UpdateStack.h"
 #include "Subgraph/Subgraph.h"
 #include "Swift/SwiftShims.h"
@@ -25,7 +25,7 @@ NSString *escaped_string(NSString *string, NSUInteger truncation_limit) {
 
 } // namespace
 
-namespace AG {
+namespace IAG {
 
 #pragma mark - Printing
 
@@ -56,7 +56,7 @@ void Graph::print_attribute(data::ptr<Node> node) {
 namespace {
 
 int cycle_verbosity() {
-    const char *print_cycles = getenv("AG_PRINT_CYCLES");
+    const char *print_cycles = getenv("IAG_PRINT_CYCLES");
     if (print_cycles) {
         return atoi(print_cycles);
     }
@@ -64,7 +64,7 @@ int cycle_verbosity() {
 }
 
 int trap_cycles() {
-    const char *trap_cycles = getenv("AG_TRAP_CYCLES");
+    const char *trap_cycles = getenv("IAG_TRAP_CYCLES");
     if (trap_cycles) {
         return atoi(trap_cycles) != 0;
     }
@@ -89,7 +89,7 @@ void Graph::print_cycle(data::ptr<Node> node) {
                 }
 
                 NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:@{
-                    (__bridge NSString *)AGDescriptionFormat : @"graph/dot",
+                    (__bridge NSString *)IAGDescriptionFormat : @"graph/dot",
                     @"attribute-ids" : indexSet
                 }];
 
@@ -105,7 +105,7 @@ void Graph::print_cycle(data::ptr<Node> node) {
             std::cout << "===\n";
 
             if (verbosity >= 4 /* && os_variant_has_internal_diagnostics() */) {
-                AGGraphArchiveJSON("cycle.ag-json");
+                IAGGraphArchiveJSON("cycle.ag-json");
             }
         }
     }
@@ -183,7 +183,7 @@ NSString *Graph::description(data::ptr<Node> node) {
     if (auto selfDescription = type.vtable().self_description) {
         if (node->is_self_initialized()) {
             void *body = node->get_self(type);
-            if (auto desc = selfDescription(reinterpret_cast<const AGAttributeType *>(&type), body)) {
+            if (auto desc = selfDescription(reinterpret_cast<const IAGAttributeType *>(&type), body)) {
                 [array addObject:[NSString stringWithFormat:@"self = %@", desc]];
             }
         }
@@ -191,7 +191,7 @@ NSString *Graph::description(data::ptr<Node> node) {
     if (auto valueDescription = type.vtable().value_description) {
         if (node->is_value_initialized()) {
             void *value = node->get_value();
-            if (auto desc = valueDescription(reinterpret_cast<const AGAttributeType *>(&type), value)) {
+            if (auto desc = valueDescription(reinterpret_cast<const IAGAttributeType *>(&type), value)) {
                 [array addObject:[NSString stringWithFormat:@"value = %@", desc]];
             }
         }
@@ -200,7 +200,7 @@ NSString *Graph::description(data::ptr<Node> node) {
     if (auto copySelfDescription = type.vtable().copy_self_description) {
         if (node->is_self_initialized()) {
             void *body = node->get_self(type);
-            if (auto desc = copySelfDescription(reinterpret_cast<const AGAttributeType *>(&type), body)) {
+            if (auto desc = copySelfDescription(reinterpret_cast<const IAGAttributeType *>(&type), body)) {
                 [array addObject:[NSString stringWithFormat:@"self = %@", desc]];
                 CFRelease(desc);
             }
@@ -209,7 +209,7 @@ NSString *Graph::description(data::ptr<Node> node) {
     if (auto copyValueDescription = type.vtable().copy_value_description) {
         if (node->is_value_initialized()) {
             void *value = node->get_value();
-            if (auto desc = copyValueDescription(reinterpret_cast<const AGAttributeType *>(&type), value)) {
+            if (auto desc = copyValueDescription(reinterpret_cast<const IAGAttributeType *>(&type), value)) {
                 [array addObject:[NSString stringWithFormat:@"value = %@", desc]];
                 CFRelease(desc);
             }
@@ -222,7 +222,7 @@ NSString *Graph::description(data::ptr<Node> node) {
 }
 
 NSObject *Graph::description(Graph *graph, NSDictionary *options) {
-    NSString *format = options[(__bridge NSString *)AGDescriptionFormat];
+    NSString *format = options[(__bridge NSString *)IAGDescriptionFormat];
     if ([format isEqualToString:@"graph/dict"]) {
         return description_graph(graph, options);
     }
@@ -246,13 +246,13 @@ NSObject *Graph::description(Graph *graph, NSDictionary *options) {
 }
 
 NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
-    NSNumber *include_values_number = options[(__bridge NSString *)AGDescriptionIncludeValues];
+    NSNumber *include_values_number = options[(__bridge NSString *)IAGDescriptionIncludeValues];
     bool include_values = false;
     if (include_values_number) {
         include_values = [include_values_number boolValue];
     }
 
-    NSNumber *truncation_limit_number = options[(__bridge NSString *)AGDescriptionTruncationLimit];
+    NSNumber *truncation_limit_number = options[(__bridge NSString *)IAGDescriptionTruncationLimit];
     uint64_t truncation_limit = 1024;
     if (truncation_limit_number) {
         truncation_limit = [truncation_limit_number unsignedLongValue];
@@ -436,10 +436,10 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                                         edge_dict[@"offset"] = @(resolved.offset());
                                     }
                                 }
-                                if (indirect || input_edge.options & AGInputOptionsAlwaysEnabled ||
-                                    input_edge.options & AGInputOptionsChanged ||
-                                    input_edge.options & AGInputOptionsEnabled ||
-                                    input_edge.options & AGInputOptionsUnprefetched) {
+                                if (indirect || input_edge.options & IAGInputOptionsAlwaysEnabled ||
+                                    input_edge.options & IAGInputOptionsChanged ||
+                                    input_edge.options & IAGInputOptionsEnabled ||
+                                    input_edge.options & IAGInputOptionsUnprefetched) {
                                     edge_dict[@"flags"] = @(input_edge.options);
                                 }
 
@@ -508,7 +508,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
             for (auto page : subgraph->pages()) {
                 for (auto attribute : attribute_view(page)) {
                     if (auto node = attribute.get_node()) {
-                        AGAttributeFlags subgraph_flags = node->subgraph_flags();
+                        IAGAttributeFlags subgraph_flags = node->subgraph_flags();
                         auto found_node_index = node_indices_by_id.find(node);
                         if (found_node_index != node_indices_by_id.end()) {
                             [subgraph_node_dicts addObject:@(found_node_index->second)];
@@ -535,7 +535,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
             auto tree_stack = std::stack<data::ptr<TreeElement>, vector<data::ptr<TreeElement>, 0, uint64_t>>();
 
             auto tree_element_indices = std::unordered_map<data::ptr<TreeElement>, uint64_t>();
-            auto trees = AG::vector<data::ptr<TreeElement>, 0ul, unsigned long>();
+            auto trees = IAG::vector<data::ptr<TreeElement>, 0ul, unsigned long>();
 
             if (!graph->subgraphs().empty()) {
                 for (auto subgraph : graph->subgraphs()) {
@@ -679,7 +679,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
 }
 
 NSString *Graph::description_graph_dot(NSDictionary *options) {
-    NSNumber *include_values_number = options[(__bridge NSString *)AGDescriptionIncludeValues];
+    NSNumber *include_values_number = options[(__bridge NSString *)IAGDescriptionIncludeValues];
     bool include_values = false;
     if (include_values_number) {
         include_values = [include_values_number boolValue];
@@ -690,7 +690,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
         attribute_ids = nil;
     }
 
-    NSNumber *truncation_limit_number = options[(__bridge NSString *)AGDescriptionTruncationLimit];
+    NSNumber *truncation_limit_number = options[(__bridge NSString *)IAGDescriptionTruncationLimit];
     uint64_t truncation_limit = 40;
     if (truncation_limit_number) {
         truncation_limit = [truncation_limit_number unsignedLongValue];
@@ -712,7 +712,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
 
                     if (!attribute_ids || [attribute_ids containsIndex:attribute]) {
 
-                        [result appendFormat:@"  _%d[label=\"%d", AGAttribute(attribute), AGAttribute(attribute)];
+                        [result appendFormat:@"  _%d[label=\"%d", IAGAttribute(attribute), IAGAttribute(attribute)];
 
                         data::ptr<Node> node = attribute.get_node();
                         const AttributeType &node_type = attribute_type(node->type_id());
@@ -720,7 +720,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                             if (auto selfDescription = node_type.vtable().self_description) {
                                 void *self = node->get_self(node_type);
                                 if (auto desc =
-                                        selfDescription(reinterpret_cast<const AGAttributeType *>(&node_type), self)) {
+                                        selfDescription(reinterpret_cast<const IAGAttributeType *>(&node_type), self)) {
                                     [result appendString:@": "];
                                     [result appendString:escaped_string((__bridge NSString *)desc, truncation_limit)];
                                 }
@@ -730,7 +730,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                             if (auto valueDescription = node_type.vtable().value_description) {
                                 void *value = node->get_value();
                                 if (auto value_desc = valueDescription(
-                                        reinterpret_cast<const AGAttributeType *>(&node_type), value)) {
+                                        reinterpret_cast<const IAGAttributeType *>(&node_type), value)) {
                                     [result appendString:@" → "];
                                     [result
                                         appendString:escaped_string((__bridge NSString *)value_desc, truncation_limit)];
@@ -808,7 +808,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                                 (!attribute_ids || [attribute_ids containsIndex:resolved_input_attribute])) {
 
                                 [result appendFormat:@"  _%d -> _%d[", (uint32_t)input_edge.attribute,
-                                                     AGAttribute(attribute)];
+                                                     IAGAttribute(attribute)];
 
                                 // collect source inputs
                                 AttributeID intermediate = input_edge.attribute;
@@ -824,7 +824,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                                     intermediate = source.resolve(TraversalOptions::SkipMutableReference).attribute();
                                 }
 
-                                if (input_edge.options & AGInputOptionsChanged) {
+                                if (input_edge.options & IAGInputOptionsChanged) {
                                     [result appendString:@" color=red"];
                                 }
 
@@ -865,7 +865,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
             if (indirect_node->is_mutable()) {
                 if (auto dependency = indirect_node->to_mutable().dependency()) {
                     [result
-                        appendFormat:@"  _%d -> _%d[color=blue];\n", AGAttribute(dependency), indirect_node.offset()];
+                        appendFormat:@"  _%d -> _%d[color=blue];\n", IAGAttribute(dependency), indirect_node.offset()];
                 }
             }
         }
@@ -880,7 +880,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
 
     NSMutableString *description = [NSMutableString string];
 
-    NSNumber *max_frames_number = [options objectForKeyedSubscript:(__bridge NSString *)AGDescriptionMaxFrames];
+    NSNumber *max_frames_number = [options objectForKeyedSubscript:(__bridge NSString *)IAGDescriptionMaxFrames];
     int max_frames = max_frames_number ? [max_frames_number unsignedIntValue] : -1;
 
     int frame_count = 0;
@@ -897,7 +897,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
                 for (auto &input_edge : frame->attribute->input_edges()) {
                     OffsetAttributeID resolved =
                         input_edge.attribute.resolve(TraversalOptions::ReportIndirectionInOffset);
-                    [description appendFormat:@"    %u", AGAttribute(resolved.attribute())];
+                    [description appendFormat:@"    %u", IAGAttribute(resolved.attribute())];
                     if (resolved.offset() != 0) {
                         [description appendFormat:@"[@%d]", resolved.offset() - 1];
                     }
@@ -906,13 +906,13 @@ NSString *Graph::description_stack(NSDictionary *options) {
                         [description appendFormat:@" %s -> %s", input_type.body_metadata().name(false),
                                                   input_type.value_metadata().name(false)];
                     }
-                    if (input_edge.options & AGInputOptionsChanged) {
+                    if (input_edge.options & IAGInputOptionsChanged) {
                         [description appendString:@", changed"];
                     }
-                    if (input_edge.options & AGInputOptionsAlwaysEnabled) {
+                    if (input_edge.options & IAGInputOptionsAlwaysEnabled) {
                         [description appendString:@", always-enabled"];
                     }
-                    if (input_edge.options & AGInputOptionsUnprefetched) { // TODO: check is not inverse
+                    if (input_edge.options & IAGInputOptionsUnprefetched) { // TODO: check is not inverse
                         [description appendString:@", unprefetched"];
                     }
                     [description appendString:@"\n"];
@@ -933,7 +933,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
 NSArray *Graph::description_stack_nodes(NSDictionary *options) {
     NSMutableArray *nodes = [NSMutableArray array];
 
-    NSNumber *max_frames_number = [options objectForKeyedSubscript:(__bridge NSString *)AGDescriptionMaxFrames];
+    NSNumber *max_frames_number = [options objectForKeyedSubscript:(__bridge NSString *)IAGDescriptionMaxFrames];
     int max_frames = max_frames_number ? [max_frames_number unsignedIntValue] : -1;
 
     int frame_count = 0;
@@ -974,8 +974,8 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
 
                 const AttributeType &type = graph->attribute_type(frame.attribute->type_id());
 
-                AGSetTypeForKey(dictionary, @"self-type", &type.body_metadata());
-                AGSetTypeForKey(dictionary, @"value-type", &type.value_metadata());
+                IAGSetTypeForKey(dictionary, @"self-type", &type.body_metadata());
+                IAGSetTypeForKey(dictionary, @"value-type", &type.value_metadata());
 
                 if (!frame.attribute->input_edges().empty()) {
                     NSMutableArray *inputs = [NSMutableArray array];
@@ -996,16 +996,16 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
                         if (resolved.attribute().is_node()) {
                             const AttributeType &input_type =
                                 graph->attribute_type(resolved.attribute().get_node()->type_id());
-                            AGSetTypeForKey(input_dictionary, @"self-type", &input_type.body_metadata());
-                            AGSetTypeForKey(input_dictionary, @"value-type", &input_type.value_metadata());
+                            IAGSetTypeForKey(input_dictionary, @"self-type", &input_type.body_metadata());
+                            IAGSetTypeForKey(input_dictionary, @"value-type", &input_type.value_metadata());
                         }
-                        if (input_edge.options & AGInputOptionsChanged) {
+                        if (input_edge.options & IAGInputOptionsChanged) {
                             input_dictionary[@"changed"] = @YES;
                         }
-                        if (input_edge.options & AGInputOptionsAlwaysEnabled) {
+                        if (input_edge.options & IAGInputOptionsAlwaysEnabled) {
                             input_dictionary[@"always-enabled"] = @YES;
                         }
-                        if (!(input_edge.options & AGInputOptionsUnprefetched)) { // TODO: check is inverses
+                        if (!(input_edge.options & IAGInputOptionsUnprefetched)) { // TODO: check is inverses
                             input_dictionary[@"prefetched"] = @NO;
                         }
 
@@ -1027,8 +1027,8 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
 
 void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exclude_values) {
     NSDictionary *options = @{
-        (__bridge NSString *)AGDescriptionFormat : @"graph/dict",
-        (__bridge NSString *)AGDescriptionIncludeValues : @(!exclude_values),
+        (__bridge NSString *)IAGDescriptionFormat : @"graph/dict",
+        (__bridge NSString *)IAGDescriptionIncludeValues : @(!exclude_values),
         @"all_graphs" : @(graph == nullptr)
     };
     NSDictionary *json = (NSDictionary *)description(graph, options);
@@ -1065,6 +1065,6 @@ void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exc
     fprintf(stdout, "Wrote graph data to \"%s\".\n", [path UTF8String]);
 }
 
-} // namespace AG
+} // namespace IAG
 
 #endif

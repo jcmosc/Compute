@@ -18,9 +18,9 @@
 #include "Page.h"
 #include "Zone.h"
 
-static void *AGGraphVMRegionBaseAddress;
+static void *IAGGraphVMRegionBaseAddress;
 
-namespace AG {
+namespace IAG {
 namespace data {
 
 table _shared_table_bytes;
@@ -52,7 +52,7 @@ table::table() {
         precondition_failure("memory allocation failure (%u bytes, %u)", initial_size, errno);
     }
 #else
-    _vm_region_fd = memfd_create("AGGraphVMRegion", MFD_CLOEXEC);
+    _vm_region_fd = memfd_create("IAGGraphVMRegion", MFD_CLOEXEC);
     if (_vm_region_fd < 0) {
         precondition_failure("memfd_create failure (%u)", errno);
     }
@@ -70,7 +70,7 @@ table::table() {
     _vm_region_base_address = reinterpret_cast<vm_address_t>(region);
     _vm_region_size = initial_size;
 
-    AGGraphVMRegionBaseAddress = region;
+    IAGGraphVMRegionBaseAddress = region;
 
     _ptr_base = reinterpret_cast<vm_address_t>(region) - page_size;
     _ptr_max_offset = initial_size + page_size;
@@ -132,7 +132,7 @@ void table::grow_region() {
     _remapped_regions.push_back({this->_vm_region_base_address, this->_vm_region_size});
 
     _vm_region_base_address = reinterpret_cast<vm_address_t>(new_region);
-    AGGraphVMRegionBaseAddress = new_region;
+    IAGGraphVMRegionBaseAddress = new_region;
 
     _vm_region_size = static_cast<uint32_t>(new_size);
     _ptr_base = reinterpret_cast<vm_address_t>(new_region) - page_size;
@@ -283,7 +283,7 @@ void table::make_pages_reusable(uint32_t page_index, bool reusable) {
     madvise(mapped_pages_address, mapped_pages_size, advice);
 
     static bool unmap_reusable = []() -> bool {
-        char *result = getenv("AG_UNMAP_REUSABLE");
+        char *result = getenv("IAG_UNMAP_REUSABLE");
         if (result) {
             return atoi(result) != 0;
         }
@@ -328,4 +328,4 @@ void table::print() {
 }
 
 } // namespace data
-} // namespace AG
+} // namespace IAG

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
 #include "Page.h"
 #include "Pointer.h"
 #include "Table.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace data {
 
 class zone {
@@ -70,6 +70,6 @@ class zone {
 };
 
 } // namespace data
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

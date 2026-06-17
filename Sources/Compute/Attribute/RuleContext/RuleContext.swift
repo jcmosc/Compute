@@ -14,7 +14,7 @@ public struct RuleContext<Value> {
 
     public var value: Value {
         unsafeAddress {
-            return UnsafePointer(__AGGraphGetOutputValue(Metadata(Value.self))!.assumingMemoryBound(to: Value.self))
+            return UnsafePointer(__IAGGraphGetOutputValue(Metadata(Value.self))!.assumingMemoryBound(to: Value.self))
         }
         nonmutating set {
             withUnsafePointer(to: newValue) { newValuePointer in
@@ -24,12 +24,12 @@ public struct RuleContext<Value> {
     }
 
     public var hasValue: Bool {
-        let valuePointer = __AGGraphGetOutputValue(Metadata(Value.self))
+        let valuePointer = __IAGGraphGetOutputValue(Metadata(Value.self))
         return valuePointer != nil
     }
 
-    public func changedValue<T>(of input: Attribute<T>, options: AGValueOptions) -> (value: T, changed: Bool) {
-        let value = __AGGraphGetInputValue(
+    public func changedValue<T>(of input: Attribute<T>, options: IAGValueOptions) -> (value: T, changed: Bool) {
+        let value = __IAGGraphGetInputValue(
             attribute.identifier,
             input.identifier,
             options,
@@ -43,11 +43,11 @@ public struct RuleContext<Value> {
 
     public func valueAndFlags<InputValue>(
         of input: Attribute<InputValue>,
-        options: AGValueOptions
+        options: IAGValueOptions
     ) -> (
-        value: InputValue, flags: AGChangedValueFlags
+        value: InputValue, flags: IAGChangedValueFlags
     ) {
-        let value = __AGGraphGetInputValue(
+        let value = __IAGGraphGetInputValue(
             attribute.identifier,
             input.identifier,
             options,
@@ -61,7 +61,7 @@ public struct RuleContext<Value> {
 
     public subscript<InputValue>(_ input: Attribute<InputValue>) -> InputValue {
         unsafeAddress {
-            return __AGGraphGetInputValue(attribute.identifier, input.identifier, [], Metadata(InputValue.self))
+            return __IAGGraphGetInputValue(attribute.identifier, input.identifier, [], Metadata(InputValue.self))
                 .value
                 .assumingMemoryBound(to: InputValue.self)
         }

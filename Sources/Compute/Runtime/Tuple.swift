@@ -1,7 +1,7 @@
 import ComputeCxx
 
-@_silgen_name("AGTupleWithBuffer")
-func AGTupleWithBuffer(
+@_silgen_name("IAGTupleWithBuffer")
+func IAGTupleWithBuffer(
     of type: TupleType,
     count: Int,
     body: (UnsafeMutableTuple) -> Void
@@ -12,7 +12,7 @@ public func withUnsafeTuple(
     count: Int,
     body: (UnsafeMutableTuple) -> Void
 ) {
-    return AGTupleWithBuffer(of: type, count: count, body: body)
+    return IAGTupleWithBuffer(of: type, count: count, body: body)
 }
 
 extension TupleType {
@@ -53,7 +53,7 @@ extension TupleType {
         to destinationValue: UnsafeMutablePointer<T>,
         options: CopyOptions
     ) {
-        __AGTupleGetElement(
+        __IAGTupleGetElement(
             self,
             tupleValue,
             index,
@@ -69,7 +69,7 @@ extension TupleType {
         from sourceValue: UnsafePointer<T>,
         options: CopyOptions
     ) {
-        __AGTupleSetElement(
+        __IAGTupleSetElement(
             self,
             tupleValue,
             index,

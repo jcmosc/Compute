@@ -1,6 +1,6 @@
 #include "Graph/Graph.h"
 
-namespace AG {
+namespace IAG {
 
 void Graph::TreeDataElement::sort_nodes() {
     if (!_sorted) {
@@ -11,4 +11,4 @@ void Graph::TreeDataElement::sort_nodes() {
     }
 };
 
-}; // namespace AG
+}; // namespace IAG

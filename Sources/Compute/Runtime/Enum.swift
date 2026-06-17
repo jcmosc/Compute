@@ -1,7 +1,7 @@
 import ComputeCxx
 
-@_silgen_name("AGTypeApplyEnumData")
-func AGTypeApplyEnumData(
+@_silgen_name("IAGTypeApplyEnumData")
+func IAGTypeApplyEnumData(
     _ type: Metadata,
     value: UnsafeRawPointer,
     body: (Int, Metadata, UnsafeRawPointer) -> Void
@@ -11,13 +11,13 @@ public func withUnsafePointerToEnumCase<Value>(
     of enumValue: UnsafeMutablePointer<Value>,
     do body: (Int, Any.Type, UnsafeRawPointer) -> Void
 ) -> Bool {
-    return AGTypeApplyEnumData(Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
+    return IAGTypeApplyEnumData(Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
         body(tag, fieldType.type, fieldValue)
     }
 }
 
-@_silgen_name("AGTypeApplyMutableEnumData")
-func AGTypeApplyMutableEnumData(
+@_silgen_name("IAGTypeApplyMutableEnumData")
+func IAGTypeApplyMutableEnumData(
     _ type: Metadata,
     value: UnsafeRawPointer,
     body: (Int, Metadata, UnsafeMutableRawPointer) -> Void
@@ -27,7 +27,7 @@ public func withUnsafeMutablePointerToEnumCase<Value>(
     of enumValue: UnsafeMutablePointer<Value>,
     do body: (Int, Any.Type, UnsafeMutableRawPointer) -> Void
 ) -> Bool {
-    return AGTypeApplyMutableEnumData(Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
+    return IAGTypeApplyMutableEnumData(Metadata(Value.self), value: enumValue) { tag, fieldType, fieldValue in
         body(tag, fieldType.type, fieldValue)
     }
 }

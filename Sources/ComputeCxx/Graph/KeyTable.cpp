@@ -1,6 +1,6 @@
 #include "KeyTable.h"
 
-namespace AG {
+namespace IAG {
 
 Graph::KeyTable::KeyTable(util::Heap *_Nullable heap)
     : _table(
@@ -26,4 +26,4 @@ uint32_t Graph::KeyTable::insert(const char *key) {
 
 const char *Graph::KeyTable::get(uint32_t key_id) { return _keys[key_id]; }
 
-}; // namespace AG
+}; // namespace IAG

@@ -5,7 +5,7 @@
 
 char *error_message = nullptr;
 
-namespace AG {
+namespace IAG {
 
 platform_log_t error_log() {
     static platform_log_t log = platform_log_create("dev.incrematic.compute", "error");
@@ -46,4 +46,4 @@ void non_fatal_precondition_failure(const char *format, ...) {
     }
 }
 
-} // namespace AG
+} // namespace IAG

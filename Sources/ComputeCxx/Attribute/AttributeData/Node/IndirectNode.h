@@ -4,12 +4,12 @@
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeID/RelativeAttributeID.h"
 #include "Attribute/AttributeID/WeakAttributeID.h"
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Data/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class MutableIndirectNode;
 
@@ -89,6 +89,6 @@ class MutableIndirectNode : public IndirectNode {
     data::vector<OutputEdge> &output_edges() { return _output_edges; };
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

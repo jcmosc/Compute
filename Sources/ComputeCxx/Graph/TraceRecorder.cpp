@@ -5,17 +5,17 @@
 
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeType/AttributeType.h"
-#include "ComputeCxx/AGGraph.h"
-#include "ComputeCxx/AGGraphTracing.h"
-#include "ComputeCxx/AGUniqueID.h"
+#include "ComputeCxx/IAGGraph.h"
+#include "ComputeCxx/IAGGraphTracing.h"
+#include "ComputeCxx/IAGUniqueID.h"
 #include "Context.h"
 #include "Log/Log.h"
 #include "Subgraph/Subgraph.h"
 #include "Time/Time.h"
 
-namespace AG {
+namespace IAG {
 
-Graph::TraceRecorder::TraceRecorder(Graph *graph, AGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
+Graph::TraceRecorder::TraceRecorder(Graph *graph, IAGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
     // TODO: not implemented
 }
 
@@ -59,7 +59,7 @@ void Graph::TraceRecorder::begin_update(const Graph::UpdateStack &update_stack, 
 }
 
 void Graph::TraceRecorder::end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
-                                      AGGraphUpdateStatus update_status) {
+                                      IAGGraphUpdateStatus update_status) {
     // TODO: not implemented
 }
 
@@ -139,7 +139,7 @@ void Graph::TraceRecorder::added(data::ptr<Node> node) {
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, AGInputOptions input_options) {
+void Graph::TraceRecorder::add_edge(data::ptr<Node> node, AttributeID input, IAGInputOptions input_options) {
     // TODO: not implemented
 }
 
@@ -206,4 +206,4 @@ bool Graph::TraceRecorder::named_event_enabled(uint32_t event_id) {
     return false;
 }
 
-} // namespace AG
+} // namespace IAG

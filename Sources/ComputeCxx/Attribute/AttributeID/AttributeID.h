@@ -3,15 +3,15 @@
 #include <cassert>
 #include <optional>
 
-#include "ComputeCxx/AGAttribute.h"
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGAttribute.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Data/Page.h"
 #include "Data/Pointer.h"
 #include "Data/Zone.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class Subgraph;
 class Node;
@@ -75,8 +75,8 @@ class AttributeID {
     explicit AttributeID(data::ptr<class MutableIndirectNode> indirect_node)
         : _value(indirect_node.offset() | Kind::IndirectNode) {};
 
-    operator AGAttribute() const { return _value; }
-    explicit constexpr AttributeID(AGAttribute storage) : _value(storage) {}
+    operator IAGAttribute() const { return _value; }
+    explicit constexpr AttributeID(IAGAttribute storage) : _value(storage) {}
 
     // MARK: Operators
 
@@ -129,6 +129,6 @@ class AttributeID {
     OffsetAttributeID resolve(TraversalOptions options) const;
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

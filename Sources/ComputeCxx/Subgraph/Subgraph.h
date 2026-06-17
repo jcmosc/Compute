@@ -1,24 +1,24 @@
 #pragma once
 
-#include "AGSubgraph-Private.h"
+#include "IAGSubgraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Closure/ClosureFunction.h"
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGUniqueID.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGUniqueID.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
 #include "Graph/Tree/TreeElement.h"
 #include "Vector/IndirectPointerVector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-struct AGSubgraphStorage;
+struct IAGSubgraphStorage;
 
-namespace AG {
+namespace IAG {
 
 class SubgraphObject {
   private:
-    AGSubgraphStorage _storage;
+    IAGSubgraphStorage _storage;
 
   public:
     Subgraph *subgraph() { return _storage.subgraph; };
@@ -64,10 +64,10 @@ class Subgraph : public data::zone {
     data::ptr<NodeCache> _cache = nullptr;
     Graph::TreeElementID _tree_root;
 
-    AGAttributeFlags _flags;
-    AGAttributeFlags _descendent_flags;
-    AGAttributeFlags _dirty_flags;
-    AGAttributeFlags _descendent_dirty_flags;
+    IAGAttributeFlags _flags;
+    IAGAttributeFlags _descendent_flags;
+    IAGAttributeFlags _dirty_flags;
+    IAGAttributeFlags _descendent_dirty_flags;
 
     enum class InvalidationState : uint8_t {
         None = 0,
@@ -104,8 +104,8 @@ class Subgraph : public data::zone {
 
     // MARK: CFType
 
-    AGSubgraphStorage *to_cf() const;
-    static Subgraph *from_cf(AGSubgraphStorage *storage);
+    IAGSubgraphStorage *to_cf() const;
+    static Subgraph *from_cf(IAGSubgraphStorage *storage);
     void clear_object();
 
     // MARK: Graph
@@ -127,8 +127,8 @@ class Subgraph : public data::zone {
 
     // MARK: Observers
 
-    AGUniqueID add_observer(ClosureFunctionVV<void> callback);
-    void remove_observer(AGUniqueID observer_id);
+    IAGUniqueID add_observer(ClosureFunctionVV<void> callback);
+    void remove_observer(IAGUniqueID observer_id);
     void notify_observers();
 
     // MARK: Invalidating
@@ -167,16 +167,16 @@ class Subgraph : public data::zone {
 
     // MARK: Flags
 
-    void set_flags(data::ptr<Node> node, AGAttributeFlags flags);
+    void set_flags(data::ptr<Node> node, IAGAttributeFlags flags);
 
-    void add_flags(AGAttributeFlags flags);
+    void add_flags(IAGAttributeFlags flags);
     void propagate_flags();
 
-    void add_dirty_flags(AGAttributeFlags dirty_flags);
+    void add_dirty_flags(IAGAttributeFlags dirty_flags);
     void propagate_dirty_flags();
 
-    bool intersects(AGAttributeFlags mask) const { return (_flags | _descendent_flags) & mask; }
-    bool is_dirty(AGAttributeFlags mask) const { return (_dirty_flags | _descendent_dirty_flags) & mask; }
+    bool intersects(IAGAttributeFlags mask) const { return (_flags | _descendent_flags) & mask; }
+    bool is_dirty(IAGAttributeFlags mask) const { return (_dirty_flags | _descendent_dirty_flags) & mask; }
 
     // MARK: Attributes
 
@@ -185,9 +185,9 @@ class Subgraph : public data::zone {
 
     static std::atomic<uint32_t> _last_traversal_seed;
 
-    void apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body);
+    void apply(uint32_t options, ClosureFunctionAV<void, IAGAttribute> body);
 
-    void update(AGAttributeFlags mask);
+    void update(IAGAttributeFlags mask);
 
     // MARK: Cache
 
@@ -209,7 +209,7 @@ class Subgraph : public data::zone {
     };
 
     data::ptr<Node> cache_fetch(size_t hash, const swift::metadata &metadata, const void *body,
-                                ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> get_attribute_type_id);
+                                ClosureFunctionCI<uint32_t, IAGUnownedGraphContextRef> get_attribute_type_id);
     void cache_insert(data::ptr<Node> node);
 
     void cache_collect();
@@ -232,6 +232,6 @@ class Subgraph : public data::zone {
     void print(uint32_t indent_level);
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

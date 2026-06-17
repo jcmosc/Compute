@@ -38,7 +38,7 @@ extension StatefulRule {
 
     public var value: Value {
         unsafeAddress {
-            guard let result = __AGGraphGetOutputValue(Metadata(Value.self)) else {
+            guard let result = __IAGGraphGetOutputValue(Metadata(Value.self)) else {
                 preconditionFailure()
             }
             let pointer = result.assumingMemoryBound(to: Value.self)

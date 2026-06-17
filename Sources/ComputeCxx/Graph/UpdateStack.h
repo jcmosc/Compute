@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Graph.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class Graph::UpdateStack {
   protected:
@@ -27,12 +27,12 @@ class Graph::UpdateStack {
     util::tagged_ptr<UpdateStack> _next;
     pthread_t _next_thread;
     vector<Frame, 8, uint64_t> _frames;
-    AGGraphUpdateOptions _options;
+    IAGGraphUpdateOptions _options;
 
     bool push_slow(data::ptr<Node> node_ptr, Node &node, bool ignore_cycles, bool initialize_value);
 
   public:
-    UpdateStack(Graph *graph, AGGraphUpdateOptions options);
+    UpdateStack(Graph *graph, IAGGraphUpdateOptions options);
     ~UpdateStack();
 
     // Non-copyable
@@ -57,6 +57,6 @@ class Graph::UpdateStack {
     Graph::UpdateStatus update();
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

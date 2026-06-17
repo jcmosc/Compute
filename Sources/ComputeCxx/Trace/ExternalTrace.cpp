@@ -1,7 +1,7 @@
 #include "ExternalTrace.h"
 
-#include "Comparison/AGComparison-Private.h"
-#include "ComputeCxx/AGGraph.h"
+#include "Comparison/IAGComparison-Private.h"
+#include "ComputeCxx/IAGGraph.h"
 #include "Graph/Context.h"
 #include "Graph/Graph.h"
 
@@ -9,156 +9,156 @@ void ExternalTrace::graph_destroyed() { delete this; };
 
 void ExternalTrace::trace_removed() { delete this; };
 
-void ExternalTrace::begin_trace(const AG::Graph &graph) {
+void ExternalTrace::begin_trace(const IAG::Graph &graph) {
     auto cf_graph = graph.primary_context()->to_cf();
     if (auto callback = _trace->begin_trace) {
         callback(_context, cf_graph);
     }
 }
 
-void ExternalTrace::end_trace(const AG::Graph &graph) {
+void ExternalTrace::end_trace(const IAG::Graph &graph) {
     auto cf_graph = graph.primary_context()->to_cf();
     if (auto callback = _trace->end_trace) {
         callback(_context, cf_graph);
     }
 }
 
-void ExternalTrace::begin_update(const AG::Subgraph &subgraph, uint32_t options) {
+void ExternalTrace::begin_update(const IAG::Subgraph &subgraph, uint32_t options) {
     auto cf_subgraph = subgraph.to_cf();
     if (auto callback = _trace->begin_subgraph_update) {
         callback(_context, cf_subgraph, options);
     }
 }
 
-void ExternalTrace::end_update(const AG::Subgraph &subgraph) {
+void ExternalTrace::end_update(const IAG::Subgraph &subgraph) {
     auto cf_subgraph = subgraph.to_cf();
     if (auto callback = _trace->end_subgraph_update) {
         callback(_context, cf_subgraph);
     }
 }
 
-void ExternalTrace::begin_update(const AG::Graph::UpdateStack &update_stack, AG::data::ptr<AG::Node> node,
+void ExternalTrace::begin_update(const IAG::Graph::UpdateStack &update_stack, IAG::data::ptr<IAG::Node> node,
                                  uint32_t options) {
     if (auto callback = _trace->begin_node_update) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::end_update(const AG::Graph::UpdateStack &update_stack, AG::data::ptr<AG::Node> node,
-                               AGGraphUpdateStatus update_status) {
+void ExternalTrace::end_update(const IAG::Graph::UpdateStack &update_stack, IAG::data::ptr<IAG::Node> node,
+                               IAGGraphUpdateStatus update_status) {
     if (auto callback = _trace->end_node_update) {
-        callback(_context, update_status == AGGraphUpdateStatusChanged);
+        callback(_context, update_status == IAGGraphUpdateStatusChanged);
     }
 }
 
-void ExternalTrace::begin_update(AG::data::ptr<AG::Node> node) {
+void ExternalTrace::begin_update(IAG::data::ptr<IAG::Node> node) {
     if (auto callback = _trace->begin_value_update) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::end_update(AG::data::ptr<AG::Node> node, bool changed) {
+void ExternalTrace::end_update(IAG::data::ptr<IAG::Node> node, bool changed) {
     if (auto callback = _trace->end_value_update) {
-        callback(_context, AGAttribute(AG::AttributeID(node)), changed);
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), changed);
     }
 }
 
-void ExternalTrace::begin_update(const AG::Graph::Context &context) {
+void ExternalTrace::begin_update(const IAG::Graph::Context &context) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->begin_graph_update) {
         callback(_context, cf_context);
     }
 }
 
-void ExternalTrace::end_update(const AG::Graph::Context &context) {
+void ExternalTrace::end_update(const IAG::Graph::Context &context) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->end_graph_update) {
         callback(_context, cf_context);
     }
 }
 
-void ExternalTrace::begin_invalidation(const AG::Graph::Context &context, AG::AttributeID attribute) {
+void ExternalTrace::begin_invalidation(const IAG::Graph::Context &context, IAG::AttributeID attribute) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->begin_graph_invalidation) {
-        callback(_context, cf_context, AGAttribute(attribute));
+        callback(_context, cf_context, IAGAttribute(attribute));
     }
 }
 
-void ExternalTrace::end_invalidation(const AG::Graph::Context &context, AG::AttributeID attribute) {
+void ExternalTrace::end_invalidation(const IAG::Graph::Context &context, IAG::AttributeID attribute) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->end_graph_invalidation) {
-        callback(_context, cf_context, AGAttribute(attribute));
+        callback(_context, cf_context, IAGAttribute(attribute));
     }
 }
 
-void ExternalTrace::begin_modify(AG::data::ptr<AG::Node> node) {
+void ExternalTrace::begin_modify(IAG::data::ptr<IAG::Node> node) {
     if (auto callback = _trace->begin_modify_node) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::end_modify(AG::data::ptr<AG::Node> node) {
+void ExternalTrace::end_modify(IAG::data::ptr<IAG::Node> node) {
     if (auto callback = _trace->end_modify_node) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::begin_event(AG::data::ptr<AG::Node> node, uint32_t event_id) {
+void ExternalTrace::begin_event(IAG::data::ptr<IAG::Node> node, uint32_t event_id) {
     if (auto callback = _trace->begin_event) {
-        if (auto subgraph = AG::AttributeID(node).subgraph()) {
+        if (auto subgraph = IAG::AttributeID(node).subgraph()) {
             const char *event_name = subgraph->graph()->key_name(event_id);
-            callback(_context, AGAttribute(AG::AttributeID(node)), event_name);
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), event_name);
         }
     }
 }
 
-void ExternalTrace::end_event(AG::data::ptr<AG::Node> node, uint32_t event_id) {
+void ExternalTrace::end_event(IAG::data::ptr<IAG::Node> node, uint32_t event_id) {
     if (auto callback = _trace->end_event) {
-        if (auto subgraph = AG::AttributeID(node).subgraph()) {
+        if (auto subgraph = IAG::AttributeID(node).subgraph()) {
             const char *event_name = subgraph->graph()->key_name(event_id);
-            callback(_context, AGAttribute(AG::AttributeID(node)), event_name);
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), event_name);
         }
     }
 }
 
-void ExternalTrace::created(const AG::Graph::Context &context) {
+void ExternalTrace::created(const IAG::Graph::Context &context) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->graph_created) {
         callback(_context, cf_context);
     }
 }
 
-void ExternalTrace::destroy(const AG::Graph::Context &context) {
+void ExternalTrace::destroy(const IAG::Graph::Context &context) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->graph_destroy) {
         callback(_context, cf_context);
     }
 }
 
-void ExternalTrace::needs_update(const AG::Graph::Context &context) {
+void ExternalTrace::needs_update(const IAG::Graph::Context &context) {
     auto cf_context = context.to_cf();
     if (auto callback = _trace->graph_needs_update) {
         callback(_context, cf_context);
     }
 }
 
-void ExternalTrace::created(const AG::Subgraph &subgraph) {
+void ExternalTrace::created(const IAG::Subgraph &subgraph) {
     auto cf_subgraph = subgraph.to_cf();
     if (auto callback = _trace->subgraph_created) {
         callback(_context, cf_subgraph);
     }
 }
 
-void ExternalTrace::invalidate(const AG::Subgraph &subgraph) {
+void ExternalTrace::invalidate(const IAG::Subgraph &subgraph) {
     auto cf_subgraph = subgraph.to_cf();
     if (auto callback = _trace->subgraph_destroy) {
         callback(_context, cf_subgraph);
     }
 }
 
-void ExternalTrace::destroy(const AG::Subgraph &subgraph) {}
+void ExternalTrace::destroy(const IAG::Subgraph &subgraph) {}
 
-void ExternalTrace::add_child(const AG::Subgraph &subgraph, const AG::Subgraph &child) {
+void ExternalTrace::add_child(const IAG::Subgraph &subgraph, const IAG::Subgraph &child) {
     auto cf_subgraph = subgraph.to_cf();
     auto cf_child = subgraph.to_cf();
     if (auto callback = _trace->subgraph_add_child) {
@@ -166,7 +166,7 @@ void ExternalTrace::add_child(const AG::Subgraph &subgraph, const AG::Subgraph &
     }
 }
 
-void ExternalTrace::remove_child(const AG::Subgraph &subgraph, const AG::Subgraph &child) {
+void ExternalTrace::remove_child(const IAG::Subgraph &subgraph, const IAG::Subgraph &child) {
     auto cf_subgraph = subgraph.to_cf();
     auto cf_child = subgraph.to_cf();
     if (auto callback = _trace->subgraph_remove_child) {
@@ -174,98 +174,98 @@ void ExternalTrace::remove_child(const AG::Subgraph &subgraph, const AG::Subgrap
     }
 }
 
-void ExternalTrace::added(AG::data::ptr<AG::Node> node) {
+void ExternalTrace::added(IAG::data::ptr<IAG::Node> node) {
     if (auto callback = _trace->node_added) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::add_edge(AG::data::ptr<AG::Node> node, AG::AttributeID input, AGInputOptions input_options) {
+void ExternalTrace::add_edge(IAG::data::ptr<IAG::Node> node, IAG::AttributeID input, IAGInputOptions input_options) {
     if (auto callback = _trace->node_add_edge) {
-        callback(_context, AGAttribute(AG::AttributeID(node)), AGAttribute(AG::AttributeID(input)), input_options);
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), IAGAttribute(IAG::AttributeID(input)), input_options);
     }
 }
 
-void ExternalTrace::remove_edge(AG::data::ptr<AG::Node> node, uint32_t input_index) {
+void ExternalTrace::remove_edge(IAG::data::ptr<IAG::Node> node, uint32_t input_index) {
     if (auto callback = _trace->node_remove_edge) {
-        if (AG::AttributeID(node).subgraph()) {
-            callback(_context, AGAttribute(AG::AttributeID(node)), input_index);
+        if (IAG::AttributeID(node).subgraph()) {
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), input_index);
         }
     }
 }
 
-void ExternalTrace::set_edge_pending(AG::data::ptr<AG::Node> node, AG::AttributeID input, bool pending) {
+void ExternalTrace::set_edge_pending(IAG::data::ptr<IAG::Node> node, IAG::AttributeID input, bool pending) {
     if (auto callback = _trace->node_set_edge_pending) {
-        if (AG::AttributeID(node).subgraph()) {
-            callback(_context, AGAttribute(AG::AttributeID(node)), AGAttribute(input), pending);
+        if (IAG::AttributeID(node).subgraph()) {
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), IAGAttribute(input), pending);
         }
     }
 }
 
-void ExternalTrace::set_dirty(AG::data::ptr<AG::Node> node, bool dirty) {
+void ExternalTrace::set_dirty(IAG::data::ptr<IAG::Node> node, bool dirty) {
     if (auto callback = _trace->node_set_dirty) {
-        callback(_context, AGAttribute(AG::AttributeID(node)), dirty);
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), dirty);
     }
 }
 
-void ExternalTrace::set_pending(AG::data::ptr<AG::Node> node, bool pending) {
+void ExternalTrace::set_pending(IAG::data::ptr<IAG::Node> node, bool pending) {
     if (auto callback = _trace->node_set_pending) {
-        callback(_context, AGAttribute(AG::AttributeID(node)), pending);
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), pending);
     }
 }
 
-void ExternalTrace::set_value(AG::data::ptr<AG::Node> node, const void *value) {
+void ExternalTrace::set_value(IAG::data::ptr<IAG::Node> node, const void *value) {
     if (auto callback = _trace->node_set_value) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::mark_value(AG::data::ptr<AG::Node> node) {
+void ExternalTrace::mark_value(IAG::data::ptr<IAG::Node> node) {
     if (auto callback = _trace->node_mark_value) {
-        callback(_context, AGAttribute(AG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)));
     }
 }
 
-void ExternalTrace::added(AG::data::ptr<AG::IndirectNode> indirect_node) {
+void ExternalTrace::added(IAG::data::ptr<IAG::IndirectNode> indirect_node) {
     if (auto callback = _trace->indirect_node_added) {
-        callback(_context, AGAttribute(AG::AttributeID(indirect_node))); // TODO: check sets kind
+        callback(_context, IAGAttribute(IAG::AttributeID(indirect_node))); // TODO: check sets kind
     }
 }
 
-void ExternalTrace::set_source(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID source) {
+void ExternalTrace::set_source(IAG::data::ptr<IAG::IndirectNode> indirect_node, IAG::AttributeID source) {
     if (auto callback = _trace->indirect_node_set_source) {
-        callback(_context, AGAttribute(AG::AttributeID(indirect_node)), AGAttribute(source)); // TODO: check sets kind
+        callback(_context, IAGAttribute(IAG::AttributeID(indirect_node)), IAGAttribute(source)); // TODO: check sets kind
     }
 }
 
-void ExternalTrace::set_dependency(AG::data::ptr<AG::IndirectNode> indirect_node, AG::AttributeID dependency) {
+void ExternalTrace::set_dependency(IAG::data::ptr<IAG::IndirectNode> indirect_node, IAG::AttributeID dependency) {
     if (auto callback = _trace->indirect_node_set_dependency) {
-        callback(_context, AGAttribute(AG::AttributeID(indirect_node)),
-                 AGAttribute(dependency)); // TODO: check sets kind
+        callback(_context, IAGAttribute(IAG::AttributeID(indirect_node)),
+                 IAGAttribute(dependency)); // TODO: check sets kind
     }
 }
 
-void ExternalTrace::mark_profile(const AG::Graph &graph, uint32_t event_id) {
+void ExternalTrace::mark_profile(const IAG::Graph &graph, uint32_t event_id) {
     if (auto callback = _trace->profile_mark) {
         const char *event_name = graph.key_name(event_id);
         callback(_context, event_name);
     }
 }
 
-void ExternalTrace::custom_event(const AG::Graph::Context &context, const char *event_name, const void *value,
-                                 const AG::swift::metadata &type) {
-    if (_trace->version < AGTraceTypeVersionCustom) {
+void ExternalTrace::custom_event(const IAG::Graph::Context &context, const char *event_name, const void *value,
+                                 const IAG::swift::metadata &type) {
+    if (_trace->version < IAGTraceTypeVersionCustom) {
         return;
     }
     auto cf_context = context.to_cf();
     if (auto callback = _trace->custom_event) {
-        callback(_context, cf_context, event_name, value, AGTypeID(&type));
+        callback(_context, cf_context, event_name, value, IAGTypeID(&type));
     }
 }
 
-void ExternalTrace::named_event(const AG::Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
+void ExternalTrace::named_event(const IAG::Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
                                 const void *event_args, CFDataRef data, uint32_t arg6) {
-    if (_trace->version < AGTraceTypeVersionNamed) {
+    if (_trace->version < IAGTraceTypeVersionNamed) {
         return;
     }
     auto cf_context = context.to_cf();
@@ -275,7 +275,7 @@ void ExternalTrace::named_event(const AG::Graph::Context &context, uint32_t even
 }
 
 bool ExternalTrace::named_event_enabled(uint32_t event_id) {
-    if (_trace->version < AGTraceTypeVersionNamed) {
+    if (_trace->version < IAGTraceTypeVersionNamed) {
         return false;
     }
     if (auto callback = _trace->named_event_enabled) {
@@ -285,7 +285,7 @@ bool ExternalTrace::named_event_enabled(uint32_t event_id) {
 }
 
 void ExternalTrace::set_deadline(uint64_t deadline) {
-    if (_trace->version < AGTraceTypeVersionDeadline) {
+    if (_trace->version < IAGTraceTypeVersionDeadline) {
         return;
     }
     if (auto callback = _trace->set_deadline) {
@@ -294,7 +294,7 @@ void ExternalTrace::set_deadline(uint64_t deadline) {
 }
 
 void ExternalTrace::passed_deadline() {
-    if (_trace->version < AGTraceTypeVersionDeadline) {
+    if (_trace->version < IAGTraceTypeVersionDeadline) {
         return;
     }
     if (auto callback = _trace->passed_deadline) {
@@ -302,13 +302,13 @@ void ExternalTrace::passed_deadline() {
     }
 }
 
-void ExternalTrace::compare_failed(AG::data::ptr<AG::Node> node, const void *lhs, const void *rhs, size_t range_offset,
-                                   size_t range_size, const AG::swift::metadata *_Nullable type) {
-    if (_trace->version < AGTraceTypeVersionCompareFailed) {
+void ExternalTrace::compare_failed(IAG::data::ptr<IAG::Node> node, const void *lhs, const void *rhs, size_t range_offset,
+                                   size_t range_size, const IAG::swift::metadata *_Nullable type) {
+    if (_trace->version < IAGTraceTypeVersionCompareFailed) {
         return;
     }
-    AGComparisonStateStorage storage = {lhs, rhs, range_offset, range_size, AGTypeID(&type)};
+    IAGComparisonStateStorage storage = {lhs, rhs, range_offset, range_size, IAGTypeID(&type)};
     if (auto callback = _trace->compare_failed) {
-        callback(_context, AGAttribute(AG::AttributeID(node)), &storage);
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), &storage);
     }
 }

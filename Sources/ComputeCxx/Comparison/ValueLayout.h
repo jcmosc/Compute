@@ -2,7 +2,7 @@
 
 #include <cstring> 
 
-namespace AG {
+namespace IAG {
 namespace LayoutDescriptor {
 
 enum class ValueLayoutEntryKind : uint8_t {
@@ -74,4 +74,4 @@ struct ValueLayoutReader {
 };
 
 } // namespace LayoutDescriptor
-} // namespace AG
+} // namespace IAG

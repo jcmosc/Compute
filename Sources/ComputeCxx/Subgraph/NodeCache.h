@@ -1,15 +1,15 @@
 #pragma once
 
-#include <ComputeCxx/AGBase.h>
+#include <ComputeCxx/IAGBase.h>
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
 #include <platform/lock.h>
 
 #include "Subgraph.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class Subgraph::NodeCache {
   public:
@@ -66,6 +66,6 @@ class Subgraph::NodeCache {
     util::Table<data::ptr<Node>, Item *> &items_by_node() { return _items_by_node; };
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

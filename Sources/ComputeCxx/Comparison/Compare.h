@@ -2,13 +2,13 @@
 
 #include "LayoutDescriptor.h"
 
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGComparison.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGComparison.h"
 #include "Vector/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace LayoutDescriptor {
 
 class Compare {
@@ -60,13 +60,13 @@ class Compare {
 
   public:
     bool operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset, size_t size,
-                    AGComparisonOptions options);
+                    IAGComparisonOptions options);
 
-    void failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+    void failed(IAGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                 size_t size, const swift::metadata *_Nullable type);
 };
 
 } // namespace LayoutDescriptor
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

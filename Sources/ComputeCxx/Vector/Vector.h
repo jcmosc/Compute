@@ -10,12 +10,12 @@
 
 #include <platform/malloc.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Errors/Errors.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 template <typename T, unsigned int _inline_capacity = 0, typename _size_type = std::size_t>
     requires std::unsigned_integral<_size_type>
@@ -851,6 +851,6 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::uniq
     _size += 1;
 }
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

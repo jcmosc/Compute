@@ -10,19 +10,19 @@
 
 #include "Builder.h"
 #include "Compare.h"
-#include "ComputeCxx/AGComparison.h"
+#include "ComputeCxx/IAGComparison.h"
 #include "Graph/Graph.h"
 #include "Swift/Metadata.h"
 #include "Time/Time.h"
 #include "ValueLayout.h"
 
-namespace AG {
+namespace IAG {
 
 namespace {
 
 unsigned int print_layouts() {
     static unsigned int print_layouts = print_layouts = []() -> bool {
-        char *result = getenv("AG_PRINT_LAYOUTS");
+        char *result = getenv("IAG_PRINT_LAYOUTS");
         if (result) {
             return atoi(result) != 0;
         }
@@ -41,7 +41,7 @@ class TypeDescriptorCache {
   public:
     struct QueueEntry {
         const swift::metadata *type;
-        AGComparisonMode comparison_mode;
+        IAGComparisonMode comparison_mode;
         LayoutDescriptor::HeapMode heap_mode;
         uint32_t priority;
 
@@ -54,7 +54,7 @@ class TypeDescriptorCache {
     vector<QueueEntry, 8, uint64_t> _async_queue;
     void *_field_0xf0;
     uint64_t _async_queue_running;
-    vector<std::pair<const swift::context_descriptor *, AGComparisonMode>> _modes;
+    vector<std::pair<const swift::context_descriptor *, IAGComparisonMode>> _modes;
     void *_field_0x118;
     uint64_t _cache_hit_count;
     uint64_t _cache_miss_count;
@@ -77,19 +77,19 @@ class TypeDescriptorCache {
     void lock() { platform_lock_lock(&_lock); };
     void unlock() { platform_lock_unlock(&_lock); };
 
-    vector<std::pair<const swift::context_descriptor *, AGComparisonMode>> &modes() { return _modes; };
+    vector<std::pair<const swift::context_descriptor *, IAGComparisonMode>> &modes() { return _modes; };
 
-    static void *make_key(const swift::metadata *type, AGComparisonMode comparison_mode,
+    static void *make_key(const swift::metadata *type, IAGComparisonMode comparison_mode,
                           LayoutDescriptor::HeapMode heap_mode);
 
-    ValueLayout fetch(const swift::metadata &type, AGComparisonOptions options, LayoutDescriptor::HeapMode heap_mode,
+    ValueLayout fetch(const swift::metadata &type, IAGComparisonOptions options, LayoutDescriptor::HeapMode heap_mode,
                       uint32_t priority);
     
-    ValueLayout insert_sync(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+    ValueLayout insert_sync(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                             LayoutDescriptor::HeapMode heap_mode);
     
 #if TARGET_OS_MAC
-    void insert_async(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+    void insert_async(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                       LayoutDescriptor::HeapMode heap_mode, uint32_t priority);
     
     static void drain_queue(void *cache);
@@ -99,7 +99,7 @@ class TypeDescriptorCache {
 TypeDescriptorCache *TypeDescriptorCache::_shared_cache = nullptr;
 platform_once_t TypeDescriptorCache::_shared_once = 0;
 
-void *TypeDescriptorCache::make_key(const swift::metadata *type, AGComparisonMode comparison_mode,
+void *TypeDescriptorCache::make_key(const swift::metadata *type, IAGComparisonMode comparison_mode,
                                     LayoutDescriptor::HeapMode heap_mode) {
     uintptr_t type_address = (uintptr_t)type;
     uintptr_t result =
@@ -108,9 +108,9 @@ void *TypeDescriptorCache::make_key(const swift::metadata *type, AGComparisonMod
     return (void *)result;
 }
 
-ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, AGComparisonOptions options,
+ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, IAGComparisonOptions options,
                                        LayoutDescriptor::HeapMode heap_mode, uint32_t priority) {
-    AGComparisonMode comparison_mode = AGComparisonMode(options & AGComparisonOptionsComparisonModeMask);
+    IAGComparisonMode comparison_mode = IAGComparisonMode(options & IAGComparisonOptionsComparisonModeMask);
 
     void *key = make_key(&type, comparison_mode, heap_mode);
 
@@ -129,14 +129,14 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, AGComparison
 
 #if TARGET_OS_MAC
     static bool async_layouts = []() {
-        char *result = getenv("AG_ASYNC_LAYOUTS");
+        char *result = getenv("IAG_ASYNC_LAYOUTS");
         if (result) {
             return atoi(result) != 0;
         }
         return true;
     }();
 
-    if ((options & AGComparisonOptionsFetchLayoutsSynchronously) || !async_layouts) {
+    if ((options & IAGComparisonOptionsFetchLayoutsSynchronously) || !async_layouts) {
         return insert_sync(key, type, comparison_mode, heap_mode);
     }
 
@@ -147,7 +147,7 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, AGComparison
 #endif
 }
 
-ValueLayout TypeDescriptorCache::insert_sync(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+ValueLayout TypeDescriptorCache::insert_sync(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                                              LayoutDescriptor::HeapMode heap_mode) {
     double start_time = current_time();
     ValueLayout layout = LayoutDescriptor::make_layout(type, comparison_mode, heap_mode);
@@ -172,7 +172,7 @@ ValueLayout TypeDescriptorCache::insert_sync(void *key, const swift::metadata &t
 
 #if TARGET_OS_MAC
 
-void TypeDescriptorCache::insert_async(void *key, const swift::metadata &type, AGComparisonMode comparison_mode,
+void TypeDescriptorCache::insert_async(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                                        LayoutDescriptor::HeapMode heap_mode, uint32_t priority) {
     lock();
     _table.insert((void *)key, nullptr);
@@ -249,7 +249,7 @@ namespace LayoutDescriptor {
 
 unsigned char base_address = '\0';
 
-AGComparisonMode mode_for_type(const swift::metadata *type, AGComparisonMode default_mode) {
+IAGComparisonMode mode_for_type(const swift::metadata *type, IAGComparisonMode default_mode) {
     if (!type) {
         return default_mode;
     }
@@ -258,7 +258,7 @@ AGComparisonMode mode_for_type(const swift::metadata *type, AGComparisonMode def
         return default_mode;
     }
 
-    AGComparisonMode result = default_mode;
+    IAGComparisonMode result = default_mode;
     TypeDescriptorCache::shared_cache().lock();
     auto &modes = TypeDescriptorCache::shared_cache().modes();
     auto iter = std::find_if(modes.begin(), modes.end(),
@@ -271,7 +271,7 @@ AGComparisonMode mode_for_type(const swift::metadata *type, AGComparisonMode def
 }
 
 void add_type_descriptor_override(const swift::context_descriptor *_Nullable type_descriptor,
-                                  AGComparisonMode override_mode) {
+                                  IAGComparisonMode override_mode) {
     if (!type_descriptor) {
         return;
     }
@@ -288,12 +288,12 @@ void add_type_descriptor_override(const swift::context_descriptor *_Nullable typ
     TypeDescriptorCache::shared_cache().unlock();
 }
 
-ValueLayout _Nullable fetch(const swift::metadata &type, AGComparisonOptions options, uint32_t priority) {
+ValueLayout _Nullable fetch(const swift::metadata &type, IAGComparisonOptions options, uint32_t priority) {
     return TypeDescriptorCache::shared_cache().fetch(type, options, HeapMode(0), priority);
 }
 
-ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mode, HeapMode heap_mode) {
-    AGComparisonMode comparison_mode = mode_for_type(&type, default_mode);
+ValueLayout make_layout(const swift::metadata &type, IAGComparisonMode default_mode, HeapMode heap_mode) {
+    IAGComparisonMode comparison_mode = mode_for_type(&type, default_mode);
     Builder builder = Builder(comparison_mode, heap_mode);
 
     if (heap_mode == HeapMode::Locals) {
@@ -305,9 +305,9 @@ ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mo
 
     if (heap_mode == HeapMode::Class) {
         if (type.isClassObject()) {
-            AGComparisonMode equatable_minimum_mode = type.getValueWitnesses()->isPOD()
-                                                          ? AGComparisonModeEquatableAlways
-                                                          : AGComparisonModeEquatableUnlessPOD;
+            IAGComparisonMode equatable_minimum_mode = type.getValueWitnesses()->isPOD()
+                                                          ? IAGComparisonModeEquatableAlways
+                                                          : IAGComparisonModeEquatableUnlessPOD;
             if (equatable_minimum_mode <= builder.current_comparison_mode()) {
                 if (auto equatable = type.equatable()) {
                     size_t offset = builder.current_offset();
@@ -327,8 +327,8 @@ ValueLayout make_layout(const swift::metadata &type, AGComparisonMode default_mo
         return nullptr;
     }
 
-    AGComparisonMode equtable_minimum_mode =
-        type.getValueWitnesses()->isPOD() ? AGComparisonModeEquatableAlways : AGComparisonModeEquatableUnlessPOD;
+    IAGComparisonMode equtable_minimum_mode =
+        type.getValueWitnesses()->isPOD() ? IAGComparisonModeEquatableAlways : IAGComparisonModeEquatableUnlessPOD;
     if (equtable_minimum_mode <= builder.current_comparison_mode()) {
         if (auto equatable = type.equatable()) {
             size_t offset = builder.current_offset();
@@ -420,7 +420,7 @@ size_t length(ValueLayout layout) {
 // MARK: Comparing values
 
 bool compare(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t size,
-             AGComparisonOptions options) {
+             IAGComparisonOptions options) {
     if (lhs == rhs) {
         return true;
     }
@@ -432,10 +432,10 @@ bool compare(ValueLayout layout, const unsigned char *lhs, const unsigned char *
 }
 
 bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs, size_t size,
-                             AGComparisonOptions options) {
+                             IAGComparisonOptions options) {
     size_t failure_location = 0;
     bool result = compare_bytes(lhs, rhs, size, &failure_location);
-    if ((options & AGComparisonOptionsTraceCompareFailed) && !result) {
+    if ((options & IAGComparisonOptionsTraceCompareFailed) && !result) {
         Graph::compare_failed(lhs, rhs, failure_location, 1, nullptr);
     }
     return result;
@@ -482,7 +482,7 @@ bool compare_bytes(const unsigned char *lhs, const unsigned char *rhs, size_t si
     return true;
 }
 
-bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, AGComparisonOptions options,
+bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, IAGComparisonOptions options,
                           bool is_function) {
     if (lhs == rhs) {
         return true;
@@ -498,12 +498,12 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, AG
     }
 
     HeapMode heap_mode = is_function ? HeapMode::Locals : HeapMode::Class;
-    AGComparisonOptions fetch_options =
-        options & AGComparisonOptionsComparisonModeMask; // this has the effect of allowing async fetch
+    IAGComparisonOptions fetch_options =
+        options & IAGComparisonOptionsComparisonModeMask; // this has the effect of allowing async fetch
     ValueLayout layout = TypeDescriptorCache::shared_cache().fetch(*lhs_type, fetch_options, heap_mode, 1);
 
     if (layout > ValueLayoutTrivial) {
-        return compare(layout, lhs, rhs, -1, options & ~AGComparisonOptionsCopyOnWrite);
+        return compare(layout, lhs, rhs, -1, options & ~IAGComparisonOptionsCopyOnWrite);
     }
 
     return false;
@@ -511,7 +511,7 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, AG
 
 // https://www.swift.org/blog/how-mirror-works/
 bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type, const swift::metadata &layout_type,
-                      AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs) {
+                      IAGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs) {
 
     size_t enum_size = enum_type.vw_size();
     bool large_allocation = enum_size > 0x1000;
@@ -553,7 +553,7 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
         result = true;
     } else {
         if (*layout_ref == nullptr) {
-            *layout_ref = fetch(layout_type, options & ~AGComparisonOptionsCopyOnWrite, 0);
+            *layout_ref = fetch(layout_type, options & ~IAGComparisonOptionsCopyOnWrite, 0);
         }
 
         ValueLayout layout = *layout_ref == ValueLayoutTrivial ? nullptr : *layout_ref;
@@ -565,7 +565,7 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
         unsigned char *rhs_value = (unsigned char *)(*(unsigned char **)rhs_copy + offset);
 
         result =
-            compare(layout, lhs_value, rhs_value, layout_type.vw_size(), options & ~AGComparisonOptionsCopyOnWrite);
+            compare(layout, lhs_value, rhs_value, layout_type.vw_size(), options & ~IAGComparisonOptionsCopyOnWrite);
     }
 
     if (large_allocation) {
@@ -577,7 +577,7 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
 }
 
 bool compare_existential_values(const swift::existential_type_metadata &type, const unsigned char *lhs,
-                                const unsigned char *rhs, AGComparisonOptions options) {
+                                const unsigned char *rhs, IAGComparisonOptions options) {
 
     if (auto lhs_dynamic_type = type.dynamic_type((void *)lhs)) {
         if (auto rhs_dynamic_type = type.dynamic_type((void *)rhs)) {
@@ -589,7 +589,7 @@ bool compare_existential_values(const swift::existential_type_metadata &type, co
                 }
 
                 if (lhs_value != lhs || rhs_value != rhs) {
-                    options = options & ~AGComparisonOptionsCopyOnWrite;
+                    options = options & ~IAGComparisonOptionsCopyOnWrite;
                 }
 
                 ValueLayout wrapped_layout = fetch(reinterpret_cast<const swift::metadata &>(type), options, 0);
@@ -603,7 +603,7 @@ bool compare_existential_values(const swift::existential_type_metadata &type, co
 }
 
 bool compare_partial(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset, size_t size,
-                     AGComparisonOptions options) {
+                     IAGComparisonOptions options) {
     if (lhs == rhs) {
         return true;
     }
@@ -1024,8 +1024,8 @@ void Builder::add_field(size_t field_size) {
 bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
     if (!no_fetch) {
         if (auto layout = fetch(type,
-                                AGComparisonOptions(_current_comparison_mode) | AGComparisonOptionsTraceCompareFailed |
-                                    AGComparisonOptionsFetchLayoutsSynchronously,
+                                IAGComparisonOptions(_current_comparison_mode) | IAGComparisonOptionsTraceCompareFailed |
+                                    IAGComparisonOptionsFetchLayoutsSynchronously,
                                 true)) {
             if (layout == ValueLayoutTrivial) {
                 add_field(type.vw_size());
@@ -1041,8 +1041,8 @@ bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
         }
     }
 
-    AGComparisonMode equtable_minimum_mode =
-        type.getValueWitnesses()->isPOD() ? AGComparisonModeEquatableAlways : AGComparisonModeEquatableUnlessPOD;
+    IAGComparisonMode equtable_minimum_mode =
+        type.getValueWitnesses()->isPOD() ? IAGComparisonModeEquatableAlways : IAGComparisonModeEquatableUnlessPOD;
     if (equtable_minimum_mode <= _current_comparison_mode) {
         if (auto equatable = type.equatable()) {
             EqualsItem item = {
@@ -1078,7 +1078,7 @@ bool Builder::visit_element(const swift::metadata &type, const swift::metadata::
     _current_offset += element_offset;
 
     if (kind == swift::metadata::ref_kind::strong) {
-        AGComparisonMode prev_comparison_mode = _current_comparison_mode;
+        IAGComparisonMode prev_comparison_mode = _current_comparison_mode;
         _current_comparison_mode = mode_for_type(&type, _current_comparison_mode);
 
         if (should_visit_fields(type, false)) {
@@ -1164,7 +1164,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
             }
             result = true;
         } else {
-            AGComparisonMode prev_comparison_mode = _current_comparison_mode;
+            IAGComparisonMode prev_comparison_mode = _current_comparison_mode;
             _current_comparison_mode = mode_for_type(&type, _current_comparison_mode);
 
             if (should_visit_fields(*field_type, false)) {
@@ -1418,4 +1418,4 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::finish() {
 
 } // namespace LayoutDescriptor
 
-} // namespace AG
+} // namespace IAG

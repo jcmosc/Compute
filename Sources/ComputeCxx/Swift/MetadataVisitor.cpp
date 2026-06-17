@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace AG {
+namespace IAG {
 namespace swift {
 
 bool metadata_visitor::unknown_result() { return false; }
@@ -42,4 +42,4 @@ bool metadata_visitor::visit_function(const function_type_metadata &type) { retu
 bool metadata_visitor::visit_native_object(const metadata &type) { return unknown_result(); }
 
 } // namespace swift
-} // namespace AG
+} // namespace IAG

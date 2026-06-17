@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
 #if TARGET_OS_MAC
 #include <CoreFoundation/CFData.h>
@@ -8,13 +8,13 @@
 #include <SwiftCorelibsCoreFoundation/CFData.h>
 #endif
 
-#include "ComputeCxx/AGGraph.h"
-#include "ComputeCxx/AGUniqueID.h"
+#include "ComputeCxx/IAGGraph.h"
+#include "ComputeCxx/IAGUniqueID.h"
 #include "Graph/Graph.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class Node;
 class Subgraph;
@@ -26,7 +26,7 @@ class Trace {
   public:
     uint64_t id() { return _id; }
 
-    Trace() : _id(AGMakeUniqueID()) {};
+    Trace() : _id(IAGMakeUniqueID()) {};
     Trace(uint64_t id) : _id(id) {};
 
     virtual void graph_destroyed() {};
@@ -46,7 +46,7 @@ class Trace {
     virtual void end_update(const Subgraph &subgraph) {};
     virtual void begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options) {};
     virtual void end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
-                            AGGraphUpdateStatus update_status) {};
+                            IAGGraphUpdateStatus update_status) {};
     virtual void begin_update(data::ptr<Node> node) {};
     virtual void end_update(data::ptr<Node> node, bool changed) {};
     virtual void begin_update(const Graph::Context &context) {};
@@ -74,7 +74,7 @@ class Trace {
 
     virtual void added(data::ptr<Node> node) {};
 
-    virtual void add_edge(data::ptr<Node> node, AttributeID input, AGInputOptions input_options) {};
+    virtual void add_edge(data::ptr<Node> node, AttributeID input, IAGInputOptions input_options) {};
     virtual void remove_edge(data::ptr<Node> node, uint32_t input_index) {};
     virtual void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) {};
 
@@ -104,6 +104,6 @@ class Trace {
                                 size_t range_size, const swift::metadata *_Nullable type) {};
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

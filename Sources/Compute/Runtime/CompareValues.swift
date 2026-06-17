@@ -15,7 +15,7 @@ public func compareValues<Value>(_ lhs: Value, _ rhs: Value, mode: ComparisonMod
 public func compareValues<Value>(_ lhs: Value, _ rhs: Value, options: ComparisonOptions) -> Bool {
     return withUnsafePointer(to: lhs) { lhsPointer in
         return withUnsafePointer(to: rhs) { rhsPointer in
-            return __AGCompareValues(lhsPointer, rhsPointer, Metadata(Value.self), options.union(.copyOnWrite))
+            return __IAGCompareValues(lhsPointer, rhsPointer, Metadata(Value.self), options.union(.copyOnWrite))
         }
     }
 }

@@ -3,15 +3,15 @@
 #include "Attribute/AttributeData/Edge/InputEdge.h"
 #include "Attribute/AttributeData/Edge/OutputEdge.h"
 #include "Attribute/AttributeID/RelativeAttributeID.h"
-#include "ComputeCxx/AGAttribute.h"
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGGraph.h"
+#include "ComputeCxx/IAGAttribute.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGGraph.h"
 #include "Data/Pointer.h"
 #include "Data/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 namespace data {
 class zone;
@@ -46,7 +46,7 @@ class Node {
 
     // Subgraph
     RelativeAttributeID _next_attribute;
-    AGAttributeFlags _subgraph_flags = AGAttributeFlags(0);
+    IAGAttributeFlags _subgraph_flags = IAGAttributeFlags(0);
 
     // Data flags
     unsigned int _has_indirect_self : 1 = 0;
@@ -108,12 +108,12 @@ class Node {
     uint8_t count() const { return (uint8_t)_state >> 6; };
 
     // TODO: test this
-    AGValueState flags() const {
-        return (is_dirty() ? AGValueStateDirty : 0) | (is_pending() ? AGValueStatePending : 0) |
-               (is_updating() ? AGValueStateUpdating : 0) | (is_value_initialized() ? AGValueStateValueExists : 0) |
-               (is_main_thread() ? AGValueStateMainThread : 0) | (_main_ref ? AGValueStateMainRef : 0) |
-               (requires_main_thread() ? AGValueStateRequiresMainThread : 0) |
-               (_self_modified ? AGValueStateSelfModified : 0);
+    IAGValueState flags() const {
+        return (is_dirty() ? IAGValueStateDirty : 0) | (is_pending() ? IAGValueStatePending : 0) |
+               (is_updating() ? IAGValueStateUpdating : 0) | (is_value_initialized() ? IAGValueStateValueExists : 0) |
+               (is_main_thread() ? IAGValueStateMainThread : 0) | (_main_ref ? IAGValueStateMainRef : 0) |
+               (requires_main_thread() ? IAGValueStateRequiresMainThread : 0) |
+               (_self_modified ? IAGValueStateSelfModified : 0);
     };
 
     uint32_t type_id() const { return _type_id; };
@@ -121,8 +121,8 @@ class Node {
     const RelativeAttributeID next_attribute() const { return _next_attribute; }
     void set_next_attribute(RelativeAttributeID next_attribute) { _next_attribute = next_attribute; }
 
-    AGAttributeFlags subgraph_flags() const { return _subgraph_flags; };
-    void set_subgraph_flags(AGAttributeFlags subgraph_flags) { _subgraph_flags = subgraph_flags; };
+    IAGAttributeFlags subgraph_flags() const { return _subgraph_flags; };
+    void set_subgraph_flags(IAGAttributeFlags subgraph_flags) { _subgraph_flags = subgraph_flags; };
 
     // MARK: Data
 
@@ -179,6 +179,6 @@ class Node {
     void destroy(Graph &graph);
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

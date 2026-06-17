@@ -1,6 +1,6 @@
 #include "Trace.h"
 
-namespace AG {
+namespace IAG {
 
 void Trace::log_message(const char *format, ...) {
     va_list args;
@@ -9,4 +9,4 @@ void Trace::log_message(const char *format, ...) {
     va_end(args);
 }
 
-} // namespace AG
+} // namespace IAG

@@ -6,12 +6,12 @@
 
 #include <swift/RemoteInspection/Records.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Metadata.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace swift {
 
 using field_record = ::swift::reflection::FieldRecord;
@@ -33,6 +33,6 @@ class metadata_visitor {
 };
 
 } // namespace swift
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

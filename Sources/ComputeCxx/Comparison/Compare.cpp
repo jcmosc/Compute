@@ -5,7 +5,7 @@
 #include "Swift/SwiftShims.h"
 #include "ValueLayout.h"
 
-namespace AG {
+namespace IAG {
 namespace LayoutDescriptor {
 
 Compare::Enum::Enum(const swift::metadata *type, Mode mode, unsigned int enum_tag, size_t offset,
@@ -60,7 +60,7 @@ Compare::Frame::~Frame() {
 }
 
 bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
-                         size_t size, AGComparisonOptions options) {
+                         size_t size, IAGComparisonOptions options) {
     Frame frame = Frame(&_enums);
     
     size_t end = size < 0 ? ~0 : offset + size;
@@ -117,7 +117,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
                     return false;
                 }
             } else {
-                if (!AGDispatchEquatable((const void *)(lhs + offset), (const void *)(rhs + offset), type, equatable)) {
+                if (!IAGDispatchEquatable((const void *)(lhs + offset), (const void *)(rhs + offset), type, equatable)) {
                     failed(options, lhs, rhs, offset, item_size, type);
                     return false;
                 }
@@ -134,7 +134,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + item_size;
 
             if (!compare_indirect(&indirect_layout, *_enums.back().type, *type,
-                                  options & ~AGComparisonOptionsTraceCompareFailed, lhs + offset, rhs + offset)) {
+                                  options & ~IAGComparisonOptionsTraceCompareFailed, lhs + offset, rhs + offset)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -150,7 +150,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             if (!compare_existential_values(*reinterpret_cast<const swift::existential_type_metadata *>(type),
                                             lhs + offset, rhs + offset,
-                                            options & ~AGComparisonOptionsTraceCompareFailed)) {
+                                            options & ~IAGComparisonOptionsTraceCompareFailed)) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }
@@ -165,7 +165,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             size_t item_end = offset + 8;
 
             if (lhs + offset != rhs + offset) {
-                if (!compare_heap_objects(lhs + offset, rhs + offset, options & ~AGComparisonOptionsTraceCompareFailed,
+                if (!compare_heap_objects(lhs + offset, rhs + offset, options & ~IAGComparisonOptionsTraceCompareFailed,
                                           is_function)) {
                     failed(options, lhs, rhs, offset, 8, nullptr);
                     return false;
@@ -231,7 +231,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
 
             // Push enum
 
-            bool is_copy = options & AGComparisonOptionsCopyOnWrite;
+            bool is_copy = options & IAGComparisonOptionsCopyOnWrite;
             const unsigned char *_Nonnull lhs_enum;
             const unsigned char *_Nonnull rhs_enum;
             bool owns_copies = false;
@@ -313,12 +313,12 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
     }
 }
 
-void Compare::failed(AGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
+void Compare::failed(IAGComparisonOptions options, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                      size_t size, const swift::metadata *type) {
-    if (options & AGComparisonOptionsTraceCompareFailed) {
+    if (options & IAGComparisonOptionsTraceCompareFailed) {
         Graph::compare_failed(lhs, rhs, offset, size, type);
     }
 }
 
 } // namespace LayoutDescriptor
-} // namespace AG
+} // namespace IAG

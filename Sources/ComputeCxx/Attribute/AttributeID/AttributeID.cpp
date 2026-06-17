@@ -9,11 +9,11 @@
 #include "OffsetAttributeID.h"
 #include "Subgraph/Subgraph.h"
 
-namespace AG {
+namespace IAG {
 
 bool AttributeID::has_subgraph_flags() const {
     if (auto node = get_node()) {
-        return node->subgraph_flags() != AGAttributeFlagsNone;
+        return node->subgraph_flags() != IAGAttributeFlagsNone;
     }
     return false;
 }
@@ -67,7 +67,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (dependency) {
                     auto subgraph = dependency.subgraph();
                     if (subgraph) {
-                        subgraph->graph()->update_attribute(dependency.get_node(), AGGraphUpdateOptionsNone);
+                        subgraph->graph()->update_attribute(dependency.get_node(), IAGGraphUpdateOptionsNone);
                     }
                 }
             }
@@ -78,7 +78,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
                 if (options & TraversalOptions::AssertNotNil) {
                     precondition_failure("invalid indirect ref: %u", _value);
                 }
-                return OffsetAttributeID(AttributeID(AGAttributeNil));
+                return OffsetAttributeID(AttributeID(IAGAttributeNil));
             }
         }
 
@@ -93,4 +93,4 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
     return OffsetAttributeID(result, offset);
 }
 
-} // namespace AG
+} // namespace IAG

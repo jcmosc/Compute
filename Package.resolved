@@ -1,5 +1,5 @@
 {
-  "originHash" : "926e2fd9fc565c75f905ebf94506371af15cd1c2e0580b57c97fb499241158be",
+  "originHash" : "3c8d535e8281f7c984e2193337f85cc7ba925249dc8d6704a04c1b1d7c5204be",
   "pins" : [
     {
       "identity" : "semaphore",
@@ -26,6 +26,15 @@
       "state" : {
         "revision" : "e0ec0f5f3af6f3e4d5e7a19d2af26b481acb6ba8",
         "version" : "1.0.3"
+      }
+    },
+    {
+      "identity" : "swift-sexp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jcmosc/swift-sexp",
+      "state" : {
+        "branch" : "main",
+        "revision" : "9b86036edc8ce9b870acba04941d2239d71cd3c0"
       }
     }
   ],

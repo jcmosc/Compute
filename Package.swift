@@ -7,6 +7,7 @@ let swiftRuntimeHeadersPath = "\(Context.packageDirectory)/Submodules/swift-runt
 var dependencies: [Package.Dependency] = [
     .package(url: "https://github.com/apple/swift-algorithms", from: "1.2.0"),
     .package(url: "https://github.com/groue/Semaphore", from: "0.1.0"),
+    .package(url: "https://github.com/jcmosc/swift-sexp", branch: "main"),
 ]
 
 let package = Package(
@@ -60,6 +61,7 @@ let package = Package(
             dependencies: [
                 "Compute",
                 "_ComputeTestSupport",
+                .product(name: "SExp", package: "swift-sexp"),
                 .product(name: "Semaphore", package: "Semaphore"),
             ],
             swiftSettings: [

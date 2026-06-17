@@ -58,7 +58,7 @@ bool IAGCompareValues(const void *_Nonnull destination, const void *_Nonnull sou
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 const unsigned char *_Nullable IAGPrefetchCompareValues(IAGTypeID type_id, IAGComparisonOptions options,
-                                                       uint32_t priority);
+                                                       uint32_t priority) IAG_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

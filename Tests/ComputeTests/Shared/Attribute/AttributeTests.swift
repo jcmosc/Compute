@@ -27,10 +27,10 @@ struct AttributeTests {
                 let attribute = Attribute(value: 1)
                 #expect(attribute.value == 1)
 
-                let expectedlayout = __IAGPrefetchCompareValues(
-                    Metadata(Int.self),
-                    [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                    0
+                let expectedlayout = prefetchCompareValues(
+                    type: Metadata(Int.self),
+                    options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
+                    priority: 0
                 )
 
                 let attributeType = attribute.identifier.info.type.pointee
@@ -73,10 +73,10 @@ struct AttributeTests {
 
                 let attribute = Attribute(type: Int.self)
 
-                let expectedlayout = __IAGPrefetchCompareValues(
-                    Metadata(Int.self),
-                    [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
-                    0
+                let expectedlayout = prefetchCompareValues(
+                    type: Metadata(Int.self),
+                    options: [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
+                    priority: 0
                 )
 
                 let attributeType = attribute.identifier.info.type.pointee
@@ -132,10 +132,10 @@ struct AttributeTests {
                 }
                 #expect(attribute.value == "test value")
 
-                let expectedlayout = __IAGPrefetchCompareValues(
-                    Metadata(String.self),
-                    [.comparisonModeEquatableUnlessPOD, .fetchLayoutsSynchronously],
-                    0
+                let expectedlayout = prefetchCompareValues(
+                    type: Metadata(String.self),
+                    options: [.comparisonModeEquatableUnlessPOD, .fetchLayoutsSynchronously],
+                    priority: 0
                 )
 
                 let attributeType = attribute.identifier.info.type.pointee

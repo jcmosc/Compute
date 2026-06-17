@@ -1,5 +1,6 @@
 import ComputeCxx
 
+@frozen
 public struct RuleContext<Value> {
 
     public var attribute: Attribute<Value>

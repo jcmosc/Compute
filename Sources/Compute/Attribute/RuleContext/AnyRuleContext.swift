@@ -3,6 +3,7 @@ import ComputeCxx
 @_silgen_name("IAGGraphWithUpdate")
 func IAGGraphWithUpdate(_ attribute: AnyAttribute, body: () -> Void)
 
+@frozen
 public struct AnyRuleContext {
 
     public var attribute: AnyAttribute

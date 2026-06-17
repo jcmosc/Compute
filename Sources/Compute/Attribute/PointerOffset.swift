@@ -1,3 +1,4 @@
+@frozen
 public struct PointerOffset<Base, Member> {
 
     public var byteOffset: Int

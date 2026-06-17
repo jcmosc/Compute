@@ -1,5 +1,6 @@
 import ComputeCxx
 
+@frozen
 public struct _External {
 
     public init() {}
@@ -25,6 +26,7 @@ extension _External: _AttributeBody {
     }
 }
 
+@frozen
 public struct External<Value> {
 
     public init() {}

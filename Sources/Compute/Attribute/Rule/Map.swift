@@ -1,5 +1,6 @@
 import ComputeCxx
 
+@frozen
 public struct Map<Arg, Value> {
 
     public var arg: Attribute<Arg>

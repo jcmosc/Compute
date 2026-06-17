@@ -1,5 +1,6 @@
 import ComputeCxx
 
+@frozen
 @propertyWrapper
 @dynamicMemberLookup
 public struct Attribute<Value> {

@@ -1,5 +1,6 @@
 import ComputeCxx
 
+@frozen
 public struct Focus<Root, Value> {
 
     public var root: Attribute<Root>

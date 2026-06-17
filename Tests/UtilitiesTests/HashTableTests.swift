@@ -119,16 +119,19 @@ struct HashTableTests {
         // Count iterations via for_each - if there's a cycle, this will exceed count
         // or hang forever. We use a manual iteration limit to detect cycles.
         var iterationCount = 0
-        let maxIterations = 1000 // Way more than count, to detect infinite loop
+        let maxIterations = 1000  // Way more than count, to detect infinite loop
 
-        table.for_each({ _, _, context in
-            let countPtr = context.assumingMemoryBound(to: Int.self)
-            countPtr.pointee += 1
-            // If we've iterated too many times, we have a cycle
-            if countPtr.pointee > 100 {
-                fatalError("Cycle detected in hash table - iteration count exceeded expected")
-            }
-        }, &iterationCount)
+        table.for_each(
+            { _, _, context in
+                let countPtr = context.assumingMemoryBound(to: Int.self)
+                countPtr.pointee += 1
+                // If we've iterated too many times, we have a cycle
+                if countPtr.pointee > 100 {
+                    fatalError("Cycle detected in hash table - iteration count exceeded expected")
+                }
+            },
+            &iterationCount
+        )
 
         #expect(iterationCount == 32, "for_each should visit exactly count() items")
     }
@@ -201,10 +204,13 @@ struct HashTableTests {
 
         // Count via for_each should be 2
         var iterationCount = 0
-        table.for_each({ _, _, context in
-            let countPtr = context.assumingMemoryBound(to: Int.self)
-            countPtr.pointee += 1
-        }, &iterationCount)
+        table.for_each(
+            { _, _, context in
+                let countPtr = context.assumingMemoryBound(to: Int.self)
+                countPtr.pointee += 1
+            },
+            &iterationCount
+        )
 
         #expect(iterationCount == 2, "for_each should visit exactly 2 items after reinsertion")
     }
@@ -242,10 +248,13 @@ struct HashTableTests {
 
         // Count via for_each should match
         var iterationCount = 0
-        table.for_each({ _, _, context in
-            let countPtr = context.assumingMemoryBound(to: Int.self)
-            countPtr.pointee += 1
-        }, &iterationCount)
+        table.for_each(
+            { _, _, context in
+                let countPtr = context.assumingMemoryBound(to: Int.self)
+                countPtr.pointee += 1
+            },
+            &iterationCount
+        )
 
         #expect(iterationCount == itemCount, "for_each should visit all \(itemCount) items")
     }

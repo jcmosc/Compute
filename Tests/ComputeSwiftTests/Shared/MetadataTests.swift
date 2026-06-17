@@ -127,8 +127,8 @@ struct MetadataTests {
             signatures.append(Metadata(TestPackedGenericStruct<String, Int>.self).signature)
             signatures.append(Metadata(TestPackedGenericStruct<String, Int, Bool>.self).signature)
 
-            signatures.combinations(ofCount: 2).forEach { elements in
-                #expect(elements[0] != elements[1])
+            for combination in signatures.combinations(ofCount: 2) {
+                #expect(combination[0] != combination[1])
             }
         }
 

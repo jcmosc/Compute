@@ -194,7 +194,7 @@ struct SubgraphTests {
 
         @Test
         func invalidateSubgraph() async throws {
-            var trace = IAGTraceType()
+            var trace = TraceType()
             trace.subgraph_created = { context, graph in
                 guard let reporter = context?.assumingMemoryBound(to: TraceReporter.self).pointee else {
                     return

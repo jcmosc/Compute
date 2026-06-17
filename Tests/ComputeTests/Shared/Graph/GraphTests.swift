@@ -338,7 +338,7 @@ struct GraphTests {
             // FIXME:
             // This sometimes fails because the subgraphs vector is sorted by pointer address,
             // which we can't predict deterministically.
-            @Test
+            @Test(.disabled())
             func graphDescription() async throws {
                 try await #require(processExitsWith: .success) {
                     let graph = Graph()

@@ -59,7 +59,7 @@ func IAGGraphReadCachedAttribute(
     options: CachedValueOptions,
     owner: AnyAttribute,
     changed: UnsafeMutablePointer<Bool>?,
-    attributeTypeID: (IAGUnownedGraphContextRef) -> UInt32
+    attributeTypeID: (UnownedGraphContext) -> UInt32
 ) -> UnsafeRawPointer
 
 extension Rule where Self: Hashable {
@@ -110,17 +110,13 @@ extension Rule where Self: Hashable {
             owner: owner ?? .nil,
             changed: nil
         ) { graph in
-            return graph.internAttributeType(type: Metadata(Self.self)) {
-                let attributeType = _AttributeType(
-                    selfType: Self.self,
-                    valueType: Value.self,
-                    flags: [],  // TODO: check flags are empty
-                    update: update()
-                )
-                let pointer = UnsafeMutablePointer<_AttributeType>.allocate(capacity: 1)
-                pointer.initialize(to: attributeType)
-                return UnsafePointer(pointer)
-            }
+            return Graph.typeIndex(
+                ctx: graph,
+                body: Self.self,
+                valueType: Metadata(Value.self),
+                flags: [],  // TODO: check flags are empty
+                update: update
+            )
         }
         return value.assumingMemoryBound(to: Value.self)
     }

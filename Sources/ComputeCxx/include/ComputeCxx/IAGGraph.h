@@ -33,7 +33,7 @@ IAG_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct IAG_BRIDGED_TYPE(id) IAGGraphStorage *IAGGraphRef IAG_SWIFT_NAME(Graph);
-typedef void *IAGUnownedGraphContextRef IAG_SWIFT_STRUCT;
+typedef void *IAGUnownedGraphContextRef IAG_SWIFT_STRUCT IAG_SWIFT_NAME(UnownedGraphContext);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

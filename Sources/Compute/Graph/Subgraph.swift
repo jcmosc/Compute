@@ -1,19 +1,19 @@
 import ComputeCxx
 
-@_silgen_name("AGSubgraphAddObserver")
-func AGSubgraphAddObserver(
+@_silgen_name("IAGSubgraphAddObserver")
+func IAGSubgraphAddObserver(
     _ subgraph: UnsafeRawPointer,
     observer: () -> Void
 ) -> Int
 
 extension Subgraph {
     public func addObserver(_ observer: @escaping () -> Void) -> Int {
-        AGSubgraphAddObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
+        IAGSubgraphAddObserver(unsafeBitCast(self, to: UnsafeRawPointer.self), observer: observer)
     }
 }
 
-@_silgen_name("AGSubgraphApply")
-func AGSubgraphApply(
+@_silgen_name("IAGSubgraphApply")
+func IAGSubgraphApply(
     _ subgraph: UnsafeRawPointer,
     _ flags: Subgraph.Flags,
     _ body: (AnyAttribute) -> Void
@@ -36,7 +36,7 @@ extension Subgraph {
         _ flags: Subgraph.Flags,
         _ body: (AnyAttribute) -> Void
     ) {
-        AGSubgraphApply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, body)
+        IAGSubgraphApply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, body)
     }
 
 }
@@ -48,7 +48,7 @@ extension Subgraph {
         flags: UInt32
     ) {
         if shouldRecordTree {
-            __AGSubgraphBeginTreeElement(
+            __IAGSubgraphBeginTreeElement(
                 value.identifier,
                 Metadata(Value.self),
                 flags
@@ -58,7 +58,7 @@ extension Subgraph {
 
     public static func endTreeElement<Value>(value: Attribute<Value>) {
         if shouldRecordTree {
-            __AGSubgraphEndTreeElement(value.identifier)
+            __IAGSubgraphEndTreeElement(value.identifier)
         }
     }
 
@@ -68,7 +68,7 @@ extension Subgraph {
         flags: UInt32
     ) {
         if shouldRecordTree {
-            __AGSubgraphAddTreeValue(value.identifier, Metadata(Value.self), key, flags)
+            __IAGSubgraphAddTreeValue(value.identifier, Metadata(Value.self), key, flags)
         }
     }
 

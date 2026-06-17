@@ -1,12 +1,12 @@
 #pragma once
 
 #include "AttributeID.h"
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGWeakAttribute.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGWeakAttribute.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class WeakAttributeID {
   private:
@@ -16,8 +16,8 @@ class WeakAttributeID {
   public:
     WeakAttributeID(AttributeID identifier, uint32_t seed) : _identifier(identifier), _seed(seed) {}
 
-    operator AGWeakAttribute() const { return *reinterpret_cast<const AGWeakAttribute *>(this); }
-    explicit constexpr WeakAttributeID(AGWeakAttribute storage)
+    operator IAGWeakAttribute() const { return *reinterpret_cast<const IAGWeakAttribute *>(this); }
+    explicit constexpr WeakAttributeID(IAGWeakAttribute storage)
         : _identifier(storage._details.identifier), _seed(storage._details.seed) {}
 
     // MARK: Accessing data
@@ -31,6 +31,6 @@ class WeakAttributeID {
     const AttributeID evaluate() const;
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

@@ -7,7 +7,7 @@
 #endif
 #include <math.h>
 
-namespace AG {
+namespace IAG {
 
 double current_time() {
 #if TARGET_OS_MAC
@@ -41,4 +41,4 @@ double absolute_time_to_seconds(uint64_t ticks) {
     return static_cast<double>(ticks) * time_scale;
 }
 
-} // namespace AG
+} // namespace IAG

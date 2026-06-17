@@ -9,7 +9,7 @@
 #include "Page.h"
 #include "Table.h"
 
-namespace AG {
+namespace IAG {
 namespace data {
 
 zone::zone() : _info(info(table::shared().make_zone_id())) {}
@@ -229,4 +229,4 @@ void zone::print() {
 }
 
 } // namespace data
-} // namespace AG
+} // namespace IAG

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
 #include <memory>
 #include <span>
@@ -19,13 +19,13 @@
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
-#include "ComputeCxx/AGGraphTracing.h"
+#include "ComputeCxx/IAGGraphTracing.h"
 #include "Swift/Metadata.h"
 #include "Vector/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class Trace;
 
@@ -66,7 +66,7 @@ class Graph {
 
     typedef void (*MainHandler)(void (*trampoline_thunk)(const void *),
                                 const void *trampoline,
-                                const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
+                                const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift);
 
   private:
     static Graph *_Nullable _all_graphs;
@@ -154,8 +154,8 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
-    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t seed, AGInputOptions input_options,
-                               const swift::metadata &value_type, AGChangedValueFlags *_Nonnull flags_out,
+    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t seed, IAGInputOptions input_options,
+                               const swift::metadata &value_type, IAGChangedValueFlags *_Nonnull flags_out,
                                uint32_t index);
 
     uint32_t index_of_input(Node &node, InputEdge::Comparator comparator);
@@ -168,8 +168,8 @@ class Graph {
     bool compare_edge_values(InputEdge input_edge, AttributeType *_Nullable type, const void *destination_value,
                              const void *source_value);
 
-    inline bool update_attribute_checked(data::ptr<Node> node, uint32_t subgraph_id, AGGraphUpdateOptions options,
-                                         AGChangedValueFlags *_Nullable flags_out);
+    inline bool update_attribute_checked(data::ptr<Node> node, uint32_t subgraph_id, IAGGraphUpdateOptions options,
+                                         IAGChangedValueFlags *_Nullable flags_out);
 
     static pthread_key_t _current_update_key;
 
@@ -283,7 +283,7 @@ class Graph {
     const AttributeType &attribute_type(uint32_t type_id) const { return *_types[type_id]; };
     const AttributeType &attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const;
 
-    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<const AGAttributeType *> make_type);
+    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<const IAGAttributeType *> make_type);
 
     // MARK: Attributes
 
@@ -294,7 +294,7 @@ class Graph {
     void remove_node(data::ptr<Node> node);
     void remove_indirect_node(data::ptr<IndirectNode> node);
 
-    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, AGInputOptions options);
+    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, IAGInputOptions options);
     void remove_all_inputs(data::ptr<Node> node);
 
     void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);
@@ -305,8 +305,8 @@ class Graph {
 
     // MARK: Search
 
-    bool breadth_first_search(AttributeID attribute, AGSearchOptions options,
-                              ClosureFunctionAB<bool, AGAttribute> predicate) const;
+    bool breadth_first_search(AttributeID attribute, IAGSearchOptions options,
+                              ClosureFunctionAB<bool, IAGAttribute> predicate) const;
 
     // MARK: Body
 
@@ -316,13 +316,13 @@ class Graph {
     // MARK: Value
 
     bool value_exists(data::ptr<Node> node);
-    AGValueState value_state(AttributeID attribute);
+    IAGValueState value_state(AttributeID attribute);
 
     void *value_ref(AttributeID attribute, uint32_t seed, const swift::metadata &value_type,
-                    AGChangedValueFlags *_Nonnull flags_out);
+                    IAGChangedValueFlags *_Nonnull flags_out);
 
-    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t seed, AGInputOptions input_options,
-                          const swift::metadata &value_type, AGChangedValueFlags *_Nonnull flags_out);
+    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t seed, IAGInputOptions input_options,
+                          const swift::metadata &value_type, IAGChangedValueFlags *_Nonnull flags_out);
 
     bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
@@ -335,7 +335,7 @@ class Graph {
     bool any_inputs_changed(data::ptr<Node> node, const AttributeID *exclude_attributes,
                             uint64_t exclude_attributes_count);
 
-    void input_value_add(data::ptr<Node> node, AttributeID input, AGInputOptions options);
+    void input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOptions options);
 
     void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type);
 
@@ -377,7 +377,7 @@ class Graph {
     void with_update(data::ptr<Node> node, ClosureFunctionVV<void> body);
     static void without_update(ClosureFunctionVV<void> body);
 
-    UpdateStatus update_attribute(data::ptr<Node> node, AGGraphUpdateOptions options);
+    UpdateStatus update_attribute(data::ptr<Node> node, IAGGraphUpdateOptions options);
     void reset_update(data::ptr<Node> node);
 
     void mark_changed(data::ptr<Node> node, AttributeType *_Nullable type, const void *_Nullable destination_value,
@@ -390,7 +390,7 @@ class Graph {
 
     // MARK: Trace
 
-    void start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> subsystems);
+    void start_tracing(IAGGraphTraceOptions trace_options, std::span<const char *> subsystems);
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();
@@ -400,7 +400,7 @@ class Graph {
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    static void all_start_tracing(AGGraphTraceOptions trace_options, std::span<const char *> span);
+    static void all_start_tracing(IAGGraphTraceOptions trace_options, std::span<const char *> span);
     static void all_stop_tracing();
     static void all_sync_tracing();
     static CFStringRef all_copy_trace_path();
@@ -448,6 +448,6 @@ class Graph {
 #endif
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

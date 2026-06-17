@@ -2,7 +2,7 @@
 
 #include "Metadata.h"
 
-namespace AG {
+namespace IAG {
 namespace swift {
 
 context_descriptor::generic_params_info::generic_params_info(const context_descriptor &context,
@@ -155,4 +155,4 @@ uint64_t class_type_descriptor::field_offset_vector_offset() const {
 }
 
 } // namespace swift
-} // namespace AG
+} // namespace IAG

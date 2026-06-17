@@ -1,15 +1,15 @@
 #include "Context.h"
 
-#include "AGGraph-Private.h"
+#include "IAGGraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
-#include "ComputeCxx/AGUniqueID.h"
+#include "ComputeCxx/IAGUniqueID.h"
 #include "Subgraph/Subgraph.h"
 #include "Trace/Trace.h"
 #include "UpdateStack.h"
 
-namespace AG {
+namespace IAG {
 
-Graph::Context::Context(Graph *graph) : _graph(graph), _id(AGMakeUniqueID()) {
+Graph::Context::Context(Graph *graph) : _graph(graph), _id(IAGMakeUniqueID()) {
     Graph::retain(graph);
     graph->_contexts_by_id.insert(_id, this);
     graph->foreach_trace([this](Trace &trace) { trace.created(*this); });
@@ -43,7 +43,7 @@ Graph::Context::~Context() {
     Graph::release(_graph);
 }
 
-Graph::Context *Graph::Context::from_cf(AGGraphStorage *storage) {
+Graph::Context *Graph::Context::from_cf(IAGGraphStorage *storage) {
     if (storage->context._invalidated) {
         precondition_failure("invalidated graph");
     }
@@ -112,8 +112,8 @@ void Graph::Context::call_update() {
 
     if (_update_callback) {
         auto update =
-            UpdateStack(_graph, AGGraphUpdateOptions(AGGraphUpdateOptionsInitializeCleared |
-                                                     AGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit));
+            UpdateStack(_graph, IAGGraphUpdateOptions(IAGGraphUpdateOptionsInitializeCleared |
+                                                     IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit));
 
         _graph->foreach_trace([this](Trace &trace) { trace.begin_update(*this); });
         _update_callback();
@@ -123,4 +123,4 @@ void Graph::Context::call_update() {
     }
 }
 
-} // namespace AG
+} // namespace IAG

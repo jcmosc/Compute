@@ -3,13 +3,13 @@
 #include <llvm/ADT/ArrayRef.h>
 #include <swift/Runtime/Metadata.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Metadata.h"
 #include "Vector/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace swift {
 
 class context_descriptor : public ::swift::ContextDescriptor {
@@ -62,6 +62,6 @@ class class_type_descriptor {
 };
 
 } // namespace swift
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

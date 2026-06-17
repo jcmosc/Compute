@@ -2,24 +2,24 @@
 
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Comparison/LayoutDescriptor.h"
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGAttribute.h"
-#include "ComputeCxx/AGAttributeType.h"
-#include "ComputeCxx/AGComparison.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGAttribute.h"
+#include "ComputeCxx/IAGAttributeType.h"
+#include "ComputeCxx/IAGComparison.h"
 #include "Swift/Metadata.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class AttributeType {
   private:
     swift::metadata *_body_metadata;
     swift::metadata *_value_metadata;
-    void (*_update)(void *body, AGAttribute attribute, void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift);
+    void (*_update)(void *body, IAGAttribute attribute, void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift);
     void *_update_context;
-    const AGAttributeVTable *_vtable;
-    AGAttributeTypeFlags _flags;
+    const IAGAttributeVTable *_vtable;
+    IAGAttributeTypeFlags _flags;
 
     // set after construction
     uint32_t _body_offset;
@@ -33,7 +33,7 @@ class AttributeType {
       public:
         void operator()(AttributeType *ptr) {
             if (ptr != nullptr) {
-                ptr->vtable().type_destroy(reinterpret_cast<AGAttributeType *>(ptr));
+                ptr->vtable().type_destroy(reinterpret_cast<IAGAttributeType *>(ptr));
             }
         }
     };
@@ -41,10 +41,10 @@ class AttributeType {
     const swift::metadata &body_metadata() const { return *_body_metadata; };
     const swift::metadata &value_metadata() const { return *_value_metadata; };
 
-    void update(void *body, AGAttribute attribute) const { _update(body, attribute, _update_context); };
+    void update(void *body, IAGAttribute attribute) const { _update(body, attribute, _update_context); };
 
-    const AGAttributeVTable &vtable() const { return *_vtable; }
-    AGAttributeTypeFlags flags() const { return _flags; };
+    const IAGAttributeVTable &vtable() const { return *_vtable; }
+    IAGAttributeTypeFlags flags() const { return _flags; };
 
     /// Returns the offset in bytes from a Node to the attribute body,
     /// aligned to the body's alignment.
@@ -55,13 +55,13 @@ class AttributeType {
     }
 
     void fetch_layout() {
-        AGComparisonMode comparison_mode = AGComparisonMode(_flags & AGAttributeTypeFlagsComparisonModeMask);
-        _layout = LayoutDescriptor::fetch(value_metadata(), AGComparisonOptions(comparison_mode), 1);
+        IAGComparisonMode comparison_mode = IAGComparisonMode(_flags & IAGAttributeTypeFlagsComparisonModeMask);
+        _layout = LayoutDescriptor::fetch(value_metadata(), IAGComparisonOptions(comparison_mode), 1);
     };
 
     bool compare_values(const void *lhs, const void *rhs) {
-        AGComparisonOptions comparison_options = AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) |
-                                                 AGComparisonOptionsCopyOnWrite | AGComparisonOptionsTraceCompareFailed;
+        IAGComparisonOptions comparison_options = IAGComparisonOptions(_flags & IAGAttributeTypeFlagsComparisonModeMask) |
+                                                 IAGComparisonOptionsCopyOnWrite | IAGComparisonOptionsTraceCompareFailed;
         if (_layout == nullptr) {
             _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
         }
@@ -72,8 +72,8 @@ class AttributeType {
     }
 
     bool compare_values_partial(const void *lhs, const void *rhs, size_t offset, size_t size) {
-        AGComparisonOptions comparison_options =
-            AGComparisonOptions(_flags & AGAttributeTypeFlagsComparisonModeMask) | AGComparisonOptionsCopyOnWrite;
+        IAGComparisonOptions comparison_options =
+            IAGComparisonOptions(_flags & IAGAttributeTypeFlagsComparisonModeMask) | IAGComparisonOptionsCopyOnWrite;
         if (_layout == nullptr) {
             _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
         }
@@ -84,9 +84,9 @@ class AttributeType {
     }
 
     void destroy_self(Node &node) const {
-        if (_flags & AGAttributeTypeFlagsHasDestroySelf) {
+        if (_flags & IAGAttributeTypeFlagsHasDestroySelf) {
             void *body = node.get_self(*this);
-            vtable().self_destroy(reinterpret_cast<const AGAttributeType *>(this), body);
+            vtable().self_destroy(reinterpret_cast<const IAGAttributeType *>(this), body);
         }
     }
 
@@ -98,34 +98,34 @@ class AttributeType {
 #if TARGET_OS_MAC
     CFStringRef _Nullable self_description(void *body) const {
         if (auto self_description = vtable().self_description) {
-            return self_description(reinterpret_cast<const AGAttributeType *>(this), body);
+            return self_description(reinterpret_cast<const IAGAttributeType *>(this), body);
         }
         return nullptr;
     }
 
     CFStringRef _Nullable value_description(void *value) const {
         if (auto value_description = vtable().value_description) {
-            return value_description(reinterpret_cast<const AGAttributeType *>(this), value);
+            return value_description(reinterpret_cast<const IAGAttributeType *>(this), value);
         }
         return nullptr;
     }
 #else
     CFStringRef _Nullable copy_self_description(void *body) const {
         if (auto copy_self_description = vtable().copy_self_description) {
-            return copy_self_description(reinterpret_cast<const AGAttributeType *>(this), body);
+            return copy_self_description(reinterpret_cast<const IAGAttributeType *>(this), body);
         }
         return nullptr;
     }
 
     CFStringRef _Nullable copy_value_description(void *value) const {
         if (auto copy_value_description = vtable().copy_value_description) {
-            return copy_value_description(reinterpret_cast<const AGAttributeType *>(this), value);
+            return copy_value_description(reinterpret_cast<const IAGAttributeType *>(this), value);
         }
         return nullptr;
     }
 #endif
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

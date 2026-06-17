@@ -1,18 +1,18 @@
 #pragma once
 
 #include "Attribute/AttributeID/AttributeID.h"
-#include "ComputeCxx/AGInputOptions.h"
+#include "ComputeCxx/IAGInputOptions.h"
 
-namespace AG {
+namespace IAG {
 
 struct InputEdge {
     AttributeID attribute;
-    AGInputOptions options;
+    IAGInputOptions options;
 
     struct Comparator {
         AttributeID attribute;
-        AGInputOptions options_mask;
-        AGInputOptions options;
+        IAGInputOptions options_mask;
+        IAGInputOptions options;
         bool match(const InputEdge &input_edge) {
             return input_edge.attribute == attribute &&
                    (input_edge.options & options_mask) == options;
@@ -25,4 +25,4 @@ struct InputEdge {
     }
 };
 
-} // namespace AG
+} // namespace IAG

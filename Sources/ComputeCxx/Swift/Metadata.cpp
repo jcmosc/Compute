@@ -20,7 +20,7 @@
 #include "MetadataVisitor.h"
 #include "_SwiftStdlibCxxOverlay.h"
 
-namespace AG {
+namespace IAG {
 namespace swift {
 
 #pragma mark - Metadata
@@ -235,7 +235,7 @@ const void *metadata::signature() const {
             for (int i = 0; i < generic_arg.num_types; i++) {
                 if (generic_arg.is_pack) {
                     // types points to an array of metadata pointers
-                    auto pack_types = reinterpret_cast<const AG::swift::metadata * const *>(generic_arg.types);
+                    auto pack_types = reinterpret_cast<const IAG::swift::metadata * const *>(generic_arg.types);
                     for (int j = 0; j < generic_arg.num_types; j++) {
                         metadata_queue.push_back(pack_types[j]);
                     }
@@ -250,7 +250,7 @@ const void *metadata::signature() const {
         auto context = PLATFORM_SHA1_CTX();
         PLATFORM_SHA1_Init(&context);
 
-        const char prefix[] = "AGTypeSignature";
+        const char prefix[] = "IAGTypeSignature";
         PLATFORM_SHA1_Update(&context, prefix, sizeof(prefix));
 
         auto infos = vector<platform_image_info_t, 8, uint64_t>();
@@ -852,4 +852,4 @@ const metadata *existential_type_metadata::dynamic_type(void *container) const {
 }
 
 } // namespace swift
-} // namespace AG
+} // namespace IAG

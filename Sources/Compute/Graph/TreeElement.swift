@@ -3,7 +3,7 @@ import ComputeCxx
 extension TreeElement {
 
     public var value: AnyAttribute? {
-        let result = __AGTreeElementGetValue(self)
+        let result = __IAGTreeElementGetValue(self)
         return result == .nil ? nil : result
     }
 
@@ -14,7 +14,7 @@ extension Nodes: @retroactive IteratorProtocol {
 
     @inlinable
     public mutating func next() -> AnyAttribute? {
-        let result = __AGTreeElementGetNextNode(&self)
+        let result = __IAGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result
     }
 

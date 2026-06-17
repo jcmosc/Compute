@@ -2,15 +2,15 @@
 
 #include <platform/lock.h>
 
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGComparison.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGComparison.h"
 #include "LayoutDescriptor.h"
 #include "Swift/MetadataVisitor.h"
 #include "Vector/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace LayoutDescriptor {
 
 class Builder : public swift::metadata_visitor {
@@ -117,7 +117,7 @@ class Builder : public swift::metadata_visitor {
     static void lock() { platform_lock_lock(&_lock); };
     static void unlock() { platform_lock_unlock(&_lock); };
 
-    AGComparisonMode _current_comparison_mode;
+    IAGComparisonMode _current_comparison_mode;
     HeapMode _heap_mode;
     size_t _current_offset = 0;
     uint64_t _enum_case_depth = 0;
@@ -125,11 +125,11 @@ class Builder : public swift::metadata_visitor {
     vector<Item, 0, uint64_t> _items;
 
   public:
-    Builder(AGComparisonMode comparison_mode, HeapMode heap_mode)
+    Builder(IAGComparisonMode comparison_mode, HeapMode heap_mode)
         : _current_comparison_mode(comparison_mode), _heap_mode(heap_mode) {}
 
     size_t current_offset() { return _current_offset; };
-    AGComparisonMode current_comparison_mode() { return _current_comparison_mode; };
+    IAGComparisonMode current_comparison_mode() { return _current_comparison_mode; };
     vector<Item, 0, uint64_t> &get_items() {
         return _current_enum_case != nullptr ? _current_enum_case->children : _items;
     };
@@ -156,6 +156,6 @@ class Builder : public swift::metadata_visitor {
 };
 
 } // namespace LayoutDescriptor
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

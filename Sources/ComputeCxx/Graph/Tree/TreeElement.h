@@ -1,14 +1,14 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGTreeElement.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGTreeElement.h"
 #include "Data/Pointer.h"
 #include "Graph/Graph.h"
 #include "TreeValue.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 namespace swift {
 class metadata;
@@ -21,7 +21,7 @@ class Graph::TreeElementID : public data::ptr<Graph::TreeElement> {
         : ptr(tree_element.offset()) {};
 
     operator uintptr_t() const { return offset(); }
-    explicit TreeElementID(AGTreeElement storage)
+    explicit TreeElementID(IAGTreeElement storage)
         : ptr((uint32_t)(uint64_t)storage) {}
 
     // MARK: Accessing graph data
@@ -45,6 +45,6 @@ struct Graph::TreeElement {
 };
 static_assert(sizeof(Graph::TreeElement) == 0x20);
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

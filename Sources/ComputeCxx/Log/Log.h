@@ -2,14 +2,14 @@
 
 #include <platform/log.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 platform_log_t misc_log();
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

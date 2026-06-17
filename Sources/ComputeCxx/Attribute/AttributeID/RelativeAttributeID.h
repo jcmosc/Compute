@@ -3,7 +3,7 @@
 #include "AttributeID.h"
 #include "Data/Pointer.h"
 
-namespace AG {
+namespace IAG {
 
 class RelativeAttributeID {
   private:
@@ -27,4 +27,4 @@ class RelativeAttributeID {
     AttributeID resolve(data::ptr<data::page> page_ptr) { return AttributeID(page_ptr.offset() + _value); }
 };
 
-} // namespace AG
+} // namespace IAG

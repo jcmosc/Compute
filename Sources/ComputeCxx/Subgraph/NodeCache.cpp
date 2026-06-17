@@ -2,7 +2,7 @@
 
 #include "Swift/SwiftShims.h"
 
-namespace AG {
+namespace IAG {
 
 Subgraph::NodeCache::NodeCache() noexcept
     : _heap(nullptr, 0, 0), _types(nullptr, nullptr, nullptr, nullptr, &_heap),
@@ -34,7 +34,7 @@ Subgraph::NodeCache::NodeCache() noexcept
                      b_body = b->body;
                  }
 
-                 return AGDispatchEquatable(a_body, b_body, a->type->type, a->type->equatable);
+                 return IAGDispatchEquatable(a_body, b_body, a->type->type, a->type->equatable);
              },
              nullptr, nullptr, &_heap),
       _items_by_node(nullptr, nullptr, nullptr, nullptr, &_heap) {}
@@ -49,4 +49,4 @@ Subgraph::NodeCache::~NodeCache() noexcept {
         nullptr);
 }
 
-} // namespace AG
+} // namespace IAG

@@ -3,14 +3,14 @@
 #include <cassert>
 #include <type_traits>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
 #include "Constants.h"
 #include "Table.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace data {
 
 struct page;
@@ -83,15 +83,15 @@ template <typename T> class ptr {
 };
 
 } // namespace data
-} // namespace AG
+} // namespace IAG
 
 namespace std {
 
-template <typename T> class hash<AG::data::ptr<T>> {
+template <typename T> class hash<IAG::data::ptr<T>> {
   public:
-    std::uint64_t operator()(const AG::data::ptr<T> &pointer) const { return pointer.offset(); }
+    std::uint64_t operator()(const IAG::data::ptr<T> &pointer) const { return pointer.offset(); }
 };
 
 } // namespace std
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

@@ -1,16 +1,16 @@
 import ComputeCxx
 
-@_silgen_name("AGGraphSetOutputValue")
+@_silgen_name("IAGGraphSetOutputValue")
 @inline(__always)
 @inlinable
-func AGGraphSetOutputValue(_ value: UnsafeRawPointer, of type: Metadata)
+func IAGGraphSetOutputValue(_ value: UnsafeRawPointer, of type: Metadata)
 
 extension Graph {
 
     @inline(__always)
     @inlinable
     public static func setOutputValue<Value>(_ value: UnsafePointer<Value>) {
-        AGGraphSetOutputValue(UnsafeRawPointer(value), of: Metadata(Value.self))
+        IAGGraphSetOutputValue(UnsafeRawPointer(value), of: Metadata(Value.self))
     }
 
     @_transparent
@@ -23,25 +23,25 @@ extension Graph {
 
     @_transparent
     public static func anyInputsChanged(excluding excludedAttributes: [AnyAttribute]) -> Bool {
-        return __AGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
+        return __IAGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
     }
 
 }
 
-@_silgen_name("AGGraphSetUpdateCallback")
-func AGGraphSetUpdateCallback(
+@_silgen_name("IAGGraphSetUpdateCallback")
+func IAGGraphSetUpdateCallback(
     _ graph: UnsafeRawPointer,
     callback: (() -> Void)?
 )
 
-@_silgen_name("AGGraphSetInvalidationCallback")
-func AGGraphSetInvalidationCallback(
+@_silgen_name("IAGGraphSetInvalidationCallback")
+func IAGGraphSetInvalidationCallback(
     _ graph: UnsafeRawPointer,
     callback: ((AnyAttribute) -> Void)?
 )
 
-@_silgen_name("AGGraphWithMainThreadHandler")
-func AGGraphWithMainThreadHandler(
+@_silgen_name("IAGGraphWithMainThreadHandler")
+func IAGGraphWithMainThreadHandler(
     _ graph: UnsafeRawPointer,
     body: () -> Void,
     mainThreadHandler: (() -> Void) -> Void
@@ -50,11 +50,11 @@ func AGGraphWithMainThreadHandler(
 extension Graph {
 
     public func onUpdate(_ handler: @escaping () -> Void) {
-        AGGraphSetUpdateCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
+        IAGGraphSetUpdateCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
     }
 
     public func onInvalidation(_ handler: @escaping (AnyAttribute) -> Void) {
-        AGGraphSetInvalidationCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
+        IAGGraphSetInvalidationCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
     }
 
     public func withDeadline<T>(_ deadline: UInt64, _ body: () -> T) -> T {
@@ -81,7 +81,7 @@ extension Graph {
     }
 
     public func withMainThreadHandler(_ mainThreadHandler: (() -> Void) -> Void, do body: () -> Void) {
-        AGGraphWithMainThreadHandler(
+        IAGGraphWithMainThreadHandler(
             unsafeBitCast(self, to: UnsafeRawPointer.self),
             body: body,
             mainThreadHandler: mainThreadHandler

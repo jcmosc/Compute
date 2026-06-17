@@ -17,8 +17,8 @@ struct AttributeTests {
         @Test
         func initWithValue() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
 
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
@@ -27,7 +27,7 @@ struct AttributeTests {
                 let attribute = Attribute(value: 1)
                 #expect(attribute.value == 1)
 
-                let expectedlayout = __AGPrefetchCompareValues(
+                let expectedlayout = __IAGPrefetchCompareValues(
                     Metadata(Int.self),
                     [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
                     0
@@ -64,8 +64,8 @@ struct AttributeTests {
         @Test
         func initWithType() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
 
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
@@ -73,7 +73,7 @@ struct AttributeTests {
 
                 let attribute = Attribute(type: Int.self)
 
-                let expectedlayout = __AGPrefetchCompareValues(
+                let expectedlayout = __IAGPrefetchCompareValues(
                     Metadata(Int.self),
                     [.comparisonModeEquatableAlways, .fetchLayoutsSynchronously],
                     0
@@ -110,8 +110,8 @@ struct AttributeTests {
         @Test
         func initWithBody() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
 
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
@@ -132,7 +132,7 @@ struct AttributeTests {
                 }
                 #expect(attribute.value == "test value")
 
-                let expectedlayout = __AGPrefetchCompareValues(
+                let expectedlayout = __IAGPrefetchCompareValues(
                     Metadata(String.self),
                     [.comparisonModeEquatableUnlessPOD, .fetchLayoutsSynchronously],
                     0

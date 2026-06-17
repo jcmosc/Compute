@@ -4,7 +4,7 @@
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Data/Page.h"
 
-namespace AG {
+namespace IAG {
 
 class attribute_iterator {
   private:
@@ -56,4 +56,4 @@ class const_attribute_view: public attribute_view {
     attribute_iterator end() { return attribute_iterator(_page, RelativeAttributeID(nullptr)); };
 };
 
-} // namespace AG
+} // namespace IAG

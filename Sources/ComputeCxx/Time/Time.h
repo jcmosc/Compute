@@ -1,14 +1,14 @@
 #include <stdint.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 double current_time(void);
 double absolute_time_to_seconds(uint64_t ticks);
 
 }
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

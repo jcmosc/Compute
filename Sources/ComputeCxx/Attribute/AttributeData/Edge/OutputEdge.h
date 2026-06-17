@@ -3,7 +3,7 @@
 #include "Array/ArrayRef.h"
 #include "Attribute/AttributeID/AttributeID.h"
 
-namespace AG {
+namespace IAG {
 
 struct OutputEdge {
     AttributeID attribute;
@@ -11,4 +11,4 @@ struct OutputEdge {
 
 using ConstOutputEdgeArrayRef = ArrayRef<const OutputEdge>;
 
-} // namespace AG
+} // namespace IAG

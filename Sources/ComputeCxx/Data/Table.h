@@ -7,12 +7,12 @@
 #include <platform/malloc.h>
 #include <platform/vm.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Vector/Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace data {
 
 class zone;
@@ -88,6 +88,6 @@ class table {
 };
 
 } // namespace data
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

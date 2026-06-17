@@ -1,7 +1,7 @@
 import ComputeCxx
 
-@_silgen_name("AGGraphWithUpdate")
-func AGGraphWithUpdate(_ attribute: AnyAttribute, body: () -> Void)
+@_silgen_name("IAGGraphWithUpdate")
+func IAGGraphWithUpdate(_ attribute: AnyAttribute, body: () -> Void)
 
 public struct AnyRuleContext {
 
@@ -20,16 +20,16 @@ public struct AnyRuleContext {
     }
 
     public func update(body: () -> Void) {
-        AGGraphWithUpdate(attribute, body: body)
+        IAGGraphWithUpdate(attribute, body: body)
     }
 
     public func changedValue<Value>(
         of input: Attribute<Value>,
-        options: AGValueOptions
+        options: IAGValueOptions
     ) -> (
         value: Value, changed: Bool
     ) {
-        let result = __AGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
+        let result = __IAGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
         return (
             result.value.assumingMemoryBound(to: Value.self).pointee,
             result.flags.contains(.changed)
@@ -38,11 +38,11 @@ public struct AnyRuleContext {
 
     public func valueAndFlags<Value>(
         of input: Attribute<Value>,
-        options: AGValueOptions
+        options: IAGValueOptions
     ) -> (
-        value: Value, flags: AGChangedValueFlags
+        value: Value, flags: IAGChangedValueFlags
     ) {
-        let result = __AGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
+        let result = __IAGGraphGetInputValue(attribute, input.identifier, options, Metadata(Value.self))
         return (
             result.value.assumingMemoryBound(to: Value.self).pointee,
             result.flags.contains(.changed) ? .changed : []
@@ -51,7 +51,7 @@ public struct AnyRuleContext {
 
     public subscript<Value>(_ attribute: Attribute<Value>) -> Value {
         unsafeAddress {
-            return __AGGraphGetInputValue(self.attribute, attribute.identifier, [], Metadata(Value.self))
+            return __IAGGraphGetInputValue(self.attribute, attribute.identifier, [], Metadata(Value.self))
                 .value
                 .assumingMemoryBound(to: Value.self)
         }

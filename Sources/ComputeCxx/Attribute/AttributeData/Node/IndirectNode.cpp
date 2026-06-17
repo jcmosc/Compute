@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace AG {
+namespace IAG {
 
 MutableIndirectNode &IndirectNode::to_mutable() {
     assert(is_mutable());
@@ -19,4 +19,4 @@ void IndirectNode::modify(WeakAttributeID source, size_t offset) {
     _offset = offset;
 }
 
-} // namespace AG
+} // namespace IAG

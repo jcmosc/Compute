@@ -102,11 +102,11 @@ public struct Attribute<Value> {
         identifier.mutateBody(as: bodyType, invalidating: invalidating, mutator)
     }
 
-    public func addInput<T>(_ input: Attribute<T>, options: AGInputOptions, token: Int) {
+    public func addInput<T>(_ input: Attribute<T>, options: IAGInputOptions, token: Int) {
         identifier.addInput(input, options: options, token: token)
     }
 
-    public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {
+    public func addInput(_ input: AnyAttribute, options: IAGInputOptions, token: Int) {
         identifier.addInput(input, options: options, token: token)
     }
 
@@ -120,7 +120,7 @@ public struct Attribute<Value> {
 
     public var value: Value {
         unsafeAddress {
-            return __AGGraphGetValue(identifier, [], Metadata(Value.self))
+            return __IAGGraphGetValue(identifier, [], Metadata(Value.self))
                 .value
                 .assumingMemoryBound(to: Value.self)
         }
@@ -131,7 +131,7 @@ public struct Attribute<Value> {
 
     public func setValue(_ value: Value) -> Bool {
         return withUnsafePointer(to: value) { valuePointer in
-            return __AGGraphSetValue(identifier, valuePointer, Metadata(Value.self))
+            return __IAGGraphSetValue(identifier, valuePointer, Metadata(Value.self))
         }
     }
 
@@ -139,7 +139,7 @@ public struct Attribute<Value> {
         return identifier.hasValue
     }
 
-    public var valueState: AGValueState {
+    public var valueState: IAGValueState {
         return identifier.valueState
     }
 
@@ -155,16 +155,16 @@ public struct Attribute<Value> {
         identifier.invalidateValue()
     }
 
-    public func changedValue(options: AGValueOptions = []) -> (value: Value, changed: Bool) {
-        let value = __AGGraphGetValue(identifier, options, Metadata(Value.self))
+    public func changedValue(options: IAGValueOptions = []) -> (value: Value, changed: Bool) {
+        let value = __IAGGraphGetValue(identifier, options, Metadata(Value.self))
         return (
             value.value.assumingMemoryBound(to: Value.self).pointee,
             value.flags.contains(.changed)
         )
     }
 
-    public func valueAndFlags(options: AGValueOptions) -> (value: Value, flags: AGChangedValueFlags) {
-        let value = __AGGraphGetValue(identifier, options, Metadata(Value.self))
+    public func valueAndFlags(options: IAGValueOptions) -> (value: Value, flags: IAGChangedValueFlags) {
+        let value = __IAGGraphGetValue(identifier, options, Metadata(Value.self))
         return (
             value.value.assumingMemoryBound(to: Value.self).pointee,
             value.flags
@@ -173,7 +173,7 @@ public struct Attribute<Value> {
 
     public var wrappedValue: Value {
         unsafeAddress {
-            __AGGraphGetValue(identifier, [], Metadata(Value.self))
+            __IAGGraphGetValue(identifier, [], Metadata(Value.self))
                 .value
                 .assumingMemoryBound(to: Value.self)
         }
@@ -213,7 +213,7 @@ public struct Attribute<Value> {
 
     public func unsafeOffset<Member>(at offset: Int, as type: Member.Type) -> Attribute<Member> {
         return Attribute<Member>(
-            identifier: __AGGraphCreateOffsetAttribute2(identifier, UInt32(offset), MemoryLayout<Member>.size)
+            identifier: __IAGGraphCreateOffsetAttribute2(identifier, UInt32(offset), MemoryLayout<Member>.size)
         )
     }
 

@@ -4,7 +4,7 @@
 #include "Data/Table.h"
 #include "Data/Zone.h"
 
-namespace AG {
+namespace IAG {
 
 bool WeakAttributeID::expired() const {
     uint64_t raw_page_seed = data::table::shared().raw_page_seed(_identifier.page_ptr());
@@ -18,7 +18,7 @@ bool WeakAttributeID::expired() const {
 }
 
 const AttributeID WeakAttributeID::evaluate() const {
-    return _identifier && !expired() ? _identifier : AttributeID(AGAttributeNil);
+    return _identifier && !expired() ? _identifier : AttributeID(IAGAttributeNil);
 };
 
-} // namespace AG
+} // namespace IAG

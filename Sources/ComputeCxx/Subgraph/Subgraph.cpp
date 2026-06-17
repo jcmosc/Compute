@@ -6,7 +6,7 @@
 
 #include <Utilities/CFPointer.h>
 
-#include "AGSubgraph-Private.h"
+#include "IAGSubgraph-Private.h"
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Attribute/AttributeID/OffsetAttributeID.h"
@@ -17,7 +17,7 @@
 #include "NodeCache.h"
 #include "Trace/Trace.h"
 
-namespace AG {
+namespace IAG {
 
 Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID attribute) {
     _object = object;
@@ -28,7 +28,7 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
 
     graph->add_subgraph(*this);
 
-    if (AGSubgraphShouldRecordTree()) {
+    if (IAGSubgraphShouldRecordTree()) {
         if (!attribute || attribute.is_nil()) {
             auto update = Graph::current_update();
             if (update.tag() == 0 && update.get() != nullptr) {
@@ -59,9 +59,9 @@ Subgraph::~Subgraph() {
 
 #pragma mark - CFType
 
-Subgraph *Subgraph::from_cf(AGSubgraphStorage *storage) { return storage->subgraph; }
+Subgraph *Subgraph::from_cf(IAGSubgraphStorage *storage) { return storage->subgraph; }
 
-AGSubgraphStorage *Subgraph::to_cf() const { return reinterpret_cast<AGSubgraphStorage *>(_object); }
+IAGSubgraphStorage *Subgraph::to_cf() const { return reinterpret_cast<IAGSubgraphStorage *>(_object); }
 
 void Subgraph::clear_object() {
     auto object = _object;
@@ -88,7 +88,7 @@ void Subgraph::set_current_subgraph(Subgraph *subgraph) { pthread_setspecific(_c
 
 #pragma mark - Observers
 
-AGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
+IAGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
     if (!_observers) {
         _observers =
             alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
@@ -96,12 +96,12 @@ AGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
         ;
     }
 
-    auto observer_id = AGMakeUniqueID();
+    auto observer_id = IAGMakeUniqueID();
     (*_observers)->push_back(Observer(callback, observer_id));
     return observer_id;
 }
 
-void Subgraph::remove_observer(AGUniqueID observer_id) {
+void Subgraph::remove_observer(IAGUniqueID observer_id) {
     if (auto observers_ptr = _observers.get()) {
         auto observers = *observers_ptr;
         auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
@@ -339,13 +339,13 @@ void Subgraph::add_child(Subgraph &child, uint8_t tag) {
     graph()->foreach_trace([this, &child](Trace &trace) { trace.add_child(*this, child); });
     _children.push_back(SubgraphChild(&child, tag));
 
-    AGAttributeFlags descendent_flags = child._flags | child._descendent_flags;
+    IAGAttributeFlags descendent_flags = child._flags | child._descendent_flags;
     if (descendent_flags & ~_descendent_flags) {
         _descendent_flags |= descendent_flags;
         propagate_flags();
     }
 
-    AGAttributeFlags descendent_dirty_flags = child._dirty_flags | child._descendent_dirty_flags;
+    IAGAttributeFlags descendent_dirty_flags = child._dirty_flags | child._descendent_dirty_flags;
     if (descendent_dirty_flags & ~_descendent_dirty_flags) {
         _descendent_dirty_flags |= descendent_dirty_flags;
         propagate_dirty_flags();
@@ -395,11 +395,11 @@ bool Subgraph::ancestor_of(const Subgraph &other) {
 
 #pragma mark - Flags
 
-void Subgraph::set_flags(data::ptr<Node> node, AGAttributeFlags flags) {
+void Subgraph::set_flags(data::ptr<Node> node, IAGAttributeFlags flags) {
     if (node->subgraph_flags() == flags) {
         return;
     }
-    if (node->subgraph_flags() == AGAttributeFlagsNone || flags == AGAttributeFlagsNone) {
+    if (node->subgraph_flags() == IAGAttributeFlagsNone || flags == IAGAttributeFlagsNone) {
         // unlink and reinsert to trigger a reorder
         unlink_attribute(AttributeID(node));
         node->set_subgraph_flags(flags);
@@ -414,7 +414,7 @@ void Subgraph::set_flags(data::ptr<Node> node, AGAttributeFlags flags) {
     }
 }
 
-void Subgraph::add_flags(AGAttributeFlags flags) {
+void Subgraph::add_flags(IAGAttributeFlags flags) {
     if (!(flags & ~_flags)) {
         return;
     }
@@ -435,7 +435,7 @@ void Subgraph::propagate_flags() {
     });
 }
 
-void Subgraph::add_dirty_flags(AGAttributeFlags dirty_flags) {
+void Subgraph::add_dirty_flags(IAGAttributeFlags dirty_flags) {
     if (!(dirty_flags & ~_dirty_flags)) {
         return;
     }
@@ -459,7 +459,7 @@ void Subgraph::propagate_dirty_flags() {
 // MARK: Attributes
 
 void Subgraph::insert_attribute(AttributeID attribute, bool updatable) {
-    AttributeID previous_attribute = AttributeID(AGAttributeNil);
+    AttributeID previous_attribute = AttributeID(IAGAttributeNil);
 
     // sort attributes with flags before indirect attributes or attributes
     // without flags the attribute will only be non-updatable if it is a
@@ -528,7 +528,7 @@ void Subgraph::unlink_attribute(AttributeID attribute) {
 }
 
 void Subgraph::add_node(data::ptr<Node> node) {
-    node->set_subgraph_flags(AGAttributeFlagsNone);
+    node->set_subgraph_flags(IAGAttributeFlagsNone);
     insert_attribute(AttributeID(node), true);
 
     if (_tree_root) {
@@ -547,12 +547,12 @@ void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
 
 std::atomic<uint32_t> Subgraph::_last_traversal_seed = {};
 
-void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body) {
+void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, IAGAttribute> body) {
     if (!is_valid()) {
         return;
     }
 
-    AGAttributeFlags flags = options & AGAttributeFlagsAll;
+    IAGAttributeFlags flags = options & IAGAttributeFlagsAll;
     if (!intersects(flags)) {
         return;
     }
@@ -582,7 +582,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
                         }
                         if (auto node = attribute.get_node()) {
                             if (options) { // TODO: options or mask?
-                                if (node->subgraph_flags() == AGAttributeFlagsNone) {
+                                if (node->subgraph_flags() == IAGAttributeFlagsNone) {
                                     // we know this attribute is sorted after
                                     // all nodes with flags so we aren't going
                                     // to match any more attributes after this
@@ -617,7 +617,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, AGAttribute> body
     }
 }
 
-void Subgraph::update(AGAttributeFlags mask) {
+void Subgraph::update(IAGAttributeFlags mask) {
     if (_graph->needs_update() && _graph->thread_is_updating()) {
         _graph->call_update();
     }
@@ -631,7 +631,7 @@ void Subgraph::update(AGAttributeFlags mask) {
     _last_traversal_seed += 1;
 
     auto subgraph_objects =
-        std::stack<util::cf_ptr<AGSubgraphRef>, vector<util::cf_ptr<AGSubgraphRef>, 32, uint64_t>>();
+        std::stack<util::cf_ptr<IAGSubgraphRef>, vector<util::cf_ptr<IAGSubgraphRef>, 32, uint64_t>>();
     auto dirty_nodes = vector<data::ptr<Node>, 256, uint64_t>();
 
     subgraph_objects.push(util::cf_ptr(to_cf()));
@@ -640,7 +640,7 @@ void Subgraph::update(AGAttributeFlags mask) {
     while (!subgraph_objects.empty()) {
         bool created_transaction = false;
 
-        util::cf_ptr<AGSubgraphRef> subgraph_object = subgraph_objects.top();
+        util::cf_ptr<IAGSubgraphRef> subgraph_object = subgraph_objects.top();
         subgraph_objects.pop();
 
         Subgraph *subgraph = Subgraph::from_cf(subgraph_object.get());
@@ -659,7 +659,7 @@ void Subgraph::update(AGAttributeFlags mask) {
                         }
                         if (auto node = attribute.get_node()) {
                             if (mask) {
-                                if (node->subgraph_flags() == AGAttributeFlagsNone) {
+                                if (node->subgraph_flags() == IAGAttributeFlagsNone) {
                                     // we know this attribute is sorted after
                                     // all nodes with flags so we aren't going
                                     // to match any more attributes after this
@@ -689,7 +689,7 @@ void Subgraph::update(AGAttributeFlags mask) {
                 if (!created_transaction) {
                     _graph->increment_transaction_count_if_needed();
                 }
-                _graph->update_attribute(node, AGGraphUpdateOptionsInTransaction);
+                _graph->update_attribute(node, IAGGraphUpdateOptionsInTransaction);
                 created_transaction = true;
                 if (!subgraph->is_valid()) {
                     break;
@@ -724,7 +724,7 @@ void Subgraph::update(AGAttributeFlags mask) {
 // age = 0xff: collected, removed from items(), in recycle list
 
 data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metadata, const void *body,
-                                      ClosureFunctionCI<uint32_t, AGUnownedGraphContextRef> get_attribute_type_id) {
+                                      ClosureFunctionCI<uint32_t, IAGUnownedGraphContextRef> get_attribute_type_id) {
     if (_cache == nullptr) {
         _cache = alloc_bytes(sizeof(NodeCache), 7).unsafe_cast<NodeCache>();
         new (_cache.get()) NodeCache();
@@ -967,7 +967,7 @@ AttributeID Subgraph::tree_node_at_index(Graph::TreeElementID tree_element, uint
             --i;
         }
     }
-    return AttributeID(AGAttributeNil);
+    return AttributeID(IAGAttributeNil);
 }
 
 Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_element) {
@@ -989,6 +989,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
 
     auto subgraph_children = vector<Subgraph *, 32, uint64_t>();
 
+    // Check if any node created for _this_ tree element, is the tree owner for any child subgraph
     for (auto subgraph : _graph->subgraphs()) {
         if (!subgraph->is_valid()) {
             continue;
@@ -1044,7 +1045,7 @@ void Subgraph::print(uint32_t indent_level) {
     for (auto page : pages()) {
         for (auto attribute : attribute_view(page)) {
             if (auto node = attribute.get_node()) {
-                fprintf(stdout, "%s%u", first ? "" : " ", AGAttribute(attribute));
+                fprintf(stdout, "%s%u", first ? "" : " ", IAGAttribute(attribute));
                 if (auto subgraph_flags = node->subgraph_flags()) {
                     fprintf(stdout, "(%u)", subgraph_flags);
                 }
@@ -1060,4 +1061,4 @@ void Subgraph::print(uint32_t indent_level) {
     }
 }
 
-} // namespace AG
+} // namespace IAG

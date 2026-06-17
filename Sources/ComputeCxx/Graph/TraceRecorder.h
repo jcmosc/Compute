@@ -2,17 +2,17 @@
 
 #include <Utilities/HashTable.h>
 
-#include "ComputeCxx/AGBase.h"
-#include "ComputeCxx/AGGraph.h"
+#include "ComputeCxx/IAGBase.h"
+#include "ComputeCxx/IAGGraph.h"
 #include "Trace/Trace.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class Graph::TraceRecorder : public Trace {
   public:
-    TraceRecorder(Graph *graph, AGGraphTraceOptions trace_options, std::span<const char *> subsystems);
+    TraceRecorder(Graph *graph, IAGGraphTraceOptions trace_options, std::span<const char *> subsystems);
     ~TraceRecorder();
 
     uint64_t id() { return _id; };
@@ -37,7 +37,7 @@ class Graph::TraceRecorder : public Trace {
     void end_update(const Subgraph &subgraph) override;
     void begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options) override;
     void end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,
-                    AGGraphUpdateStatus update_status) override;
+                    IAGGraphUpdateStatus update_status) override;
     void begin_update(data::ptr<Node> node) override;
     void end_update(data::ptr<Node> node, bool changed) override;
     void begin_update(const Graph::Context &context) override;
@@ -65,7 +65,7 @@ class Graph::TraceRecorder : public Trace {
 
     void added(data::ptr<Node> node) override;
 
-    void add_edge(data::ptr<Node> node, AttributeID input, AGInputOptions input_options) override;
+    void add_edge(data::ptr<Node> node, AttributeID input, IAGInputOptions input_options) override;
     void remove_edge(data::ptr<Node> node, uint32_t input_index) override;
     void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) override;
 
@@ -94,6 +94,6 @@ class Graph::TraceRecorder : public Trace {
     // compare_failed not overridden
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

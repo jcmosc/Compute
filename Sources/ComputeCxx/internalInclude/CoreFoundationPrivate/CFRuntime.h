@@ -1,4 +1,4 @@
-#include "ComputeCxx/AGTargetConditionals.h"
+#include "ComputeCxx/IAGTargetConditionals.h"
 
 #if TARGET_OS_MAC
 

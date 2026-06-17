@@ -7,25 +7,25 @@
 #include "Subgraph/Subgraph.h"
 #include "Trace/Trace.h"
 
-namespace AG {
+namespace IAG {
 
-Graph::UpdateStack::UpdateStack(Graph *graph, AGGraphUpdateOptions options)
+Graph::UpdateStack::UpdateStack(Graph *graph, IAGGraphUpdateOptions options)
     : _graph(graph), _thread(pthread_self()), _next(current_update()), _next_thread(graph->_current_update_thread),
       _options(options) {
 
     if (_next != nullptr) {
         _options =
-            AGGraphUpdateOptions(_options | (_next.get()->_options & AGGraphUpdateOptionsCancelIfPassedDeadline));
+            IAGGraphUpdateOptions(_options | (_next.get()->_options & IAGGraphUpdateOptionsCancelIfPassedDeadline));
     }
 
     graph->_current_update_thread = _thread;
 
     if (graph->_deferring_subgraph_invalidation == false) {
         graph->_deferring_subgraph_invalidation = true;
-        _options = AGGraphUpdateOptions(_options & AGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit);
+        _options = IAGGraphUpdateOptions(_options & IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit);
     }
 
-    Graph::set_current_update(util::tagged_ptr<UpdateStack>(this, options & AGGraphUpdateOptionsInitializeCleared));
+    Graph::set_current_update(util::tagged_ptr<UpdateStack>(this, options & IAGGraphUpdateOptionsInitializeCleared));
 }
 
 Graph::UpdateStack::~UpdateStack() {
@@ -40,7 +40,7 @@ Graph::UpdateStack::~UpdateStack() {
     _graph->_current_update_thread = _next_thread;
     Graph::set_current_update(_next);
 
-    if (_options & AGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit) {
+    if (_options & IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit) {
         _graph->_deferring_subgraph_invalidation = false;
     }
 }
@@ -62,7 +62,7 @@ void Graph::UpdateStack::cancel() {
             }
             frame.cancelled = true;
         }
-        if (update.get()->_options & AGGraphUpdateOptionsAbortIfCancelled) {
+        if (update.get()->_options & IAGGraphUpdateOptionsAbortIfCancelled) {
             break;
         }
     }
@@ -124,7 +124,7 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
             _frames.push_back(frame);
 
             void *self = node.get_self(attribute_type);
-            updateDefault(reinterpret_cast<const AGAttributeType *>(&attribute_type), self);
+            updateDefault(reinterpret_cast<const IAGAttributeType *>(&attribute_type), self);
 
             _frames.pop_back();
 
@@ -159,14 +159,14 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
         // Check cancelled
 
-        if (_options & AGGraphUpdateOptionsCancelIfPassedDeadline) {
+        if (_options & IAGGraphUpdateOptionsCancelIfPassedDeadline) {
             if (!frame.cancelled && _graph->passed_deadline()) {
                 cancel();
             }
         }
 
         if (frame.cancelled) {
-            if (_options & AGGraphUpdateOptionsAbortIfCancelled) {
+            if (_options & IAGGraphUpdateOptionsAbortIfCancelled) {
                 return UpdateStatus::Aborted;
             }
 
@@ -177,7 +177,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                 const AttributeType &attribute_type = _graph->attribute_type(node->type_id());
                 if (auto callback = attribute_type.vtable().update_default) {
                     void *self = node->get_self(attribute_type);
-                    callback(reinterpret_cast<const AGAttributeType *>(&attribute_type), self);
+                    callback(reinterpret_cast<const IAGAttributeType *>(&attribute_type), self);
                     changed = true;
                 }
 
@@ -193,7 +193,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
         }
 
         if (!frame.pending && frame.num_pushed_inputs > 0 &&
-            node->input_edges()[frame.num_pushed_inputs - 1].options & AGInputOptionsChanged) {
+            node->input_edges()[frame.num_pushed_inputs - 1].options & IAGInputOptionsChanged) {
             frame.pending = true;
         }
 
@@ -222,13 +222,13 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             }
 
             if (auto input_node = input_attribute.get_node()) {
-                if (input_edge.options & AGInputOptionsChanged) {
+                if (input_edge.options & IAGInputOptionsChanged) {
                     frame.pending = true;
                 }
 
                 if (!input_node->is_value_initialized() || input_node->is_dirty()) {
 
-                    if (!(input_edge.options & AGInputOptionsChanged) && input_attribute.subgraph()->is_valid()) {
+                    if (!(input_edge.options & IAGInputOptionsChanged) && input_attribute.subgraph()->is_valid()) {
                         frame.num_pushed_inputs = input_index + 1;
                         if (push(input_node, *input_node.get(), true, true)) {
                             // go to top
@@ -255,7 +255,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             const AttributeType &attribute_type = _graph->attribute_type(node->type_id());
             void *self = node->get_self(attribute_type);
 
-            attribute_type.update(self, AGAttribute(AttributeID(frame.attribute)));
+            attribute_type.update(self, IAGAttribute(AttributeID(frame.attribute)));
 
             if (!node->is_value_initialized()) {
                 if (attribute_type.value_metadata().vw_size() > 0) {
@@ -266,7 +266,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                 // set a dummy 0-byte value
                 struct {
                 } value = {};
-                AGGraphSetOutputValue(&value, AGTypeID(&attribute_type.value_metadata()));
+                IAGGraphSetOutputValue(&value, IAGTypeID(&attribute_type.value_metadata()));
             }
 
             changed = _graph->_change_count != old_change_count;
@@ -294,19 +294,19 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                 if (reset_edge_pending) {
                     if (frame.pending && !frame.cancelled) {
-                        if (input_edge.options & AGInputOptionsChanged) {
+                        if (input_edge.options & IAGInputOptionsChanged) {
                             _graph->foreach_trace([&frame, &input_edge](Trace &trace) {
                                 trace.set_edge_pending(frame.attribute, input_edge.attribute, false);
                             });
-                            input_edge.options &= ~AGInputOptionsChanged;
+                            input_edge.options &= ~IAGInputOptionsChanged;
                         }
                     }
                 }
 
                 if (frame.pending && !frame.cancelled) {
-                    bool was_enabled = input_edge.options & AGInputOptionsEnabled;
-                    input_edge.options &= ~AGInputOptionsEnabled;
-                    if (!was_enabled && !(input_edge.options & AGInputOptionsAlwaysEnabled)) {
+                    bool was_enabled = input_edge.options & IAGInputOptionsEnabled;
+                    input_edge.options &= ~IAGInputOptionsEnabled;
+                    if (!was_enabled && !(input_edge.options & IAGInputOptionsAlwaysEnabled)) {
                         _graph->remove_input(frame.attribute, input_index);
                     }
                 }
@@ -338,4 +338,4 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
     }
 }
 
-} // namespace AG
+} // namespace IAG

@@ -2,12 +2,12 @@
 
 #include <iterator>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Vector.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 /// A  vector that efficiently stores a single element as a pointer
 /// or stores multiple elements as a vector.
@@ -277,6 +277,6 @@ void indirect_pointer_vector<T, size_type>::resize(size_type count) {
     _data = (uintptr_t)vector | TagMask;
 }
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

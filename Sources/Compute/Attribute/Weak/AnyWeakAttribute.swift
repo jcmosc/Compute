@@ -7,7 +7,7 @@ extension AnyWeakAttribute {
     }
 
     public init(_ attribute: AnyAttribute?) {
-        self = __AGCreateWeakAttribute(attribute ?? .nil)
+        self = __IAGCreateWeakAttribute(attribute ?? .nil)
     }
 
     public func unsafeCast<Value>(to type: Value.Type) -> WeakAttribute<Value> {
@@ -16,7 +16,7 @@ extension AnyWeakAttribute {
 
     public var attribute: AnyAttribute? {
         get {
-            let attribute = __AGWeakAttributeGetAttribute(self)
+            let attribute = __IAGWeakAttributeGetAttribute(self)
             return attribute == .nil ? nil : attribute
         }
         set {

@@ -11,7 +11,7 @@ struct GraphTests {
         @Test
         func typeID() {
             let description = CFCopyTypeIDDescription(Graph.typeID) as String?
-            #expect(description == "AGGraphStorage")
+            #expect(description == "IAGGraphStorage")
         }
 
         @Test
@@ -81,7 +81,7 @@ struct GraphTests {
             let graph = Graph()
 
             // First type index is not 0
-            let intTypeIndex = __AGGraphInternAttributeType(
+            let intTypeIndex = __IAGGraphInternAttributeType(
                 graph.graphContext,
                 Metadata(External<Int>.self),
                 { _ in
@@ -98,7 +98,7 @@ struct GraphTests {
             #expect(intTypeIndex == 1)
 
             // A new type is assigned a new index
-            let stringTypeIndex = __AGGraphInternAttributeType(
+            let stringTypeIndex = __IAGGraphInternAttributeType(
                 graph.graphContext,
                 Metadata(External<String>.self),
                 { _ in
@@ -115,7 +115,7 @@ struct GraphTests {
             #expect(stringTypeIndex == 2)
 
             // Interning the same type reuses the same index
-            let cachedIntTypeIndex = __AGGraphInternAttributeType(
+            let cachedIntTypeIndex = __IAGGraphInternAttributeType(
                 graph.graphContext,
                 Metadata(External<Int>.self),
                 { _ in
@@ -137,12 +137,12 @@ struct GraphTests {
         @Test
         func internAttributeTypeInitializesSelfOffsetAndLayout() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("AG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("AG_ASYNC_LAYOUTS", "0", 1)
+                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
+                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
 
                 let graph = Graph()
 
-                let _ = __AGGraphInternAttributeType(
+                let _ = __IAGGraphInternAttributeType(
                     graph.graphContext,
                     Metadata(External<Int>.self),
                     { _ in
@@ -181,7 +181,7 @@ struct GraphTests {
                 var traceCalls: [(name: String, graph: Graph)] = []
             }
 
-            var trace = AGTraceType()
+            var trace = IAGTraceType()
             trace.begin_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "beginTrace", graph: graph))
@@ -225,7 +225,7 @@ struct GraphTests {
                 var traceCalls: [(name: String, graph: Graph)] = []
             }
 
-            var trace = AGTraceType()
+            var trace = IAGTraceType()
             trace.begin_trace = { contextPointer, graph in
                 if let context = contextPointer?.assumingMemoryBound(to: Context.self).pointee {
                     context.traceCalls.append((name: "beginTrace", graph: graph))

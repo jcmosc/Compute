@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
 #include "AttributeID.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 class OffsetAttributeID {
   private:
@@ -22,6 +22,6 @@ class OffsetAttributeID {
     uint32_t offset() const { return _offset; };
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

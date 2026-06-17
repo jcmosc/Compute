@@ -2,15 +2,15 @@
 
 #include <swift/Runtime/HeapObject.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 
-namespace AG {
+namespace IAG {
 
 /// C++ function type that is equivalent to the lowered Swift closure type.
 template <typename Result, typename... Args> class ClosureFunction {
   public:
     using Context = const void *_Nullable;
-    using Function = AG_SWIFT_CC(swift) Result (*_Nullable)(Args..., Context AG_SWIFT_CONTEXT);
+    using Function = IAG_SWIFT_CC(swift) Result (*_Nullable)(Args..., Context IAG_SWIFT_CONTEXT);
 
   private:
     Function _function;
@@ -107,4 +107,4 @@ template <typename Result, typename Arg>
     requires std::unsigned_integral<Result>
 using ClosureFunctionCI = ClosureFunction<Result, Arg>;
 
-} // namespace AG
+} // namespace IAG

@@ -7,7 +7,7 @@ public struct IndirectAttribute<Value> {
     public var identifier: AnyAttribute
 
     public init(source: Attribute<Value>) {
-        identifier = __AGGraphCreateIndirectAttribute2(source.identifier, MemoryLayout<Value>.size)
+        identifier = __IAGGraphCreateIndirectAttribute2(source.identifier, MemoryLayout<Value>.size)
     }
 
     public var source: Attribute<Value> {
@@ -24,7 +24,7 @@ public struct IndirectAttribute<Value> {
     }
 
     public func resetSource() {
-        __AGGraphResetIndirectAttribute(identifier, false)
+        __IAGGraphResetIndirectAttribute(identifier, false)
     }
 
     public var dependency: AnyAttribute? {
@@ -48,7 +48,7 @@ public struct IndirectAttribute<Value> {
         }
     }
 
-    public func changedValue(options: AGValueOptions) -> (value: Value, changed: Bool) {
+    public func changedValue(options: IAGValueOptions) -> (value: Value, changed: Bool) {
         return Attribute(identifier: identifier).changedValue(options: options)
     }
 

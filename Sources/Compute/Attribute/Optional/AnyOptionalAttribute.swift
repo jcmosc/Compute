@@ -13,7 +13,7 @@ public struct AnyOptionalAttribute {
     }
 
     public init(_ weakAttribute: AnyWeakAttribute) {
-        identifier = __AGWeakAttributeGetAttribute(weakAttribute)
+        identifier = __IAGWeakAttributeGetAttribute(weakAttribute)
     }
 
     public init(_ attribute: AnyAttribute?) {

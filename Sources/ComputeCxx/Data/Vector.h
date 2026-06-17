@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Pointer.h"
 #include "Zone.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 namespace data {
 
 template <typename T> class vector {
@@ -202,6 +202,6 @@ template <typename T> void vector<T>::push_back(zone *zone, T &&value) {
 }
 
 } // namespace data
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

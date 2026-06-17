@@ -1,15 +1,15 @@
 import ComputeCxx
 
-@_silgen_name("AGGraphMutateAttribute")
-func AGGraphMutateAttribute(
+@_silgen_name("IAGGraphMutateAttribute")
+func IAGGraphMutateAttribute(
     _ attribute: AnyAttribute,
     type: Metadata,
     invalidating: Bool,
     modify: (UnsafeMutableRawPointer) -> Void
 )
 
-@_silgen_name("AGGraphSearch")
-func AGGraphSearch(
+@_silgen_name("IAGGraphSearch")
+func IAGGraphSearch(
     attribute: AnyAttribute,
     options: SearchOptions,
     predicate: (AnyAttribute) -> Bool
@@ -18,7 +18,7 @@ func AGGraphSearch(
 extension AnyAttribute {
 
     public static var current: AnyAttribute? {
-        let attribute = __AGGraphGetCurrentAttribute()
+        let attribute = __IAGGraphGetCurrentAttribute()
         return attribute == .nil ? nil : attribute
     }
 
@@ -39,7 +39,7 @@ extension AnyAttribute {
             let modify: (UnsafeMutableRawPointer) -> Void = { pointer in
                 escapingMutator(&pointer.assumingMemoryBound(to: Body.self).pointee)
             }
-            AGGraphMutateAttribute(
+            IAGGraphMutateAttribute(
                 self,
                 type: Metadata(type),
                 invalidating: invalidating,
@@ -54,33 +54,33 @@ extension AnyAttribute {
         flags = flags.subtracting(mask).union(newFlags.intersection(mask))
     }
 
-    public func addInput(_ input: AnyAttribute, options: AGInputOptions, token: Int) {
+    public func addInput(_ input: AnyAttribute, options: IAGInputOptions, token: Int) {
         addInput(input, options: options)
     }
 
-    public func addInput<T>(_ input: Attribute<T>, options: AGInputOptions, token: Int) {
+    public func addInput<T>(_ input: Attribute<T>, options: IAGInputOptions, token: Int) {
         addInput(input.identifier, options: options, token: token)
     }
 
     // Indirect Node
 
     public func unsafeOffset(at offset: Int) -> AnyAttribute {
-        return __AGGraphCreateOffsetAttribute(self, UInt32(offset))
+        return __IAGGraphCreateOffsetAttribute(self, UInt32(offset))
     }
 
     public var indirectDependency: AnyAttribute? {
         get {
-            let indirectDependency = __AGGraphGetIndirectDependency(self)
+            let indirectDependency = __IAGGraphGetIndirectDependency(self)
             return indirectDependency == .nil ? nil : indirectDependency
         }
         nonmutating set {
-            __AGGraphSetIndirectDependency(self, newValue ?? .nil)
+            __IAGGraphSetIndirectDependency(self, newValue ?? .nil)
         }
     }
 
     public func breadthFirstSearch(options: SearchOptions, _ predicate: (AnyAttribute) -> Bool) -> Bool {
         return withoutActuallyEscaping(predicate) { escapingPredicate in
-            return AGGraphSearch(attribute: self, options: options, predicate: escapingPredicate)
+            return IAGGraphSearch(attribute: self, options: options, predicate: escapingPredicate)
         }
     }
 

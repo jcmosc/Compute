@@ -2,11 +2,11 @@
 
 #include <iterator>
 
-#include <ComputeCxx/AGBase.h>
+#include <ComputeCxx/IAGBase.h>
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
-namespace AG {
+namespace IAG {
 
 template <typename T> class ArrayRef {
   public:
@@ -61,6 +61,6 @@ template <typename T> class ArrayRef {
     size_type size() const { return _size; };
 };
 
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

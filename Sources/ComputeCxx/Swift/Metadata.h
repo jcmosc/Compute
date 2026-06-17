@@ -3,15 +3,15 @@
 #include <swift/Runtime/Metadata.h>
 #include <swift/Demangling/ManglingMacros.h>
 
-#include "ComputeCxx/AGBase.h"
+#include "ComputeCxx/IAGBase.h"
 #include "Comparison/LayoutDescriptor.h"
 
-AG_ASSUME_NONNULL_BEGIN
+IAG_ASSUME_NONNULL_BEGIN
 
 CF_EXPORT
 const void *PROTOCOL_DESCR_SYM(SQ);
 
-namespace AG {
+namespace IAG {
 namespace swift {
 
 static constexpr auto &EquatableProtocolDescriptor = PROTOCOL_DESCR_SYM(SQ);
@@ -95,6 +95,6 @@ class existential_type_metadata : public ::swift::ExistentialTypeMetadata {
 };
 
 } // namespace swift
-} // namespace AG
+} // namespace IAG
 
-AG_ASSUME_NONNULL_END
+IAG_ASSUME_NONNULL_END

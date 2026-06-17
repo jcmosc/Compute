@@ -6,7 +6,7 @@
 #include "Graph/Graph.h"
 #include "Swift/Metadata.h"
 
-namespace AG {
+namespace IAG {
 
 void *Node::get_self(const AttributeType &type) const {
     void *self = ((char *)this + type.body_offset());
@@ -103,4 +103,4 @@ void Node::destroy(Graph &graph) {
     }
 }
 
-} // namespace AG
+} // namespace IAG

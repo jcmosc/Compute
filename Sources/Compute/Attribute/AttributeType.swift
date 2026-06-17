@@ -6,21 +6,21 @@ struct ProtocolConformance {
     var witnessTable: UnsafeRawPointer
 }
 
-@_silgen_name("AGGraphInternAttributeType")
-func AGGraphInternAttributeType(
+@_silgen_name("IAGGraphInternAttributeType")
+func IAGGraphInternAttributeType(
     _ graph: UnsafeRawPointer,
     type: Metadata,
     makeAttributeType: () -> UnsafePointer<_AttributeType>
 ) -> UInt32
 
-extension AGUnownedGraphContextRef {
+extension IAGUnownedGraphContextRef {
 
     @inline(__always)
     func internAttributeType(
         type: Metadata,
         makeAttributeType: () -> UnsafePointer<_AttributeType>
     ) -> UInt32 {
-        return AGGraphInternAttributeType(
+        return IAGGraphInternAttributeType(
             unsafeBitCast(self, to: UnsafeRawPointer.self),
             type: type,
             makeAttributeType: makeAttributeType
@@ -37,10 +37,10 @@ extension String {
 
 }
 
-@_silgen_name("AGRetainClosure")
-func AGRetainClosure(
+@_silgen_name("IAGRetainClosure")
+func IAGRetainClosure(
     _ closure: (UnsafeMutableRawPointer, AnyAttribute) -> Void
-) -> _AGClosureStorage
+) -> _IAGClosureStorage
 
 extension _AttributeType {
 
@@ -109,7 +109,7 @@ extension _AttributeType {
             flags.insert(.hasDestroySelf)
         }
 
-        let retainedUpdate = AGRetainClosure(update)
+        let retainedUpdate = IAGRetainClosure(update)
         let conformance = unsafeBitCast(
             selfType as any _AttributeBody.Type,
             to: ProtocolConformance.self

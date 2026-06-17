@@ -19,13 +19,17 @@ template <typename Result, typename... Args> class ClosureFunction {
   public:
     inline ClosureFunction(std::nullptr_t): _function(nullptr), _context(nullptr) {}
     inline ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
-        void *mutable_context = const_cast<void *>(_context);
-        ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(mutable_context));
+        if (_context) {
+            void *mutable_context = const_cast<void *>(_context);
+            ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(mutable_context));
+        }
     }
 
     inline ~ClosureFunction() {
-        void *context = const_cast<void *>(_context);
-        ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(context));
+        if (_context) {
+            void *mutable_context = const_cast<void *>(_context);
+            ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(mutable_context));
+        }
     }
 
     // Copyable
@@ -39,13 +43,15 @@ template <typename Result, typename... Args> class ClosureFunction {
 
     ClosureFunction &operator=(const ClosureFunction &other) noexcept {
         if (this != &other) {
-            _function = other._function;
-            if (_context) {
-                ::swift::swift_release((::swift::HeapObject *)_context);
+            Context new_context = other._context;
+            if (new_context) {
+                new_context = ::swift::swift_retain((::swift::HeapObject *)new_context);
             }
-            _context = other._context;
-            if (_context) {
-                ::swift::swift_retain((::swift::HeapObject *)_context);
+            Context old_context = _context;
+            _function = other._function;
+            _context = new_context;
+            if (old_context) {
+                ::swift::swift_release((::swift::HeapObject *)old_context);
             }
         }
         return *this;
@@ -58,13 +64,14 @@ template <typename Result, typename... Args> class ClosureFunction {
 
     ClosureFunction &operator=(ClosureFunction &&other) noexcept {
         if (this != &other) {
+            Context old_context = _context;
             _function = other._function;
-            other._function = nullptr;
-            if (_context) {
-                ::swift::swift_release((::swift::HeapObject *)_context);
-            }
             _context = other._context;
+            other._function = nullptr;
             other._context = nullptr;
+            if (old_context) {
+                ::swift::swift_release((::swift::HeapObject *)old_context);
+            }
         }
         return *this;
     }

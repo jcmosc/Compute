@@ -17,8 +17,8 @@ struct AttributeTests {
         @Test
         func initWithValue() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
+                setenv(prefetchLayoutsEnvironmentVariable, "1", 1)
+                setenv(asyncLayoutsEnvironmentVariable, "0", 1)
 
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
@@ -64,8 +64,8 @@ struct AttributeTests {
         @Test
         func initWithType() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
+                setenv(prefetchLayoutsEnvironmentVariable, "1", 1)
+                setenv(asyncLayoutsEnvironmentVariable, "0", 1)
 
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
@@ -110,8 +110,8 @@ struct AttributeTests {
         @Test
         func initWithBody() async throws {
             try await #require(processExitsWith: .success) {
-                setenv("IAG_PREFETCH_LAYOUTS", "1", 1)
-                setenv("IAG_ASYNC_LAYOUTS", "0", 1)
+                setenv(prefetchLayoutsEnvironmentVariable, "1", 1)
+                setenv(asyncLayoutsEnvironmentVariable, "0", 1)
 
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)

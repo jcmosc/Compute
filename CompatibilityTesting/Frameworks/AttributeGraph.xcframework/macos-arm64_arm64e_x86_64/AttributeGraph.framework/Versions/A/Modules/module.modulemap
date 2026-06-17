@@ -1,0 +1,8 @@
+framework module AttributeGraph [system] {
+    umbrella header "AttributeGraph.h"
+
+    export *
+    module * {
+        export *
+    }
+}

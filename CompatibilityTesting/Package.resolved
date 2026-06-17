@@ -1,15 +1,6 @@
 {
-  "originHash" : "99b9ec1488c0b4ba695beea55b0592bae3ae146eb56306a8661f37dd36b69cad",
+  "originHash" : "4e6df48bd03b207257fb1b7ef8d5c2d047c8c081361e218ab02a7e681f00eea7",
   "pins" : [
-    {
-      "identity" : "darwinprivateframeworks",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/OpenSwiftUIProject/DarwinPrivateFrameworks",
-      "state" : {
-        "revision" : "5eb0f26ea5a5bbd5068f6b3daf3a97dd3682b234",
-        "version" : "0.0.4"
-      }
-    },
     {
       "identity" : "semaphore",
       "kind" : "remoteSourceControl",
@@ -35,6 +26,15 @@
       "state" : {
         "revision" : "0c0290ff6b24942dadb83a929ffaaa1481df04a2",
         "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-sexp",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jcmosc/swift-sexp",
+      "state" : {
+        "branch" : "main",
+        "revision" : "9b86036edc8ce9b870acba04941d2239d71cd3c0"
       }
     }
   ],

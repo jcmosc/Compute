@@ -17,8 +17,8 @@ extension AttributeGraph.AnyAttribute {
   public func visitBody<Visitor>(_ visitor: inout Visitor) where Visitor : AttributeGraph.AttributeBodyVisitor
   public func mutateBody<Body>(as type: Body.Type, invalidating: Swift.Bool, _ mutator: (inout Body) -> Swift.Void)
   public func setFlags(_ newFlags: AttributeGraph.Subgraph.Flags, mask: AttributeGraph.Subgraph.Flags)
-  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.IAGInputOptions, token: Swift.Int)
-  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.IAGInputOptions, token: Swift.Int)
+  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.AGInputOptions, token: Swift.Int)
+  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.AGInputOptions, token: Swift.Int)
   public func unsafeOffset(at offset: Swift.Int) -> AttributeGraph.AnyAttribute
   public var indirectDependency: AttributeGraph.AnyAttribute? {
     get
@@ -71,8 +71,8 @@ extension AttributeGraph.AnyAttribute {
   public func setFlags(_ newFlags: AttributeGraph.Subgraph.Flags, mask: AttributeGraph.Subgraph.Flags)
   public func applying<Member>(offset: AttributeGraph.PointerOffset<Value, Member>) -> AttributeGraph.Attribute<Member>
   public func mutateBody<Body>(as bodyType: Body.Type, invalidating: Swift.Bool, _ mutator: (inout Body) -> Swift.Void)
-  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.IAGInputOptions, token: Swift.Int)
-  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.IAGInputOptions, token: Swift.Int)
+  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.AGInputOptions, token: Swift.Int)
+  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.AGInputOptions, token: Swift.Int)
   public func breadthFirstSearch(options: AttributeGraph.SearchOptions, _ predicate: (AttributeGraph.AnyAttribute) -> Swift.Bool) -> Swift.Bool
   public func validate()
   public var value: Value {
@@ -83,14 +83,14 @@ extension AttributeGraph.AnyAttribute {
   public var hasValue: Swift.Bool {
     get
   }
-  public var valueState: AttributeGraph.IAGValueState {
+  public var valueState: AttributeGraph.AGValueState {
     get
   }
   public func prefetchValue()
   public func updateValue()
   public func invalidateValue()
-  public func changedValue(options: AttributeGraph.IAGValueOptions = []) -> (value: Value, changed: Swift.Bool)
-  public func valueAndFlags(options: AttributeGraph.IAGValueOptions) -> (value: Value, flags: AttributeGraph.IAGChangedValueFlags)
+  public func changedValue(options: AttributeGraph.AGValueOptions = []) -> (value: Value, changed: Swift.Bool)
+  public func valueAndFlags(options: AttributeGraph.AGValueOptions) -> (value: Value, flags: AttributeGraph.AGChangedValueFlags)
   public var wrappedValue: Value {
     unsafeAddress
     nonmutating set
@@ -213,7 +213,7 @@ extension AttributeGraph.External : Swift.CustomStringConvertible {
     nonmutating set
     nonmutating _modify
   }
-  public func changedValue(options: AttributeGraph.IAGValueOptions) -> (value: Value, changed: Swift.Bool)
+  public func changedValue(options: AttributeGraph.AGValueOptions) -> (value: Value, changed: Swift.Bool)
   public var wrappedValue: Value {
     get
     nonmutating set
@@ -289,7 +289,7 @@ extension AttributeGraph.AnyOptionalAttribute : Swift.Hashable {
   public var value: Value? {
     get
   }
-  public func changedValue(options: AttributeGraph.IAGValueOptions = []) -> (value: Value, changed: Swift.Bool)?
+  public func changedValue(options: AttributeGraph.AGValueOptions = []) -> (value: Value, changed: Swift.Bool)?
   public func map<T>(_ transform: (AttributeGraph.Attribute<Value>) -> T) -> T?
   public var wrappedValue: Value? {
     get
@@ -443,8 +443,8 @@ public struct AnyRuleContext {
   public init<Value>(_ ruleContext: AttributeGraph.RuleContext<Value>)
   public func unsafeCast<Value>(to type: Value.Type) -> AttributeGraph.RuleContext<Value>
   public func update(body: () -> Swift.Void)
-  public func changedValue<Value>(of input: AttributeGraph.Attribute<Value>, options: AttributeGraph.IAGValueOptions) -> (value: Value, changed: Swift.Bool)
-  public func valueAndFlags<Value>(of input: AttributeGraph.Attribute<Value>, options: AttributeGraph.IAGValueOptions) -> (value: Value, flags: AttributeGraph.IAGChangedValueFlags)
+  public func changedValue<Value>(of input: AttributeGraph.Attribute<Value>, options: AttributeGraph.AGValueOptions) -> (value: Value, changed: Swift.Bool)
+  public func valueAndFlags<Value>(of input: AttributeGraph.Attribute<Value>, options: AttributeGraph.AGValueOptions) -> (value: Value, flags: AttributeGraph.AGChangedValueFlags)
   public subscript<Value>(attribute: AttributeGraph.Attribute<Value>) -> Value {
     unsafeAddress
   }
@@ -469,8 +469,8 @@ public struct RuleContext<Value> {
   public var hasValue: Swift.Bool {
     get
   }
-  public func changedValue<T>(of input: AttributeGraph.Attribute<T>, options: AttributeGraph.IAGValueOptions) -> (value: T, changed: Swift.Bool)
-  public func valueAndFlags<InputValue>(of input: AttributeGraph.Attribute<InputValue>, options: AttributeGraph.IAGValueOptions) -> (value: InputValue, flags: AttributeGraph.IAGChangedValueFlags)
+  public func changedValue<T>(of input: AttributeGraph.Attribute<T>, options: AttributeGraph.AGValueOptions) -> (value: T, changed: Swift.Bool)
+  public func valueAndFlags<InputValue>(of input: AttributeGraph.Attribute<InputValue>, options: AttributeGraph.AGValueOptions) -> (value: InputValue, flags: AttributeGraph.AGChangedValueFlags)
   public subscript<InputValue>(input: AttributeGraph.Attribute<InputValue>) -> InputValue {
     unsafeAddress
   }
@@ -513,7 +513,7 @@ extension AttributeGraph.AnyWeakAttribute : @retroactive Swift.Hashable {
   public init()
   public init(_ attribute: AttributeGraph.Attribute<Value>)
   public init(_ attribute: AttributeGraph.Attribute<Value>?)
-  public func changedValue(options: AttributeGraph.IAGValueOptions = []) -> (value: Value, changed: Swift.Bool)?
+  public func changedValue(options: AttributeGraph.AGValueOptions = []) -> (value: Value, changed: Swift.Bool)?
   public var value: Value? {
     get
   }
@@ -547,11 +547,11 @@ extension AttributeGraph.WeakAttribute : Swift.Hashable {
     get
   }
 }
-@_silgen_name("IAGGraphSetOutputValue")
-@inline(__always) @inlinable internal func IAGGraphSetOutputValue(_ value: Swift.UnsafeRawPointer, of type: AttributeGraph.Metadata)
+@_silgen_name("AGGraphSetOutputValue")
+@inline(__always) @inlinable internal func AGGraphSetOutputValue(_ value: Swift.UnsafeRawPointer, of type: AttributeGraph.Metadata)
 extension AttributeGraph.Graph {
   @inline(__always) @inlinable public static func setOutputValue<Value>(_ value: Swift.UnsafePointer<Value>) {
-        IAGGraphSetOutputValue(UnsafeRawPointer(value), of: Metadata(Value.self))
+        AGGraphSetOutputValue(UnsafeRawPointer(value), of: Metadata(Value.self))
     }
   @_transparent @inline(__always) public var mainUpdates: Swift.Int {
     @_transparent get { numericCast(counter(for: .mainThreadUpdates)) }
@@ -559,7 +559,7 @@ extension AttributeGraph.Graph {
 }
 extension AttributeGraph.Graph {
   @_transparent public static func anyInputsChanged(excluding excludedAttributes: [AttributeGraph.AnyAttribute]) -> Swift.Bool {
-        return __IAGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
+        return __AGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
     }
 }
 extension AttributeGraph.Graph {
@@ -610,7 +610,7 @@ extension AttributeGraph.TreeElement {
 extension AttributeGraph.Nodes : @retroactive Swift.IteratorProtocol {
   public typealias Element = AttributeGraph.AnyAttribute
   @inlinable public mutating func next() -> AttributeGraph.AnyAttribute? {
-        let result = __IAGTreeElementGetNextNode(&self)
+        let result = __AGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result
     }
 }

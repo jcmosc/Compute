@@ -79,6 +79,7 @@ EOF
             -e 's/ -package-name [^ ]*//' \
             -e 's/ComputeCxx/AttributeGraph/g' \
             -e 's/Compute/AttributeGraph/g' \
+            -e 's/IAG/AG/g' \
             "$SWIFT_INTERFACE_FILE" > "$swiftmodule_dir/${swiftinterface_filename}.swiftinterface"
     done
 }

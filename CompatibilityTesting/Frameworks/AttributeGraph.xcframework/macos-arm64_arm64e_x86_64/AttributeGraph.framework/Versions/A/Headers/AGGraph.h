@@ -33,7 +33,7 @@ AG_EXTERN_C_BEGIN
 // MARK: CFType
 
 typedef struct AG_BRIDGED_TYPE(id) AGGraphStorage *AGGraphRef AG_SWIFT_NAME(Graph);
-typedef void *AGUnownedGraphContextRef AG_SWIFT_STRUCT;
+typedef void *AGUnownedGraphContextRef AG_SWIFT_STRUCT AG_SWIFT_NAME(UnownedGraphContext);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

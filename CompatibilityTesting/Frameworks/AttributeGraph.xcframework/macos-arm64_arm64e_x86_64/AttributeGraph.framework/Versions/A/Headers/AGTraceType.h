@@ -16,7 +16,7 @@ typedef AG_ENUM(uint64_t, AGTraceTypeVersion) {
     AGTraceTypeVersionCompareFailed = 4,
 };
 
-typedef struct AGTraceType {
+typedef struct AG_SWIFT_NAME(TraceType) AGTraceType {
     AGTraceTypeVersion version;
 
     void (*_Nullable begin_trace)(void *_Nullable context, AGGraphRef graph);

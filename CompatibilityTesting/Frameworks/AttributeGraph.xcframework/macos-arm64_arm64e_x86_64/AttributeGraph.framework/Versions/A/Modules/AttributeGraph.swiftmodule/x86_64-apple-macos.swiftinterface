@@ -47,7 +47,7 @@ extension AttributeGraph.AnyAttribute : @retroactive Swift.Hashable {
 extension AttributeGraph.AnyAttribute {
   public typealias _ObjectiveCType = AttributeGraph.AnyAttribute.RawValue
 }
-@propertyWrapper @dynamicMemberLookup public struct Attribute<Value> {
+@frozen @propertyWrapper @dynamicMemberLookup public struct Attribute<Value> {
   public var identifier: AttributeGraph.AnyAttribute
   public init(identifier: AttributeGraph.AnyAttribute)
   public init(_ attribute: AttributeGraph.Attribute<Value>)
@@ -159,7 +159,7 @@ extension AttributeGraph._AttributeBody {
 public protocol AttributeBodyVisitor {
   mutating func visit<Body>(body: Swift.UnsafePointer<Body>) where Body : AttributeGraph._AttributeBody
 }
-public struct _External {
+@frozen public struct _External {
   public init()
   public static func _update(_: Swift.UnsafeMutableRawPointer, attribute: AttributeGraph.AnyAttribute)
 }
@@ -176,7 +176,7 @@ extension AttributeGraph._External : AttributeGraph._AttributeBody {
     get
   }
 }
-public struct External<Value> {
+@frozen public struct External<Value> {
   public init()
   public static func _update(_: Swift.UnsafeMutableRawPointer, attribute: AttributeGraph.AnyAttribute)
 }
@@ -193,7 +193,7 @@ extension AttributeGraph.External : Swift.CustomStringConvertible {
     get
   }
 }
-@propertyWrapper @dynamicMemberLookup public struct IndirectAttribute<Value> {
+@frozen @propertyWrapper @dynamicMemberLookup public struct IndirectAttribute<Value> {
   public var identifier: AttributeGraph.AnyAttribute
   public init(source: AttributeGraph.Attribute<Value>)
   public var source: AttributeGraph.Attribute<Value> {
@@ -244,7 +244,7 @@ extension AttributeGraph.ObservedAttribute {
     get
   }
 }
-public struct AnyOptionalAttribute {
+@frozen public struct AnyOptionalAttribute {
   public static var current: AttributeGraph.AnyOptionalAttribute {
     get
   }
@@ -275,7 +275,7 @@ extension AttributeGraph.AnyOptionalAttribute : Swift.Hashable {
     get
   }
 }
-@propertyWrapper @dynamicMemberLookup public struct OptionalAttribute<Value> {
+@frozen @propertyWrapper @dynamicMemberLookup public struct OptionalAttribute<Value> {
   public var base: AttributeGraph.AnyOptionalAttribute
   public init(base: AttributeGraph.AnyOptionalAttribute)
   public init()
@@ -317,7 +317,7 @@ extension AttributeGraph.OptionalAttribute : Swift.Hashable {
     get
   }
 }
-public struct PointerOffset<Base, Member> {
+@frozen public struct PointerOffset<Base, Member> {
   public var byteOffset: Swift.Int
   public init(byteOffset: Swift.Int)
   public static func of(_ member: inout Member) -> AttributeGraph.PointerOffset<Base, Member>
@@ -343,7 +343,7 @@ extension Swift.UnsafeMutablePointer {
     unsafeMutableAddress
   }
 }
-public struct Focus<Root, Value> {
+@frozen public struct Focus<Root, Value> {
   public var root: AttributeGraph.Attribute<Root>
   public var keyPath: Swift.KeyPath<Root, Value>
   public init(root: AttributeGraph.Attribute<Root>, keyPath: Swift.KeyPath<Root, Value>)
@@ -361,7 +361,7 @@ extension AttributeGraph.Focus : Swift.CustomStringConvertible {
     get
   }
 }
-public struct Map<Arg, Value> {
+@frozen public struct Map<Arg, Value> {
   public var arg: AttributeGraph.Attribute<Arg>
   public var body: (Arg) -> Value
   public init(_ arg: AttributeGraph.Attribute<Arg>, _ body: @escaping (Arg) -> Value)
@@ -437,7 +437,7 @@ extension AttributeGraph.StatefulRule {
     get
   }
 }
-public struct AnyRuleContext {
+@frozen public struct AnyRuleContext {
   public var attribute: AttributeGraph.AnyAttribute
   public init(attribute: AttributeGraph.AnyAttribute)
   public init<Value>(_ ruleContext: AttributeGraph.RuleContext<Value>)
@@ -458,7 +458,7 @@ public struct AnyRuleContext {
 extension AttributeGraph.AnyRuleContext : Swift.Equatable {
   public static func == (lhs: AttributeGraph.AnyRuleContext, rhs: AttributeGraph.AnyRuleContext) -> Swift.Bool
 }
-public struct RuleContext<Value> {
+@frozen public struct RuleContext<Value> {
   public var attribute: AttributeGraph.Attribute<Value>
   public init(attribute: AttributeGraph.Attribute<Value>)
   public func update(body: () -> Swift.Void)
@@ -507,7 +507,7 @@ extension AttributeGraph.AnyWeakAttribute : @retroactive Swift.Hashable {
     get
   }
 }
-@propertyWrapper @dynamicMemberLookup public struct WeakAttribute<Value> {
+@frozen @propertyWrapper @dynamicMemberLookup public struct WeakAttribute<Value> {
   public var base: AttributeGraph.AnyWeakAttribute
   public init(base: AttributeGraph.AnyWeakAttribute)
   public init()
@@ -547,6 +547,8 @@ extension AttributeGraph.WeakAttribute : Swift.Hashable {
     get
   }
 }
+@_silgen_name("AGGraphInternAttributeType")
+public func internAttributeType(ctx: AttributeGraph.UnownedGraphContext, body: AttributeGraph.Metadata, makeAttributeType: () -> Swift.UnsafePointer<AttributeGraph._AttributeType>) -> Swift.UInt32
 @_silgen_name("AGGraphSetOutputValue")
 @inline(__always) @inlinable internal func AGGraphSetOutputValue(_ value: Swift.UnsafeRawPointer, of type: AttributeGraph.Metadata)
 extension AttributeGraph.Graph {
@@ -587,9 +589,6 @@ extension AttributeGraph.Graph {
   public static func printStack(maxFrames: Swift.Int)
   public static func stackDescription(maxFrames: Swift.Int) -> Swift.String
 }
-extension AttributeGraph.Graph : @retroactive Swift.Equatable {
-  public static func == (lhs: AttributeGraph.Graph, rhs: AttributeGraph.Graph) -> Swift.Bool
-}
 extension AttributeGraph.Subgraph {
   public func addObserver(_ observer: @escaping () -> Swift.Void) -> Swift.Int
 }
@@ -609,7 +608,7 @@ extension AttributeGraph.TreeElement {
 }
 extension AttributeGraph.Nodes : @retroactive Swift.IteratorProtocol {
   public typealias Element = AttributeGraph.AnyAttribute
-  @inlinable public mutating func next() -> AttributeGraph.AnyAttribute? {
+  @_alwaysEmitIntoClient public mutating func next() -> AttributeGraph.AnyAttribute? {
         let result = __AGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result
     }
@@ -710,3 +709,23 @@ extension AttributeGraph.UnsafeMutableTuple {
     nonmutating unsafeMutableAddress
   }
 }
+extension AttributeGraph.Attribute : Swift.Sendable {}
+extension AttributeGraph.Attribute : Swift.BitwiseCopyable {}
+extension AttributeGraph._External : Swift.Sendable {}
+extension AttributeGraph._External : Swift.BitwiseCopyable {}
+extension AttributeGraph.External : Swift.Sendable {}
+extension AttributeGraph.External : Swift.BitwiseCopyable {}
+extension AttributeGraph.IndirectAttribute : Swift.Sendable {}
+extension AttributeGraph.IndirectAttribute : Swift.BitwiseCopyable {}
+extension AttributeGraph.AnyOptionalAttribute : Swift.Sendable {}
+extension AttributeGraph.AnyOptionalAttribute : Swift.BitwiseCopyable {}
+extension AttributeGraph.OptionalAttribute : Swift.Sendable {}
+extension AttributeGraph.OptionalAttribute : Swift.BitwiseCopyable {}
+extension AttributeGraph.PointerOffset : Swift.Sendable {}
+extension AttributeGraph.PointerOffset : Swift.BitwiseCopyable {}
+extension AttributeGraph.AnyRuleContext : Swift.Sendable {}
+extension AttributeGraph.AnyRuleContext : Swift.BitwiseCopyable {}
+extension AttributeGraph.RuleContext : Swift.Sendable {}
+extension AttributeGraph.RuleContext : Swift.BitwiseCopyable {}
+extension AttributeGraph.WeakAttribute : Swift.Sendable {}
+extension AttributeGraph.WeakAttribute : Swift.BitwiseCopyable {}

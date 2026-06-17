@@ -308,7 +308,11 @@ struct GraphTests {
                 try await #require(processExitsWith: .success) {
                     let description =
                         try #require(
-                            Graph.description(nil, options: [DescriptionOption.format: "graph/dict"] as NSDictionary)
+                            Graph.description(
+                                nil,
+                                // TODO: Conform DescriptionOption to CustomStringConvertible so we don't have to access rawValue here
+                                options: [DescriptionOption.format.rawValue: "graph/dict"] as NSDictionary
+                            )
                                 as? NSDictionary
                         )
 

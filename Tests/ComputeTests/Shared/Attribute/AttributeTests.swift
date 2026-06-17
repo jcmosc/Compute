@@ -245,16 +245,16 @@ struct AttributeTests {
 
             attribute.flags = []
             attribute.setFlags(Subgraph.Flags(rawValue: 1), mask: [Subgraph.Flags(rawValue: 1)])
-            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 1).rawValue)
+            #expect(attribute.flags == Subgraph.Flags(rawValue: 1))
 
             attribute.setFlags(Subgraph.Flags(rawValue: 2), mask: [Subgraph.Flags(rawValue: 2)])
-            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 3).rawValue)
+            #expect(attribute.flags == Subgraph.Flags(rawValue: 3))
 
             attribute.setFlags(Subgraph.Flags(rawValue: 4), mask: [Subgraph.Flags(rawValue: 1)])
-            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 2).rawValue)
+            #expect(attribute.flags == Subgraph.Flags(rawValue: 2))
 
             attribute.setFlags(Subgraph.Flags(rawValue: 5), mask: Subgraph.Flags(rawValue: 7))
-            #expect(attribute.flags.rawValue == Subgraph.Flags(rawValue: 5).rawValue)
+            #expect(attribute.flags == Subgraph.Flags(rawValue: 5))
         }
 
     }

@@ -60,7 +60,7 @@ struct CompareValuesTests {
     @Test
     func compareInlineEnumValues() async {
         await #expect(processExitsWith: .success) {
-            setenv("IAG_ASYNC_LAYOUTS", "0", 1)
+            setenv(asyncLayoutsEnvironmentVariable, "0", 1)
 
             #expect(
                 compareValues(
@@ -135,7 +135,7 @@ struct CompareValuesTests {
     @Test
     func compareRecursiveEnumValues() async {
         await #expect(processExitsWith: .success) {
-            setenv("IAG_ASYNC_LAYOUTS", "0", 1)
+            setenv(asyncLayoutsEnvironmentVariable, "0", 1)
 
             #expect(
                 compareValues(
@@ -210,7 +210,7 @@ struct CompareValuesTests {
     @Test
     func compareRecursiveEnumNonEquatableValues() async {
         await #expect(processExitsWith: .success) {
-            setenv("IAG_ASYNC_LAYOUTS", "0", 1)
+            setenv(asyncLayoutsEnvironmentVariable, "0", 1)
 
             #expect(
                 compareValues(

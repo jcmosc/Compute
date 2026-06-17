@@ -16,7 +16,7 @@ typedef IAG_ENUM(uint64_t, IAGTraceTypeVersion) {
     IAGTraceTypeVersionCompareFailed = 4,
 };
 
-typedef struct IAGTraceType {
+typedef struct IAG_SWIFT_NAME(TraceType) IAGTraceType {
     IAGTraceTypeVersion version;
 
     void (*_Nullable begin_trace)(void *_Nullable context, IAGGraphRef graph);

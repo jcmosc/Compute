@@ -1,12 +1,7 @@
 #pragma once
 
-#if __has_include(<swift/bridging>)
-#include <swift/bridging>
-#else
-#define SWIFT_UNSAFE_REFERENCE
-#endif
-
 #include <Utilities/Base.h>
+#include <Utilities/SwiftBridging.h>
 
 UTIL_ASSUME_NONNULL_BEGIN
 

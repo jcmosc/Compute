@@ -21,6 +21,11 @@ jobs:
           submodules: true
       - name: Build
         run: swift build
+      - name: Test
+        run: swift test
+      - name: Test Compatibility
+        working-directory: ./CompatibilityTesting
+        run: swift test
       - name: Build XCFramework
         run: ./Scripts/create-xcframework.sh
       - name: Upload XCFramework
@@ -47,3 +52,5 @@ jobs:
           submodules: true
       - name: Build
         run: swift build
+      - name: Test
+        run: swift test

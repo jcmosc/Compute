@@ -334,11 +334,8 @@ struct GraphTests {
                     )
                 }
             }
-
-            // FIXME:
-            // This sometimes fails because the subgraphs vector is sorted by pointer address,
-            // which we can't predict deterministically.
-            @Test(.disabled())
+            
+            @Test
             func graphDescription() async throws {
                 try await #require(processExitsWith: .success) {
                     let graph = Graph()
@@ -378,8 +375,11 @@ struct GraphTests {
                             )
                         ]
                     )
-
-                    assertValuesEqualWithDiff(description, expectedDescription)
+                    
+                    // FIXME: post-process the subgraphs array in the description output.
+                    withKnownIssue("Subgraphs is sorted by pointer address, which we can't predict deterministically.", isIntermittent: true) {
+                        assertValuesEqualWithDiff(description, expectedDescription)
+                    }
                 }
             }
         }

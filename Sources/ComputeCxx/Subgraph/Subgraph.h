@@ -58,16 +58,16 @@ class Subgraph : public data::zone {
         uint64_t observer_id;
     };
     data::ptr<vector<Observer, 0, uint64_t> *> _observers;
-    uint32_t _traversal_seed;
-    uint32_t _index;
+    uint32_t _traversal_seed = 0;
+    uint32_t _index = 0;
 
     data::ptr<NodeCache> _cache = nullptr;
     Graph::TreeElementID _tree_root;
 
-    IAGAttributeFlags _flags;
-    IAGAttributeFlags _descendent_flags;
-    IAGAttributeFlags _dirty_flags;
-    IAGAttributeFlags _descendent_dirty_flags;
+    IAGAttributeFlags _flags = {};
+    IAGAttributeFlags _descendent_flags = {};
+    IAGAttributeFlags _dirty_flags = {};
+    IAGAttributeFlags _descendent_dirty_flags = {};
 
     enum class InvalidationState : uint8_t {
         None = 0,

@@ -235,7 +235,7 @@ void Graph::add_subgraph(Subgraph &subgraph) {
 
 void Graph::remove_subgraph(Subgraph &subgraph) {
     auto iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
-    _subgraphs.erase(iter);
+    _subgraphs.erase(iter, _subgraphs.end());
 
     if (auto map = _tree_data_elements_by_subgraph.get()) {
         auto iter = map->find(&subgraph);
@@ -247,7 +247,7 @@ void Graph::remove_subgraph(Subgraph &subgraph) {
     if (subgraph.has_cached_nodes()) {
         subgraph.set_has_cached_nodes(false);
         auto iter = std::remove(_subgraphs_with_cached_nodes.begin(), _subgraphs_with_cached_nodes.end(), &subgraph);
-        _subgraphs_with_cached_nodes.erase(iter);
+        _subgraphs_with_cached_nodes.erase(iter, _subgraphs_with_cached_nodes.end());
     }
 
     _num_subgraphs -= 1;
@@ -2011,7 +2011,7 @@ void Graph::remove_trace(uint64_t trace_id) {
         Trace *trace = *iter;
         trace->end_trace(*this);
         trace->trace_removed();
-        _traces.erase(iter);
+        _traces.erase(iter, _traces.end());
     }
 }
 

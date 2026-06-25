@@ -87,8 +87,8 @@ class Graph {
     vector<Trace *, 0, uint32_t> _traces;
 
     // Main thread handler
-    MainHandler _Nullable _main_handler;
-    const void *_Nullable _main_handler_context;
+    MainHandler _Nullable _main_handler = nullptr;
+    const void *_Nullable _main_handler_context = nullptr;
 
     // Metrics
     uint64_t _num_nodes = 0;
@@ -98,20 +98,20 @@ class Graph {
     uint64_t _num_value_bytes = 0;
 
     // Trace recorder
-    TraceRecorder *_trace_recorder;
+    TraceRecorder *_trace_recorder = nullptr;
 
     // Tree
     std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph;
-    KeyTable *_Nullable _keys;
+    KeyTable *_Nullable _keys = nullptr;
 
     // Subgraphs
     vector<Subgraph *, 0, uint32_t> _subgraphs;
     vector<Subgraph *, 0, uint32_t> _subgraphs_with_cached_nodes;
     vector<Subgraph *, 2, uint32_t> _invalidating_subgraphs;
-    bool _deferring_subgraph_invalidation;
+    bool _deferring_subgraph_invalidation = false;
 
     // Threads
-    bool _needs_update;
+    bool _needs_update = false;
     uint32_t _ref_count = 1;
     pthread_t _current_update_thread = 0;
 

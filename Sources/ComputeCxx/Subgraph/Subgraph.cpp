@@ -110,7 +110,7 @@ void Subgraph::remove_observer(IAGUniqueID observer_id) {
             }
             return false;
         });
-        observers->erase(iter);
+        observers->erase(iter, observers->end());
     }
 }
 
@@ -204,7 +204,7 @@ void Subgraph::invalidate_now(Graph &graph) {
                                                    [&child](auto other_parent_child) -> bool {
                                                        return other_parent_child.subgraph() == child.subgraph();
                                                    });
-                        other_parent->_children.erase(iter);
+                        other_parent->_children.erase(iter, other_parent->_children.end());
                     }
 
                     child.subgraph()->_parents.clear();
@@ -224,7 +224,7 @@ void Subgraph::invalidate_now(Graph &graph) {
                     // its parents vector
                     auto iter =
                         std::remove(child.subgraph()->_parents.begin(), child.subgraph()->_parents.end(), subgraph);
-                    child.subgraph()->_parents.erase(iter);
+                    child.subgraph()->_parents.erase(iter, child.subgraph()->_parents.end());
                 }
             }
         }
@@ -356,7 +356,7 @@ void Subgraph::add_child(Subgraph &child, uint8_t tag) {
 
 void Subgraph::remove_child(Subgraph &child, bool suppress_trace) {
     auto parent_iter = std::remove(child._parents.begin(), child._parents.end(), this);
-    child._parents.erase(parent_iter);
+    child._parents.erase(parent_iter, child._parents.end());
 
     if (!suppress_trace) {
         graph()->foreach_trace([this, &child](Trace &trace) { trace.remove_child(*this, child); });
@@ -365,7 +365,7 @@ void Subgraph::remove_child(Subgraph &child, bool suppress_trace) {
     auto child_iter = std::remove_if(_children.begin(), _children.end(), [&child](auto subgraph_child) -> bool {
         return subgraph_child.subgraph() == &child;
     });
-    _children.erase(child_iter);
+    _children.erase(child_iter, _children.end());
 }
 
 bool Subgraph::ancestor_of(const Subgraph &other) {

@@ -30,7 +30,7 @@ class indirect_pointer_vector {
         NullElement = 0x2,
     };
 
-    uintptr_t _data;
+    uintptr_t _data = 0; // 0 == empty; `= default` ctor would otherwise leave this indeterminate
 
     using vector_type = vector<value_type, 4, size_type>;
 

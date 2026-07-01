@@ -87,9 +87,9 @@ class Graph::TraceRecorder : public Trace {
 
     void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                       const swift::metadata &type) override;
-    void named_event(const Graph::Context &context, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+    void named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void *event_args,
                      CFDataRef data, uint32_t arg6) override;
-    bool named_event_enabled(uint32_t event_id) override;
+    bool named_event_enabled(IAGNamedTraceEventID event_id) override;
 
     // compare_failed not overridden
 };

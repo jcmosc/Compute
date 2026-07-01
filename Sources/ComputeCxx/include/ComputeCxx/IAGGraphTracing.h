@@ -14,6 +14,8 @@ typedef IAG_OPTIONS(uint32_t, IAGGraphTraceOptions) {
 
 typedef struct IAGTraceType *IAGTraceTypeRef;
 
+typedef uint32_t IAGNamedTraceEventID IAG_SWIFT_STRUCT IAG_SWIFT_NAME(Graph.NamedTraceEventID);
+
 IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
@@ -79,22 +81,22 @@ void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void *event_args,
                                CFDataRef data, uint32_t arg6)
     IAG_SWIFT_NAME(IAGGraphRef.addNamedTraceEvent(self:eventID:eventArgCount:eventArgs:data:arg6:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-const char *_Nullable IAGGraphGetTraceEventName(uint32_t event_id) IAG_SWIFT_NAME(IAGGraphRef.traceEventName(for:));
+const char *_Nullable IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id) IAG_SWIFT_NAME(IAGGraphRef.traceEventName(for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-const char *_Nullable IAGGraphGetTraceEventSubsystem(uint32_t event_id)
+const char *_Nullable IAGGraphGetTraceEventSubsystem(IAGNamedTraceEventID event_id)
     IAG_SWIFT_NAME(IAGGraphRef.traceEventSubsystem(for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-uint32_t IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem)
+IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem)
     IAG_SWIFT_NAME(IAGGraphRef.registerNamedTraceEvent(name:subsystem:));
 
 IAG_EXTERN_C_END

@@ -86,7 +86,7 @@ struct GraphTracingTests {
 
     @Test
     func namedEvents() throws {
-        let eventName = Graph.traceEventName(for: 0)
+        let eventName = Graph.traceEventName(for: Graph.NamedTraceEventID(rawValue: 0))
         #expect(eventName == nil)
 
         let eventID = "testname".utf8CString.withUnsafeBufferPointer { namePointer in

@@ -263,7 +263,7 @@ void ExternalTrace::custom_event(const IAG::Graph::Context &context, const char 
     }
 }
 
-void ExternalTrace::named_event(const IAG::Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
+void ExternalTrace::named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
                                 const void *event_args, CFDataRef data, uint32_t arg6) {
     if (_trace->version < IAGTraceTypeVersionNamed) {
         return;
@@ -274,7 +274,7 @@ void ExternalTrace::named_event(const IAG::Graph::Context &context, uint32_t eve
     }
 }
 
-bool ExternalTrace::named_event_enabled(uint32_t event_id) {
+bool ExternalTrace::named_event_enabled(IAGNamedTraceEventID event_id) {
     if (_trace->version < IAGTraceTypeVersionNamed) {
         return false;
     }

@@ -196,12 +196,12 @@ void Graph::TraceRecorder::custom_event(const Graph::Context &context, const cha
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::named_event(const Graph::Context &context, uint32_t event_id, uint32_t event_arg_count,
+void Graph::TraceRecorder::named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
                                        const void *event_args, CFDataRef data, uint32_t arg6) {
     // TODO: not implemented
 }
 
-bool Graph::TraceRecorder::named_event_enabled(uint32_t event_id) {
+bool Graph::TraceRecorder::named_event_enabled(IAGNamedTraceEventID event_id) {
     // TODO: not implemented
     return false;
 }

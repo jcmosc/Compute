@@ -1018,7 +1018,7 @@ void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void
     });
 }
 
-void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, uint32_t event_id, uint32_t event_arg_count, const void *event_args,
+void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void *event_args,
                                CFDataRef data, uint32_t arg6) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().foreach_trace(
@@ -1034,7 +1034,7 @@ static IAG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
 
 } // namespace NamedEvents
 
-const char *IAGGraphGetTraceEventName(uint32_t event_id) {
+const char *IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id) {
     const char *event_name = nullptr;
 
     platform_lock_lock(&NamedEvents::lock);
@@ -1046,7 +1046,7 @@ const char *IAGGraphGetTraceEventName(uint32_t event_id) {
     return event_name;
 }
 
-const char *IAGGraphGetTraceEventSubsystem(uint32_t event_id) {
+const char *IAGGraphGetTraceEventSubsystem(IAGNamedTraceEventID event_id) {
     const char *event_subsystem = nullptr;
 
     platform_lock_lock(&NamedEvents::lock);
@@ -1058,7 +1058,7 @@ const char *IAGGraphGetTraceEventSubsystem(uint32_t event_id) {
     return event_subsystem;
 }
 
-uint32_t IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
+IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
     platform_lock_lock(&NamedEvents::lock);
 
     if (!NamedEvents::names) {

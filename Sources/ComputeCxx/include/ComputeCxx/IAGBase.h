@@ -43,6 +43,22 @@
 #define IAG_INLINE static inline
 #endif
 
+#ifndef IAG_NOINLINE
+#if __has_attribute(noinline)
+#define IAG_NOINLINE __attribute__((noinline))
+#else
+#define IAG_NOINLINE
+#endif
+#endif
+
+#ifndef IAG_OPTNONE
+#if __has_attribute(optnone)
+#define IAG_OPTNONE __attribute__((optnone))
+#else
+#define IAG_OPTNONE
+#endif
+#endif
+
 #ifndef IAG_RETURNS_RETAINED
 #if __has_feature(attribute_cf_returns_retained)
 #define IAG_RETURNS_RETAINED __attribute__((cf_returns_retained))

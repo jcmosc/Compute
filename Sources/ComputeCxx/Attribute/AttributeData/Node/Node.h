@@ -39,7 +39,7 @@ inline NodeState operator~(NodeState a) { return static_cast<NodeState>(~static_
 
 class Node {
   private:
-    NodeState _state;
+    NodeState _state = NodeState(0);
 
     // Attribute type
     unsigned int _type_id : 24 = 0;

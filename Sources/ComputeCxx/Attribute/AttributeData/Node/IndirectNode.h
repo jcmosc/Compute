@@ -18,11 +18,11 @@ class IndirectNode {
     static constexpr uint32_t InvalidSize = 0xffff;
 
     WeakAttributeID _source;
-    unsigned int _mutable : 1;
-    unsigned int _traverses_contexts : 1;
-    unsigned int _offset : 30;
+    unsigned int _mutable : 1 = 0;
+    unsigned int _traverses_contexts : 1 = 0;
+    unsigned int _offset : 30 = 0;
 
-    uint16_t _size;
+    uint16_t _size = InvalidSize;
     RelativeAttributeID _next_attribute;
 
   protected:

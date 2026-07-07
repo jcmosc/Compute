@@ -6,7 +6,7 @@
 namespace IAG {
 
 struct OutputEdge {
-    AttributeID attribute;
+    AttributeID attribute = AttributeID(nullptr);
 };
 
 using ConstOutputEdgeArrayRef = ArrayRef<const OutputEdge>;

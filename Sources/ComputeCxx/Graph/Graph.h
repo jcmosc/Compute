@@ -45,7 +45,7 @@ class Graph {
 
       private:
         vector<TreeElementNodePair, 0, uint64_t> _nodes;
-        bool _sorted;
+        bool _sorted = false;
 
       public:
         vector<TreeElementNodePair, 0, uint64_t> &nodes() {

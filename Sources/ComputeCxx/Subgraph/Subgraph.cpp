@@ -249,7 +249,6 @@ void Subgraph::invalidate_now(Graph &graph) {
         }
     }
 
-    // TODO: destroy nodes
     for (auto removed_subgraph : removed_subgraphs) {
         for (auto page : removed_subgraph->pages()) {
             // store previous node so we can iterate past it before destroying
@@ -260,6 +259,7 @@ void Subgraph::invalidate_now(Graph &graph) {
                 if (previous_node) {
                     previous_node->destroy(*_graph);
                     _graph->did_destroy_node();
+                    previous_node = nullptr;
                 }
                 if (auto node = attribute.get_node()) {
                     previous_node = node;
@@ -271,6 +271,7 @@ void Subgraph::invalidate_now(Graph &graph) {
             if (previous_node) {
                 previous_node->destroy(*_graph);
                 _graph->did_destroy_node();
+                previous_node = nullptr;
             }
             if (found_nil_attribute) {
                 break;
@@ -303,6 +304,7 @@ void Subgraph::graph_destroyed() {
             if (previous_node) {
                 previous_node->destroy(*_graph);
                 _graph->did_destroy_node();
+                previous_node = nullptr;
             }
             if (auto node = attribute.get_node()) {
                 previous_node = node;
@@ -313,6 +315,7 @@ void Subgraph::graph_destroyed() {
         if (previous_node) {
             previous_node->destroy(*_graph);
             _graph->did_destroy_node();
+            previous_node = nullptr;
         }
         if (found_nil_attribute) {
             break;

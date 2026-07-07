@@ -6,8 +6,8 @@
 namespace IAG {
 
 struct InputEdge {
-    AttributeID attribute;
-    IAGInputOptions options;
+    AttributeID attribute = AttributeID(nullptr);
+    IAGInputOptions options = IAGInputOptions(0);
 
     struct Comparator {
         AttributeID attribute;

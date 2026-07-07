@@ -774,7 +774,7 @@ data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metada
             return nullptr;
         }
 
-        // try reusing a lru item, only if it has been collected at least once to prevent trashing
+        // try reusing a lru item, only if it has been collected at least once to prevent thrashing
         if (type->lru && type->lru->age() >= 2) {
             item = type->lru;
 

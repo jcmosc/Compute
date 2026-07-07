@@ -1,8 +1,11 @@
 #pragma once
 
-#include <swift/Runtime/HeapObject.h>
+#include <concepts>
+#include <cstddef>
+#include <utility>
 
 #include "ComputeCxx/IAGBase.h"
+#include "Swift/HeapObject.h"
 
 namespace IAG {
 
@@ -17,18 +20,16 @@ template <typename Result, typename... Args> class ClosureFunction {
     Context _context;
 
   public:
-    inline ClosureFunction(std::nullptr_t): _function(nullptr), _context(nullptr) {}
+    inline ClosureFunction(std::nullptr_t) : _function(nullptr), _context(nullptr) {}
     inline ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
         if (_context) {
-            void *mutable_context = const_cast<void *>(_context);
-            ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(mutable_context));
+            _context = swift::retain(_context);
         }
     }
 
     inline ~ClosureFunction() {
         if (_context) {
-            void *mutable_context = const_cast<void *>(_context);
-            ::swift::swift_release(reinterpret_cast<::swift::HeapObject *>(mutable_context));
+            swift::release(_context);
         }
     }
 
@@ -36,8 +37,7 @@ template <typename Result, typename... Args> class ClosureFunction {
 
     ClosureFunction(const ClosureFunction &other) noexcept : _function(other._function), _context(other._context) {
         if (_context) {
-            void *mutable_context = const_cast<void *>(_context);
-            ::swift::swift_retain(reinterpret_cast<::swift::HeapObject *>(mutable_context));
+            _context = swift::retain(_context);
         }
     };
 
@@ -45,13 +45,13 @@ template <typename Result, typename... Args> class ClosureFunction {
         if (this != &other) {
             Context new_context = other._context;
             if (new_context) {
-                new_context = ::swift::swift_retain((::swift::HeapObject *)new_context);
+                new_context = swift::retain(new_context);
             }
             Context old_context = _context;
             _function = other._function;
             _context = new_context;
             if (old_context) {
-                ::swift::swift_release((::swift::HeapObject *)old_context);
+                swift::release(old_context);
             }
         }
         return *this;
@@ -70,7 +70,7 @@ template <typename Result, typename... Args> class ClosureFunction {
             other._function = nullptr;
             other._context = nullptr;
             if (old_context) {
-                ::swift::swift_release((::swift::HeapObject *)old_context);
+                swift::release(old_context);
             }
         }
         return *this;
@@ -78,9 +78,7 @@ template <typename Result, typename... Args> class ClosureFunction {
 
     explicit operator bool() { return _function != nullptr; }
 
-    const Result operator()(Args... args) const noexcept {
-        return _function(std::forward<Args>(args)..., _context);
-    }
+    const Result operator()(Args... args) const noexcept { return _function(std::forward<Args>(args)..., _context); }
 };
 
 template <typename Result>

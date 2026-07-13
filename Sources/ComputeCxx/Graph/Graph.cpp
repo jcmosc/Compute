@@ -373,13 +373,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
 
     size_t total_size = ((sizeof(Node) + alignment_mask) & ~alignment_mask) + body_size;
 
-    data::ptr<Node> node_ptr;
-    if (total_size <= 0x10) {
-        node_ptr = subgraph.alloc_bytes_recycle(uint32_t(total_size), uint32_t(alignment_mask | 3)).unsafe_cast<Node>();
-    } else {
-        node_ptr = (data::ptr<Node>)subgraph.alloc_bytes(uint32_t(total_size), uint32_t(alignment_mask | 3))
-                       .unsafe_cast<Node>();
-    }
+    data::ptr<Node> node_ptr = subgraph.alloc(uint32_t(total_size), uint32_t(alignment_mask | 3)).unsafe_cast<Node>();
 
     bool main_thread = type.flags() & IAGAttributeTypeFlagsMainThread;
     new (node_ptr.get()) Node(type_id, main_thread);
@@ -458,7 +452,7 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
 
     if (is_mutable) {
         data::ptr<MutableIndirectNode> indirect_node_ptr =
-            subgraph.alloc_bytes(sizeof(MutableIndirectNode), 3).unsafe_cast<MutableIndirectNode>();
+            subgraph.alloc(sizeof(MutableIndirectNode), 3).unsafe_cast<MutableIndirectNode>();
 
         uint64_t subgraph_id = attribute && !attribute.is_nil() ? attribute.subgraph()->subgraph_id() : 0;
         auto source = WeakAttributeID(attribute, uint32_t(subgraph_id));
@@ -469,8 +463,7 @@ data::ptr<IndirectNode> Graph::add_indirect_attribute(Subgraph &subgraph, Attrib
         subgraph.add_indirect(indirect_node_ptr.unsafe_cast<IndirectNode>(), true);
         return indirect_node_ptr.unsafe_cast<IndirectNode>();
     } else {
-        data::ptr<IndirectNode> indirect_node_ptr =
-            subgraph.alloc_bytes_recycle(sizeof(IndirectNode), 3).unsafe_cast<IndirectNode>();
+        data::ptr<IndirectNode> indirect_node_ptr = subgraph.alloc(sizeof(IndirectNode), 3).unsafe_cast<IndirectNode>();
 
         uint64_t subgraph_id = attribute && !attribute.is_nil() ? attribute.subgraph()->subgraph_id() : 0;
         auto source = WeakAttributeID(attribute, uint32_t(subgraph_id));

@@ -6,7 +6,6 @@
 
 #include <Utilities/CFPointer.h>
 
-#include "IAGSubgraph-Private.h"
 #include "Attribute/AttributeData/Node/IndirectNode.h"
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Attribute/AttributeID/OffsetAttributeID.h"
@@ -14,6 +13,7 @@
 #include "Graph/Context.h"
 #include "Graph/Tree/TreeElement.h"
 #include "Graph/UpdateStack.h"
+#include "IAGSubgraph-Private.h"
 #include "NodeCache.h"
 #include "Trace/Trace.h"
 
@@ -90,10 +90,8 @@ void Subgraph::set_current_subgraph(Subgraph *subgraph) { pthread_setspecific(_c
 
 IAGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
     if (!_observers) {
-        _observers =
-            alloc_bytes(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
+        _observers = alloc(sizeof(vector<Observer, 0, uint64_t> *), 7).unsafe_cast<vector<Observer, 0, uint64_t> *>();
         *_observers = new vector<Observer, 0, uint64_t>();
-        ;
     }
 
     auto observer_id = IAGMakeUniqueID();
@@ -729,7 +727,7 @@ void Subgraph::update(IAGAttributeFlags mask) {
 data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metadata, const void *body,
                                       ClosureFunctionCI<uint32_t, IAGUnownedGraphContextRef> get_attribute_type_id) {
     if (_cache == nullptr) {
-        _cache = alloc_bytes(sizeof(NodeCache), 7).unsafe_cast<NodeCache>();
+        _cache = alloc(sizeof(NodeCache), 7).unsafe_cast<NodeCache>();
         new (_cache.get()) NodeCache();
     }
 
@@ -740,7 +738,7 @@ data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metada
             precondition_failure("cache key must be equatable: %s", metadata.name(false));
         }
 
-        type = alloc_bytes(sizeof(NodeCache::Type), 7).unsafe_cast<NodeCache::Type>();
+        type = alloc(sizeof(NodeCache::Type), 7).unsafe_cast<NodeCache::Type>();
         type->type = &metadata;
         type->equatable = equatable;
         type->mru = nullptr;
@@ -898,7 +896,7 @@ void Subgraph::cache_collect() {
 #pragma mark - Tree
 
 void Subgraph::begin_tree(AttributeID value, const swift::metadata *type, uint32_t flags) {
-    data::ptr<Graph::TreeElement> tree = alloc_bytes(sizeof(Graph::TreeElement), 7).unsafe_cast<Graph::TreeElement>();
+    data::ptr<Graph::TreeElement> tree = alloc(sizeof(Graph::TreeElement), 7).unsafe_cast<Graph::TreeElement>();
     tree->type = type;
     tree->value = value;
     tree->flags = flags;
@@ -939,7 +937,7 @@ void Subgraph::add_tree_value(AttributeID value, const swift::metadata *type, co
 
     auto key_id = graph()->intern_key(key);
 
-    data::ptr<Graph::TreeValue> tree_value = alloc_bytes(sizeof(Graph::TreeValue), 7).unsafe_cast<Graph::TreeValue>();
+    data::ptr<Graph::TreeValue> tree_value = alloc(sizeof(Graph::TreeValue), 7).unsafe_cast<Graph::TreeValue>();
     tree_value->type = type;
     tree_value->value = value;
     tree_value->key_id = key_id;

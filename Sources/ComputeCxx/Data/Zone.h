@@ -41,7 +41,9 @@ class zone {
     ptr<page> _first_page;
     ptr<bytes_info> _free_bytes;
     info _info;
-
+    
+    ptr<void> alloc_bytes(uint32_t size, uint32_t alignment_mask);
+    ptr<void> alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask);
     ptr<void> alloc_slow(uint32_t size, uint32_t alignment_mask);
 
   public:
@@ -58,8 +60,13 @@ class zone {
     void realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask);
 
     // Paged memory
-    ptr<void> alloc_bytes(uint32_t size, uint32_t alignment_mask);
-    ptr<void> alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask);
+    ptr<void> alloc(uint32_t size, uint32_t alignment_mask) {
+        if (size <= 0x10) {
+            return alloc_bytes_recycle(size, alignment_mask);
+        } else {
+            return alloc_bytes(size, alignment_mask);
+        }
+    }
 
     // Persistent memory
     void *alloc_persistent(size_t size);

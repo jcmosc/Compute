@@ -60,15 +60,11 @@ void Node::allocate_value(Graph &graph, data::zone &zone) {
     size_t alignment_mask = type.value_metadata().getValueWitnesses()->getAlignmentMask();
 
     if (_has_indirect_value) {
-        _value = zone.alloc_bytes_recycle(sizeof(void *), sizeof(void *) - 1);
+        _value = zone.alloc(sizeof(void *), sizeof(void *) - 1);
         void *persistent_buffer = zone.alloc_persistent(size);
         *_value.unsafe_cast<void *>().get() = persistent_buffer;
     } else {
-        if (size <= 0x10) {
-            _value = zone.alloc_bytes_recycle(uint32_t(size), uint32_t(alignment_mask));
-        } else {
-            _value = zone.alloc_bytes(uint32_t(size), uint32_t(alignment_mask));
-        }
+        _value = zone.alloc(uint32_t(size), uint32_t(alignment_mask));
     }
 
     graph.did_allocate_value(size);

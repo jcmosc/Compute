@@ -1,6 +1,6 @@
 #include "Zone.h"
 
-#include <cstring> 
+#include <cstring>
 #include <stdio.h>
 
 #include <platform/malloc.h>
@@ -27,32 +27,36 @@ void zone::clear() {
 }
 
 void zone::realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask) {
-    if (new_size > size) {
-        // check if we don't have to reallocate any memory
-        if (*buffer) {
-            auto page = buffer->page_ptr();
-            uint32_t buffer_offset_from_page = buffer->offset() - page.offset();
-            if ((page->in_use == buffer_offset_from_page + size && page->total >= buffer_offset_from_page + new_size)) {
-                // reuse the same buffer pointer, just update the used bytes
-                page->in_use += new_size - size;
-                return;
-            }
-        }
-
-        ptr<void> new_buffer = alloc_bytes_recycle(new_size, alignment_mask);
-        if (*buffer) {
-            memcpy(new_buffer.get(), (*buffer).get(), size);
-
-            ptr<bytes_info> old_bytes = (*buffer).aligned<bytes_info>();
-            uint32_t remaining_size = size + (*buffer - old_bytes);
-            if (remaining_size >= sizeof(bytes_info)) {
-                old_bytes->next = _free_bytes;
-                old_bytes->size = remaining_size;
-                _free_bytes = old_bytes;
-            }
-        }
-        *buffer = new_buffer;
+    if (new_size <= size) {
+        return;
     }
+    
+    // check if we don't have to reallocate any memory
+    if (*buffer) {
+        auto page = buffer->page_ptr();
+        uint32_t buffer_offset_from_page = buffer->offset() - page.offset();
+        if ((page->in_use == buffer_offset_from_page + size && page->total >= buffer_offset_from_page + new_size)) {
+            // reuse the same buffer pointer, just update the used bytes
+            page->in_use += new_size - size;
+            return;
+        }
+    }
+
+    ptr<void> new_buffer = alloc_bytes_recycle(new_size, alignment_mask);
+    if (*buffer) {
+        memcpy(new_buffer.get(), (*buffer).get(), size);
+
+        ptr<bytes_info> aligned_old_bytes = (*buffer).aligned<bytes_info>();
+        if ((*buffer).page_ptr() == aligned_old_bytes.page_ptr()) {
+            uint32_t remaining_size = size - (aligned_old_bytes - *buffer);
+            if (remaining_size >= sizeof(bytes_info)) {
+                aligned_old_bytes->next = _free_bytes;
+                aligned_old_bytes->size = remaining_size;
+                _free_bytes = aligned_old_bytes;
+            }
+        }
+    }
+    *buffer = new_buffer;
 }
 
 ptr<void> zone::alloc_bytes(uint32_t size, uint32_t alignment_mask) {
@@ -60,8 +64,11 @@ ptr<void> zone::alloc_bytes(uint32_t size, uint32_t alignment_mask) {
         uint32_t aligned_in_use = (_first_page->in_use + alignment_mask) & ~alignment_mask;
         uint32_t new_used_size = aligned_in_use + size;
         if (new_used_size <= _first_page->total) {
-            _first_page->in_use = new_used_size;
-            return _first_page.advanced<void>(aligned_in_use);
+            auto candidate = _first_page.advanced<void>(aligned_in_use);
+            if (candidate.page_ptr() == _first_page) {
+                _first_page->in_use = new_used_size;
+                return candidate;
+            }
         }
     }
 
@@ -96,10 +103,9 @@ ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
         *indirect_bytes = bytes->next;
 
         // check if there will be some bytes remaining within the same page
-        auto end = aligned_bytes.advanced<void>(size);
-        if ((aligned_bytes.offset() ^ end.offset()) <= page_alignment_mask) {
-            ptr<bytes_info> aligned_end = end.aligned<bytes_info>();
-            uint32_t remaining_size = usable_size - size + (end - aligned_end);
+        ptr<bytes_info> aligned_end = aligned_bytes.advanced<void>(size).aligned<bytes_info>();
+        if (aligned_bytes.page_ptr() == aligned_end.page_ptr()) {
+            uint32_t remaining_size = usable_size - (aligned_end - aligned_bytes);
             if (remaining_size >= sizeof(bytes_info)) {
                 bytes_info *remaining_bytes = aligned_end.get();
                 remaining_bytes->next = _free_bytes;
@@ -117,16 +123,18 @@ ptr<void> zone::alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask) {
 ptr<void> zone::alloc_slow(uint32_t size, uint32_t alignment_mask) {
     if (_first_page) {
 
-        // check if we can use remaining bytes in this page
+        // check if we can recycle any remaining bytes in this page
         ptr<void> next_bytes = _first_page.advanced<void>(_first_page->in_use);
         if (next_bytes.page_ptr() == _first_page) {
             ptr<bytes_info> aligned_next_bytes = next_bytes.aligned<bytes_info>();
-            int32_t remaining_size = _first_page->total - _first_page->in_use + (next_bytes - aligned_next_bytes);
-            if (remaining_size >= sizeof(bytes_info)) {
-                bytes_info *remaining_bytes = aligned_next_bytes.get();
-                remaining_bytes->next = _free_bytes;
-                remaining_bytes->size = remaining_size;
-                _free_bytes = aligned_next_bytes;
+            if (aligned_next_bytes.page_ptr() == _first_page) {
+                uint32_t remaining_size = _first_page->total - _first_page->in_use - (aligned_next_bytes - next_bytes);
+                if (remaining_size >= sizeof(bytes_info)) {
+                    bytes_info *remaining_bytes = aligned_next_bytes.get();
+                    remaining_bytes->next = _free_bytes;
+                    remaining_bytes->size = remaining_size;
+                    _free_bytes = aligned_next_bytes;
+                }
             }
 
             // consume this entire page

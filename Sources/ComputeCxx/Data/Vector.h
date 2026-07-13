@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "ComputeCxx/IAGBase.h"
 #include "Pointer.h"
 #include "Zone.h"

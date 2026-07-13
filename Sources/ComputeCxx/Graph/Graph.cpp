@@ -719,9 +719,9 @@ template <> void Graph::remove_output_edge<Node>(data::ptr<Node> node, Attribute
         node->output_edges().erase(iter);
     }
 
-    //    if (node->outputs().empty() && node->flags().cacheable()) {
-    //        AttributeID(node).subgraph()->cache_insert(node);
-    //    }
+    if (node->output_edges().empty() && node->is_cached()) {
+        AttributeID(node).subgraph()->cache_insert(node);
+    }
 }
 
 template <>

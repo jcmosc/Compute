@@ -167,14 +167,15 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
             }
             
             auto map_copy = std::bitset(_page_maps[map_index]);
-            page_map_type free_pages_map = map_copy.flip();
-            while (free_pages_map.any()) {
-
-                int candidate_bit = std::countr_zero(static_cast<uint64_t>(free_pages_map.to_ullong()));
-
-                // scan ahead to find enough consecutive free pages
-                bool found = false;
+            page_map_type candidate_pages_map = map_copy.flip();
+            
+            bool found = false;
+            while (candidate_pages_map.any()) {
+                int candidate_bit = std::countr_zero(static_cast<uint64_t>(candidate_pages_map.to_ullong()));
+                
                 if (needed_pages > 1) {
+                    // scan ahead to find enough consecutive free pages
+                    bool sufficient_consecutive_pages = true;
                     for (int j = 1; j < needed_pages; j++) {
                         int next_page_index = (map_index * pages_per_map) + candidate_bit + j;
                         int next_map_index = next_page_index / pages_per_map;
@@ -185,12 +186,13 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
                             break;
                         }
                         if (_page_maps[next_map_index].test(next_page_index % pages_per_map)) {
-                            // next page is used, remove this page from free_pages_map
-                            free_pages_map.reset(candidate_bit);
+                            // next page is used, remove this page from candidate_pages_map
+                            candidate_pages_map.reset(candidate_bit);
+                            sufficient_consecutive_pages = false;
                             break;
                         }
                     }
-                    found = true;
+                    found = sufficient_consecutive_pages;
                 } else {
                     // only need one page
                     found = true;
@@ -201,6 +203,9 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
                     _map_search_start = map_index;
                     break;
                 }
+            }
+            if (found) {
+                break;
             }
         }
     }

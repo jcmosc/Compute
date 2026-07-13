@@ -33,7 +33,7 @@ template <typename T> class vector {
     void reserve_slow(zone *zone, size_type new_cap) {
         size_type new_capacity_exponent = 1;
         if (new_cap >= 2) {
-            new_capacity_exponent = 32 - std::countl_zero(new_cap - 1);
+            new_capacity_exponent = std::numeric_limits<size_type>::digits - std::countl_zero(new_cap - 1);
         }
 
         size_type old_capacity = sizeof(T) * capacity();

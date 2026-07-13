@@ -72,8 +72,8 @@ class Graph {
     static Graph *_Nullable _all_graphs;
     static platform_lock _all_graphs_lock;
 
-    Graph *_Nullable _next;
-    Graph *_Nullable _previous;
+    Graph *_Nullable _next = nullptr;
+    Graph *_Nullable _previous = nullptr;
     util::Heap _heap;
 
     // Attribute types

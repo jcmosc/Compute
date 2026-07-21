@@ -1,6 +1,9 @@
 import Foundation
 import Testing
 
+// This suite relies heavily on process isolation, which does not complete on Linux.
+#if !os(Linux)
+
 public struct ValueLayout: CustomStringConvertible, Equatable {
 
     let storage: UnsafePointer<CUnsignedChar>
@@ -1947,3 +1950,5 @@ struct PrefetchCompareValuesTests {
     }
 
 }
+
+#endif

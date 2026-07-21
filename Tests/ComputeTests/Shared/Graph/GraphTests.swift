@@ -2,7 +2,7 @@ import Foundation
 import Testing
 import _ComputeTestSupport
 
-@Suite
+@Suite(.serialized)
 struct GraphTests {
 
     @Suite
@@ -10,7 +10,11 @@ struct GraphTests {
 
         @Test
         func typeID() {
+            #if os(Linux)
+            let description = String(cfString: CFCopyTypeIDDescription(Graph.typeID))
+            #else
             let description = CFCopyTypeIDDescription(Graph.typeID) as String?
+            #endif
             #if COMPATIBILITY_TESTS
             #expect(description == "AGGraphStorage")
             #else
@@ -280,6 +284,7 @@ struct GraphTests {
 
     }
 
+    #if canImport(Darwin)
     @Suite
     struct DescriptionTests {
 
@@ -334,7 +339,7 @@ struct GraphTests {
                     )
                 }
             }
-            
+
             @Test
             func graphDescription() async throws {
                 try await #require(processExitsWith: .success) {
@@ -375,9 +380,12 @@ struct GraphTests {
                             )
                         ]
                     )
-                    
+
                     // FIXME: post-process the subgraphs array in the description output.
-                    withKnownIssue("Subgraphs is sorted by pointer address, which we can't predict deterministically.", isIntermittent: true) {
+                    withKnownIssue(
+                        "Subgraphs is sorted by pointer address, which we can't predict deterministically.",
+                        isIntermittent: true
+                    ) {
                         assertValuesEqualWithDiff(description, expectedDescription)
                     }
                 }
@@ -478,5 +486,6 @@ struct GraphTests {
         }
 
     }
+    #endif
 
 }

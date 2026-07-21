@@ -1,5 +1,9 @@
 import Foundation
 
+#if canImport(CoreFoundation)
+import CoreFoundation
+#endif
+
 // Class
 
 class TestClass {
@@ -36,7 +40,7 @@ typealias TestOptionalStruct = TestStruct?
 
 // Foreign Class
 
-#if os(macOS) || os(iOS)
+#if canImport(CoreFoundation)
 typealias TestForeignClass = CFDate
 #endif
 
@@ -65,7 +69,9 @@ typealias TestMetatype = TestClass.Type
 
 // ObjC
 
+#if canImport(Darwin)
 typealias TestObjCClass = NSDate
+#endif
 
 // Existential metatype
 

@@ -13,7 +13,7 @@ struct AttributeBodyTests {
         #expect(DefaultAttributeBody.flags == [.mainThread])
     }
 
-    @Suite
+    @Suite(.serialized)
     struct DestroySelfTests {
 
         @Test
@@ -31,6 +31,10 @@ struct AttributeBodyTests {
 
             let graph = Graph()
             let subgraph = Subgraph(graph: graph)
+            let oldSubgraph = Subgraph.current
+            defer {
+                Subgraph.current = oldSubgraph
+            }
             Subgraph.current = subgraph
 
             var destroyed = false
@@ -64,6 +68,10 @@ struct AttributeBodyTests {
 
             let graph = Graph()
             let subgraph = Subgraph(graph: graph)
+            let oldSubgraph = Subgraph.current
+            defer {
+                Subgraph.current = oldSubgraph
+            }
             Subgraph.current = subgraph
 
             var destroyed = false
@@ -97,6 +105,10 @@ struct AttributeBodyTests {
 
             let graph = Graph()
             let subgraph = Subgraph(graph: graph)
+            let oldSubgraph = Subgraph.current
+            defer {
+                Subgraph.current = oldSubgraph
+            }
             Subgraph.current = subgraph
 
             var destroyed = false

@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 public struct ValueLayout: CustomStringConvertible, Equatable {

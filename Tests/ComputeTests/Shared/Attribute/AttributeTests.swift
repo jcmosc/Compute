@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 struct Triple<A, B, C> {

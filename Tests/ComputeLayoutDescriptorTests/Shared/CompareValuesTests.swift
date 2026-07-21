@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 /// A type that can be equal without being bitwise identical.

@@ -2,7 +2,7 @@ import Foundation
 import Testing
 import _ComputeTestSupport
 
-@Suite
+@Suite(.serialized)
 struct GraphTests {
 
     @Suite

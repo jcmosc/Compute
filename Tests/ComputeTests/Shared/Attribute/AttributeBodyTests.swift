@@ -13,7 +13,7 @@ struct AttributeBodyTests {
         #expect(DefaultAttributeBody.flags == [.mainThread])
     }
 
-    @Suite
+    @Suite(.serialized)
     struct DestroySelfTests {
 
         @Test

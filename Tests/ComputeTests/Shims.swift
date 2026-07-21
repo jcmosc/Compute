@@ -24,4 +24,9 @@ extension String {
         self.init(cString: buffer)
     }
 }
+
+func autoreleasepool<E, Result>(invoking body: () throws(E) -> Result) throws(E) -> Result
+where E: Error, Result: ~Copyable {
+    try body()
+}
 #endif

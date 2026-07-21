@@ -1,5 +1,7 @@
 import Foundation
 
+#if canImport(Darwin)
+
 extension Graph {
     public struct DictionaryDescription: Equatable, Codable {
 
@@ -173,7 +175,8 @@ extension Graph {
     public func dictionaryDescription(includeValues: Bool = false) -> DictionaryDescription? {
         // TODO: Conform DescriptionOption to CustomStringConvertible so we don't have to access rawValue here
         let options =
-        [DescriptionOption.format.rawValue: "graph/dict", DescriptionOption.includeValues.rawValue: includeValues] as NSDictionary
+            [DescriptionOption.format.rawValue: "graph/dict", DescriptionOption.includeValues.rawValue: includeValues]
+            as NSDictionary
         guard let description = Graph.description(self, options: options) as? NSDictionary else {
             return nil
         }
@@ -221,3 +224,5 @@ extension Graph {
     }
 
 }
+
+#endif

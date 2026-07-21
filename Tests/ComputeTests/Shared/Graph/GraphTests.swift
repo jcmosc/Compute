@@ -284,6 +284,7 @@ struct GraphTests {
 
     }
 
+    #if canImport(Darwin)
     @Suite
     struct DescriptionTests {
 
@@ -338,7 +339,7 @@ struct GraphTests {
                     )
                 }
             }
-            
+
             @Test
             func graphDescription() async throws {
                 try await #require(processExitsWith: .success) {
@@ -379,9 +380,12 @@ struct GraphTests {
                             )
                         ]
                     )
-                    
+
                     // FIXME: post-process the subgraphs array in the description output.
-                    withKnownIssue("Subgraphs is sorted by pointer address, which we can't predict deterministically.", isIntermittent: true) {
+                    withKnownIssue(
+                        "Subgraphs is sorted by pointer address, which we can't predict deterministically.",
+                        isIntermittent: true
+                    ) {
                         assertValuesEqualWithDiff(description, expectedDescription)
                     }
                 }
@@ -482,5 +486,6 @@ struct GraphTests {
         }
 
     }
+    #endif
 
 }

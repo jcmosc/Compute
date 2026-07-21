@@ -670,14 +670,15 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
     }
 
     if ((class_type->Flags & ::swift::ClassFlags::UsesSwiftRefcounting) == 0) {
-        size_t *ivar_offsets = nullptr; // TODO: use new
+        ptrdiff_t *ivar_offsets = nullptr;
 
 #if SWIFT_OBJC_INTEROP
         unsigned int ivar_count;
         Ivar *ivar_list = class_copyIvarList(reinterpret_cast<const Class>((void *)this), &ivar_count);
         if (ivar_list) {
             if (ivar_count == fields->NumFields) {
-                ivar_offsets = (size_t *)calloc(ivar_count, sizeof(size_t)); // or bzero?
+                ivar_offsets = (ptrdiff_t *)alloca(sizeof(ptrdiff_t) * ivar_count);
+                memset(ivar_offsets, 0, sizeof(ptrdiff_t) * ivar_count);
                 for (unsigned int ivar_index = 0; ivar_index < ivar_count; ++ivar_index) {
                     ivar_offsets[ivar_index] = ivar_getOffset(ivar_list[ivar_index]);
                 }
@@ -689,37 +690,27 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
         if (ivar_offsets && *ivar_offsets != 0) {
             unsigned index = 0;
             for (auto &field : fields->getFields()) {
-                size_t offset = ivar_offsets[index];
-                size_t end_offset = index + 1 < fields->NumFields ? ivar_offsets[index + 1] : -1;
+                ptrdiff_t offset = ivar_offsets[index];
+                ptrdiff_t end_offset = index + 1 < fields->NumFields ? ivar_offsets[index + 1] : vw_size();
                 size_t field_size = offset <= end_offset ? end_offset - offset : -1;
                 if (!visitor.visit_field(*this, field, offset, field_size)) {
-                    if (ivar_offsets) {
-                        free(ivar_offsets);
-                    }
                     return false;
                 }
                 index += 1;
             }
-            if (ivar_offsets) {
-                free(ivar_offsets);
-            }
             return true;
-        }
-
-        if (ivar_offsets) {
-            free(ivar_offsets);
         }
         return visitor.unknown_result();
     } else {
         if (class_context->hasFieldOffsetVector()) {
             auto offset = reinterpret_cast<const class_type_descriptor *>(class_context)->field_offset_vector_offset();
-            auto asWords = *reinterpret_cast<const size_t *const *>(this);
-            const size_t *field_offsets = reinterpret_cast<const size_t *>(asWords + offset);
+            auto asWords = reinterpret_cast<const void *const *>(this);
+            const ptrdiff_t *field_offsets = reinterpret_cast<const ptrdiff_t *>(asWords + offset);
 
             unsigned index = 0;
             for (auto &field : class_context->Fields->getFields()) {
-                size_t field_offset = field_offsets[index];
-                size_t end_offset = index + 1 < class_context->NumFields ? field_offsets[index + 1] : vw_size();
+                ptrdiff_t field_offset = field_offsets[index];
+                ptrdiff_t end_offset = index + 1 < class_context->NumFields ? field_offsets[index + 1] : vw_size();
                 size_t field_size = field_offset <= end_offset ? end_offset - field_offset : -1;
                 if (!visitor.visit_field(*this, field, field_offset, field_size)) {
                     return false;

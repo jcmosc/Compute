@@ -4,6 +4,18 @@ let prefetchLayoutsEnvironmentVariable = "IAG_PREFETCH_LAYOUTS"
 let asyncLayoutsEnvironmentVariable = "IAG_ASYNC_LAYOUTS"
 let printLayoutsEnvironmentVariable = "IAG_PRINT_LAYOUTS"
 
+extension Graph: @retroactive Equatable {
+    public static func == (_ lhs: Graph, _ rhs: Graph) -> Bool {
+        unsafeBitCast(lhs, to: UnsafeRawPointer.self) == unsafeBitCast(rhs, to: UnsafeRawPointer.self)
+    }
+}
+
+extension Subgraph: @retroactive Equatable {
+    public static func == (_ lhs: Subgraph, _ rhs: Subgraph) -> Bool {
+        unsafeBitCast(lhs, to: UnsafeRawPointer.self) == unsafeBitCast(rhs, to: UnsafeRawPointer.self)
+    }
+}
+
 #if os(Linux)
 extension String {
     init?(cfString: CFString) {

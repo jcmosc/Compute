@@ -2081,4 +2081,42 @@ const char *Graph::key_name(uint32_t key_id) const {
     IAG::precondition_failure("invalid string key id: %u", key_id);
 }
 
+#pragma mark - Printing
+
+#if !TARGET_OS_MAC
+namespace {
+
+int cycle_verbosity() {
+    const char *print_cycles = getenv("IAG_PRINT_CYCLES");
+    if (print_cycles) {
+        return atoi(print_cycles);
+    }
+    return 1;
+}
+
+int trap_cycles() {
+    const char *trap_cycles = getenv("IAG_TRAP_CYCLES");
+    if (trap_cycles) {
+        return atoi(trap_cycles) != 0;
+    }
+    return false;
+}
+
+} // namespace
+
+void Graph::print_cycle(data::ptr<Node> node) {
+    foreach_trace([&node](Trace &trace) { trace.log_message("cycle detected through attribute: %u", node); });
+
+    static int verbosity = cycle_verbosity();
+    if (verbosity >= 1) {
+        fprintf(stdout, "=== AttributeGraph: cycle detected through attribute %u ===\n", node.offset());
+    }
+
+    static bool traps = trap_cycles();
+    if (traps) {
+        precondition_failure("cyclic graph: %u", node);
+    }
+}
+#endif
+
 } // namespace IAG

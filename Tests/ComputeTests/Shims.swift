@@ -3,3 +3,25 @@
 let prefetchLayoutsEnvironmentVariable = "IAG_PREFETCH_LAYOUTS"
 let asyncLayoutsEnvironmentVariable = "IAG_ASYNC_LAYOUTS"
 let printLayoutsEnvironmentVariable = "IAG_PRINT_LAYOUTS"
+
+#if os(Linux)
+extension String {
+    init?(cfString: CFString) {
+        if let pointer = CFStringGetCStringPtr(cfString, CFStringBuiltInEncodings.UTF8.rawValue) {
+            self.init(cString: pointer)
+            return
+        }
+
+        let length = CFStringGetLength(cfString)
+        let maxSize = CFStringGetMaximumSizeForEncoding(length, CFStringBuiltInEncodings.UTF8.rawValue) + 1
+        let buffer = UnsafeMutablePointer<CChar>.allocate(capacity: maxSize)
+        defer {
+            buffer.deallocate()
+        }
+        guard CFStringGetCString(cfString, buffer, maxSize, CFStringBuiltInEncodings.UTF8.rawValue) else {
+            return nil
+        }
+        self.init(cString: buffer)
+    }
+}
+#endif

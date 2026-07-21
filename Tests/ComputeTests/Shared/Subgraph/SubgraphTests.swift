@@ -9,7 +9,11 @@ struct SubgraphTests {
 
         @Test
         func typeID() {
+            #if os(Linux)
+            let description = String(cfString: CFCopyTypeIDDescription(Subgraph.typeID))
+            #else
             let description = CFCopyTypeIDDescription(Subgraph.typeID) as String?
+            #endif
             #if COMPATIBILITY_TESTS
             #expect(description == "AGSubgraph")
             #else

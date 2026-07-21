@@ -54,6 +54,9 @@ let package = Package(
                     // When -enable-library-evolution is specified verify-emitted-module-interface command fails
                     "-no-verify-emitted-module-interface",
                 ]),
+            ],
+            linkerSettings: [
+                .linkedLibrary("crypto", .when(platforms: [.linux]))
             ]
         ),
         .testTarget(

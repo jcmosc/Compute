@@ -5,64 +5,72 @@ import Testing
 struct MetadataTests {
 
     @Test(
-        arguments: [
-            (TestClass.self, "TestClass"),
-            (TestStruct.self, "TestStruct"),
-            (TestEnum.self, "TestEnum"),
-            (TestTaggedEnum.self, "TestTaggedEnum"),
-            (TestIndirectEnum.self, "TestIndirectEnum"),
-            (TestOptionalClass.self, "Optional<TestClass>"),
-            (TestOptionalStruct.self, "Optional<TestStruct>"),
-            (TestForeignClass.self, "CFDateRef"),
-            (TestTuple.self, "(String, Int)"),
-            (TestFunction.self, "(String) -> Int"),
-            (TestExistential.self, "Hashable"),
-            (TestConstrainedExistential.self, "any Sequence<Self.Sequence.Element == String>"),
-            (TestComposedExistential.self, "CustomStringConvertible & Hashable"),
-            (TestMetatype.self, "TestClass.Type"),
-            (TestObjCClass.self, "NSDate"),
-            (TestExistentialMetatype.self, "Hashable.Protocol"),
-            (TestNamespace.TestNestedStruct.self, "TestNamespace.TestNestedStruct"),
+        arguments: Array<(Any.Type, String)> {
+            (TestClass.self, "TestClass")
+            (TestStruct.self, "TestStruct")
+            (TestEnum.self, "TestEnum")
+            (TestTaggedEnum.self, "TestTaggedEnum")
+            (TestIndirectEnum.self, "TestIndirectEnum")
+            (TestOptionalClass.self, "Optional<TestClass>")
+            (TestOptionalStruct.self, "Optional<TestStruct>")
+            #if canImport(CoreFoundation)
+            (TestForeignClass.self, "CFDateRef")
+            #endif
+            (TestTuple.self, "(String, Int)")
+            (TestFunction.self, "(String) -> Int")
+            (TestExistential.self, "Hashable")
+            (TestConstrainedExistential.self, "any Sequence<Self.Sequence.Element == String>")
+            (TestComposedExistential.self, "CustomStringConvertible & Hashable")
+            (TestMetatype.self, "TestClass.Type")
+            #if canImport(Darwin)
+            (TestObjCClass.self, "NSDate")
+            #endif
+            (TestExistentialMetatype.self, "Hashable.Protocol")
+            (TestNamespace.TestNestedStruct.self, "TestNamespace.TestNestedStruct")
             (
                 TestGenericStruct<String>.self, "TestGenericStruct<String>"
-            ),
+            )
             (
                 TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                 "TestGenericStruct<String>.TestNestedGenericStruct<Int>"
-            ),
-            (TestPackedGenericStruct<String, Int>.self, "TestPackedGenericStruct<Pack{String, Int}>"),
-        ] as [(Any.Type, String)]
+            )
+            (TestPackedGenericStruct<String, Int>.self, "TestPackedGenericStruct<Pack{String, Int}>")
+        }
     )
     func description(of type: Any.Type, equals expectedDescription: String) {
         #expect(Metadata(type).description == expectedDescription)
     }
 
     @Test(
-        arguments: [
-            (TestClass.self, .class),
-            (TestStruct.self, .struct),
-            (TestEnum.self, .enum),
-            (TestTaggedEnum.self, .enum),
-            (TestIndirectEnum.self, .enum),
-            (TestOptionalClass.self, .optional),
-            (TestOptionalStruct.self, .optional),
-            (TestForeignClass.self, .none),
-            (TestTuple.self, .tuple),
-            (TestFunction.self, .function),
-            (TestExistential.self, .existential),
-            (TestConstrainedExistential.self, .none),
-            (TestComposedExistential.self, .existential),
-            (TestMetatype.self, .metatype),
-            (TestObjCClass.self, .none),
-            (TestExistentialMetatype.self, .metatype),
-            (TestNamespace.TestNestedStruct.self, .struct),
-            (TestGenericStruct<String>.self, .struct),
+        arguments: Array<(Any.Type, Metadata.Kind)> {
+            (TestClass.self, Metadata.Kind.class)
+            (TestStruct.self, Metadata.Kind.struct)
+            (TestEnum.self, Metadata.Kind.enum)
+            (TestTaggedEnum.self, Metadata.Kind.enum)
+            (TestIndirectEnum.self, Metadata.Kind.enum)
+            (TestOptionalClass.self, Metadata.Kind.optional)
+            (TestOptionalStruct.self, Metadata.Kind.optional)
+            #if canImport(CoreFoundation)
+            (TestForeignClass.self, Metadata.Kind.none)
+            #endif
+            (TestTuple.self, Metadata.Kind.tuple)
+            (TestFunction.self, Metadata.Kind.function)
+            (TestExistential.self, Metadata.Kind.existential)
+            (TestConstrainedExistential.self, Metadata.Kind.none)
+            (TestComposedExistential.self, Metadata.Kind.existential)
+            (TestMetatype.self, Metadata.Kind.metatype)
+            #if canImport(Darwin)
+            (TestObjCClass.self, Metadata.Kind.none)
+            #endif
+            (TestExistentialMetatype.self, Metadata.Kind.metatype)
+            (TestNamespace.TestNestedStruct.self, Metadata.Kind.struct)
+            (TestGenericStruct<String>.self, Metadata.Kind.struct)
             (
                 TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
-                .struct
-            ),
-            (TestPackedGenericStruct<String, Int>.self, .struct),
-        ] as [(Any.Type, Metadata.Kind)]
+                Metadata.Kind.struct
+            )
+            (TestPackedGenericStruct<String, Int>.self, Metadata.Kind.struct)
+        }
     )
     func kind(of type: Any.Type, equals expectedKind: Metadata.Kind) {
         #expect(Metadata(type).kind == expectedKind)
@@ -73,31 +81,35 @@ struct MetadataTests {
 
         @Test(
             "Metadata for nominal type has a valid signature",
-            arguments: [
-                (TestClass.self, true),
-                (TestStruct.self, true),
-                (TestEnum.self, true),
-                (TestTaggedEnum.self, true),
-                (TestIndirectEnum.self, true),
-                (TestOptionalClass.self, true),
-                (TestOptionalStruct.self, true),
-                (TestForeignClass.self, false),
-                (TestTuple.self, false),
-                (TestFunction.self, false),
-                (TestExistential.self, false),
-                (TestConstrainedExistential.self, false),
-                (TestComposedExistential.self, false),
-                (TestMetatype.self, false),
-                (TestObjCClass.self, false),
-                (TestExistentialMetatype.self, false),
-                (TestNamespace.self, true),
-                (TestNamespace.TestNestedStruct.self, true),
+            arguments: Array<(Any.Type, Bool)> {
+                (TestClass.self, true)
+                (TestStruct.self, true)
+                (TestEnum.self, true)
+                (TestTaggedEnum.self, true)
+                (TestIndirectEnum.self, true)
+                (TestOptionalClass.self, true)
+                (TestOptionalStruct.self, true)
+                #if canImport(CoreFoundation)
+                (TestForeignClass.self, false)
+                #endif
+                (TestTuple.self, false)
+                (TestFunction.self, false)
+                (TestExistential.self, false)
+                (TestConstrainedExistential.self, false)
+                (TestComposedExistential.self, false)
+                (TestMetatype.self, false)
+                #if canImport(Darwin)
+                (TestObjCClass.self, false)
+                #endif
+                (TestExistentialMetatype.self, false)
+                (TestNamespace.self, true)
+                (TestNamespace.TestNestedStruct.self, true)
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     true
-                ),
-                (TestPackedGenericStruct<String, Int>.self, true),
-            ] as [(Any.Type, Bool)]
+                )
+                (TestPackedGenericStruct<String, Int>.self, true)
+            }
         )
         func signature(of type: Any.Type, isValid: Bool) {
             if isValid {
@@ -139,31 +151,35 @@ struct MetadataTests {
 
         @Test(
             "Metadata for nominal type has a descriptor",
-            arguments: [
-                (TestClass.self, true),
-                (TestStruct.self, true),
-                (TestEnum.self, true),
-                (TestTaggedEnum.self, true),
-                (TestIndirectEnum.self, true),
-                (TestOptionalClass.self, true),
-                (TestOptionalStruct.self, true),
-                (TestForeignClass.self, false),
-                (TestTuple.self, false),
-                (TestFunction.self, false),
-                (TestExistential.self, false),
-                (TestConstrainedExistential.self, false),
-                (TestComposedExistential.self, false),
-                (TestMetatype.self, false),
-                (TestObjCClass.self, false),
-                (TestExistentialMetatype.self, false),
-                (TestNamespace.TestNestedStruct.self, true),
-                (TestGenericStruct<String>.self, true),
+            arguments: Array<(Any.Type, Bool)> {
+                (TestClass.self, true)
+                (TestStruct.self, true)
+                (TestEnum.self, true)
+                (TestTaggedEnum.self, true)
+                (TestIndirectEnum.self, true)
+                (TestOptionalClass.self, true)
+                (TestOptionalStruct.self, true)
+                #if canImport(CoreFoundation)
+                (TestForeignClass.self, false)
+                #endif
+                (TestTuple.self, false)
+                (TestFunction.self, false)
+                (TestExistential.self, false)
+                (TestConstrainedExistential.self, false)
+                (TestComposedExistential.self, false)
+                (TestMetatype.self, false)
+                #if canImport(Darwin)
+                (TestObjCClass.self, false)
+                #endif
+                (TestExistentialMetatype.self, false)
+                (TestNamespace.TestNestedStruct.self, true)
+                (TestGenericStruct<String>.self, true)
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     true
-                ),
-                (TestPackedGenericStruct<String, Int>.self, true),
-            ] as [(Any.Type, Bool)]
+                )
+                (TestPackedGenericStruct<String, Int>.self, true)
+            }
         )
         func descriptor(of type: Any.Type, hasDescriptor: Bool) {
             if hasDescriptor {
@@ -175,31 +191,35 @@ struct MetadataTests {
 
         @Test(
             "Metadata for non-class nominal type has a nominal descriptor",
-            arguments: [
-                (TestClass.self, false),
-                (TestStruct.self, true),
-                (TestEnum.self, true),
-                (TestTaggedEnum.self, true),
-                (TestIndirectEnum.self, true),
-                (TestOptionalClass.self, true),
-                (TestOptionalStruct.self, true),
-                (TestForeignClass.self, false),
-                (TestTuple.self, false),
-                (TestFunction.self, false),
-                (TestExistential.self, false),
-                (TestConstrainedExistential.self, false),
-                (TestComposedExistential.self, false),
-                (TestMetatype.self, false),
-                (TestObjCClass.self, false),
-                (TestExistentialMetatype.self, false),
-                (TestNamespace.TestNestedStruct.self, true),
-                (TestGenericStruct<String>.self, true),
+            arguments: Array<(Any.Type, Bool)> {
+                (TestClass.self, false)
+                (TestStruct.self, true)
+                (TestEnum.self, true)
+                (TestTaggedEnum.self, true)
+                (TestIndirectEnum.self, true)
+                (TestOptionalClass.self, true)
+                (TestOptionalStruct.self, true)
+                #if canImport(CoreFoundation)
+                (TestForeignClass.self, false)
+                #endif
+                (TestTuple.self, false)
+                (TestFunction.self, false)
+                (TestExistential.self, false)
+                (TestConstrainedExistential.self, false)
+                (TestComposedExistential.self, false)
+                (TestMetatype.self, false)
+                #if canImport(Darwin)
+                (TestObjCClass.self, false)
+                #endif
+                (TestExistentialMetatype.self, false)
+                (TestNamespace.TestNestedStruct.self, true)
+                (TestGenericStruct<String>.self, true)
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     true
-                ),
-                (TestPackedGenericStruct<String, Int>.self, true),
-            ] as [(Any.Type, Bool)]
+                )
+                (TestPackedGenericStruct<String, Int>.self, true)
+            }
         )
         func nominalDescriptor(of type: Any.Type, hasNominalDescriptor: Bool) {
             if hasNominalDescriptor {
@@ -211,31 +231,35 @@ struct MetadataTests {
 
         @Test(
             "Metadata for nominal type has a nominal descriptor name",
-            arguments: [
-                (TestClass.self, nil),
-                (TestStruct.self, "TestStruct"),
-                (TestEnum.self, "TestEnum"),
-                (TestTaggedEnum.self, "TestTaggedEnum"),
-                (TestIndirectEnum.self, "TestIndirectEnum"),
-                (TestOptionalClass.self, "Optional"),
-                (TestOptionalStruct.self, "Optional"),
-                (TestForeignClass.self, nil),
-                (TestTuple.self, nil),
-                (TestFunction.self, nil),
-                (TestExistential.self, nil),
-                (TestConstrainedExistential.self, nil),
-                (TestComposedExistential.self, nil),
-                (TestMetatype.self, nil),
-                (TestObjCClass.self, nil),
-                (TestExistentialMetatype.self, nil),
-                (TestNamespace.TestNestedStruct.self, "TestNestedStruct"),
-                (TestGenericStruct<String>.self, "TestGenericStruct"),
+            arguments: Array<(Any.Type, String?)> {
+                (TestClass.self, nil as String?)
+                (TestStruct.self, "TestStruct")
+                (TestEnum.self, "TestEnum")
+                (TestTaggedEnum.self, "TestTaggedEnum")
+                (TestIndirectEnum.self, "TestIndirectEnum")
+                (TestOptionalClass.self, "Optional")
+                (TestOptionalStruct.self, "Optional")
+                #if canImport(CoreFoundation)
+                (TestForeignClass.self, nil as String?)
+                #endif
+                (TestTuple.self, nil as String?)
+                (TestFunction.self, nil as String?)
+                (TestExistential.self, nil as String?)
+                (TestConstrainedExistential.self, nil as String?)
+                (TestComposedExistential.self, nil as String?)
+                (TestMetatype.self, nil as String?)
+                #if canImport(Darwin)
+                (TestObjCClass.self, nil as String?)
+                #endif
+                (TestExistentialMetatype.self, nil as String?)
+                (TestNamespace.TestNestedStruct.self, "TestNestedStruct")
+                (TestGenericStruct<String>.self, "TestGenericStruct")
                 (
                     TestGenericStruct<String>.TestNestedGenericStruct<Int>.self,
                     "TestNestedGenericStruct"
-                ),
-                (TestPackedGenericStruct<String, Int>.self, "TestPackedGenericStruct"),
-            ] as [(Any.Type, String?)]
+                )
+                (TestPackedGenericStruct<String, Int>.self, "TestPackedGenericStruct")
+            }
         )
         func nominalDescriptorName(of type: Any.Type, equals expectedNominalDescriptorName: String?) {
             if let expectedNominalDescriptorName {

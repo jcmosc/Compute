@@ -145,7 +145,7 @@ uint64_t class_type_descriptor::immediate_members_offset() const {
 uint64_t class_type_descriptor::field_offset_vector_offset() const {
     // FieldOffsetVectorOffset is a private field,
     // but we know comes directly after Numfields which is a uint32_t
-    uint32_t offset = *(&_base.NumFields + sizeof(uint32_t));
+    uint32_t offset = *(reinterpret_cast<const char *>(&_base.NumFields) + sizeof(uint32_t));
 
     if (base()->hasResilientSuperclass()) {
         return immediate_members_offset() + offset;

@@ -5,7 +5,7 @@ import Testing
 // create subgraph while update or no update
 // create subgraph with owner attribute
 
-@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+@Suite(.serialized(for: \Subgraph.Type.current))
 struct TreeTests {
     @Test
     func shouldRecordTree() async throws {

@@ -9,7 +9,7 @@ struct Triple<A, B, C> {
 
 extension Triple: Sendable where A: Sendable, B: Sendable, C: Sendable {}
 
-@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+@Suite(.serialized(for: \Subgraph.Type.current))
 struct AttributeTests {
     @Suite
     struct InitTests {

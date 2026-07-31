@@ -2,7 +2,6 @@ import Testing
 
 @Suite
 struct ExternalTests {
-
     @Test
     func external() throws {
         let type = External<Int>.self
@@ -14,5 +13,4 @@ struct ExternalTests {
 
         #expect(externalInt.description == "Int")
     }
-
 }

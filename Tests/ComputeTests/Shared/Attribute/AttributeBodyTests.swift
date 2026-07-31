@@ -3,7 +3,6 @@ import Testing
 
 @Suite
 struct AttributeBodyTests {
-
     @Test
     func defaultImplementation() {
         struct DefaultAttributeBody: _AttributeBody {}
@@ -13,11 +12,10 @@ struct AttributeBodyTests {
         #expect(DefaultAttributeBody.flags == [.mainThread])
     }
 
-    @Suite(.serialized)
+    @Suite(.serialized(for: \GraphHost.Type.sharedGraph))
     struct DestroySelfTests {
-
         @Test
-        func callsDestroySelf() {
+        func callsDestroySelf() throws {
             struct TestBody: _AttributeBody {
                 var destroyed: UnsafeMutablePointer<Bool>
                 static func _destroySelf(_ self: UnsafeMutableRawPointer) {
@@ -29,32 +27,29 @@ struct AttributeBodyTests {
                 }
             }
 
-            let graph = Graph()
-            let subgraph = Subgraph(graph: graph)
-            let oldSubgraph = Subgraph.current
-            defer {
-                Subgraph.current = oldSubgraph
-            }
-            Subgraph.current = subgraph
+            try withGraph {
+                let globalSubgraph = try #require(Subgraph.current)
+                let subgraph = Subgraph(graph: globalSubgraph.graph)
+                globalSubgraph.addChild(subgraph)
+                Subgraph.current = subgraph
 
-            var destroyed = false
-            withUnsafeMutablePointer(to: &destroyed) { destroyedPointer in
-                let _ = withUnsafePointer(to: TestBody(destroyed: destroyedPointer)) { bodyPointer in
-                    Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
-                        return { _, _ in }
+                var destroyed = false
+                withUnsafeMutablePointer(to: &destroyed) { destroyedPointer in
+                    let _ = withUnsafePointer(to: TestBody(destroyed: destroyedPointer)) { bodyPointer in
+                        Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                            return { _, _ in }
+                        }
                     }
+
+                    #expect(destroyedPointer.pointee == false)
+                    subgraph.invalidate()
+                    #expect(destroyedPointer.pointee == true)
                 }
-
-                #expect(destroyedPointer.pointee == false)
-
-                subgraph.invalidate()
-
-                #expect(destroyedPointer.pointee == true)
             }
         }
 
         @Test
-        func doesNotCallDestroySelfWhenHasDestroySelfIsFalse() {
+        func doesNotCallDestroySelfWhenHasDestroySelfIsFalse() throws {
             struct TestBody: _AttributeBody {
                 var destroyed: UnsafeMutablePointer<Bool>
                 static func _destroySelf(_ self: UnsafeMutableRawPointer) {
@@ -66,32 +61,29 @@ struct AttributeBodyTests {
                 }
             }
 
-            let graph = Graph()
-            let subgraph = Subgraph(graph: graph)
-            let oldSubgraph = Subgraph.current
-            defer {
-                Subgraph.current = oldSubgraph
-            }
-            Subgraph.current = subgraph
+            try withGraph {
+                let globalSubgraph = try #require(Subgraph.current)
+                let subgraph = Subgraph(graph: globalSubgraph.graph)
+                globalSubgraph.addChild(subgraph)
+                Subgraph.current = subgraph
 
-            var destroyed = false
-            withUnsafeMutablePointer(to: &destroyed) { destroyedPointer in
-                let _ = withUnsafePointer(to: TestBody(destroyed: destroyedPointer)) { bodyPointer in
-                    Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
-                        return { _, _ in }
+                var destroyed = false
+                withUnsafeMutablePointer(to: &destroyed) { destroyedPointer in
+                    let _ = withUnsafePointer(to: TestBody(destroyed: destroyedPointer)) { bodyPointer in
+                        Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                            return { _, _ in }
+                        }
                     }
+
+                    #expect(destroyedPointer.pointee == false)
+                    subgraph.invalidate()
+                    #expect(destroyedPointer.pointee == false)
                 }
-
-                #expect(destroyedPointer.pointee == false)
-
-                subgraph.invalidate()
-
-                #expect(destroyedPointer.pointee == false)
             }
         }
 
         @Test
-        func callsDestroySelfWhenHasDestroySelfIsFalseAndFlagIsTrue() {
+        func callsDestroySelfWhenHasDestroySelfIsFalseAndFlagIsTrue() throws {
             struct TestBody: _AttributeBody {
                 var destroyed: UnsafeMutablePointer<Bool>
                 static func _destroySelf(_ self: UnsafeMutableRawPointer) {
@@ -103,30 +95,25 @@ struct AttributeBodyTests {
                 }
             }
 
-            let graph = Graph()
-            let subgraph = Subgraph(graph: graph)
-            let oldSubgraph = Subgraph.current
-            defer {
-                Subgraph.current = oldSubgraph
-            }
-            Subgraph.current = subgraph
+            try withGraph {
+                let globalSubgraph = try #require(Subgraph.current)
+                let subgraph = Subgraph(graph: globalSubgraph.graph)
+                globalSubgraph.addChild(subgraph)
+                Subgraph.current = subgraph
 
-            var destroyed = false
-            withUnsafeMutablePointer(to: &destroyed) { destroyedPointer in
-                let _ = withUnsafePointer(to: TestBody(destroyed: destroyedPointer)) { bodyPointer in
-                    Attribute<Int>(body: bodyPointer, value: nil, flags: [.hasDestroySelf]) {
-                        return { _, _ in }
+                var destroyed = false
+                withUnsafeMutablePointer(to: &destroyed) { destroyedPointer in
+                    let _ = withUnsafePointer(to: TestBody(destroyed: destroyedPointer)) { bodyPointer in
+                        Attribute<Int>(body: bodyPointer, value: nil, flags: [.hasDestroySelf]) {
+                            return { _, _ in }
+                        }
                     }
+
+                    #expect(destroyedPointer.pointee == false)
+                    subgraph.invalidate()
+                    #expect(destroyedPointer.pointee == true)
                 }
-
-                #expect(destroyedPointer.pointee == false)
-
-                subgraph.invalidate()
-
-                #expect(destroyedPointer.pointee == true)
             }
         }
-
     }
-
 }

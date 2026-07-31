@@ -2,12 +2,10 @@ import Foundation
 import Testing
 import _ComputeTestSupport
 
-@Suite(.serialized)
+@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
 struct GraphTests {
-
     @Suite
     struct CFTypeTests {
-
         @Test
         func typeID() {
             #if os(Linux)
@@ -27,12 +25,10 @@ struct GraphTests {
             let graph = Graph()
             #expect(CFGetTypeID(graph) == Graph.typeID)
         }
-
     }
 
     @Suite
     struct LifecycleTests {
-
         @Test
         func createGraph() {
             let graph = Graph()
@@ -54,12 +50,10 @@ struct GraphTests {
             #expect(firstGraph.counter(for: .graphID) == secondGraph.counter(for: .graphID))
             #expect(firstGraph.counter(for: .contextID) != secondGraph.counter(for: .contextID))
         }
-
     }
 
     @Suite
     struct ContextTests {
-
         @Test
         func storesContextPointer() {
             let graph = Graph()
@@ -70,12 +64,10 @@ struct GraphTests {
                 #expect(graph.context == UnsafeRawPointer(pointer))
             }
         }
-
     }
 
     @Suite
     struct InternAttributeTypeTests {
-
         nonisolated(unsafe) static var testVtable = _AttributeVTable()
 
         init() {
@@ -178,7 +170,6 @@ struct GraphTests {
 
     @Suite
     struct TraceTests {
-
         @Test
         func addTrace() {
             class Context {
@@ -281,13 +272,11 @@ struct GraphTests {
             let subsystem = try #require(Graph.traceEventSubsystem(for: eventID))
             #expect(String(utf8String: subsystem) == "testsubsystem")
         }
-
     }
 
     #if canImport(Darwin)
     @Suite
     struct DescriptionTests {
-
         @Test
         func initialDescription() {
             let description = Graph.description(nil, options: NSDictionary())
@@ -303,7 +292,6 @@ struct GraphTests {
 
         @Suite
         struct GraphDictFormatTests {
-
             @Test
             func initialDescription() async throws {
                 try await #require(processExitsWith: .success) {
@@ -394,7 +382,6 @@ struct GraphTests {
 
         @Suite
         struct BodyDescriptionTests {
-
             @Test
             func customBodyDescription() throws {
                 struct TestBody: _AttributeBody, CustomStringConvertible {
@@ -403,18 +390,16 @@ struct GraphTests {
                     }
                 }
 
-                let graph = Graph()
-                let subgraph = Subgraph(graph: graph)
-                Subgraph.current = subgraph
-
-                let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
-                    Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
-                        return { _, _ in }
+                try withGraph {
+                    let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
+                        Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                            return { _, _ in }
+                        }
                     }
-                }
 
-                let graphDescription = try #require(graph.dictionaryDescription())
-                #expect(graphDescription.graphs[0].nodes[0].description == "Custom Description")
+                    let graphDescription = try #require(Subgraph.current?.graph.dictionaryDescription())
+                    #expect(graphDescription.graphs[0].nodes[0].description == "Custom Description")
+                }
             }
 
             @Test
@@ -423,28 +408,24 @@ struct GraphTests {
 
                 }
 
-                let graph = Graph()
-                let subgraph = Subgraph(graph: graph)
-                Subgraph.current = subgraph
-
-                let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
-                    Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
-                        return { _, _ in }
+                try withGraph {
+                    let _ = withUnsafePointer(to: TestBody()) { bodyPointer in
+                        Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                            return { _, _ in }
+                        }
                     }
+
+                    let graphDescription = try #require(Subgraph.current?.graph.dictionaryDescription())
+                    #expect(
+                        graphDescription.graphs[0].nodes[0].description
+                            == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody"
+                    )
                 }
-
-                let graphDescription = try #require(graph.dictionaryDescription())
-                #expect(
-                    graphDescription.graphs[0].nodes[0].description
-                        == "GraphTests.DescriptionTests.BodyDescriptionTests.TestBody"
-                )
             }
-
         }
 
         @Suite
         struct ValueDescriptionTests {
-
             @Test
             func customValueDescription() throws {
                 struct TestValue: CustomStringConvertible {
@@ -454,38 +435,35 @@ struct GraphTests {
                     }
                 }
 
-                let graph = Graph()
-                let subgraph = Subgraph(graph: graph)
-                Subgraph.current = subgraph
+                try withGraph {
+                    let _ = Attribute(value: TestValue())
 
-                let _ = Attribute(value: TestValue())
-
-                let graphDescription = try #require(graph.dictionaryDescription(includeValues: true))
-                #expect(graphDescription.graphs[0].nodes[0].value == "Custom Value")
+                    let graphDescription = try #require(
+                        Subgraph.current?.graph.dictionaryDescription(includeValues: true)
+                    )
+                    #expect(graphDescription.graphs[0].nodes[0].value == "Custom Value")
+                }
             }
 
             @Test
-            func defaultValueDescription() async throws {
+            func defaultValueDescription() throws {
                 struct TestValue {
                     var field: Int = 0
                 }
 
-                let graph = Graph()
-                let subgraph = Subgraph(graph: graph)
-                Subgraph.current = subgraph
+                try withGraph {
+                    let _ = Attribute(value: TestValue())
 
-                let _ = Attribute(value: TestValue())
-
-                let graphDescription = try #require(graph.dictionaryDescription(includeValues: true))
-                #expect(
-                    graphDescription.graphs[0].nodes[0].value
-                        == "TestValue(field: 0)"
-                )
+                    let graphDescription = try #require(
+                        Subgraph.current?.graph.dictionaryDescription(includeValues: true)
+                    )
+                    #expect(
+                        graphDescription.graphs[0].nodes[0].value
+                            == "TestValue(field: 0)"
+                    )
+                }
             }
-
         }
-
     }
     #endif
-
 }

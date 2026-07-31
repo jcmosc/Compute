@@ -25,10 +25,20 @@ class zone {
         info(uint32_t zone_id) : _value(zone_id & zone_id_mask) {};
 
         uint32_t zone_id() const { return _value & zone_id_mask; };
-        info with_deleted() const { return info(_value | deleted); };
+
+        bool is_deleted() const { return (_value & deleted) != 0; };
+        info with_deleted() const {
+            auto result = *this;
+            result._value |= deleted;
+            return result;
+        };
 
         uint32_t to_raw_value() const { return _value; };
-        static info from_raw_value(uint32_t value) { return info(value); };
+        static info from_raw_value(uint32_t value) {
+            info result(0);
+            result._value = value;
+            return result;
+        };
     };
 
   private:

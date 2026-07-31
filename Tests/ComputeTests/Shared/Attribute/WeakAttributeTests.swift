@@ -47,8 +47,6 @@ struct WeakAttributeTests {
                     subgraph.invalidate()
 
                     #expect(weakAttribute.attribute == nil)
-
-                    Subgraph.current = nil
                 }
             }
         }

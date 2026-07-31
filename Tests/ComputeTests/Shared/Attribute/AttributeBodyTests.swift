@@ -115,5 +115,45 @@ struct AttributeBodyTests {
                 }
             }
         }
+
+        @Test
+        func weakAttributeExpiresBeforeBodyIsDestroyed() throws {
+            struct TestBody: _AttributeBody {
+                var weakAttribute: WeakAttribute<Int>
+                var weakAttributeExpired: UnsafeMutablePointer<Bool>
+                static func _destroySelf(_ self: UnsafeMutableRawPointer) {
+                    let testBody = self.assumingMemoryBound(to: Self.self)
+                    testBody.pointee.weakAttributeExpired.pointee = testBody.pointee.weakAttribute.attribute == nil
+                }
+                static var _hasDestroySelf: Bool {
+                    return true
+                }
+            }
+
+            try withGraph {
+                let globalSubgraph = try #require(Subgraph.current)
+                let subgraph = Subgraph(graph: globalSubgraph.graph)
+                globalSubgraph.addChild(subgraph)
+                Subgraph.current = subgraph
+                
+                let attribute = Attribute(value: 0)
+                var weakAttributeExpired = false
+                withUnsafeMutablePointer(to: &weakAttributeExpired) { weakAttributeExpiredPointer in
+                    let body = TestBody(
+                        weakAttribute: WeakAttribute(attribute),
+                        weakAttributeExpired: weakAttributeExpiredPointer
+                    )
+                    let _ = withUnsafePointer(to: body) { bodyPointer in
+                        Attribute<Int>(body: bodyPointer, value: nil, flags: []) {
+                            return { _, _ in }
+                        }
+                    }
+                    
+                    #expect(weakAttributeExpiredPointer.pointee == false)
+                    subgraph.invalidate()
+                    #expect(weakAttributeExpiredPointer.pointee == true)
+                }
+            }
+        }
     }
 }

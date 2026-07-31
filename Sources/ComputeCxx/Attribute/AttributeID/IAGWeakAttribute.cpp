@@ -14,7 +14,6 @@ IAGWeakAttribute IAGCreateWeakAttribute(IAGAttribute attribute) {
     return IAGWeakAttribute({attribute_id, uint32_t(subgraph_id)});
 }
 
-// TODO: add test that evaluate checks deleted bit in zone id
 IAGAttribute IAGWeakAttributeGetAttribute(IAGWeakAttribute weak_attribute) {
     auto weak_attribute_id = IAG::WeakAttributeID(weak_attribute);
     return weak_attribute_id.evaluate();

@@ -1,12 +1,10 @@
 import Foundation
 import Testing
 
-@Suite(.serialized)
+@Suite
 struct SubgraphTests {
-
     @Suite
     struct CFTypeTests {
-
         @Test
         func typeID() {
             #if os(Linux)
@@ -27,12 +25,10 @@ struct SubgraphTests {
             let subgraph = Subgraph(graph: graph)
             #expect(CFGetTypeID(subgraph) == Subgraph.typeID)
         }
-
     }
 
     @Suite
     struct LifecycleTests {
-
         @Test
         func subgraphAddedToGraph() {
             let graph = Graph()
@@ -59,12 +55,10 @@ struct SubgraphTests {
             #expect(graph.counter(for: .subgraphs) == 0)
             #expect(graph.counter(for: .createdSubgraphs) == 1)
         }
-
     }
 
     @Suite
     struct ObserverTests {
-
         @Test
         func observerNotifiedOnSubgraphDestroyed() {
             var notifiedCount = 0
@@ -115,12 +109,10 @@ struct SubgraphTests {
 
             #expect(notifiedCount == 0)
         }
-
     }
 
     @Suite
     struct InvalidationTests {
-
         @Test
         func invalidateSubgraph() throws {
             let graph = Graph()
@@ -185,12 +177,10 @@ struct SubgraphTests {
             let subgraph = try #require(subgraphOrNil)
             #expect(subgraph.isValid == false)
         }
-
     }
 
     @Suite
     struct TraceTests {
-
         class TraceReporter {
             var createdSubgraphCount = 0
             var invalidateSubgraphCount = 0
@@ -235,12 +225,10 @@ struct SubgraphTests {
             #expect(reporter.createdSubgraphCount == 1)
             #expect(reporter.invalidateSubgraphCount == 1)
         }
-
     }
 
     @Suite
     struct CurrentSubgraph {
-
         @Test
         func currentSubgraph() {
             #expect(Subgraph.current == nil)
@@ -263,12 +251,10 @@ struct SubgraphTests {
             subgraph.invalidate()
             #expect(Subgraph.current == nil)
         }
-
     }
 
     @Suite
     struct ChildrenTests {
-
         @Test
         func child() {
             let graph = Graph()
@@ -421,7 +407,6 @@ struct SubgraphTests {
 
     @Suite
     struct FlagsTests {
-
         @Test
         func intersects() {
             let graph = Graph()
@@ -440,7 +425,5 @@ struct SubgraphTests {
             #expect(subgraph.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
             #expect(child.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
         }
-
     }
-
 }

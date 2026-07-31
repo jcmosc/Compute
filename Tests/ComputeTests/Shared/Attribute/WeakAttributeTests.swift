@@ -1,53 +1,56 @@
 import Testing
 
-@Suite
+@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
 struct WeakAttributeTests {
-
-    @MainActor
-    @Suite(.applySubgraph)
+    @Suite
     struct InitTests {
-
         @Test
         func initDefault() {
-            let weakAttribute = WeakAttribute<Int>()
-            #expect(weakAttribute.attribute == nil)
+            withGraph {
+                let weakAttribute = WeakAttribute<Int>()
+                #expect(weakAttribute.attribute == nil)
+            }
         }
 
         @Test
         func initWithNil() {
-            let weakAttribute = WeakAttribute<Int>(nil)
-            #expect(weakAttribute.attribute == nil)
+            withGraph {
+                let weakAttribute = WeakAttribute<Int>(nil)
+                #expect(weakAttribute.attribute == nil)
+            }
         }
 
         @Test
         func initWithAttribute() {
-            let attribute = Attribute(value: 0)
-            let weakAttribute = WeakAttribute(attribute)
-            #expect(weakAttribute.attribute == attribute)
+            withGraph {
+                let attribute = Attribute(value: 0)
+                let weakAttribute = WeakAttribute(attribute)
+                #expect(weakAttribute.attribute == attribute)
+            }
         }
-
     }
 
     @Suite
     struct SubgraphTraversalTests {
-
         @Test
-        func invalidatingSubgraphNilsWeakAttribute() {
-            let graph = Graph()
-            let subgraph = Subgraph(graph: graph)
-            Subgraph.current = subgraph
+        func invalidatingSubgraphNilsWeakAttribute() throws {
+            try withGraph {
+                let globalSubgraph = try #require(Subgraph.current)
+                let subgraph = Subgraph(graph: globalSubgraph.graph)
+                globalSubgraph.addChild(subgraph)
 
-            let attribute = Attribute(value: 0)
-            let weakAttribute = WeakAttribute(attribute)
-            #expect(weakAttribute.attribute == attribute)
+                subgraph.apply {
+                    let attribute = Attribute(value: 0)
+                    let weakAttribute = WeakAttribute(attribute)
+                    #expect(weakAttribute.attribute == attribute)
 
-            subgraph.invalidate()
+                    subgraph.invalidate()
 
-            #expect(weakAttribute.attribute == nil)
+                    #expect(weakAttribute.attribute == nil)
 
-            Subgraph.current = nil
+                    Subgraph.current = nil
+                }
+            }
         }
-
     }
-
 }

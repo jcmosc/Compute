@@ -2,24 +2,24 @@ import Testing
 
 @Suite
 struct AnyAttributeTests {
-
-    @MainActor
-    @Suite(.applySubgraph)
+    @Suite(.serialized(for: \GraphHost.Type.sharedGraph))
     struct InitTests {
 
         @Test
         func nilAttribute() {
-            #expect(AnyAttribute.nil.rawValue == 2)
+            withGraph {
+                #expect(AnyAttribute.nil.rawValue == 2)
+            }
         }
 
         @Test
         func initWithAttribute() {
-            let attribute = Attribute<Int>(value: 1)
-            let anyAttribute = AnyAttribute(attribute)
+            withGraph {
+                let attribute = Attribute<Int>(value: 1)
+                let anyAttribute = AnyAttribute(attribute)
 
-            #expect(anyAttribute == attribute.identifier)
+                #expect(anyAttribute == attribute.identifier)
+            }
         }
-
     }
-
 }

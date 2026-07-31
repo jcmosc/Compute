@@ -3,7 +3,7 @@ import Testing
 import _ComputeTestSupport
 
 #if canImport(Darwin)
-@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+@Suite(.serialized(for: \Subgraph.Type.current))
 struct GraphDescriptionTests {
     @Test
     func initialDescription() {

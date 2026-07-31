@@ -1,7 +1,7 @@
 import Foundation
 import Testing
 
-@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+@Suite(.serialized(for: \Subgraph.Type.current))
 struct IndirectAttributeTests {
     @Suite
     struct InitTests {

@@ -2,7 +2,7 @@ import Testing
 
 @Suite
 struct AnyAttributeTests {
-    @Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+    @Suite(.serialized(for: \Subgraph.Type.current))
     struct InitTests {
 
         @Test

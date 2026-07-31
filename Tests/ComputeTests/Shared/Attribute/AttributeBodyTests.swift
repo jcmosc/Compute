@@ -12,7 +12,7 @@ struct AttributeBodyTests {
         #expect(DefaultAttributeBody.flags == [.mainThread])
     }
 
-    @Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+    @Suite(.serialized(for: \Subgraph.Type.current))
     struct DestroySelfTests {
         @Test
         func callsDestroySelf() throws {

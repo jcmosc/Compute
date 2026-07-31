@@ -1,6 +1,6 @@
 import Testing
 
-@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+@Suite(.serialized(for: \Subgraph.Type.current))
 struct WeakAttributeTests {
     @Suite
     struct InitTests {

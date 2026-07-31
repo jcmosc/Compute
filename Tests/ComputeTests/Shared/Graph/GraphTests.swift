@@ -2,7 +2,7 @@ import Foundation
 import Testing
 import _ComputeTestSupport
 
-@Suite(.serialized(for: \GraphHost.Type.sharedGraph))
+@Suite(.serialized(for: \Subgraph.Type.current))
 struct GraphTests {
     @Suite
     struct CFTypeTests {

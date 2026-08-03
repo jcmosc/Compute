@@ -48,18 +48,18 @@ Graph::Graph()
 
     _types.push_back(nullptr);
 
-    static auto [trace_options, trace_subsystems] =
+    static auto [trace_flags, trace_subsystems] =
         []() -> std::tuple<uint32_t, vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>> {
         // TODO: debug server
         // TODO: profile
 
         vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> trace_subsystems = {};
 
-        IAGGraphTraceOptions trace_options = 0;
+        IAGGraphTraceFlags trace_flags = 0;
         const char *trace_string = getenv("IAG_TRACE");
         if (trace_string) {
             char *endptr = nullptr;
-            trace_options = (uint32_t)strtol(trace_string, &endptr, 0);
+            trace_flags = (uint32_t)strtol(trace_string, &endptr, 0);
 
             if (endptr) {
                 const char *c = endptr + strspn(endptr, ", \t\n\f\r");
@@ -71,22 +71,22 @@ Graph::Graph()
                     option[option_length] = 0;
 
                     if (strcasecmp(option, "enabled") == 0) {
-                        trace_options |= IAGGraphTraceOptionsEnabled;
+                        trace_flags |= IAGGraphTraceFlagsEnabled;
                         free(option);
                     } else if (strcasecmp(option, "full") == 0) {
-                        trace_options |= IAGGraphTraceOptionsFull;
+                        trace_flags |= IAGGraphTraceFlagsFull;
                         free(option);
                     } else if (strcasecmp(option, "backtrace") == 0) {
-                        trace_options |= IAGGraphTraceOptionsBacktrace;
+                        trace_flags |= IAGGraphTraceFlagsBacktrace;
                         free(option);
                     } else if (strcasecmp(option, "prepare") == 0) {
-                        trace_options |= IAGGraphTraceOptionsPrepare;
+                        trace_flags |= IAGGraphTraceFlagsPrepare;
                         free(option);
                     } else if (strcasecmp(option, "custom") == 0) {
-                        trace_options |= IAGGraphTraceOptionsCustom;
+                        trace_flags |= IAGGraphTraceFlagsCustom;
                         free(option);
                     } else if (strcasecmp(option, "all") == 0) {
-                        trace_options |= IAGGraphTraceOptionsAll;
+                        trace_flags |= IAGGraphTraceFlagsAll;
                         free(option);
                     } else {
                         trace_subsystems.push_back(std::unique_ptr<const char, util::free_deleter>(option));
@@ -97,11 +97,11 @@ Graph::Graph()
             }
         }
 
-        return {trace_options, std::move(trace_subsystems)};
+        return {trace_flags, std::move(trace_subsystems)};
     }();
 
-    if (trace_options && !trace_subsystems.empty()) {
-        start_tracing(trace_options, std::span((const char **)trace_subsystems.data(), trace_subsystems.size()));
+    if (trace_flags && !trace_subsystems.empty()) {
+        start_tracing(trace_flags, std::span((const char **)trace_subsystems.data(), trace_subsystems.size()));
     }
 
     // Prepend this graph
@@ -1874,16 +1874,16 @@ void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value
 
 #pragma mark - Trace
 
-void Graph::start_tracing(IAGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
-    if ((trace_options & IAGGraphTraceOptionsEnabled) == 0) {
+void Graph::start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *> subsystems) {
+    if ((trace_flags & IAGGraphTraceFlagsEnabled) == 0) {
         return;
     }
     if (_trace_recorder) {
         return;
     }
 
-    _trace_recorder = new TraceRecorder(this, trace_options, subsystems);
-    if (trace_options & IAGGraphTraceOptionsPrepare) {
+    _trace_recorder = new TraceRecorder(this, trace_flags, subsystems);
+    if (trace_flags & IAGGraphTraceFlagsPrepare) {
         prepare_trace(*_trace_recorder);
     }
     add_trace(_trace_recorder);
@@ -2008,10 +2008,10 @@ void Graph::remove_trace(uint64_t trace_id) {
     }
 }
 
-void Graph::all_start_tracing(IAGGraphTraceOptions trace_options, std::span<const char *> span) {
+void Graph::all_start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *> span) {
     all_lock();
     for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
-        graph->start_tracing(trace_options, span);
+        graph->start_tracing(trace_flags, span);
     }
     all_unlock();
 }

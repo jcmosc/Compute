@@ -901,9 +901,9 @@ void IAGGraphSetOutputValue(const void *value, IAGTypeID type) {
 
 #pragma mark - Trace
 
-void IAGGraphStartTracing(IAGGraphRef graph, IAGGraphTraceOptions trace_options) { IAGGraphStartTracing2(graph, trace_options, NULL); }
+void IAGGraphStartTracing(IAGGraphRef graph, IAGGraphTraceFlags trace_flags) { IAGGraphStartTracing2(graph, trace_flags, NULL); }
 
-void IAGGraphStartTracing2(IAGGraphRef graph, IAGGraphTraceOptions trace_options, CFArrayRef subsystems) {
+void IAGGraphStartTracing2(IAGGraphRef graph, IAGGraphTraceFlags trace_flags, CFArrayRef subsystems) {
     auto subsystems_vector = IAG::vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>();
     if (subsystems) {
         auto subsystems_count = CFArrayGetCount(subsystems);
@@ -928,12 +928,12 @@ void IAGGraphStartTracing2(IAGGraphRef graph, IAGGraphTraceOptions trace_options
         std::span<const char *>((const char **)subsystems_vector.data(), subsystems_vector.size());
 
     if (graph == nullptr) {
-        IAG::Graph::all_start_tracing(trace_options, subsystems_span);
+        IAG::Graph::all_start_tracing(trace_flags, subsystems_span);
         return;
     }
 
     auto graph_context = IAG::Graph::Context::from_cf(graph);
-    graph_context->graph().start_tracing(trace_options, subsystems_span);
+    graph_context->graph().start_tracing(trace_flags, subsystems_span);
 }
 
 void IAGGraphStopTracing(IAGGraphRef graph) {

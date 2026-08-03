@@ -12,7 +12,7 @@ namespace IAG {
 
 class Graph::TraceRecorder : public Trace {
   public:
-    TraceRecorder(Graph *graph, IAGGraphTraceOptions trace_options, std::span<const char *> subsystems);
+    TraceRecorder(Graph *graph, IAGGraphTraceFlags trace_flags, std::span<const char *> subsystems);
     ~TraceRecorder();
 
     uint64_t id() { return _id; };

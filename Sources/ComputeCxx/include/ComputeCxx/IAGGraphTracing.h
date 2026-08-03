@@ -3,14 +3,14 @@
 #include <ComputeCxx/IAGBase.h>
 #include <ComputeCxx/IAGGraph.h>
 
-typedef IAG_OPTIONS(uint32_t, IAGGraphTraceOptions) {
-    IAGGraphTraceOptionsEnabled = 1 << 0,
-    IAGGraphTraceOptionsFull = 1 << 1,
-    IAGGraphTraceOptionsBacktrace = 1 << 2,
-    IAGGraphTraceOptionsPrepare = 1 << 3,
-    IAGGraphTraceOptionsCustom = 1 << 4,
-    IAGGraphTraceOptionsAll = 1 << 5,
-} IAG_SWIFT_NAME(IAGGraphRef.TraceOptions);
+typedef IAG_OPTIONS(uint32_t, IAGGraphTraceFlags) {
+    IAGGraphTraceFlagsEnabled = 1 << 0,
+    IAGGraphTraceFlagsFull = 1 << 1,
+    IAGGraphTraceFlagsBacktrace = 1 << 2,
+    IAGGraphTraceFlagsPrepare = 1 << 3,
+    IAGGraphTraceFlagsCustom = 1 << 4,
+    IAGGraphTraceFlagsAll = 1 << 5,
+} IAG_SWIFT_NAME(IAGGraphRef.TraceFlags);
 
 typedef struct IAGTraceType *IAGTraceTypeRef;
 
@@ -22,14 +22,14 @@ IAG_EXTERN_C_BEGIN
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphStartTracing(IAGGraphRef _Nullable graph, IAGGraphTraceOptions trace_options)
-    IAG_SWIFT_NAME(IAGGraphRef.startTracing(_:options:));
+void IAGGraphStartTracing(IAGGraphRef _Nullable graph, IAGGraphTraceFlags trace_flags)
+    IAG_SWIFT_NAME(IAGGraphRef.startTracing(_:flags:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphStartTracing2(IAGGraphRef _Nullable graph, IAGGraphTraceOptions trace_options,
+void IAGGraphStartTracing2(IAGGraphRef _Nullable graph, IAGGraphTraceFlags trace_flags,
                           CFArrayRef _Nullable subsystems)
-    IAG_SWIFT_NAME(IAGGraphRef.startTracing(_:options:subsystems:));
+    IAG_SWIFT_NAME(IAGGraphRef.startTracing(_:flags:subsystems:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

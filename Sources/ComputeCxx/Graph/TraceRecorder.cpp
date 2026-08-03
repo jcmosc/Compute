@@ -15,7 +15,7 @@
 
 namespace IAG {
 
-Graph::TraceRecorder::TraceRecorder(Graph *graph, IAGGraphTraceOptions trace_options, std::span<const char *> subsystems) {
+Graph::TraceRecorder::TraceRecorder(Graph *graph, IAGGraphTraceFlags trace_flags, std::span<const char *> subsystems) {
     // TODO: not implemented
 }
 

@@ -390,7 +390,7 @@ class Graph {
 
     // MARK: Trace
 
-    void start_tracing(IAGGraphTraceOptions trace_options, std::span<const char *> subsystems);
+    void start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *> subsystems);
     void stop_tracing();
     void sync_tracing();
     CFStringRef copy_trace_path();
@@ -400,7 +400,7 @@ class Graph {
     void add_trace(Trace *_Nullable trace);
     void remove_trace(uint64_t trace_id);
 
-    static void all_start_tracing(IAGGraphTraceOptions trace_options, std::span<const char *> span);
+    static void all_start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *> span);
     static void all_stop_tracing();
     static void all_sync_tracing();
     static CFStringRef all_copy_trace_path();

@@ -1,26 +1,135 @@
 #pragma once
 
+#include <uuid/uuid.h>
+
 #include <Utilities/HashTable.h>
+
+#include <ComputeCxx/IAGGraphTracing.h>
+#include <Utilities/FreeDeleter.h>
 
 #include "ComputeCxx/IAGBase.h"
 #include "ComputeCxx/IAGGraph.h"
+#include "Protobuf/Encoder.h"
 #include "Trace/Trace.h"
 
 IAG_ASSUME_NONNULL_BEGIN
 
 namespace IAG {
 
-class Graph::TraceRecorder : public Trace {
+class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
+  private:
+    Graph &_graph;
+    Encoder _encoder;
+    IAGGraphTraceFlags _trace_flags;
+
+    vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> _named_event_subsystems;
+    
+    util::Table<const uuid_t, uint64_t> _image_offset_cache;
+    uuid_t _stack_frame_uuid;
+
+    std::unique_ptr<const char, util::free_deleter> _trace_path = nullptr;
+    bool _trace_path_created = false;
+    
+    uint32_t _num_encoded_types = 1; // skip IAGAttributeNullType
+    uint32_t _num_encoded_keys = 0;
+
+    struct NamedEventInfo {
+        uint32_t event_id;
+        bool enabled;
+    };
+    vector<NamedEventInfo, 0, uint32_t> _named_event_infos;
+
   public:
-    TraceRecorder(Graph *graph, IAGGraphTraceFlags trace_flags, std::span<const char *> subsystems);
+    TraceRecorder(Graph &graph, IAGGraphTraceFlags trace_flags, std::span<const char *> subsystems);
     ~TraceRecorder();
 
-    uint64_t id() { return _id; };
+    const char *_Nullable trace_path() const { return _trace_path.get(); };
+    
+    // MARK: Delegate methods
 
-    const char *_Nullable trace_path() const {
-        // TODO: not implemented
-        return nullptr;
+    int flush_encoder(Encoder &encoder) override;
+    
+    // MARK: Top-level fields
+
+    void encode_event_begin();
+    void encode_event_end();
+    void encode_subgraph(const Subgraph &subgraph);
+    void encode_types();
+    void encode_keys();
+    void encode_stack();
+    void encode_named_event(uint64_t event_id, const char *event_name, const char *event_subsystem);
+    void encode_snapshot();
+
+    // MARK: Event fields
+    
+    enum class EventType : uint64_t {
+        Unknown = 0,
+
+        BeginTrace = 1,
+        EndTrace = 2,
+
+        BeginSubgraphUpdate = 3,
+        EndSubgraphUpdate = 4,
+        BeginNodeUpdate = 5,
+        EndNodeUpdate = 6,
+        BeginValueUpdate = 7,
+        EndValueUpdate = 8,
+        BeginGraphUpdate = 9,
+        EndGraphUpdate = 10,
+
+        BeginGraphInvalidation = 11,
+        EndGraphInvalidation = 12,
+
+        BeginModifyNode = 13,
+        EndModifyNode = 14,
+
+        BeginEvent = 15,
+        EndEvent = 16,
+
+        BeginSnapshot = 17,
+        EndSnapshot = 18,
+
+        GraphCreated = 32,
+        GraphDestroy = 33,
+        GraphNeedsUpdate = 34,
+
+        SubgraphCreated = 35,
+        SubgraphInvalidate = 36,
+        SubgraphAddChild = 37,
+        SubgraphRemoveChild = 38,
+
+        NodeAdded = 39,
+        NodeSetDirty = 40,
+        NodeSetPending = 41,
+        NodeSetValue = 42,
+        NodeMarkValue = 43,
+
+        IndirectNodeAdded = 44,
+        IndirectNodeSetSource = 45,
+        IndirectNodeSetDependency = 46,
+
+        NodeAddEdge = 47,
+        NodeRemoveEdge = 48,
+        NodeSetEdgePending = 49,
+
+        ProfileMark = 50,
+        LogMessage = 51,
+
+        CustomEvent = 52,
+        SubgraphDestroy = 53,
+        NamedEvent = 54,
+        SetDeadline = 55,
+        PassedDeadline = 56
     };
+
+    void field_event_type(Encoder &encoder, EventType event_type);
+    void field_timestamp(Encoder &encoder);
+    void field_payload_1(Encoder &encoder, uint64_t payload);
+    void field_payload_2(Encoder &encoder, uint64_t payload);
+    void field_payload_3(Encoder &encoder, uint64_t payload);
+    void field_backtrace(Encoder &encoder);
+    void field_data(Encoder &encoder, const void *data, size_t length);
+    void field_named_event_id(Encoder &encoder, uint32_t event_id);
 
     // MARK: Trace methods
 

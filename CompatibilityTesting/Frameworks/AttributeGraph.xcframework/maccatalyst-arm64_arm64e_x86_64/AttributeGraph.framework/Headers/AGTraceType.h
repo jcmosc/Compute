@@ -3,6 +3,7 @@
 #include <AttributeGraph/AGBase.h>
 #include <AttributeGraph/AGGraph.h>
 #include <AttributeGraph/AGSubgraph.h>
+#include <AttributeGraph/AGGraphTracing.h>
 
 AG_ASSUME_NONNULL_BEGIN
 
@@ -25,7 +26,7 @@ typedef struct AG_SWIFT_NAME(TraceType) AGTraceType {
     void (*_Nullable begin_subgraph_update)(void *_Nullable context, AGSubgraphRef subgraph, uint32_t options);
     void (*_Nullable end_subgraph_update)(void *_Nullable context, AGSubgraphRef subgraph);
     void (*_Nullable begin_node_update)(void *_Nullable context, AGAttribute attribute);
-    void (*_Nullable end_node_update)(void *_Nullable context, bool changed);
+    void (*_Nullable end_node_update)(void *_Nullable context, AGAttribute attribute, bool changed);
     void (*_Nullable begin_value_update)(void *_Nullable context, AGAttribute attribute);
     void (*_Nullable end_value_update)(void *_Nullable context, AGAttribute attribute, bool changed);
     void (*_Nullable begin_graph_update)(void *_Nullable context, AGGraphRef graph);
@@ -51,12 +52,12 @@ typedef struct AG_SWIFT_NAME(TraceType) AGTraceType {
 
     void (*_Nullable node_added)(void *_Nullable context, AGAttribute attribute);
     void (*_Nullable node_add_edge)(void *_Nullable context, AGAttribute attribute, AGAttribute input, AGInputOptions input_options);
-    void (*_Nullable node_remove_edge)(void *_Nullable context, AGAttribute attribute, uint32_t index);
-    void (*_Nullable node_set_edge_pending)(void *_Nullable context, AGAttribute attribute, AGAttribute input, bool pending);
+    void (*_Nullable node_remove_edge)(void *_Nullable context, AGAttribute attribute, uint32_t input_index);
+    void (*_Nullable node_set_edge_pending)(void *_Nullable context, AGAttribute attribute, uint32_t input_index, bool pending);
 
     void (*_Nullable node_set_dirty)(void *_Nullable context, AGAttribute attribute, bool dirty);
     void (*_Nullable node_set_pending)(void *_Nullable context, AGAttribute attribute, bool pending);
-    void (*_Nullable node_set_value)(void *_Nullable context, AGAttribute attribute);
+    void (*_Nullable node_set_value)(void *_Nullable context, AGAttribute attribute, const void *value);
     void (*_Nullable node_mark_value)(void *_Nullable context, AGAttribute attribute);
 
     void (*_Nullable indirect_node_added)(void *_Nullable context, AGAttribute attribute);
@@ -67,9 +68,9 @@ typedef struct AG_SWIFT_NAME(TraceType) AGTraceType {
 
     void (*_Nullable custom_event)(void *_Nullable context, AGGraphRef graph, const char *event_name, const void *value,
                                    AGTypeID type);
-    void (*_Nullable named_event)(void *_Nullable context, AGGraphRef graph, uint32_t eventID, uint32_t eventArgCount,
-                                  const void *eventArgs, CFDataRef data, uint32_t arg6);
-    bool (*_Nullable named_event_enabled)(void *_Nullable context);
+    void (*_Nullable named_event)(void *_Nullable context, AGGraphRef graph, AGNamedTraceEventID event_id, uint32_t event_arg_count,
+                                  const void **event_args, CFDataRef data, uint32_t arg6);
+    bool (*_Nullable named_event_enabled)(void *_Nullable context, AGNamedTraceEventID event_id);
 
     void (*_Nullable set_deadline)(void *_Nullable context);
     void (*_Nullable passed_deadline)(void *_Nullable context);

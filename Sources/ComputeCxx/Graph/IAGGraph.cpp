@@ -965,14 +965,14 @@ CFStringRef IAGGraphCopyTracePath(IAGGraphRef graph) {
     return graph_context->graph().copy_trace_path();
 }
 
-uint64_t IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
+IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     auto external_trace = new ExternalTrace(trace, context);
     graph_context->graph().add_trace(external_trace);
     return external_trace->id();
 }
 
-void IAGGraphRemoveTrace(IAGGraphRef graph, uint64_t trace_id) {
+void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(trace_id);
 }

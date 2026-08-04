@@ -2,6 +2,7 @@
 
 #include <ComputeCxx/IAGBase.h>
 #include <ComputeCxx/IAGGraph.h>
+#include <ComputeCxx/IAGUniqueID.h>
 
 typedef IAG_OPTIONS(uint32_t, IAGGraphTraceFlags) {
     IAGGraphTraceFlagsEnabled = 1 << 0,
@@ -45,12 +46,12 @@ CFStringRef IAGGraphCopyTracePath(IAGGraphRef graph) IAG_SWIFT_NAME(getter:IAGGr
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-uint64_t IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *_Nullable context)
+IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *_Nullable context)
     IAG_SWIFT_NAME(IAGGraphRef.addTrace(self:_:context:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphRemoveTrace(IAGGraphRef graph, uint64_t trace_id) IAG_SWIFT_NAME(IAGGraphRef.removeTrace(self:traceID:));
+void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id) IAG_SWIFT_NAME(IAGGraphRef.removeTrace(self:traceID:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

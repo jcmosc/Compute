@@ -21,10 +21,10 @@ class Subgraph;
 
 class Trace {
   protected:
-    uint64_t _id;
+    IAGUniqueID _id;
 
   public:
-    uint64_t id() { return _id; }
+    IAGUniqueID id() { return _id; }
 
     Trace() : _id(IAGMakeUniqueID()) {};
     Trace(uint64_t id) : _id(id) {};

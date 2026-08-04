@@ -82,7 +82,7 @@ void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void *event_args,
+void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void **event_args,
                                CFDataRef data, uint32_t arg6)
     IAG_SWIFT_NAME(IAGGraphRef.addNamedTraceEvent(self:eventID:eventArgCount:eventArgs:data:arg6:));
 

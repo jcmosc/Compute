@@ -1018,7 +1018,7 @@ void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void
     });
 }
 
-void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void *event_args,
+void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void **event_args,
                                CFDataRef data, uint32_t arg6) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().foreach_trace(

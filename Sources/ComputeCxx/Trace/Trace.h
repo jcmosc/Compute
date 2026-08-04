@@ -76,7 +76,7 @@ class Trace {
 
     virtual void add_edge(data::ptr<Node> node, AttributeID input, IAGInputOptions input_options) {};
     virtual void remove_edge(data::ptr<Node> node, uint32_t input_index) {};
-    virtual void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) {};
+    virtual void set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending) {};
 
     virtual void set_dirty(data::ptr<Node> node, bool dirty) {};
     virtual void set_pending(data::ptr<Node> node, bool pending) {};
@@ -97,7 +97,7 @@ class Trace {
     virtual void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                               const swift::metadata &type) {};
     virtual void named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                             const void *event_args, CFDataRef data, uint32_t arg6) {};
+                             const void **event_args, CFDataRef data, uint32_t arg6) {};
     virtual bool named_event_enabled(IAGNamedTraceEventID event_id) { return false; };
 
     virtual void compare_failed(data::ptr<Node> node, const void *lhs, const void *rhs, size_t range_offset,

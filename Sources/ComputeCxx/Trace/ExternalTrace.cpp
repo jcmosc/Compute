@@ -47,7 +47,7 @@ void ExternalTrace::begin_update(const IAG::Graph::UpdateStack &update_stack, IA
 void ExternalTrace::end_update(const IAG::Graph::UpdateStack &update_stack, IAG::data::ptr<IAG::Node> node,
                                IAGGraphUpdateStatus update_status) {
     if (auto callback = _trace->end_node_update) {
-        callback(_context, update_status == IAGGraphUpdateStatusChanged);
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), update_status == IAGGraphUpdateStatusChanged);
     }
 }
 
@@ -194,10 +194,10 @@ void ExternalTrace::remove_edge(IAG::data::ptr<IAG::Node> node, uint32_t input_i
     }
 }
 
-void ExternalTrace::set_edge_pending(IAG::data::ptr<IAG::Node> node, IAG::AttributeID input, bool pending) {
+void ExternalTrace::set_edge_pending(IAG::data::ptr<IAG::Node> node, uint32_t input_index, bool pending) {
     if (auto callback = _trace->node_set_edge_pending) {
         if (IAG::AttributeID(node).subgraph()) {
-            callback(_context, IAGAttribute(IAG::AttributeID(node)), IAGAttribute(input), pending);
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), input_index, pending);
         }
     }
 }
@@ -216,7 +216,7 @@ void ExternalTrace::set_pending(IAG::data::ptr<IAG::Node> node, bool pending) {
 
 void ExternalTrace::set_value(IAG::data::ptr<IAG::Node> node, const void *value) {
     if (auto callback = _trace->node_set_value) {
-        callback(_context, IAGAttribute(IAG::AttributeID(node)));
+        callback(_context, IAGAttribute(IAG::AttributeID(node)), value);
     }
 }
 
@@ -234,7 +234,8 @@ void ExternalTrace::added(IAG::data::ptr<IAG::IndirectNode> indirect_node) {
 
 void ExternalTrace::set_source(IAG::data::ptr<IAG::IndirectNode> indirect_node, IAG::AttributeID source) {
     if (auto callback = _trace->indirect_node_set_source) {
-        callback(_context, IAGAttribute(IAG::AttributeID(indirect_node)), IAGAttribute(source)); // TODO: check sets kind
+        callback(_context, IAGAttribute(IAG::AttributeID(indirect_node)),
+                 IAGAttribute(source)); // TODO: check sets kind
     }
 }
 
@@ -263,8 +264,8 @@ void ExternalTrace::custom_event(const IAG::Graph::Context &context, const char 
     }
 }
 
-void ExternalTrace::named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                                const void *event_args, CFDataRef data, uint32_t arg6) {
+void ExternalTrace::named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id,
+                                uint32_t event_arg_count, const void **event_args, CFDataRef data, uint32_t arg6) {
     if (_trace->version < IAGTraceTypeVersionNamed) {
         return;
     }
@@ -279,7 +280,7 @@ bool ExternalTrace::named_event_enabled(IAGNamedTraceEventID event_id) {
         return false;
     }
     if (auto callback = _trace->named_event_enabled) {
-        return callback(_context);
+        return callback(_context, event_id);
     }
     return _trace->named_event != nullptr;
 }
@@ -302,8 +303,8 @@ void ExternalTrace::passed_deadline() {
     }
 }
 
-void ExternalTrace::compare_failed(IAG::data::ptr<IAG::Node> node, const void *lhs, const void *rhs, size_t range_offset,
-                                   size_t range_size, const IAG::swift::metadata *_Nullable type) {
+void ExternalTrace::compare_failed(IAG::data::ptr<IAG::Node> node, const void *lhs, const void *rhs,
+                                   size_t range_offset, size_t range_size, const IAG::swift::metadata *_Nullable type) {
     if (_trace->version < IAGTraceTypeVersionCompareFailed) {
         return;
     }

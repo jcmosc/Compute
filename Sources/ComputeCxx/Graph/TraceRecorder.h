@@ -67,7 +67,7 @@ class Graph::TraceRecorder : public Trace {
 
     void add_edge(data::ptr<Node> node, AttributeID input, IAGInputOptions input_options) override;
     void remove_edge(data::ptr<Node> node, uint32_t input_index) override;
-    void set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) override;
+    void set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending) override;
 
     void set_dirty(data::ptr<Node> node, bool dirty) override;
     void set_pending(data::ptr<Node> node, bool pending) override;
@@ -87,8 +87,8 @@ class Graph::TraceRecorder : public Trace {
 
     void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                       const swift::metadata &type) override;
-    void named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void *event_args,
-                     CFDataRef data, uint32_t arg6) override;
+    void named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
+                     const void **event_args, CFDataRef data, uint32_t arg6) override;
     bool named_event_enabled(IAGNamedTraceEventID event_id) override;
 
     // compare_failed not overridden

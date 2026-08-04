@@ -65,7 +65,7 @@ class ExternalTrace : public IAG::Trace {
 
     void add_edge(IAG::data::ptr<IAG::Node> node, IAG::AttributeID input, IAGInputOptions input_options) override;
     void remove_edge(IAG::data::ptr<IAG::Node> node, uint32_t input_index) override;
-    void set_edge_pending(IAG::data::ptr<IAG::Node> node, IAG::AttributeID input, bool pending) override;
+    void set_edge_pending(IAG::data::ptr<IAG::Node> node, uint32_t input_index, bool pending) override;
 
     void set_dirty(IAG::data::ptr<IAG::Node> node, bool dirty) override;
     void set_pending(IAG::data::ptr<IAG::Node> node, bool pending) override;
@@ -82,7 +82,7 @@ class ExternalTrace : public IAG::Trace {
     void custom_event(const IAG::Graph::Context &context, const char *event_name, const void *value,
                       const IAG::swift::metadata &type) override;
     void named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                     const void *event_args, CFDataRef data, uint32_t arg6) override;
+                     const void **event_args, CFDataRef data, uint32_t arg6) override;
     bool named_event_enabled(IAGNamedTraceEventID event_id) override;
 
     void set_deadline(uint64_t deadline) override;

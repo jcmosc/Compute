@@ -1037,7 +1037,7 @@ void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exc
     }
 
     if (filename == nullptr) {
-        filename = "graph.ag-gzon";
+        filename = "graph.iag-gzon";
     }
 
     NSData *data = [NSJSONSerialization dataWithJSONObject:json options:0 error:nil];
@@ -1048,7 +1048,7 @@ void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exc
     }
 
     NSError *error = nil;
-    if ([[path pathExtension] isEqualToString:@"ag-gzon"]) {
+    if ([[path pathExtension] isEqualToString:@"iag-gzon"]) {
         // Disassembly writes compressed data directly using gzwrite instead of creating an intermediate NSData object
         data = [data compressedDataUsingAlgorithm:NSDataCompressionAlgorithmZlib error:&error];
         if (!data) {

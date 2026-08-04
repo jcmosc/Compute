@@ -1883,18 +1883,14 @@ void Graph::start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *
         return;
     }
 
-    _trace_recorder = new TraceRecorder(this, trace_flags, subsystems);
+    _trace_recorder = new TraceRecorder(*this, trace_flags, subsystems);
     if (trace_flags & IAGGraphTraceFlagsPrepare) {
         prepare_trace(*_trace_recorder);
     }
     add_trace(_trace_recorder);
 
     static platform_once_t cleanup;
-    platform_once(&cleanup, []() {
-        atexit([]() {
-            Graph::trace_assertion_failure(true, "process exiting");
-        });
-    });
+    platform_once(&cleanup, []() { atexit([]() { Graph::trace_assertion_failure(true, "process exiting"); }); });
 }
 
 void Graph::stop_tracing() {

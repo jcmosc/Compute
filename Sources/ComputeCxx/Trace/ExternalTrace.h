@@ -20,7 +20,7 @@ class ExternalTrace : public IAG::Trace {
 
   public:
     ExternalTrace(IAGTraceTypeRef trace, void *context) : _trace(trace), _context(context) {};
-    ExternalTrace(uint64_t id, const IAGTraceTypeRef trace, void *context)
+    ExternalTrace(IAGUniqueID id, const IAGTraceTypeRef trace, void *context)
         : IAG::Trace(id), _trace(trace), _context(context) {};
 
     void graph_destroyed() override;

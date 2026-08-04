@@ -399,7 +399,7 @@ class Graph {
     void prepare_trace(Trace &trace);
 
     void add_trace(Trace *_Nullable trace);
-    void remove_trace(uint64_t trace_id);
+    void remove_trace(IAGUniqueID trace_id);
 
     static void all_start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *> span);
     static void all_stop_tracing();

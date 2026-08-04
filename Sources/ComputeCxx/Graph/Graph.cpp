@@ -1998,7 +1998,7 @@ void Graph::add_trace(Trace *_Nullable trace) {
     _traces.push_back(trace);
 }
 
-void Graph::remove_trace(uint64_t trace_id) {
+void Graph::remove_trace(IAGUniqueID trace_id) {
     auto iter = std::remove_if(_traces.begin(), _traces.end(),
                                [&trace_id](auto trace) -> bool { return trace->id() == trace_id; });
     if (iter) {

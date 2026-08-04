@@ -43,6 +43,22 @@
 #define AG_INLINE static inline
 #endif
 
+#ifndef AG_NOINLINE
+#if __has_attribute(noinline)
+#define AG_NOINLINE __attribute__((noinline))
+#else
+#define AG_NOINLINE
+#endif
+#endif
+
+#ifndef AG_OPTNONE
+#if __has_attribute(optnone)
+#define AG_OPTNONE __attribute__((optnone))
+#else
+#define AG_OPTNONE
+#endif
+#endif
+
 #ifndef AG_RETURNS_RETAINED
 #if __has_feature(attribute_cf_returns_retained)
 #define AG_RETURNS_RETAINED __attribute__((cf_returns_retained))

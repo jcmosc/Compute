@@ -3,6 +3,7 @@
 #include "ComputeCxx/IAGBase.h"
 
 #include <memory>
+#include <ranges>
 #include <span>
 
 #if TARGET_OS_MAC
@@ -413,8 +414,8 @@ class Graph {
     template <typename T>
         requires std::invocable<T, Trace &>
     void foreach_trace(T body) {
-        for (auto trace = _traces.rbegin(), end = _traces.rend(); trace != end; ++trace) {
-            body(**trace);
+        for (auto trace : std::ranges::reverse_view(_traces)) {
+            body(*trace);
         }
     };
 

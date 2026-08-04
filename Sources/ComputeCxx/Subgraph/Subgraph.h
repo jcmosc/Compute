@@ -16,6 +16,8 @@ struct IAGSubgraphStorage;
 
 namespace IAG {
 
+class Encoder;
+
 class SubgraphObject {
   private:
     IAGSubgraphStorage _storage;
@@ -226,6 +228,10 @@ class Subgraph : public data::zone {
 
     AttributeID tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index);
     Graph::TreeElementID tree_subgraph_child(Graph::TreeElementID tree_element);
+    
+    // MARK: Encoding
+    
+    void encode(Encoder &encoder) const;
 
     // MARK: Printing
 

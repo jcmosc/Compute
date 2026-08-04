@@ -15,6 +15,7 @@
 #include "Graph/UpdateStack.h"
 #include "IAGSubgraph-Private.h"
 #include "NodeCache.h"
+#include "Protobuf/Encoder.h"
 #include "Trace/Trace.h"
 
 namespace IAG {
@@ -1030,6 +1031,56 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
     }
 
     return first_tree_child;
+}
+
+#pragma mark - Encoding
+
+void Subgraph::encode(Encoder &encoder) const {
+    encoder.encode_field_varint(1, subgraph_id());
+    encoder.encode_field_varint(2, context_id());
+    for (auto parent : _parents) {
+        encoder.encode_field_varint(3, parent->subgraph_id());
+    }
+    for (auto child : _children) {
+        encoder.encode_field_varint(4, child.subgraph()->subgraph_id());
+    }
+    encoder.encode_field_varint(5, is_valid() ? 0 : 1);
+
+    for (uint32_t iteration = 0; iteration < 2; ++iteration) {
+        for (auto page : pages()) {
+            bool found_nil_attribute = false;
+            auto view = iteration == 0 ? const_attribute_view(page) : attribute_view(page);
+            for (auto attribute : view) {
+                if (auto node = attribute.get_node()) {
+                    encoder.encode_field_begin(6);
+                    encoder.encode_field_varint(1, attribute);
+                    encoder.encode_field_begin(2);
+                    graph()->encode_node(encoder, *node.get(), false);
+                    encoder.encode_field_end();
+                    encoder.encode_field_end();
+                } else if (auto indirect_node = attribute.get_indirect_node()) {
+                    encoder.encode_field_begin(6);
+                    encoder.encode_field_varint(1, attribute);
+                    encoder.encode_field_begin(3);
+                    graph()->encode_indirect_node(encoder, *indirect_node.get());
+                    encoder.encode_field_end();
+                    encoder.encode_field_end();
+                } else if (attribute.is_nil()) {
+                    found_nil_attribute = true;
+                    break;
+                }
+            }
+            if (found_nil_attribute) {
+                break;
+            }
+        }
+    }
+
+    if (_tree_root) {
+        encoder.encode_field_begin(7);
+        _graph->encode_tree(encoder, _tree_root);
+        encoder.encode_field_end();
+    }
 }
 
 #pragma mark - Printing

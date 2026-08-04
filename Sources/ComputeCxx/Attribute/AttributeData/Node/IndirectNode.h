@@ -87,6 +87,7 @@ class MutableIndirectNode : public IndirectNode {
     uint32_t initial_offset() { return _initial_offset; };
 
     data::vector<OutputEdge> &output_edges() { return _output_edges; };
+    const data::vector<OutputEdge> &output_edges() const { return _output_edges; };
 };
 
 } // namespace IAG

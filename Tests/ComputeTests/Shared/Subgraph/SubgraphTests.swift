@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import _ComputeTestSupport
 
 @Suite
 struct SubgraphTests {
@@ -181,49 +182,25 @@ struct SubgraphTests {
 
     @Suite
     struct TraceTests {
-        class TraceReporter {
-            var createdSubgraphCount = 0
-            var invalidateSubgraphCount = 0
-        }
-
         @Test
         func invalidateSubgraph() async throws {
-            var trace = TraceType()
-            trace.subgraph_created = { context, graph in
-                guard let reporter = context?.assumingMemoryBound(to: TraceReporter.self).pointee else {
-                    return
-                }
-                reporter.createdSubgraphCount += 1
-            }
-            trace.subgraph_destroy = { context, graph in
-                guard let reporter = context?.assumingMemoryBound(to: TraceReporter.self).pointee else {
-                    return
-                }
-                reporter.invalidateSubgraphCount += 1
-            }
-
-            var reporter = TraceReporter()
-
             let graph = Graph()
-
-            #expect(reporter.createdSubgraphCount == 0)
-            #expect(reporter.invalidateSubgraphCount == 0)
-
-            let _ = withUnsafeMutablePointer(to: &trace) { tracePointer in
-                withUnsafeMutablePointer(to: &reporter) { reporterPointer in
-                    graph.addTrace(tracePointer, context: reporterPointer)
-                }
-            }
+            
+            let testTrace = TestTrace()
+            testTrace.register(graph: graph)
+            
+            #expect(testTrace.events(of: .subgraphCreated).count == 0)
+            #expect(testTrace.events(of: .subgraphDestroy).count == 0)
 
             let subgraph = Subgraph(graph: graph)
 
-            #expect(reporter.createdSubgraphCount == 1)
-            #expect(reporter.invalidateSubgraphCount == 0)
+            #expect(testTrace.events(of: .subgraphCreated).count == 1)
+            #expect(testTrace.events(of: .subgraphDestroy).count == 0)
 
             subgraph.invalidate()
 
-            #expect(reporter.createdSubgraphCount == 1)
-            #expect(reporter.invalidateSubgraphCount == 1)
+            #expect(testTrace.events(of: .subgraphCreated).count == 1)
+            #expect(testTrace.events(of: .subgraphDestroy).count == 1)
         }
     }
 

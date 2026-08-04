@@ -290,7 +290,7 @@ void ExternalTrace::set_deadline(uint64_t deadline) {
         return;
     }
     if (auto callback = _trace->set_deadline) {
-        callback(_context);
+        callback(_context, deadline);
     }
 }
 

@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y libssl-dev
+          apt-get install -y libssl-dev uuid-dev
       - uses: actions/checkout@v6
         with:
           submodules: true

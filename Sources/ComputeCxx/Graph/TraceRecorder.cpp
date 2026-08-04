@@ -5,7 +5,7 @@
 #include <execinfo.h>
 #include <fcntl.h>
 #include <uuid/uuid.h>
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && TARGET_OS_OSX
 #include <mach/mach_vm.h>
 #endif
 #include <ptrauth.h>
@@ -289,7 +289,7 @@ void Graph::TraceRecorder::field_backtrace(Encoder &encoder) {
         return;
     }
 
-    #if TARGET_OS_MAC
+    #if TARGET_OS_MAC && TARGET_OS_OSX
     void *stack_frames_buffer[8];
     int stack_frames_size = backtrace(stack_frames_buffer, std::size(stack_frames_buffer));
     

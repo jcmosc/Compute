@@ -6,7 +6,7 @@ AG_ASSUME_NONNULL_BEGIN
 
 AG_EXTERN_C_BEGIN
 
-typedef long AGUniqueID;
+typedef long AGUniqueID AG_SWIFT_NAME(UniqueID);
 
 AGUniqueID AGMakeUniqueID(void) AG_SWIFT_NAME(makeUniqueID());
 

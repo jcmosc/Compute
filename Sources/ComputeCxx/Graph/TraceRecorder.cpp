@@ -147,7 +147,7 @@ void Graph::TraceRecorder::remove_edge(data::ptr<Node> node, uint32_t input_inde
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node, AttributeID input, bool pending) {
+void Graph::TraceRecorder::set_edge_pending(data::ptr<Node> node, uint32_t input_index, bool pending) {
     // TODO: not implemented
 }
 
@@ -196,8 +196,9 @@ void Graph::TraceRecorder::custom_event(const Graph::Context &context, const cha
     // TODO: not implemented
 }
 
-void Graph::TraceRecorder::named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                                       const void *event_args, CFDataRef data, uint32_t arg6) {
+void Graph::TraceRecorder::named_event(const Graph::Context &context, IAGNamedTraceEventID event_id,
+                                       uint32_t event_arg_count, const void **event_args, CFDataRef data,
+                                       uint32_t arg6) {
     // TODO: not implemented
 }
 

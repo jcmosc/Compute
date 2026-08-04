@@ -12,7 +12,7 @@
             "ppa": "false"
 		},
 		"ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
-            "packages": "libssl-dev"
+            "packages": "libssl-dev,uuid-dev"
         }
     },
     "runArgs": [

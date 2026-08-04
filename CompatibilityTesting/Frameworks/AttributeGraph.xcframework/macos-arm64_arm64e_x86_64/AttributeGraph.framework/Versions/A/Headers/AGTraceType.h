@@ -15,9 +15,9 @@ typedef AG_ENUM(uint64_t, AGTraceTypeVersion) {
     AGTraceTypeVersionNamed = 2,
     AGTraceTypeVersionDeadline = 3,
     AGTraceTypeVersionCompareFailed = 4,
-};
+} AG_SWIFT_NAME(Graph.TraceType.Version);
 
-typedef struct AG_SWIFT_NAME(TraceType) AGTraceType {
+typedef struct AG_SWIFT_NAME(Graph.TraceType) AGTraceType {
     AGTraceTypeVersion version;
 
     void (*_Nullable begin_trace)(void *_Nullable context, AGGraphRef graph);
@@ -72,7 +72,7 @@ typedef struct AG_SWIFT_NAME(TraceType) AGTraceType {
                                   const void **event_args, CFDataRef data, uint32_t arg6);
     bool (*_Nullable named_event_enabled)(void *_Nullable context, AGNamedTraceEventID event_id);
 
-    void (*_Nullable set_deadline)(void *_Nullable context);
+    void (*_Nullable set_deadline)(void *_Nullable context, uint64_t deadline);
     void (*_Nullable passed_deadline)(void *_Nullable context);
 
     void (*_Nullable compare_failed)(void *_Nullable context, AGAttribute attribute, AGComparisonState comparisonState);

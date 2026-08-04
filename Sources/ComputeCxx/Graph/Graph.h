@@ -27,6 +27,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 namespace IAG {
 
+class Encoder;
 class Trace;
 
 class Graph {
@@ -210,7 +211,7 @@ class Graph {
 
     bool has_tree_data() const { return _tree_data_elements_by_subgraph != nullptr; };
 
-    TreeDataElement *_Nullable tree_data_element_for_subgraph(Subgraph *subgraph) {
+    TreeDataElement *_Nullable tree_data_element_for_subgraph(Subgraph *subgraph) const {
         if (!_tree_data_elements_by_subgraph) {
             return nullptr;
         }
@@ -421,6 +422,12 @@ class Graph {
 
     uint32_t intern_key(const char *key);
     const char *key_name(uint32_t key_id) const;
+    
+    // MARK: Encoding
+    
+    void encode_node(Encoder &encoder, const Node &node, bool encode_value) const;
+    void encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node) const;
+    void encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) const;
 
     // MARK: Printing
 

@@ -25,6 +25,7 @@
 #include "Context.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
+#include "Protobuf/Encoder.h"
 #include "Subgraph/Subgraph.h"
 #include "TraceRecorder.h"
 #include "UpdateStack.h"
@@ -2079,6 +2080,116 @@ const char *Graph::key_name(uint32_t key_id) const {
         return _keys->get(key_id);
     }
     IAG::precondition_failure("invalid string key id: %u", key_id);
+}
+
+#pragma mark - Encoding
+
+void Graph::encode_node(Encoder &encoder, const Node &node, bool encode_value) const {
+    encoder.encode_field_varint(1, node.type_id());
+    if (encode_value) {
+        auto type = attribute_type(node.type_id());
+        void *value = node.get_value();
+        if (node.is_value_initialized()) {
+            void *value = node.get_value();
+#if TARGET_OS_MAC
+            if (auto description = type.value_description(value)) {
+                uint64_t length = CFStringGetLength(description);
+                CFRange range = CFRangeMake(0, length);
+                uint8_t buffer[1024];
+                CFIndex used_buffer_length = 0;
+                CFStringGetBytes(description, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024,
+                                 &used_buffer_length);
+                encoder.encode_field_data(2, buffer, used_buffer_length);
+            }
+#else
+            if (auto description = type.copy_value_description(value)) {
+                uint64_t length = CFStringGetLength(description);
+                CFRange range = CFRangeMake(0, length);
+                uint8_t buffer[1024];
+                CFIndex used_buffer_length = 0;
+                CFStringGetBytes(description, range, kCFStringEncodingUTF8, 0x3f, true, buffer, 1024,
+                                 &used_buffer_length);
+                encoder.encode_field_data(2, buffer, used_buffer_length);
+                CFRelease(description);
+            }
+#endif
+        }
+    }
+    for (auto input_edge : node.input_edges()) {
+        encoder.encode_field_begin(3);
+        encoder.encode_field_varint(1, input_edge.attribute);
+        encoder.encode_field_varint(2, input_edge.options & IAGInputOptionsUnprefetched ? 1 : 0);
+        encoder.encode_field_varint(3, input_edge.options & IAGInputOptionsSyncMainRef ? 1 : 0);
+        encoder.encode_field_varint(4, input_edge.options & IAGInputOptionsAlwaysEnabled ? 1 : 0);
+        encoder.encode_field_varint(5, input_edge.options & IAGInputOptionsChanged ? 1 : 0);
+        encoder.encode_field_varint(6, input_edge.options & IAGInputOptionsEnabled ? 1 : 0);
+        encoder.encode_field_end();
+    }
+    for (auto output_edge : node.output_edges()) {
+        encoder.encode_field_begin(4);
+        encoder.encode_field_varint(1, output_edge.attribute);
+        encoder.encode_field_end();
+    }
+    encoder.encode_field_varint(5, node.is_dirty());
+    encoder.encode_field_varint(6, node.is_pending());
+    encoder.encode_field_varint(7, node.is_updating());
+    encoder.encode_field_varint(8, node.subgraph_flags());
+    encoder.encode_field_varint(9, node.is_main_thread());
+    encoder.encode_field_varint(10, node.requires_main_thread());
+    encoder.encode_field_varint(11, node.is_main_ref());
+    encoder.encode_field_varint(12, node.is_value_initialized());
+    encoder.encode_field_varint(13, node.is_self_initialized());
+    encoder.encode_field_varint(14, node.is_cached());
+    encoder.encode_field_varint(15, node.is_self_modified());
+}
+
+void Graph::encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node) const {
+    encoder.encode_field_varint(1, indirect_node.source().identifier());
+    encoder.encode_field_varint(2, indirect_node.source().identifier().subgraph()->subgraph_id());
+    encoder.encode_field_varint(3, indirect_node.offset());
+    auto size = indirect_node.size();
+    if (size.has_value()) {
+        encoder.encode_field_varint(4, size.value());
+    }
+    if (indirect_node.is_mutable()) {
+        encoder.encode_field_varint(5, indirect_node.to_mutable().dependency());
+        for (auto output_edge : indirect_node.to_mutable().output_edges()) {
+            encoder.encode_field_begin(6);
+            encoder.encode_field_varint(1, output_edge.attribute);
+            encoder.encode_field_end();
+        }
+    }
+}
+
+void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) const {
+    encoder.encode_field_varint(2, tree->value);
+    encoder.encode_field_varint(3, tree->flags);
+    for (auto child = tree->first_child; child != nullptr; child = child->next_sibling) {
+        encoder.encode_field_begin(4);
+        encode_tree(encoder, child);
+        encoder.encode_field_end();
+    }
+    for (auto value = tree->first_value; value != nullptr; value = value->next) {
+        encoder.encode_field_begin(5);
+        encoder.encode_field_varint(2, value->value);
+        encoder.encode_field_varint(3, value->key_id);
+        encoder.encode_field_varint(4, value->flags);
+        encoder.encode_field_end();
+    }
+
+    Subgraph *subgraph = reinterpret_cast<Subgraph *>(tree.page_ptr()->zone);
+    if (auto tree_data = tree_data_element_for_subgraph(subgraph)) {
+        auto &nodes = tree_data->nodes();
+        std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found =
+            std::find_if(nodes.begin(), nodes.end(), [&tree](auto node) { return node.first == tree; });
+
+        for (auto node = found; node != nodes.end(); ++node) {
+            if (node->first != tree) {
+                break;
+            }
+            encoder.encode_field_varint(6, node->second.offset());
+        }
+    }
 }
 
 #pragma mark - Printing

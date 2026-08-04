@@ -153,6 +153,7 @@ class Node {
     void set_self_modified(bool value) { _self_modified = value; }
 
     data::vector<InputEdge> &input_edges() { return _input_edges; };
+    const data::vector<InputEdge> &input_edges() const { return _input_edges; };
     uint32_t insert_input_edge(data::zone *subgraph, InputEdge &input_edge) {
         if (_needs_sort_input_edges) {
             _input_edges.push_back(subgraph, input_edge);
@@ -166,6 +167,7 @@ class Node {
     void remove_input_edge(uint32_t index) { _input_edges.erase(_input_edges.begin() + index); }
 
     data::vector<OutputEdge> &output_edges() { return _output_edges; };
+    const data::vector<OutputEdge> &output_edges() const { return _output_edges; };
 
     void *get_self(const AttributeType &type) const;
     void update_self(const Graph &graph, const void *new_self);

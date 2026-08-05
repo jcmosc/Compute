@@ -47,7 +47,6 @@ extension Graph {
 func IAGGraphSetOutputValue(_ value: UnsafeRawPointer, of type: Metadata)
 
 extension Graph {
-
     @inline(__always)
     @inlinable
     public static func setOutputValue<Value>(_ value: UnsafePointer<Value>) {
@@ -57,16 +56,13 @@ extension Graph {
     @_transparent
     @inline(__always)
     public var mainUpdates: Int { numericCast(counter(for: .mainThreadUpdates)) }
-
 }
 
 extension Graph {
-
     @_transparent
     public static func anyInputsChanged(excluding excludedAttributes: [AnyAttribute]) -> Bool {
         return __IAGGraphAnyInputsChanged(excludedAttributes, excludedAttributes.count)
     }
-
 }
 
 @_silgen_name("IAGGraphSetUpdateCallback")
@@ -89,7 +85,6 @@ func IAGGraphWithMainThreadHandler(
 )
 
 extension Graph {
-
     public func onUpdate(_ handler: @escaping () -> Void) {
         IAGGraphSetUpdateCallback(unsafeBitCast(self, to: UnsafeRawPointer.self), callback: handler)
     }
@@ -128,11 +123,9 @@ extension Graph {
             mainThreadHandler: mainThreadHandler
         )
     }
-
 }
 
 extension Graph {
-
     public static func startProfiling(_ graph: Graph?) {
         fatalError("not implemented")
     }
@@ -149,23 +142,21 @@ extension Graph {
     public static func resetProfile() {
         fatalError("not implemented")
     }
-
 }
 
 extension Graph {
-
-    public func addTraceEvent<T>(_ event: UnsafePointer<Int8>, value: T) {
-        fatalError("not implemented")
+    public func addTraceEvent<Value>(_ event: UnsafePointer<Int8>, value: Value) {
+        withUnsafePointer(to: value) { valuePointer in
+            self.addTraceEvent(name: event, value: valuePointer, type: Metadata(Value.self))
+        }
     }
 
-    public func addTraceEvent<T>(_ event: UnsafePointer<Int8>, context: UnsafePointer<T>) {
-        fatalError("not implemented")
+    public func addTraceEvent<Value>(_ event: UnsafePointer<Int8>, context: UnsafePointer<Value>) {
+        self.addTraceEvent(name: event, value: context, type: Metadata(Value.self))
     }
-
 }
 
 extension Graph {
-
     public func print(includeValues: Bool) {
         fatalError("not implemented")
     }
@@ -185,5 +176,4 @@ extension Graph {
     public static func stackDescription(maxFrames: Int) -> String {
         fatalError("not implemented")
     }
-
 }

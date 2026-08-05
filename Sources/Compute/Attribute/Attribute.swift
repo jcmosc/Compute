@@ -90,11 +90,11 @@ public struct Attribute<Value> {
         identifier.mutateBody(as: bodyType, invalidating: invalidating, mutator)
     }
 
-    public func addInput<T>(_ input: Attribute<T>, options: IAGInputOptions, token: Int) {
+    public func addInput<T>(_ input: Attribute<T>, options: InputOptions, token: Int) {
         identifier.addInput(input, options: options, token: token)
     }
 
-    public func addInput(_ input: AnyAttribute, options: IAGInputOptions, token: Int) {
+    public func addInput(_ input: AnyAttribute, options: InputOptions, token: Int) {
         identifier.addInput(input, options: options, token: token)
     }
 

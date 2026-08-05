@@ -17,8 +17,8 @@ extension AttributeGraph.AnyAttribute {
   public func visitBody<Visitor>(_ visitor: inout Visitor) where Visitor : AttributeGraph.AttributeBodyVisitor
   public func mutateBody<Body>(as type: Body.Type, invalidating: Swift.Bool, _ mutator: (inout Body) -> Swift.Void)
   public func setFlags(_ newFlags: AttributeGraph.Subgraph.Flags, mask: AttributeGraph.Subgraph.Flags)
-  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.AGInputOptions, token: Swift.Int)
-  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.AGInputOptions, token: Swift.Int)
+  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.InputOptions, token: Swift.Int)
+  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.InputOptions, token: Swift.Int)
   public func unsafeOffset(at offset: Swift.Int) -> AttributeGraph.AnyAttribute
   public var indirectDependency: AttributeGraph.AnyAttribute? {
     get
@@ -71,8 +71,8 @@ extension AttributeGraph.AnyAttribute {
   public func setFlags(_ newFlags: AttributeGraph.Subgraph.Flags, mask: AttributeGraph.Subgraph.Flags)
   public func applying<Member>(offset: AttributeGraph.PointerOffset<Value, Member>) -> AttributeGraph.Attribute<Member>
   public func mutateBody<Body>(as bodyType: Body.Type, invalidating: Swift.Bool, _ mutator: (inout Body) -> Swift.Void)
-  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.AGInputOptions, token: Swift.Int)
-  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.AGInputOptions, token: Swift.Int)
+  public func addInput<T>(_ input: AttributeGraph.Attribute<T>, options: AttributeGraph.InputOptions, token: Swift.Int)
+  public func addInput(_ input: AttributeGraph.AnyAttribute, options: AttributeGraph.InputOptions, token: Swift.Int)
   public func breadthFirstSearch(options: AttributeGraph.SearchOptions, _ predicate: (AttributeGraph.AnyAttribute) -> Swift.Bool) -> Swift.Bool
   public func validate()
   public var value: Value {

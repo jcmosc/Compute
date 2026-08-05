@@ -13,7 +13,7 @@ typedef AG_OPTIONS(uint8_t, AGInputOptions) {
     AGInputOptionsAlwaysEnabled = 1 << 2,
     AGInputOptionsChanged = 1 << 3,
     AGInputOptionsEnabled = 1 << 4,
-};
+} AG_SWIFT_NAME(InputOptions);
 
 AG_EXTERN_C_END
 

@@ -54,11 +54,11 @@ extension AnyAttribute {
         flags = flags.subtracting(mask).union(newFlags.intersection(mask))
     }
 
-    public func addInput(_ input: AnyAttribute, options: IAGInputOptions, token: Int) {
+    public func addInput(_ input: AnyAttribute, options: InputOptions, token: Int) {
         addInput(input, options: options)
     }
 
-    public func addInput<T>(_ input: Attribute<T>, options: IAGInputOptions, token: Int) {
+    public func addInput<T>(_ input: Attribute<T>, options: InputOptions, token: Int) {
         addInput(input.identifier, options: options, token: token)
     }
 

@@ -13,7 +13,7 @@ typedef IAG_OPTIONS(uint8_t, IAGInputOptions) {
     IAGInputOptionsAlwaysEnabled = 1 << 2,
     IAGInputOptionsChanged = 1 << 3,
     IAGInputOptionsEnabled = 1 << 4,
-};
+} IAG_SWIFT_NAME(InputOptions);
 
 IAG_EXTERN_C_END
 

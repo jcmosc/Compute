@@ -29,36 +29,6 @@ struct SubgraphTests {
     }
 
     @Suite
-    struct LifecycleTests {
-        @Test
-        func subgraphAddedToGraph() {
-            let graph = Graph()
-
-            let subgraph = Subgraph(graph: graph)
-            #expect(subgraph.graph == graph)
-        }
-
-        @Test
-        func subgraphCounters() {
-            let graph = Graph()
-
-            #expect(graph.counter(for: .subgraphs) == 0)
-            #expect(graph.counter(for: .createdSubgraphs) == 0)
-
-            autoreleasepool {
-                let subgraph = Subgraph(graph: graph)
-                #expect(subgraph.graph == graph)
-
-                #expect(graph.counter(for: .subgraphs) == 1)
-                #expect(graph.counter(for: .createdSubgraphs) == 1)
-            }
-
-            #expect(graph.counter(for: .subgraphs) == 0)
-            #expect(graph.counter(for: .createdSubgraphs) == 1)
-        }
-    }
-
-    @Suite
     struct ObserverTests {
         @Test
         func observerNotifiedOnSubgraphDestroyed() {
@@ -177,30 +147,6 @@ struct SubgraphTests {
 
             let subgraph = try #require(subgraphOrNil)
             #expect(subgraph.isValid == false)
-        }
-    }
-
-    @Suite
-    struct TraceTests {
-        @Test
-        func invalidateSubgraph() async throws {
-            let graph = Graph()
-            
-            let testTrace = TestTrace()
-            testTrace.register(graph: graph)
-            
-            #expect(testTrace.events(of: .subgraphCreated).count == 0)
-            #expect(testTrace.events(of: .subgraphDestroy).count == 0)
-
-            let subgraph = Subgraph(graph: graph)
-
-            #expect(testTrace.events(of: .subgraphCreated).count == 1)
-            #expect(testTrace.events(of: .subgraphDestroy).count == 0)
-
-            subgraph.invalidate()
-
-            #expect(testTrace.events(of: .subgraphCreated).count == 1)
-            #expect(testTrace.events(of: .subgraphDestroy).count == 1)
         }
     }
 

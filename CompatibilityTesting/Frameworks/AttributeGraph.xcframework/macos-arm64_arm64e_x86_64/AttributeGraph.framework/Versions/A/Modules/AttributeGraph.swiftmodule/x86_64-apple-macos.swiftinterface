@@ -579,8 +579,8 @@ extension AttributeGraph.Graph {
   public static func resetProfile()
 }
 extension AttributeGraph.Graph {
-  public func addTraceEvent<T>(_ event: Swift.UnsafePointer<Swift.Int8>, value: T)
-  public func addTraceEvent<T>(_ event: Swift.UnsafePointer<Swift.Int8>, context: Swift.UnsafePointer<T>)
+  public func addTraceEvent<Value>(_ event: Swift.UnsafePointer<Swift.Int8>, value: Value)
+  public func addTraceEvent<Value>(_ event: Swift.UnsafePointer<Swift.Int8>, context: Swift.UnsafePointer<Value>)
 }
 extension AttributeGraph.Graph {
   public func print(includeValues: Swift.Bool)

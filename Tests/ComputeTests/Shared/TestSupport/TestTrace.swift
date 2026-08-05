@@ -1,6 +1,6 @@
 public class TestTrace {
-    var trace: UnsafeMutablePointer<Graph.TraceType>
-    var handle: (Graph, UniqueID)?
+    private var trace: UnsafeMutablePointer<Graph.TraceType>
+    private var handle: (Graph, UniqueID)?
 
     public func install(graph: Graph) {
         guard handle == nil else {

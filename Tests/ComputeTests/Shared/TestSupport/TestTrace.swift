@@ -139,7 +139,7 @@ public class TestTrace {
             } named_event: { ctx, graph, event_id, event_arg_count, event_args, data, flags in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
                 let eventArgs = event_args.map { pointer in
-                    Array<UInt32>(capacity: event_arg_count) { span in
+                    [UInt32](capacity: event_arg_count) { span in
                         for i in 0..<event_arg_count {
                             span.append(pointer.advanced(by: i).pointee)
                         }

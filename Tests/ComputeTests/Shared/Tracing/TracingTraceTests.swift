@@ -6,7 +6,7 @@ struct TracingTraceTests {
     struct BeginTraceTests {
         @Test
         func traceBeginTraceCalled() throws {
-            let graph = Graph()            
+            let graph = Graph()
 
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)

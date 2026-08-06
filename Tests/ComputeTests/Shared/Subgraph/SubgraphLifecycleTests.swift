@@ -10,14 +10,14 @@ struct SubgraphLifecycleTests {
             let subgraph = Subgraph(graph: graph)
             #expect(subgraph.graph == graph)
         }
-        
+
         @Test
         func graphCountersIncremented() {
             let graph = Graph()
-            
+
             #expect(graph.counter(for: .subgraphs) == 0)
             #expect(graph.counter(for: .createdSubgraphs) == 0)
-            
+
             let subgraph = Subgraph(graph: graph)
             withExtendedLifetime(subgraph) {
                 #expect(graph.counter(for: .subgraphs) == 1)
@@ -25,7 +25,7 @@ struct SubgraphLifecycleTests {
             }
         }
     }
-    
+
     @Suite
     struct SubgraphInvalidateTests {
         @Test
@@ -33,13 +33,13 @@ struct SubgraphLifecycleTests {
             await #expect(processExitsWith: .failure) {
                 let graph = Graph()
                 let subgraph = Subgraph(graph: graph)
-                
+
                 subgraph.invalidate()
-                
-                print(subgraph.graph) // will crash
+
+                print(subgraph.graph)  // will crash
             }
         }
-        
+
         @Test
         func graphCountersDecrementedOnSubgraphInvalidate() {
             let graph = Graph()
@@ -55,7 +55,7 @@ struct SubgraphLifecycleTests {
             }
         }
     }
-    
+
     @Suite
     struct SubgraphDestroyTests {
         // This really just tests that Subgraph.deinit was triggered
@@ -69,11 +69,11 @@ struct SubgraphLifecycleTests {
             }
             #expect(weakSubgraph == nil)
         }
-        
+
         @Test
         func graphCountersDecrementedOnSubgraphDeinit() {
             let graph = Graph()
-            
+
             #expect(graph.counter(for: .subgraphs) == 0)
             #expect(graph.counter(for: .createdSubgraphs) == 0)
 

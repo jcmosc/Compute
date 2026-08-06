@@ -19,7 +19,7 @@ struct TracingSubgraphLifecycleTests {
             #expect(subgraphCreatedEntries[0].subgraph == subgraph)
         }
     }
-    
+
     @Suite
     struct SubgraphInvalidateTests {
         @Test
@@ -39,7 +39,7 @@ struct TracingSubgraphLifecycleTests {
             #expect(subgraphDestroyEntries[0].subgraph == subgraph)
         }
     }
-    
+
     @Suite
     struct SubgraphDestroyTests {
         @Test
@@ -47,7 +47,7 @@ struct TracingSubgraphLifecycleTests {
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
-            
+
             #expect(recorder.history.subgraphDestroyEntries.count == 0)
 
             autoreleasepool {
@@ -55,10 +55,10 @@ struct TracingSubgraphLifecycleTests {
             }
 
             let subgraphDestroyEntries = recorder.history.subgraphDestroyEntries
-            #expect(subgraphDestroyEntries.count == 0) // Not called when Subgraph deinit is called
+            #expect(subgraphDestroyEntries.count == 0)  // Not called when Subgraph deinit is called
         }
     }
-    
+
     @Suite
     struct SubgraphAddChildTests {
         @Test
@@ -89,7 +89,7 @@ struct TracingSubgraphLifecycleTests {
             #expect(subgraphAddChildEntries[0].childSubgraph == childSubgraph)
         }
     }
-    
+
     @Suite
     struct SubgraphRemoveChildTests {
         @Test

@@ -9,7 +9,7 @@ struct TracingIndirectNodeLifecycleTests {
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
-            
+
             let subgraph = Subgraph(graph: graph)
             let source = subgraph.apply {
                 Attribute(value: 1)
@@ -34,7 +34,7 @@ struct TracingIndirectNodeLifecycleTests {
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
-            
+
             let subgraph = Subgraph(graph: graph)
             let indirect = subgraph.apply {
                 let source1 = Attribute(value: 1)
@@ -42,7 +42,7 @@ struct TracingIndirectNodeLifecycleTests {
             }
 
             try #require(recorder.history.indirectNodeSetSourceEntries.count == 0)
-            
+
             let source2 = subgraph.apply {
                 Attribute(value: 2)
             }
@@ -60,7 +60,7 @@ struct TracingIndirectNodeLifecycleTests {
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
-            
+
             let subgraph = Subgraph(graph: graph)
             let (indirect, source1) = subgraph.apply {
                 let source1 = Attribute(value: 1)
@@ -71,7 +71,7 @@ struct TracingIndirectNodeLifecycleTests {
             let source2 = subgraph.apply {
                 Attribute(value: 2)
             }
-            
+
             indirect.source = source2
             try #require(recorder.history.indirectNodeSetSourceEntries.count == 1)
 
@@ -91,7 +91,7 @@ struct TracingIndirectNodeLifecycleTests {
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
-            
+
             let subgraph = Subgraph(graph: graph)
             let indirect = subgraph.apply {
                 let source = Attribute(value: 1)

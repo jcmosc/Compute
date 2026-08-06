@@ -8,7 +8,7 @@ struct TracingNamedEventTests {
         @Test
         func traceNamedEventCalled() throws {
             let eventID = Graph.registerNamedTraceEvent(name: "test_event", subsystem: "test_subsystem")
-            
+
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
@@ -29,7 +29,7 @@ struct TracingNamedEventTests {
         @Test
         func traceNamedEventCalledWithData() throws {
             let eventID = Graph.registerNamedTraceEvent(name: "test_event_with_data", subsystem: "test_subsystem")
-            
+
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
@@ -45,7 +45,7 @@ struct TracingNamedEventTests {
             #expect(namedEventEntries[0].data == data)
             #expect(namedEventEntries[0].flags == [])
         }
-        
+
         @Test
         func traceNamedEventCalledWithEventArgs() throws {
             let eventID = Graph.registerNamedTraceEvent(name: "test_event_with_args", subsystem: "test_subsystem")
@@ -64,7 +64,7 @@ struct TracingNamedEventTests {
             #expect(namedEventEntries[0].data == nil)
             #expect(namedEventEntries[0].flags == [])
         }
-        
+
         @Test
         func traceNamedEventCalledWithFlags() throws {
             let eventID = Graph.registerNamedTraceEvent(name: "test_event_with_flags", subsystem: "test_subsystem")
@@ -83,7 +83,7 @@ struct TracingNamedEventTests {
             #expect(namedEventEntries[0].data == nil)
             #expect(namedEventEntries[0].flags == .init(rawValue: 7))
         }
-        
+
         @Test
         func traceNamedEventCalledWithRecordBacktraceFlag() throws {
             let eventID = Graph.registerNamedTraceEvent(name: "test_event_with_flags", subsystem: "test_subsystem")
@@ -102,7 +102,7 @@ struct TracingNamedEventTests {
             #expect(namedEventEntries[0].data == nil)
             #expect(namedEventEntries[0].flags == [.recordBacktrace, .init(rawValue: 7)])
         }
-        
+
         // `named_event_enabled` only affects built-in trace types such as the trace recorder.
         @Test
         func traceNamedEventCalledWhenNotEnabled() throws {
@@ -112,9 +112,9 @@ struct TracingNamedEventTests {
                     return false
                 }
             }
-            
+
             let eventID = Graph.registerNamedTraceEvent(name: "test_event_disabled", subsystem: "test_subsystem")
-            
+
             let graph = Graph()
             let recorder = DisabledEvents()
             recorder.install(graph: graph)
@@ -138,7 +138,7 @@ struct TracingNamedEventTests {
         @Test
         func traceNamedEventEnabledCalled() throws {
             let eventID = Graph.registerNamedTraceEvent(name: "test_event_enabled", subsystem: "test_subsystem")
-            
+
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)

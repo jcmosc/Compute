@@ -6,14 +6,14 @@ struct TracingGraphInvalidationTests {
         @Attribute var input: Int
         var value: Int { return input + 1 }
     }
-    
+
     @Suite
     struct BeginGraphInvalidationTests {
         // In order for `beginGraphInvalidation()` to be called:
         //   - The graph mush have an invalidation callback
         //   - The node's output edges must be non-empty
         //   - The node's inputs must traverse contexts
-        
+
         @Test
         func traceBeginGraphInvalidationCalled() throws {
             let globalGraph = Graph()
@@ -32,7 +32,7 @@ struct TracingGraphInvalidationTests {
                 let attribute = Attribute(TestRule(input: input))
                 return Attribute(TestRule(input: attribute))
             }
-            
+
             outputGraph.onInvalidation { _ in }
 
             // Establish node edges
@@ -47,7 +47,7 @@ struct TracingGraphInvalidationTests {
             #expect(beginGraphInvalidationEntries[0].graph == outputGraph)
             #expect(beginGraphInvalidationEntries[0].attribute == input.identifier)
         }
-        
+
         @Test
         func traceBeginGraphInvalidationNotCalledWhenNoInvalidationCallback() throws {
             let globalGraph = Graph()
@@ -66,9 +66,9 @@ struct TracingGraphInvalidationTests {
                 let attribute = Attribute(TestRule(input: input))
                 return Attribute(TestRule(input: attribute))
             }
-            
+
             // No invalidation callback
-            
+
             // establish node edges
             let _ = output.value
 
@@ -97,9 +97,9 @@ struct TracingGraphInvalidationTests {
                 Attribute(TestRule(input: input))
                 // No output edge
             }
-            
+
             outputGraph.onInvalidation { _ in }
-            
+
             // Establish node edges
             let _ = attribute.value
 
@@ -125,7 +125,7 @@ struct TracingGraphInvalidationTests {
                 let output = Attribute(TestRule(input: attribute))
                 return (input, output)
             }
-            
+
             // Establish node edges
             let _ = output.value
 
@@ -157,7 +157,7 @@ struct TracingGraphInvalidationTests {
                 let attribute = Attribute(TestRule(input: input))
                 return Attribute(TestRule(input: attribute))
             }
-            
+
             outputGraph.onInvalidation { _ in }
 
             // Establish node edges

@@ -22,7 +22,7 @@ struct TracingCustomEventTests {
             recorder.install(graph: graph)
 
             try #require(recorder.history.customEventEntries.count == 0)
-            
+
             "custom_event".withCString { eventName in
                 graph.addTraceEvent(eventName, value: 42)
             }
@@ -36,7 +36,7 @@ struct TracingCustomEventTests {
             #expect(recorder.capturedValue == 42)
             #expect(recorder.capturedType == Int.self)
         }
-        
+
         @Test
         func traceCustomEventCalledWithContext() throws {
             let graph = Graph()
@@ -44,7 +44,7 @@ struct TracingCustomEventTests {
             recorder.install(graph: graph)
 
             try #require(recorder.history.customEventEntries.count == 0)
-            
+
             let value: Int = 42
             try withUnsafePointer(to: value) { context in
                 "custom_event".withCString { eventName in

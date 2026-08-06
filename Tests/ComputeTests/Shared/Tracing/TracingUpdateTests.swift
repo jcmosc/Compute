@@ -198,7 +198,8 @@ struct TracingUpdateTests {
             }
             try #require(endNodeUpdateEntries.count == 2)
             #expect(endNodeUpdateEntries[1].attribute == attribute.identifier)
-            #expect(endNodeUpdateEntries[1].changed == false) // The update was cancelled and `.abortIfCancelled` was specified
+            // The update was cancelled and `.abortIfCancelled` was specified
+            #expect(endNodeUpdateEntries[1].changed == false)
         }
     }
 
@@ -305,7 +306,7 @@ struct TracingUpdateTests {
             try #require(beginGraphUpdateEntries.count == 1)
             #expect(beginGraphUpdateEntries[0].graph == graph)
         }
-        
+
         @Test
         func traceBeginGraphUpdateNotCalledWhenGraphHasNoUpdateHandler() throws {
             let graph = Graph()
@@ -352,7 +353,7 @@ struct TracingUpdateTests {
             try #require(endGraphUpdateEntries.count == 1)
             #expect(endGraphUpdateEntries[0].graph == graph)
         }
-        
+
         @Test
         func traceEndGraphUpdateNotCalledWhenGraphHasNoUpdateHandler() throws {
             let graph = Graph()

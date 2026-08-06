@@ -135,7 +135,7 @@ struct AttributeBodyTests {
                 let subgraph = Subgraph(graph: globalSubgraph.graph)
                 globalSubgraph.addChild(subgraph)
                 Subgraph.current = subgraph
-                
+
                 let attribute = Attribute(value: 0)
                 var weakAttributeExpired = false
                 withUnsafeMutablePointer(to: &weakAttributeExpired) { weakAttributeExpiredPointer in
@@ -148,7 +148,7 @@ struct AttributeBodyTests {
                             return { _, _ in }
                         }
                     }
-                    
+
                     #expect(weakAttributeExpiredPointer.pointee == false)
                     subgraph.invalidate()
                     #expect(weakAttributeExpiredPointer.pointee == true)

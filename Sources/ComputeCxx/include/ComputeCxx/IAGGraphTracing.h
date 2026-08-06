@@ -18,6 +18,7 @@ typedef struct IAGTraceType *IAGTraceTypeRef;
 typedef uint32_t IAGNamedTraceEventID IAG_SWIFT_STRUCT IAG_SWIFT_NAME(Graph.NamedTraceEventID);
 
 IAG_ASSUME_NONNULL_BEGIN
+IAG_IMPLICIT_BRIDGING_ENABLED
 
 IAG_EXTERN_C_BEGIN
 
@@ -38,11 +39,11 @@ void IAGGraphStopTracing(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(IAGGraphRef
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphSyncTracing(IAGGraphRef graph) IAG_SWIFT_NAME(IAGGraphRef.syncTracing(self:));
+void IAGGraphSyncTracing(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(IAGGraphRef.syncTracing(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-CFStringRef IAGGraphCopyTracePath(IAGGraphRef graph) IAG_SWIFT_NAME(getter:IAGGraphRef.tracePath(self:));
+CFStringRef _Nullable IAGGraphCopyTracePath(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(IAGGraphRef.tracePath(_:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -102,4 +103,5 @@ IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, con
 
 IAG_EXTERN_C_END
 
+IAG_IMPLICIT_BRIDGING_DISABLED
 IAG_ASSUME_NONNULL_END

@@ -171,9 +171,9 @@ extension Graph {
     @_transparent
     public func addNamedTraceEvent(
         _ eventID: Graph.NamedTraceEventID,
-        eventArgs: [UInt32],
-        data: Data?,
-        flags: Graph.NamedTraceEventFlags
+        eventArgs: [UInt32] = [],
+        data: Data? = nil,
+        flags: Graph.NamedTraceEventFlags = []
     ) {
         addNamedTraceEvent(
             eventID: eventID,

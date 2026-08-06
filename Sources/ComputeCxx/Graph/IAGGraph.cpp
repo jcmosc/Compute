@@ -901,7 +901,9 @@ void IAGGraphSetOutputValue(const void *value, IAGTypeID type) {
 
 #pragma mark - Trace
 
-void IAGGraphStartTracing(IAGGraphRef graph, IAGGraphTraceFlags trace_flags) { IAGGraphStartTracing2(graph, trace_flags, NULL); }
+void IAGGraphStartTracing(IAGGraphRef graph, IAGGraphTraceFlags trace_flags) {
+    IAGGraphStartTracing2(graph, trace_flags, NULL);
+}
 
 void IAGGraphStartTracing2(IAGGraphRef graph, IAGGraphTraceFlags trace_flags, CFArrayRef subsystems) {
     auto subsystems_vector = IAG::vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>();
@@ -965,18 +967,6 @@ CFStringRef IAGGraphCopyTracePath(IAGGraphRef graph) {
     return graph_context->graph().copy_trace_path();
 }
 
-IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    auto external_trace = new ExternalTrace(trace, context);
-    graph_context->graph().add_trace(external_trace);
-    return external_trace->id();
-}
-
-void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    graph_context->graph().remove_trace(trace_id);
-}
-
 void IAGGraphSetTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
@@ -990,6 +980,18 @@ void IAGGraphResetTrace(IAGGraphRef graph) {
     graph_context->graph().remove_trace(0);
 }
 
+IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto external_trace = new ExternalTrace(trace, context);
+    graph_context->graph().add_trace(external_trace);
+    return external_trace->id();
+}
+
+void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id) {
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    graph_context->graph().remove_trace(trace_id);
+}
+
 bool IAGGraphIsTracingActive(IAGGraphRef graph) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     return graph_context->graph().traces().size() > 0;
@@ -999,6 +1001,13 @@ void IAGGraphPrepareTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     auto external_trace = new ExternalTrace(trace, context);
     graph_context->graph().prepare_trace(*external_trace);
+}
+
+void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void *value, IAGTypeID type) {
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    graph_context->graph().foreach_trace([&graph_context, &event_name, &value, &type](IAG::Trace &trace) {
+        trace.custom_event(*graph_context, event_name, value, *reinterpret_cast<const IAG::swift::metadata *>(type));
+    });
 }
 
 bool IAGGraphTraceEventEnabled(IAGGraphRef graph, uint32_t event_id) {
@@ -1011,28 +1020,32 @@ bool IAGGraphTraceEventEnabled(IAGGraphRef graph, uint32_t event_id) {
     return false;
 }
 
-void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void *value, IAGTypeID type) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    graph_context->graph().foreach_trace([&graph_context, &event_name, &value, &type](IAG::Trace &trace) {
-        trace.custom_event(*graph_context, event_name, value, *reinterpret_cast<const IAG::swift::metadata *>(type));
-    });
-}
-
-void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count, const void **event_args,
-                               CFDataRef data, uint32_t arg6) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    graph_context->graph().foreach_trace(
-        [&graph_context, &event_id, &event_arg_count, &event_args, &data, &arg6](IAG::Trace &trace) {
-            trace.named_event(*graph_context, event_id, event_arg_count, event_args, data, arg6);
-        });
-}
-
 namespace NamedEvents {
 
 static platform_lock lock = PLATFORM_LOCK_INIT;
 static IAG::vector<std::pair<const char *, const char *>, 0, uint32_t> *names;
 
 } // namespace NamedEvents
+
+IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
+    platform_lock_lock(&NamedEvents::lock);
+
+    if (!NamedEvents::names) {
+        NamedEvents::names = new IAG::vector<std::pair<const char *, const char *>, 0, uint32_t>();
+        NamedEvents::names->push_back({0, 0}); // Disallow 0 as event ID
+    }
+
+    uint32_t event_id = NamedEvents::names->size();
+    if (event_subsystem != nullptr) {
+        event_subsystem = strdup(event_subsystem);
+    }
+    event_name = strdup(event_name);
+    NamedEvents::names->push_back({event_subsystem, event_name});
+
+    platform_lock_unlock(&NamedEvents::lock);
+
+    return event_id;
+}
 
 const char *IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id) {
     const char *event_name = nullptr;
@@ -1058,24 +1071,13 @@ const char *IAGGraphGetTraceEventSubsystem(IAGNamedTraceEventID event_id) {
     return event_subsystem;
 }
 
-IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem) {
-    platform_lock_lock(&NamedEvents::lock);
-
-    if (!NamedEvents::names) {
-        NamedEvents::names = new IAG::vector<std::pair<const char *, const char *>, 0, uint32_t>();
-        NamedEvents::names->push_back({0, 0}); // Disallow 0 as event ID
-    }
-
-    uint32_t event_id = NamedEvents::names->size();
-    if (event_subsystem != nullptr) {
-        event_subsystem = strdup(event_subsystem);
-    }
-    event_name = strdup(event_name);
-    NamedEvents::names->push_back({event_subsystem, event_name});
-
-    platform_lock_unlock(&NamedEvents::lock);
-
-    return event_id;
+void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, size_t event_arg_count,
+                                const uint32_t *event_args, CFDataRef data, IAGNamedTraceEventFlags flags) {
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    graph_context->graph().foreach_trace(
+        [&graph_context, &event_id, &event_arg_count, &event_args, &data, &flags](IAG::Trace &trace) {
+            trace.named_event(*graph_context, event_id, event_arg_count, event_args, data, flags);
+        });
 }
 
 // MARK: Description

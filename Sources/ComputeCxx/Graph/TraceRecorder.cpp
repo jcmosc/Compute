@@ -933,8 +933,8 @@ void Graph::TraceRecorder::custom_event(const Graph::Context &context, const cha
 }
 
 void Graph::TraceRecorder::named_event(const Graph::Context &context, IAGNamedTraceEventID event_id,
-                                       uint32_t event_arg_count, const void **event_args, CFDataRef data,
-                                       uint32_t arg6) {
+                                       size_t event_arg_count, const uint32_t *event_args, CFDataRef data,
+                                       IAGNamedTraceEventFlags flags) {
     if (!named_event_enabled(event_id)) {
         return;
     }
@@ -944,14 +944,14 @@ void Graph::TraceRecorder::named_event(const Graph::Context &context, IAGNamedTr
     field_named_event_id(_encoder, event_id);
     field_timestamp(_encoder);
 
-    if (arg6 & 0x80000000) {
+    if (flags & IAGNamedTraceEventFlagsRecordBacktrace) {
         field_backtrace(_encoder);
-        arg6 &= 0x7fffffff;
+        flags &= ~IAGNamedTraceEventFlagsRecordBacktrace;
     }
-    field_payload_1(_encoder, arg6);
-    for (uint32_t i = 0; i < std::min(event_arg_count, uint32_t(4)); ++i) {
-        const void *event_arg = event_args[i];
-        _encoder.encode_field_varint(EVENT_FIELD_PAYLOAD_2 + i, reinterpret_cast<uint64_t>(event_arg));
+    field_payload_1(_encoder, flags);
+    for (size_t i = 0; i < std::min(event_arg_count, size_t(4)); ++i) {
+        uint32_t event_arg = event_args[i];
+        _encoder.encode_field_varint(EVENT_FIELD_PAYLOAD_2 + i, event_arg);
     }
     if (data != nullptr) {
         void *ptr = (void *)CFDataGetBytePtr(data);

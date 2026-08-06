@@ -1,3 +1,5 @@
+import Foundation
+
 public class TestTraceRecorder: TestTrace {
     public private(set) var history = History()
     
@@ -145,8 +147,24 @@ public class TestTraceRecorder: TestTrace {
         history.entries.append(.customEvent(.init(graph: graph, eventName: eventName, value: value, type: type)))
     }
     
-    public override func namedEvent(graph: Graph, eventID: Graph.NamedTraceEventID) {
-        history.entries.append(.namedEvent(.init(graph: graph, eventID: eventID)))
+    public override func namedEvent(
+        graph: Graph,
+        eventID: Graph.NamedTraceEventID,
+        eventArgs: [UInt32],
+        data: Data?,
+        flags: Graph.NamedTraceEventFlags
+    ) {
+        history.entries.append(
+            .namedEvent(
+                .init(
+                    graph: graph,
+                    eventID: eventID,
+                    eventArgs: eventArgs,
+                    data: data,
+                    flags: flags
+                )
+            )
+        )
     }
     
     public override func namedEventEnabled(eventID: Graph.NamedTraceEventID) {
@@ -399,6 +417,9 @@ extension TestTraceRecorder {
         public struct NamedEventEntry {
             public var graph: Graph
             public var eventID: Graph.NamedTraceEventID
+            public var eventArgs: [UInt32]
+            public var data: Data?
+            public var flags: Graph.NamedTraceEventFlags
         }
         
         public struct NamedEventEnabledEntry {

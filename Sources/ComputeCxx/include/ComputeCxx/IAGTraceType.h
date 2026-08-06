@@ -2,8 +2,8 @@
 
 #include <ComputeCxx/IAGBase.h>
 #include <ComputeCxx/IAGGraph.h>
-#include <ComputeCxx/IAGSubgraph.h>
 #include <ComputeCxx/IAGGraphTracing.h>
+#include <ComputeCxx/IAGSubgraph.h>
 
 IAG_ASSUME_NONNULL_BEGIN
 
@@ -66,10 +66,12 @@ typedef struct IAG_SWIFT_NAME(Graph.TraceType) IAGTraceType {
 
     void (*_Nullable profile_mark)(void *_Nullable context, const char *event_name);
 
-    void (*_Nullable custom_event)(void *_Nullable context, IAGGraphRef graph, const char *event_name, const void *value,
-                                   IAGTypeID type);
-    void (*_Nullable named_event)(void *_Nullable context, IAGGraphRef graph, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                                  const void **event_args, CFDataRef data, uint32_t arg6);
+    void (*_Nullable custom_event)(void *_Nullable context, IAGGraphRef graph, const char *event_name,
+                                   const void *value, IAGTypeID type);
+    void (*_Nullable named_event)(void *_Nullable context, IAGGraphRef graph, IAGNamedTraceEventID event_id,
+                                  size_t event_arg_count,
+                                  const uint32_t *_Nullable IAG_COUNTED_BY(event_arg_count) event_args,
+                                  CFDataRef _Nullable data, IAGNamedTraceEventFlags flags);
     bool (*_Nullable named_event_enabled)(void *_Nullable context, IAGNamedTraceEventID event_id);
 
     void (*_Nullable set_deadline)(void *_Nullable context, uint64_t deadline);

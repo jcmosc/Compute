@@ -1,3 +1,5 @@
+import Foundation
+
 public class TestTrace {
     private var trace: UnsafeMutablePointer<Graph.TraceType>
     private var handle: (Graph, UniqueID)?
@@ -136,8 +138,20 @@ public class TestTrace {
                 context.customEvent(graph: graph, eventName: String(cString: event_name), value: value, type: type.type)
             } named_event: { ctx, graph, event_id, event_arg_count, event_args, data, flags in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
-                // TODO: remaining arguments
-                context.namedEvent(graph: graph, eventID: event_id)
+                let eventArgs = event_args.map { pointer in
+                    Array<UInt32>(capacity: event_arg_count) { span in
+                        for i in 0..<event_arg_count {
+                            span.append(pointer.advanced(by: i).pointee)
+                        }
+                    }
+                }
+                context.namedEvent(
+                    graph: graph,
+                    eventID: event_id,
+                    eventArgs: eventArgs ?? [],
+                    data: data as Data?,
+                    flags: flags
+                )
             } named_event_enabled: { ctx, event_id in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
                 context.namedEventEnabled(eventID: event_id)
@@ -205,7 +219,13 @@ public class TestTrace {
 
     public func profileMark(eventName: String) {}
     public func customEvent(graph: Graph, eventName: String, value: UnsafeRawPointer, type: Any.Type) {}
-    public func namedEvent(graph: Graph, eventID: Graph.NamedTraceEventID) {}
+    public func namedEvent(
+        graph: Graph,
+        eventID: Graph.NamedTraceEventID,
+        eventArgs: [UInt32],
+        data: Data?,
+        flags: Graph.NamedTraceEventFlags
+    ) {}
     public func namedEventEnabled(eventID: Graph.NamedTraceEventID) {}
 
     public func setDeadline(deadline: UInt) {}

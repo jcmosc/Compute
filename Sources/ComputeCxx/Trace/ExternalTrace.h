@@ -81,8 +81,8 @@ class ExternalTrace : public IAG::Trace {
 
     void custom_event(const IAG::Graph::Context &context, const char *event_name, const void *value,
                       const IAG::swift::metadata &type) override;
-    void named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                     const void **event_args, CFDataRef data, uint32_t arg6) override;
+    void named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id, size_t event_arg_count,
+                     const uint32_t *_Nullable event_args, CFDataRef data, IAGNamedTraceEventFlags flags) override;
     bool named_event_enabled(IAGNamedTraceEventID event_id) override;
 
     void set_deadline(uint64_t deadline) override;

@@ -295,8 +295,8 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                 if (reset_edge_pending) {
                     if (frame.pending && !frame.cancelled) {
                         if (input_edge.options & IAGInputOptionsChanged) {
-                            _graph->foreach_trace([&frame, &input_edge](Trace &trace) {
-                                trace.set_edge_pending(frame.attribute, input_edge.attribute, false);
+                            _graph->foreach_trace([&frame, &input_index](Trace &trace) {
+                                trace.set_edge_pending(frame.attribute, input_index, false);
                             });
                             input_edge.options &= ~IAGInputOptionsChanged;
                         }

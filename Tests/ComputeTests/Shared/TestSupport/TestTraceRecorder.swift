@@ -99,16 +99,16 @@ public class TestTraceRecorder: TestTrace {
         history.entries.append(.nodeAdded(.init(attribute: attribute)))
     }
     
-    public override func nodeAddEdge(attribute: AnyAttribute, inputAttribute: AnyAttribute, options: InputOptions) {
-        history.entries.append(.nodeAddEdge(.init(attribute: attribute, inputAttribute: inputAttribute, options: options)))
+    public override func nodeAddEdge(attribute: AnyAttribute, input: AnyAttribute, options: InputOptions) {
+        history.entries.append(.nodeAddEdge(.init(attribute: attribute, input: input, options: options)))
     }
-    
-    public override func nodeRemoveEdge(attribute: AnyAttribute, inputIndex: Int) {
-        history.entries.append(.nodeRemoveEdge(.init(attribute: attribute, inputIndex: inputIndex)))
+
+    public override func nodeRemoveEdge(attribute: AnyAttribute, input: AnyAttribute) {
+        history.entries.append(.nodeRemoveEdge(.init(attribute: attribute, input: input)))
     }
-    
-    public override func nodeSetEdgePending(attribute: AnyAttribute, inputIndex: Int, pending: Bool) {
-        history.entries.append(.nodeSetEdgePending(.init(attribute: attribute, inputIndex: inputIndex, pending: pending)))
+
+    public override func nodeSetEdgePending(attribute: AnyAttribute, input: AnyAttribute, pending: Bool) {
+        history.entries.append(.nodeSetEdgePending(.init(attribute: attribute, input: input, pending: pending)))
     }
     
     public override func nodeSetDirty(attribute: AnyAttribute, dirty: Bool) {
@@ -356,18 +356,18 @@ extension TestTraceRecorder {
         
         public struct NodeAddEdgeEntry {
             public var attribute: AnyAttribute
-            public var inputAttribute: AnyAttribute
+            public var input: AnyAttribute
             public var options: InputOptions
         }
         
         public struct NodeRemoveEdgeEntry {
             public var attribute: AnyAttribute
-            public var inputIndex: Int
+            public var input: AnyAttribute
         }
         
         public struct NodeSetEdgePendingEntry {
             public var attribute: AnyAttribute
-            public var inputIndex: Int
+            public var input: AnyAttribute
             public var pending: Bool
         }
         

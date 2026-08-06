@@ -204,7 +204,8 @@ void ExternalTrace::add_edge(IAG::data::ptr<IAG::Node> node, IAG::AttributeID in
 void ExternalTrace::remove_edge(IAG::data::ptr<IAG::Node> node, uint32_t input_index) {
     if (auto callback = _trace->node_remove_edge) {
         if (IAG::AttributeID(node).subgraph()) {
-            callback(_context, IAGAttribute(IAG::AttributeID(node)), input_index);
+            auto input = node->input_edges()[input_index].attribute;
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), IAGAttribute(input));
         }
     }
 }
@@ -212,7 +213,8 @@ void ExternalTrace::remove_edge(IAG::data::ptr<IAG::Node> node, uint32_t input_i
 void ExternalTrace::set_edge_pending(IAG::data::ptr<IAG::Node> node, uint32_t input_index, bool pending) {
     if (auto callback = _trace->node_set_edge_pending) {
         if (IAG::AttributeID(node).subgraph()) {
-            callback(_context, IAGAttribute(IAG::AttributeID(node)), input_index, pending);
+            auto input = node->input_edges()[input_index].attribute;
+            callback(_context, IAGAttribute(IAG::AttributeID(node)), IAGAttribute(input), pending);
         }
     }
 }

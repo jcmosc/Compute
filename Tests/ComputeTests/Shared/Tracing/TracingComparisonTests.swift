@@ -20,12 +20,12 @@ struct TracingComparisonTests {
             let graph = Graph()
             let recorder = TestTraceRecorder()
             recorder.install(graph: graph)
-            
+
             let subgraph = Subgraph(graph: graph)
             let attribute = subgraph.apply {
                 Attribute(CounterRule())
             }
-            
+
             let firstValue = attribute.value
             #expect(firstValue == CounterRule.Value(text: "value-1"))
 

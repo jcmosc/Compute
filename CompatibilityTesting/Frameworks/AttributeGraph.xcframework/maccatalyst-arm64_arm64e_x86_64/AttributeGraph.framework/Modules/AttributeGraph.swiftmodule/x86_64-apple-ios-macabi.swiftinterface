@@ -581,7 +581,17 @@ extension AttributeGraph.Graph {
 extension AttributeGraph.Graph {
   public func addTraceEvent<Value>(_ event: Swift.UnsafePointer<Swift.Int8>, value: Value)
   public func addTraceEvent<Value>(_ event: Swift.UnsafePointer<Swift.Int8>, context: Swift.UnsafePointer<Value>)
-  @_transparent public func addNamedTraceEvent(_ eventID: AttributeGraph.Graph.NamedTraceEventID, eventArgs: [Swift.UInt32], data: Foundation.Data?, flags: AttributeGraph.Graph.NamedTraceEventFlags) {
+  @_transparent public static func registerNamedTraceEvent(name: Swift.String, subsystem: Swift.String) -> AttributeGraph.Graph.NamedTraceEventID {
+        name.withCString { namePointer in
+            subsystem.withCString { subsystemPointer in
+                Graph.registerNamedTraceEvent(
+                    name: namePointer,
+                    subsystem: subsystemPointer
+                )
+            }
+        }
+    }
+  @_transparent public func addNamedTraceEvent(_ eventID: AttributeGraph.Graph.NamedTraceEventID, eventArgs: [Swift.UInt32] = [], data: Foundation.Data? = nil, flags: AttributeGraph.Graph.NamedTraceEventFlags = []) {
         addNamedTraceEvent(
             eventID: eventID,
             eventArgCount: eventArgs.count,

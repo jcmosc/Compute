@@ -102,13 +102,13 @@ public class TestTrace {
                 context.nodeAdded(attribute: attribute)
             } node_add_edge: { ctx, attribute, input, options in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
-                context.nodeAddEdge(attribute: attribute, inputAttribute: input, options: options)
-            } node_remove_edge: { ctx, attribute, input_index in
+                context.nodeAddEdge(attribute: attribute, input: input, options: options)
+            } node_remove_edge: { ctx, attribute, input in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
-                context.nodeRemoveEdge(attribute: attribute, inputIndex: Int(input_index))
-            } node_set_edge_pending: { ctx, attribute, input_index, pending in
+                context.nodeRemoveEdge(attribute: attribute, input: input)
+            } node_set_edge_pending: { ctx, attribute, input, pending in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
-                context.nodeSetEdgePending(attribute: attribute, inputIndex: Int(input_index), pending: pending)
+                context.nodeSetEdgePending(attribute: attribute, input: input, pending: pending)
             } node_set_dirty: { ctx, attribute, dirty in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
                 context.nodeSetDirty(attribute: attribute, dirty: dirty)
@@ -203,9 +203,9 @@ public class TestTrace {
     public func subgraphRemoveChild(subgraph: Subgraph, childSubgraph: Subgraph) {}
 
     public func nodeAdded(attribute: AnyAttribute) {}
-    public func nodeAddEdge(attribute: AnyAttribute, inputAttribute: AnyAttribute, options: InputOptions) {}
-    public func nodeRemoveEdge(attribute: AnyAttribute, inputIndex: Int) {}
-    public func nodeSetEdgePending(attribute: AnyAttribute, inputIndex: Int, pending: Bool) {}
+    public func nodeAddEdge(attribute: AnyAttribute, input: AnyAttribute, options: InputOptions) {}
+    public func nodeRemoveEdge(attribute: AnyAttribute, input: AnyAttribute) {}
+    public func nodeSetEdgePending(attribute: AnyAttribute, input: AnyAttribute, pending: Bool) {}
 
     public func nodeSetDirty(attribute: AnyAttribute, dirty: Bool) {}
     public func nodeSetPending(attribute: AnyAttribute, pending: Bool) {}

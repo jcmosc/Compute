@@ -54,12 +54,10 @@ struct GraphTracingTests {
             print("[node_added] attribute = \(attribute)")
         } node_add_edge: { ctx, attribute, input, options in
             print("[node_add_edge] attribute = \(attribute), input = \(input), options = \(options)")
-        } node_remove_edge: { ctx, attribute, input_index in
-            print("[node_remove_edge] attribute = \(attribute), input_index = \(input_index)")
-        } node_set_edge_pending: { ctx, attribute, input_index, pending in
-            print(
-                "[node_set_edge_pending] attribute = \(attribute), input_index = \(input_index), pending = \(pending)"
-            )
+        } node_remove_edge: { ctx, attribute, input in
+            print("[node_remove_edge] attribute = \(attribute), input = \(input)")
+        } node_set_edge_pending: { ctx, attribute, input, pending in
+            print("[node_set_edge_pending] attribute = \(attribute), input = \(input), pending = \(pending)")
         } node_set_dirty: { ctx, attribute, dirty in
             print("[node_set_dirty] attribute = \(attribute), dirty = \(dirty)")
         } node_set_pending: { ctx, attribute, pending in

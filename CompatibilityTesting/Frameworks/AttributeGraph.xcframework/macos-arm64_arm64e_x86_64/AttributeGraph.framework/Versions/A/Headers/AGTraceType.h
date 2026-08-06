@@ -52,8 +52,8 @@ typedef struct AG_SWIFT_NAME(Graph.TraceType) AGTraceType {
 
     void (*_Nullable node_added)(void *_Nullable context, AGAttribute attribute);
     void (*_Nullable node_add_edge)(void *_Nullable context, AGAttribute attribute, AGAttribute input, AGInputOptions input_options);
-    void (*_Nullable node_remove_edge)(void *_Nullable context, AGAttribute attribute, uint32_t input_index);
-    void (*_Nullable node_set_edge_pending)(void *_Nullable context, AGAttribute attribute, uint32_t input_index, bool pending);
+    void (*_Nullable node_remove_edge)(void *_Nullable context, AGAttribute attribute, AGAttribute input);
+    void (*_Nullable node_set_edge_pending)(void *_Nullable context, AGAttribute attribute, AGAttribute input, bool pending);
 
     void (*_Nullable node_set_dirty)(void *_Nullable context, AGAttribute attribute, bool dirty);
     void (*_Nullable node_set_pending)(void *_Nullable context, AGAttribute attribute, bool pending);

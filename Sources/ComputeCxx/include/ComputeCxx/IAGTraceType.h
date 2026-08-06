@@ -52,8 +52,8 @@ typedef struct IAG_SWIFT_NAME(Graph.TraceType) IAGTraceType {
 
     void (*_Nullable node_added)(void *_Nullable context, IAGAttribute attribute);
     void (*_Nullable node_add_edge)(void *_Nullable context, IAGAttribute attribute, IAGAttribute input, IAGInputOptions input_options);
-    void (*_Nullable node_remove_edge)(void *_Nullable context, IAGAttribute attribute, uint32_t input_index);
-    void (*_Nullable node_set_edge_pending)(void *_Nullable context, IAGAttribute attribute, uint32_t input_index, bool pending);
+    void (*_Nullable node_remove_edge)(void *_Nullable context, IAGAttribute attribute, IAGAttribute input);
+    void (*_Nullable node_set_edge_pending)(void *_Nullable context, IAGAttribute attribute, IAGAttribute input, bool pending);
 
     void (*_Nullable node_set_dirty)(void *_Nullable context, IAGAttribute attribute, bool dirty);
     void (*_Nullable node_set_pending)(void *_Nullable context, IAGAttribute attribute, bool pending);

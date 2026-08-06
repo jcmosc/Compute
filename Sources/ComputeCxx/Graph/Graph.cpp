@@ -660,17 +660,17 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
                                     (node->is_dirty() ? IAGInputOptionsChanged : IAGInputOptionsNone)),
     };
 
-    uint32_t index = node->insert_input_edge(subgraph, new_input_edge);
+    uint32_t input_index = node->insert_input_edge(subgraph, new_input_edge);
     add_input_dependencies(AttributeID(node), input);
 
     if (node->is_updating()) {
         reset_update(node);
     }
     if (node->is_dirty()) {
-        foreach_trace([&node, &input](Trace &trace) { trace.set_edge_pending(node, input, true); });
+        foreach_trace([&node, &input_index](Trace &trace) { trace.set_edge_pending(node, input_index, true); });
     }
 
-    return index;
+    return input_index;
 }
 
 void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
@@ -1282,8 +1282,8 @@ void Graph::mark_changed(AttributeID attribute, AttributeType *_Nullable type, c
                             continue;
                         }
                     }
-                    foreach_trace([&output_node, &input_edge](Trace &trace) {
-                        trace.set_edge_pending(output_node, input_edge.attribute, true);
+                    foreach_trace([&output_node, &input_index](Trace &trace) {
+                        trace.set_edge_pending(output_node, input_index, true);
                     });
                     input_edge.options |= IAGInputOptionsChanged;
                 }
@@ -1962,11 +1962,13 @@ void Graph::prepare_trace(Trace &trace) {
                 auto view = iteration == 0 ? const_attribute_view(page) : attribute_view(page);
                 for (auto attribute : view) {
                     if (auto node = attribute.get_node()) {
+                        uint32_t input_index = 0;
                         for (auto input_edge : node->input_edges()) {
                             trace.add_edge(node, input_edge.attribute, input_edge.options);
                             if (input_edge.options & IAGInputOptionsChanged) {
-                                trace.set_edge_pending(node, input_edge.attribute, true);
+                                trace.set_edge_pending(node, input_index, true);
                             }
+                            ++input_index;
                         }
                     } else if (auto indirect_node = attribute.get_indirect_node()) {
                         trace.set_source(indirect_node, indirect_node->source().identifier());

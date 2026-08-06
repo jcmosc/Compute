@@ -414,7 +414,7 @@ void Graph::TraceRecorder::log_message_v(const char *format, va_list args) {
     }
 }
 
-void Graph::TraceRecorder::begin_update(const Subgraph &subgraph, uint32_t options) {
+void Graph::TraceRecorder::begin_update(const Subgraph &subgraph, IAGAttributeFlags subgraph_flags) {
     if (_trace_flags & IAGGraphTraceFlagsCustom) {
         return;
     }
@@ -423,7 +423,7 @@ void Graph::TraceRecorder::begin_update(const Subgraph &subgraph, uint32_t optio
     field_event_type(_encoder, EventType::BeginSubgraphUpdate);
     field_timestamp(_encoder);
     field_payload_1(_encoder, subgraph.subgraph_id());
-    field_payload_2(_encoder, options);
+    field_payload_2(_encoder, subgraph_flags);
     field_backtrace(_encoder);
     encode_event_end();
 }

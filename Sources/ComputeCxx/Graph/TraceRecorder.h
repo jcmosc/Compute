@@ -142,7 +142,7 @@ class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
 
     void log_message_v(const char *format, va_list args) override;
 
-    void begin_update(const Subgraph &subgraph, uint32_t options) override;
+    void begin_update(const Subgraph &subgraph, IAGAttributeFlags subgraph_flags) override;
     void end_update(const Subgraph &subgraph) override;
     void begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options) override;
     void end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,

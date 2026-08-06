@@ -9,8 +9,8 @@ public class TestTraceRecorder: TestTrace {
         history.entries.append(.endTrace(.init(graph: graph)))
     }
     
-    public override func beginSubgraphUpdate(subgraph: Subgraph) {
-        history.entries.append(.beginSubgraphUpdate(.init(subgraph: subgraph)))
+    public override func beginSubgraphUpdate(subgraph: Subgraph, flags: Subgraph.Flags) {
+        history.entries.append(.beginSubgraphUpdate(.init(subgraph: subgraph, flags: flags)))
     }
     
     public override func endSubgraphUpdate(subgraph: Subgraph) {
@@ -240,6 +240,7 @@ extension TestTraceRecorder {
         
         public struct BeginSubgraphUpdateEntry {
             public var subgraph: Subgraph
+            public var flags: Subgraph.Flags
         }
         
         public struct EndSubgraphUpdateEntry {

@@ -23,7 +23,7 @@ typedef struct AG_SWIFT_NAME(Graph.TraceType) AGTraceType {
     void (*_Nullable begin_trace)(void *_Nullable context, AGGraphRef graph);
     void (*_Nullable end_trace)(void *_Nullable context, AGGraphRef graph);
 
-    void (*_Nullable begin_subgraph_update)(void *_Nullable context, AGSubgraphRef subgraph, uint32_t options);
+    void (*_Nullable begin_subgraph_update)(void *_Nullable context, AGSubgraphRef subgraph, AGAttributeFlags subgraph_flags);
     void (*_Nullable end_subgraph_update)(void *_Nullable context, AGSubgraphRef subgraph);
     void (*_Nullable begin_node_update)(void *_Nullable context, AGAttribute attribute);
     void (*_Nullable end_node_update)(void *_Nullable context, AGAttribute attribute, bool changed);

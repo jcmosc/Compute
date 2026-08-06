@@ -30,10 +30,9 @@ public class TestTrace {
 
                 // TODO: Check this calls deinit
                 Unmanaged<TestTrace>.fromOpaque(ctx!).release()
-            } begin_subgraph_update: { ctx, subgraph, options in
+            } begin_subgraph_update: { ctx, subgraph, subgraph_flags in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
-                // TODO: options
-                context.beginSubgraphUpdate(subgraph: subgraph)
+                context.beginSubgraphUpdate(subgraph: subgraph, flags: subgraph_flags)
             } end_subgraph_update: { ctx, subgraph in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
                 context.endSubgraphUpdate(subgraph: subgraph)
@@ -163,7 +162,7 @@ public class TestTrace {
     public func beginTrace(graph: Graph) {}
     public func endTrace(graph: Graph) {}
 
-    public func beginSubgraphUpdate(subgraph: Subgraph) {}
+    public func beginSubgraphUpdate(subgraph: Subgraph, flags: Subgraph.Flags) {}
     public func endSubgraphUpdate(subgraph: Subgraph) {}
     public func beginNodeUpdate(attribute: AnyAttribute) {}
     public func endNodeUpdate(attribute: AnyAttribute, changed: Bool) {}

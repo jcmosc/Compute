@@ -23,7 +23,7 @@ typedef struct IAG_SWIFT_NAME(Graph.TraceType) IAGTraceType {
     void (*_Nullable begin_trace)(void *_Nullable context, IAGGraphRef graph);
     void (*_Nullable end_trace)(void *_Nullable context, IAGGraphRef graph);
 
-    void (*_Nullable begin_subgraph_update)(void *_Nullable context, IAGSubgraphRef subgraph, uint32_t options);
+    void (*_Nullable begin_subgraph_update)(void *_Nullable context, IAGSubgraphRef subgraph, IAGAttributeFlags subgraph_flags);
     void (*_Nullable end_subgraph_update)(void *_Nullable context, IAGSubgraphRef subgraph);
     void (*_Nullable begin_node_update)(void *_Nullable context, IAGAttribute attribute);
     void (*_Nullable end_node_update)(void *_Nullable context, IAGAttribute attribute, bool changed);

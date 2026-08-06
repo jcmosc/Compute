@@ -29,7 +29,7 @@ class ExternalTrace : public IAG::Trace {
     void begin_trace(const IAG::Graph &graph) override;
     void end_trace(const IAG::Graph &graph) override;
 
-    void begin_update(const IAG::Subgraph &subgraph, uint32_t options) override;
+    void begin_update(const IAG::Subgraph &subgraph, IAGAttributeFlags subgraph_flags) override;
     void end_update(const IAG::Subgraph &subgraph) override;
 
     void begin_update(const IAG::Graph::UpdateStack &update_stack, IAG::data::ptr<IAG::Node> node,

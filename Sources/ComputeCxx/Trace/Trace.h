@@ -42,7 +42,7 @@ class Trace {
     void log_message(const char *format, ...);
 
     // Updates
-    virtual void begin_update(const Subgraph &subgraph, uint32_t options) {};
+    virtual void begin_update(const Subgraph &subgraph, IAGAttributeFlags subgraph_flags) {};
     virtual void end_update(const Subgraph &subgraph) {};
     virtual void begin_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node, uint32_t options) {};
     virtual void end_update(const Graph::UpdateStack &update_stack, data::ptr<Node> node,

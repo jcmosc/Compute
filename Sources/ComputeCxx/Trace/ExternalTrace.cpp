@@ -23,10 +23,10 @@ void ExternalTrace::end_trace(const IAG::Graph &graph) {
     }
 }
 
-void ExternalTrace::begin_update(const IAG::Subgraph &subgraph, uint32_t options) {
+void ExternalTrace::begin_update(const IAG::Subgraph &subgraph, IAGAttributeFlags subgraph_flags) {
     if (auto cf_subgraph = subgraph.to_cf()) {
         if (auto callback = _trace->begin_subgraph_update) {
-            callback(_context, cf_subgraph, options);
+            callback(_context, cf_subgraph, subgraph_flags);
         }
     }
 }

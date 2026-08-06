@@ -441,40 +441,410 @@ extension TestTraceRecorder {
 }
 
 extension TestTraceRecorder.History {
+    public var beginTraceEntries: [TestTraceRecorder.History.BeginTraceEntry] {
+        entries.compactMap { entry in
+            if case .beginTrace(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endTraceEntries: [TestTraceRecorder.History.EndTraceEntry] {
+        entries.compactMap { entry in
+            if case .endTrace(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginSubgraphUpdateEntries: [TestTraceRecorder.History.BeginSubgraphUpdateEntry] {
+        entries.compactMap { entry in
+            if case .beginSubgraphUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endSubgraphUpdateEntries: [TestTraceRecorder.History.EndSubgraphUpdateEntry] {
+        entries.compactMap { entry in
+            if case .endSubgraphUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginNodeUpdateEntries: [TestTraceRecorder.History.BeginNodeUpdateEntry] {
+        entries.compactMap { entry in
+            if case .beginNodeUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endNodeUpdateEntries: [TestTraceRecorder.History.EndNodeUpdateEntry] {
+        entries.compactMap { entry in
+            if case .endNodeUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginValueUpdateEntries: [TestTraceRecorder.History.BeginValueUpdateEntry] {
+        entries.compactMap { entry in
+            if case .beginValueUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endValueUpdateEntries: [TestTraceRecorder.History.EndValueUpdateEntry] {
+        entries.compactMap { entry in
+            if case .endValueUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginGraphUpdateEntries: [TestTraceRecorder.History.BeginGraphUpdateEntry] {
+        entries.compactMap { entry in
+            if case .beginGraphUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endGraphUpdateEntries: [TestTraceRecorder.History.EndGraphUpdateEntry] {
+        entries.compactMap { entry in
+            if case .endGraphUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginGraphInvalidationEntries: [TestTraceRecorder.History.BeginGraphInvalidationEntry] {
+        entries.compactMap { entry in
+            if case .beginGraphInvalidation(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endGraphInvalidationEntries: [TestTraceRecorder.History.EndGraphInvalidationEntry] {
+        entries.compactMap { entry in
+            if case .endGraphInvalidation(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginModifyNodeEntries: [TestTraceRecorder.History.BeginModifyNodeEntry] {
+        entries.compactMap { entry in
+            if case .beginModifyNode(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endModifyNodeEntries: [TestTraceRecorder.History.EndModifyNodeEntry] {
+        entries.compactMap { entry in
+            if case .endModifyNode(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var beginEventEntries: [TestTraceRecorder.History.BeginEventEntry] {
+        entries.compactMap { entry in
+            if case .beginEvent(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var endEventEntries: [TestTraceRecorder.History.EndEventEntry] {
+        entries.compactMap { entry in
+            if case .endEvent(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var graphCreatedEntries: [TestTraceRecorder.History.GraphCreatedEntry] {
+        entries.compactMap { entry in
+            if case .graphCreated(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var graphDestroyEntries: [TestTraceRecorder.History.GraphDestroyEntry] {
+        entries.compactMap { entry in
+            if case .graphDestroy(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var graphNeedsUpdateEntries: [TestTraceRecorder.History.GraphNeedsUpdateEntry] {
+        entries.compactMap { entry in
+            if case .graphNeedsUpdate(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
     public var subgraphCreatedEntries: [TestTraceRecorder.History.SubgraphCreatedEntry] {
         entries.compactMap { entry in
-            if case .subgraphCreated(let subgraphCreatedEntry) = entry {
-                subgraphCreatedEntry
+            if case .subgraphCreated(let wrappedEntry) = entry {
+                wrappedEntry
             } else {
                 nil
             }
         }
     }
-    
+
     public var subgraphDestroyEntries: [TestTraceRecorder.History.SubgraphDestroyEntry] {
         entries.compactMap { entry in
-            if case .subgraphDestroy(let subgraphDestroyEntry) = entry {
-                subgraphDestroyEntry
+            if case .subgraphDestroy(let wrappedEntry) = entry {
+                wrappedEntry
             } else {
                 nil
             }
         }
     }
-    
+
     public var subgraphAddChildEntries: [TestTraceRecorder.History.SubgraphAddChildEntry] {
         entries.compactMap { entry in
-            if case .subgraphAddChild(let subgraphAddChildEntry) = entry {
-                subgraphAddChildEntry
+            if case .subgraphAddChild(let wrappedEntry) = entry {
+                wrappedEntry
             } else {
                 nil
             }
         }
     }
-    
+
     public var subgraphRemoveChildEntries: [TestTraceRecorder.History.SubgraphRemoveChildEntry] {
         entries.compactMap { entry in
-            if case .subgraphRemoveChild(let subgraphRemoveChildEntry) = entry {
-                subgraphRemoveChildEntry
+            if case .subgraphRemoveChild(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeAddedEntries: [TestTraceRecorder.History.NodeAddedEntry] {
+        entries.compactMap { entry in
+            if case .nodeAdded(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeAddEdgeEntries: [TestTraceRecorder.History.NodeAddEdgeEntry] {
+        entries.compactMap { entry in
+            if case .nodeAddEdge(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeRemoveEdgeEntries: [TestTraceRecorder.History.NodeRemoveEdgeEntry] {
+        entries.compactMap { entry in
+            if case .nodeRemoveEdge(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeSetEdgePendingEntries: [TestTraceRecorder.History.NodeSetEdgePendingEntry] {
+        entries.compactMap { entry in
+            if case .nodeSetEdgePending(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeSetDirtyEntries: [TestTraceRecorder.History.NodeSetDirtyEntry] {
+        entries.compactMap { entry in
+            if case .nodeSetDirty(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeSetPendingEntries: [TestTraceRecorder.History.NodeSetPendingEntry] {
+        entries.compactMap { entry in
+            if case .nodeSetPending(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeSetValueEntries: [TestTraceRecorder.History.NodeSetValueEntry] {
+        entries.compactMap { entry in
+            if case .nodeSetValue(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var nodeMarkValueEntries: [TestTraceRecorder.History.NodeMarkValueEntry] {
+        entries.compactMap { entry in
+            if case .nodeMarkValue(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var indirectNodeAddedEntries: [TestTraceRecorder.History.IndirectNodeAddedEntry] {
+        entries.compactMap { entry in
+            if case .indirectNodeAdded(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var indirectNodeSetSourceEntries: [TestTraceRecorder.History.IndirectNodeSetSourceEntry] {
+        entries.compactMap { entry in
+            if case .indirectNodeSetSource(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var indirectNodeSetDependencyEntries: [TestTraceRecorder.History.IndirectNodeSetDependencyEntry] {
+        entries.compactMap { entry in
+            if case .indirectNodeSetDependency(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var profileMarkEntries: [TestTraceRecorder.History.ProfileMarkEntry] {
+        entries.compactMap { entry in
+            if case .profileMark(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var customEventEntries: [TestTraceRecorder.History.CustomEventEntry] {
+        entries.compactMap { entry in
+            if case .customEvent(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var namedEventEntries: [TestTraceRecorder.History.NamedEventEntry] {
+        entries.compactMap { entry in
+            if case .namedEvent(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var namedEventEnabledEntries: [TestTraceRecorder.History.NamedEventEnabledEntry] {
+        entries.compactMap { entry in
+            if case .namedEventEnabled(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var setDeadlineEntries: [TestTraceRecorder.History.SetDeadlineEntry] {
+        entries.compactMap { entry in
+            if case .setDeadline(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var passedDeadlineEntries: [TestTraceRecorder.History.PassedDeadlineEntry] {
+        entries.compactMap { entry in
+            if case .passedDeadline(let wrappedEntry) = entry {
+                wrappedEntry
+            } else {
+                nil
+            }
+        }
+    }
+
+    public var compareFailedEntries: [TestTraceRecorder.History.CompareFailedEntry] {
+        entries.compactMap { entry in
+            if case .compareFailed(let wrappedEntry) = entry {
+                wrappedEntry
             } else {
                 nil
             }

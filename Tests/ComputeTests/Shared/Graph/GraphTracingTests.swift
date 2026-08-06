@@ -4,7 +4,7 @@ import Testing
 struct GraphTracingTests {
     @Test
     func initializeTraceType() {
-        Graph.TraceType(version: .compareFailed) { ctx, graph in
+        let _ = Graph.TraceType(version: .compareFailed) { ctx, graph in
             print("[begin_trace] graph = \(graph)")
         } end_trace: { ctx, graph in
             print("[end_trace] graph = \(graph)")

@@ -157,6 +157,18 @@ extension Graph {
     }
 
     @_transparent
+    public static func registerNamedTraceEvent(name: String, subsystem: String) -> Graph.NamedTraceEventID {
+        name.withCString { namePointer in
+            subsystem.withCString { subsystemPointer in
+                Graph.registerNamedTraceEvent(
+                    name: namePointer,
+                    subsystem: subsystemPointer
+                )
+            }
+        }
+    }
+
+    @_transparent
     public func addNamedTraceEvent(
         _ eventID: Graph.NamedTraceEventID,
         eventArgs: [UInt32],

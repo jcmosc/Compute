@@ -167,8 +167,9 @@ public class TestTraceRecorder: TestTrace {
         )
     }
     
-    public override func namedEventEnabled(eventID: Graph.NamedTraceEventID) {
+    public override func namedEventEnabled(eventID: Graph.NamedTraceEventID) -> Bool {
         history.entries.append(.namedEventEnabled(.init(eventID: eventID)))
+        return true
     }
     
     public override func setDeadline(deadline: UInt) {

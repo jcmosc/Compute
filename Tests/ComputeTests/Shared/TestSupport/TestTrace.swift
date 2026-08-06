@@ -154,8 +154,7 @@ public class TestTrace {
                 )
             } named_event_enabled: { ctx, event_id in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
-                context.namedEventEnabled(eventID: event_id)
-                return true
+                return context.namedEventEnabled(eventID: event_id)
             } set_deadline: { ctx, deadline in
                 let context = Unmanaged<TestTrace>.fromOpaque(ctx!).takeUnretainedValue()
                 context.setDeadline(deadline: UInt(deadline))
@@ -226,7 +225,7 @@ public class TestTrace {
         data: Data?,
         flags: Graph.NamedTraceEventFlags
     ) {}
-    public func namedEventEnabled(eventID: Graph.NamedTraceEventID) {}
+    public func namedEventEnabled(eventID: Graph.NamedTraceEventID) -> Bool { true }
 
     public func setDeadline(deadline: UInt) {}
     public func passedDeadline() {}

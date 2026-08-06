@@ -281,13 +281,14 @@ void ExternalTrace::custom_event(const IAG::Graph::Context &context, const char 
 }
 
 void ExternalTrace::named_event(const IAG::Graph::Context &context, IAGNamedTraceEventID event_id,
-                                uint32_t event_arg_count, const void **event_args, CFDataRef data, uint32_t arg6) {
+                                size_t event_arg_count, const uint32_t *event_args, CFDataRef data,
+                                IAGNamedTraceEventFlags flags) {
     if (_trace->version < IAGTraceTypeVersionNamed) {
         return;
     }
     if (auto cf_context = context.to_cf()) {
         if (auto callback = _trace->named_event) {
-            callback(_context, cf_context, event_id, event_arg_count, event_args, data, arg6);
+            callback(_context, cf_context, event_id, event_arg_count, event_args, data, flags);
         }
     }
 }

@@ -2,8 +2,8 @@
 
 #include <AttributeGraph/AGBase.h>
 #include <AttributeGraph/AGGraph.h>
-#include <AttributeGraph/AGSubgraph.h>
 #include <AttributeGraph/AGGraphTracing.h>
+#include <AttributeGraph/AGSubgraph.h>
 
 AG_ASSUME_NONNULL_BEGIN
 
@@ -66,10 +66,12 @@ typedef struct AG_SWIFT_NAME(Graph.TraceType) AGTraceType {
 
     void (*_Nullable profile_mark)(void *_Nullable context, const char *event_name);
 
-    void (*_Nullable custom_event)(void *_Nullable context, AGGraphRef graph, const char *event_name, const void *value,
-                                   AGTypeID type);
-    void (*_Nullable named_event)(void *_Nullable context, AGGraphRef graph, AGNamedTraceEventID event_id, uint32_t event_arg_count,
-                                  const void **event_args, CFDataRef data, uint32_t arg6);
+    void (*_Nullable custom_event)(void *_Nullable context, AGGraphRef graph, const char *event_name,
+                                   const void *value, AGTypeID type);
+    void (*_Nullable named_event)(void *_Nullable context, AGGraphRef graph, AGNamedTraceEventID event_id,
+                                  size_t event_arg_count,
+                                  const uint32_t *_Nullable AG_COUNTED_BY(event_arg_count) event_args,
+                                  CFDataRef _Nullable data, AGNamedTraceEventFlags flags);
     bool (*_Nullable named_event_enabled)(void *_Nullable context, AGNamedTraceEventID event_id);
 
     void (*_Nullable set_deadline)(void *_Nullable context, uint64_t deadline);

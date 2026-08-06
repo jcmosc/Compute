@@ -1,4 +1,5 @@
 import ComputeCxx
+import Foundation
 
 @_silgen_name("IAGGraphInternAttributeType")
 public func internAttributeType(
@@ -153,6 +154,22 @@ extension Graph {
 
     public func addTraceEvent<Value>(_ event: UnsafePointer<Int8>, context: UnsafePointer<Value>) {
         self.addTraceEvent(name: event, value: context, type: Metadata(Value.self))
+    }
+
+    @_transparent
+    public func addNamedTraceEvent(
+        _ eventID: Graph.NamedTraceEventID,
+        eventArgs: [UInt32],
+        data: Data?,
+        flags: Graph.NamedTraceEventFlags
+    ) {
+        addNamedTraceEvent(
+            eventID: eventID,
+            eventArgCount: eventArgs.count,
+            eventArgs: eventArgs,
+            data: data as CFData?,
+            flags: flags
+        )
     }
 }
 

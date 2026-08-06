@@ -96,8 +96,8 @@ class Trace {
 
     virtual void custom_event(const Graph::Context &context, const char *event_name, const void *value,
                               const swift::metadata &type) {};
-    virtual void named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, uint32_t event_arg_count,
-                             const void **event_args, CFDataRef data, uint32_t arg6) {};
+    virtual void named_event(const Graph::Context &context, IAGNamedTraceEventID event_id, size_t event_arg_count,
+                             const uint32_t *_Nullable event_args, CFDataRef data, IAGNamedTraceEventFlags flags) {};
     virtual bool named_event_enabled(IAGNamedTraceEventID event_id) { return false; };
 
     virtual void compare_failed(data::ptr<Node> node, const void *lhs, const void *rhs, size_t range_offset,

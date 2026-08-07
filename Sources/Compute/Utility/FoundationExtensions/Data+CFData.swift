@@ -1,11 +1,9 @@
 import Foundation
 
+#if !canImport(Darwin)
 extension Data {
     @usableFromInline
     var cfData: CFData {
-        #if canImport(Darwin)
-        self as CFData
-        #else
         withUnsafeBytes { raw -> CFData in
             CFDataCreate(
                 kCFAllocatorDefault,
@@ -13,6 +11,7 @@ extension Data {
                 raw.count
             )!
         }
-        #endif
+        
     }
 }
+#endif

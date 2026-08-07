@@ -840,7 +840,9 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                                 if (input_edge.attribute.is_node()) {
                                     uint32_t offset =
                                         input_edge.attribute.resolve(TraversalOptions::SkipMutableReference).offset();
-                                    [result appendFormat:@" label=\"@%d\"", offset];
+                                    if (offset > 0) {
+                                        [result appendFormat:@" label=\"@%d\"", offset];
+                                    }
                                 }
 
                                 [result appendString:@"];\n"];

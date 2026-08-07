@@ -4,7 +4,6 @@ import Foundation
 
 extension Graph {
     public struct DictionaryDescription: Equatable, Codable {
-
         public struct Counters: Equatable, Codable {
             public var bytes: Int
             public var maxBytes: Int
@@ -15,7 +14,6 @@ extension Graph {
         }
 
         public struct Graph: Equatable, Codable {
-
             public struct Counters: Equatable, Codable {
                 public var nodes: Int
                 public var createdNodes: Int
@@ -164,46 +162,24 @@ extension Graph {
         public var version: Int
         public var counters: Counters
         public var graphs: [Graph]
+
         public enum CodingKeys: String, CodingKey {
             case version
             case counters
             case graphs
         }
-
     }
 
     public func dictionaryDescription(includeValues: Bool = false) -> DictionaryDescription? {
-        // TODO: Conform DescriptionOption to CustomStringConvertible so we don't have to access rawValue here
-        let options =
-            [DescriptionOption.format.rawValue: "graph/dict", DescriptionOption.includeValues.rawValue: includeValues]
-            as NSDictionary
+        let options: NSDictionary = [
+            DescriptionOption.format: "graph/dict",
+            DescriptionOption.includeValues: includeValues,
+        ]
         guard let description = Graph.description(self, options: options) as? NSDictionary else {
             return nil
         }
-        let data = try! JSONSerialization.data(withJSONObject: description, options: [.prettyPrinted, .sortedKeys])
+        let data = try! JSONSerialization.data(withJSONObject: description)
         return try! JSONDecoder().decode(DictionaryDescription.self, from: data)
-    }
-
-    public static func dictionaryDescription(
-        allGraphs: Bool = false,
-        includeValues: Bool = false
-    )
-        -> DictionaryDescription?
-    {
-        let options =
-            [
-                DescriptionOption.format: "graph/dict", DescriptionOption.includeValues: includeValues,
-                "all_graphs": allGraphs,
-            ] as NSDictionary
-        guard let description = Graph.description(nil, options: options) as? NSDictionary else {
-            return nil
-        }
-        guard
-            let data = try? JSONSerialization.data(withJSONObject: description, options: [.prettyPrinted, .sortedKeys])
-        else {
-            return nil
-        }
-        return try? JSONDecoder().decode(DictionaryDescription.self, from: data)
     }
 
     public static func dictionaryDescriptionJSON(

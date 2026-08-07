@@ -12,7 +12,7 @@ public struct _External {
 extension _External: CustomStringConvertible {
 
     public var description: String {
-        return "_External"
+        return "External value"
     }
 
 }

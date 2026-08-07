@@ -89,7 +89,7 @@ void Graph::print_cycle(data::ptr<Node> node) {
                 }
 
                 NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:@{
-                    (__bridge NSString *)IAGDescriptionFormat : @"graph/dot",
+                    IAGDescriptionFormat : @"graph/dot",
                     @"attribute-ids" : indexSet
                 }];
 
@@ -222,7 +222,7 @@ NSString *Graph::description(data::ptr<Node> node) {
 }
 
 NSObject *Graph::description(Graph *graph, NSDictionary *options) {
-    NSString *format = options[(__bridge NSString *)IAGDescriptionFormat];
+    NSString *format = options[IAGDescriptionFormat];
     if ([format isEqualToString:@"graph/dict"]) {
         return description_graph(graph, options);
     }
@@ -246,13 +246,13 @@ NSObject *Graph::description(Graph *graph, NSDictionary *options) {
 }
 
 NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
-    NSNumber *include_values_number = options[(__bridge NSString *)IAGDescriptionIncludeValues];
+    NSNumber *include_values_number = options[IAGDescriptionIncludeValues];
     bool include_values = false;
     if (include_values_number) {
         include_values = [include_values_number boolValue];
     }
 
-    NSNumber *truncation_limit_number = options[(__bridge NSString *)IAGDescriptionTruncationLimit];
+    NSNumber *truncation_limit_number = options[IAGDescriptionTruncationLimit];
     uint64_t truncation_limit = 1024;
     if (truncation_limit_number) {
         truncation_limit = [truncation_limit_number unsignedLongValue];
@@ -679,7 +679,7 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
 }
 
 NSString *Graph::description_graph_dot(NSDictionary *options) {
-    NSNumber *include_values_number = options[(__bridge NSString *)IAGDescriptionIncludeValues];
+    NSNumber *include_values_number = options[IAGDescriptionIncludeValues];
     bool include_values = false;
     if (include_values_number) {
         include_values = [include_values_number boolValue];
@@ -690,7 +690,7 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
         attribute_ids = nil;
     }
 
-    NSNumber *truncation_limit_number = options[(__bridge NSString *)IAGDescriptionTruncationLimit];
+    NSNumber *truncation_limit_number = options[IAGDescriptionTruncationLimit];
     uint64_t truncation_limit = 40;
     if (truncation_limit_number) {
         truncation_limit = [truncation_limit_number unsignedLongValue];
@@ -880,7 +880,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
 
     NSMutableString *description = [NSMutableString string];
 
-    NSNumber *max_frames_number = [options objectForKeyedSubscript:(__bridge NSString *)IAGDescriptionMaxFrames];
+    NSNumber *max_frames_number = [options objectForKeyedSubscript:IAGDescriptionMaxFrames];
     int max_frames = max_frames_number ? [max_frames_number unsignedIntValue] : -1;
 
     int frame_count = 0;
@@ -933,7 +933,7 @@ NSString *Graph::description_stack(NSDictionary *options) {
 NSArray *Graph::description_stack_nodes(NSDictionary *options) {
     NSMutableArray *nodes = [NSMutableArray array];
 
-    NSNumber *max_frames_number = [options objectForKeyedSubscript:(__bridge NSString *)IAGDescriptionMaxFrames];
+    NSNumber *max_frames_number = [options objectForKeyedSubscript:IAGDescriptionMaxFrames];
     int max_frames = max_frames_number ? [max_frames_number unsignedIntValue] : -1;
 
     int frame_count = 0;
@@ -1027,8 +1027,8 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
 
 void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exclude_values) {
     NSDictionary *options = @{
-        (__bridge NSString *)IAGDescriptionFormat : @"graph/dict",
-        (__bridge NSString *)IAGDescriptionIncludeValues : @(!exclude_values),
+        IAGDescriptionFormat : @"graph/dict",
+        IAGDescriptionIncludeValues : @(!exclude_values),
         @"all_graphs" : @(graph == nullptr)
     };
     NSDictionary *json = (NSDictionary *)description(graph, options);

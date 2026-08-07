@@ -29,5 +29,4 @@ extension String {
         }
         return cfString
     }
-
 }

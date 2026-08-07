@@ -179,7 +179,7 @@ extension Graph {
             eventID: eventID,
             eventArgCount: eventArgs.count,
             eventArgs: eventArgs,
-            data: data as CFData?,
+            data: data?.cfData,
             flags: flags
         )
     }

@@ -392,8 +392,10 @@ extension AttributeGraph.Rule {
   public static func _update(_ self: Swift.UnsafeMutableRawPointer, attribute: AttributeGraph.AnyAttribute)
 }
 extension AttributeGraph.Rule {
-  public var bodyChanged: Swift.Bool {
-    get
+  @_alwaysEmitIntoClient public var bodyChanged: Swift.Bool {
+    get {
+        AnyAttribute.currentWasModified
+    }
   }
   public var attribute: AttributeGraph.Attribute<Self.Value> {
     get
@@ -420,8 +422,10 @@ extension AttributeGraph.StatefulRule {
 }
 extension AttributeGraph.StatefulRule {
   public static func _update(_ self: Swift.UnsafeMutableRawPointer, attribute: AttributeGraph.AnyAttribute)
-  public var bodyChanged: Swift.Bool {
-    get
+  @_alwaysEmitIntoClient public var bodyChanged: Swift.Bool {
+    get {
+        AnyAttribute.currentWasModified
+    }
   }
   public var value: Self.Value {
     unsafeAddress

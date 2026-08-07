@@ -149,7 +149,7 @@ public class TestTrace {
                     graph: graph,
                     eventID: event_id,
                     eventArgs: eventArgs ?? [],
-                    data: data as Data?,
+                    data: data.map { Data($0) },
                     flags: flags
                 )
             } named_event_enabled: { ctx, event_id in
@@ -231,4 +231,14 @@ public class TestTrace {
     public func passedDeadline() {}
 
     public func compareFailed(attribute: AnyAttribute, comparisonState: ComparisonState) {}
+}
+
+extension Data {
+    init(_ cfData: CFData) {
+        #if canImport(Darwin)
+        self = cfData as Data
+        #else
+        self.init(bytes: CFDataGetBytePtr(cfData), count: CFDataGetLength(cfData))
+        #endif
+    }
 }

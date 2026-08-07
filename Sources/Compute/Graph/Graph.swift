@@ -185,24 +185,40 @@ extension Graph {
     }
 }
 
+#if canImport(Darwin)
 extension Graph {
     public func print(includeValues: Bool) {
-        fatalError("not implemented")
+        Swift.print(graphvizDescription(includeValues: includeValues))
     }
 
     public func archiveJSON(name: String?) {
-        fatalError("not implemented")
+        Graph.archiveJSON(name: name?.cString(using: .utf8))
     }
 
     public func graphvizDescription(includeValues: Bool) -> String {
-        fatalError("not implemented")
+        let options: NSDictionary = [
+            DescriptionOption.format: "graph/dot",
+            DescriptionOption.includeValues: includeValues,
+        ]
+        guard let description = Graph.description(self, options: options) as? String else {
+            preconditionFailure()
+        }
+        return description
     }
 
     public static func printStack(maxFrames: Int) {
-        fatalError("not implemented")
+        Swift.print(stackDescription(maxFrames: maxFrames))
     }
 
     public static func stackDescription(maxFrames: Int) -> String {
-        fatalError("not implemented")
+        let options: NSDictionary = [
+            DescriptionOption.format: "stack/text",
+            DescriptionOption.maxFrames: maxFrames,
+        ]
+        guard let description = Graph.description(nil, options: options) as? String else {
+            return ""
+        }
+        return description
     }
 }
+#endif

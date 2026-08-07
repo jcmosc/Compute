@@ -2086,7 +2086,6 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool encode_value) c
     encoder.encode_field_varint(1, node.type_id());
     if (encode_value) {
         auto type = attribute_type(node.type_id());
-        void *value = node.get_value();
         if (node.is_value_initialized()) {
             void *value = node.get_value();
 #if TARGET_OS_MAC

@@ -175,6 +175,15 @@ extension Graph {
         data: Data? = nil,
         flags: Graph.NamedTraceEventFlags = []
     ) {
+        #if canImport(Darwin)
+        addNamedTraceEvent(
+            eventID: eventID,
+            eventArgCount: eventArgs.count,
+            eventArgs: eventArgs,
+            data: data as CFData?,
+            flags: flags
+        )
+        #else
         addNamedTraceEvent(
             eventID: eventID,
             eventArgCount: eventArgs.count,
@@ -182,6 +191,7 @@ extension Graph {
             data: data?.cfData,
             flags: flags
         )
+        #endif
     }
 }
 

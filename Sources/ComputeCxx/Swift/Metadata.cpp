@@ -5,15 +5,16 @@
 #else
 #include <SwiftCorelibsCoreFoundation/CFString.h>
 #endif
+#include <ranges>
 #include <swift/Runtime/Casting.h>
 #include <swift/Runtime/ExistentialContainer.h>
 #include <swift/Runtime/HeapObject.h>
 
-#include <platform/lock.h>
-#include <platform/image.h>
-#include <platform/sha.h>
 #include <Utilities/HashTable.h>
 #include <Utilities/Heap.h>
+#include <platform/image.h>
+#include <platform/lock.h>
+#include <platform/sha.h>
 
 #include "ContextDescriptor.h"
 #include "Errors/Errors.h"
@@ -143,11 +144,13 @@ void metadata::append_description(CFMutableStringRef description) const {
     }
     if (all_parents.size()) {
         uint64_t generic_args_start = 0;
-        for (auto parent = all_parents.rbegin(), end = all_parents.rend(); parent != end; parent++) {
-            CFStringAppendCString(description, parent->name, kCFStringEncodingUTF8);
-            if (parent->generic_args_end != generic_args_start) {
+        uint64_t index = all_parents.size();
+        for (auto &parent : std::ranges::reverse_view(all_parents)) {
+            --index;
+            CFStringAppendCString(description, parent.name, kCFStringEncodingUTF8);
+            if (parent.generic_args_end != generic_args_start) {
                 CFStringAppendCString(description, "<", kCFStringEncodingUTF8);
-                for (uint64_t i = generic_args_start; i < parent->generic_args_end; i++) {
+                for (uint64_t i = generic_args_start; i < parent.generic_args_end; i++) {
                     if (i > generic_args_start) {
                         CFStringAppendCString(description, ", ", kCFStringEncodingUTF8);
                     }
@@ -161,7 +164,7 @@ void metadata::append_description(CFMutableStringRef description) const {
                         }
                         if (arg.is_pack) {
                             // types points to an array of metadata pointers
-                            auto pack_types = reinterpret_cast<const metadata * const *>(arg.types);
+                            auto pack_types = reinterpret_cast<const metadata *const *>(arg.types);
                             pack_types[j]->append_description(description);
                         } else {
                             arg.types[j].append_description(description);
@@ -173,10 +176,10 @@ void metadata::append_description(CFMutableStringRef description) const {
                 }
                 CFStringAppendCString(description, ">", kCFStringEncodingUTF8);
             }
-            if (parent + 1 < end) {
+            if (index > 0) {
                 CFStringAppendCString(description, ".", kCFStringEncodingUTF8);
             }
-            generic_args_start = parent->generic_args_end;
+            generic_args_start = parent.generic_args_end;
         }
     }
 }
@@ -235,7 +238,7 @@ const void *metadata::signature() const {
             for (int i = 0; i < generic_arg.num_types; i++) {
                 if (generic_arg.is_pack) {
                     // types points to an array of metadata pointers
-                    auto pack_types = reinterpret_cast<const IAG::swift::metadata * const *>(generic_arg.types);
+                    auto pack_types = reinterpret_cast<const IAG::swift::metadata *const *>(generic_arg.types);
                     for (int j = 0; j < generic_arg.num_types; j++) {
                         metadata_queue.push_back(pack_types[j]);
                     }
@@ -245,7 +248,7 @@ const void *metadata::signature() const {
             }
         }
     }
-    
+
     if (descriptors.size()) {
         auto context = PLATFORM_SHA1_CTX();
         PLATFORM_SHA1_Init(&context);
@@ -256,8 +259,8 @@ const void *metadata::signature() const {
         auto infos = vector<platform_image_info_t, 8, uint64_t>();
         infos.reserve(descriptors.size());
 
-        platform_image_infos_for_addresses((unsigned)descriptors.size(), static_cast<const void *[]>(descriptors.data()),
-                                  infos.data());
+        platform_image_infos_for_addresses((unsigned)descriptors.size(),
+                                           static_cast<const void *[]>(descriptors.data()), infos.data());
 
         for (auto info : infos) {
             PLATFORM_SHA1_Update(&context, info.identifier, sizeof(((platform_image_info_t *)0)->identifier));
@@ -292,8 +295,7 @@ const equatable_witness_table *metadata::equatable() const {
             if (!nsobject_metadata) {
                 return nullptr;
             }
-            auto witness_table =
-                swift_conformsToProtocol(nsobject_metadata, &EquatableProtocolDescriptor);
+            auto witness_table = swift_conformsToProtocol(nsobject_metadata, &EquatableProtocolDescriptor);
             return reinterpret_cast<const equatable_witness_table *>(witness_table);
         }();
 #endif

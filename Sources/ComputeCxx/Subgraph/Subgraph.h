@@ -1,6 +1,9 @@
 #pragma once
 
+#include <ranges>
+
 #include "IAGSubgraph-Private.h"
+
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Closure/ClosureFunction.h"
 #include "ComputeCxx/IAGBase.h"
@@ -159,8 +162,7 @@ class Subgraph : public data::zone {
     template <typename Callable>
         requires std::invocable<Callable, Subgraph &> && std::same_as<std::invoke_result_t<Callable, Subgraph &>, bool>
     void foreach_ancestor(Callable body) {
-        for (auto iter = _parents.rbegin(), end = _parents.rend(); iter != end; ++iter) {
-            auto parent = *iter;
+        for (auto parent : std::ranges::reverse_view(_parents)) {
             if (body(*parent)) {
                 parent->foreach_ancestor(body);
             }
@@ -201,7 +203,9 @@ class Subgraph : public data::zone {
             _cache_state = CacheState((uint8_t)_cache_state & ~(uint8_t)CacheState::HasCachedNodes);
         }
     };
-    bool is_graph_invalidating_subgraphs() const { return ((uint8_t)_cache_state & (uint8_t)CacheState::GraphInvalidatingSubgraphs) != 0; };
+    bool is_graph_invalidating_subgraphs() const {
+        return ((uint8_t)_cache_state & (uint8_t)CacheState::GraphInvalidatingSubgraphs) != 0;
+    };
     void set_graph_invalidating_subgraphs(bool value) {
         if (value) {
             _cache_state = CacheState((uint8_t)_cache_state | (uint8_t)CacheState::GraphInvalidatingSubgraphs);
@@ -228,9 +232,9 @@ class Subgraph : public data::zone {
 
     AttributeID tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index);
     Graph::TreeElementID tree_subgraph_child(Graph::TreeElementID tree_element);
-    
+
     // MARK: Encoding
-    
+
     void encode(Encoder &encoder) const;
 
     // MARK: Printing

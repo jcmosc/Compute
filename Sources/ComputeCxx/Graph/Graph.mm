@@ -879,7 +879,6 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
 }
 
 NSString *Graph::description_stack(NSDictionary *options) {
-
     NSMutableString *description = [NSMutableString string];
 
     NSNumber *max_frames_number = [options objectForKeyedSubscript:IAGDescriptionMaxFrames];
@@ -887,16 +886,14 @@ NSString *Graph::description_stack(NSDictionary *options) {
 
     int frame_count = 0;
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
-        auto &frames = update.get()->frames();
-        for (auto frame = frames.rbegin(), end = frames.rend(); frame != end; ++frame) {
-
-            const AttributeType &type = attribute_type(frame->attribute->type_id());
-            [description appendFormat:@"  #%d: %u %s -> %s\n", frame_count, frame->attribute.offset(),
+        for (auto &frame : std::ranges::reverse_view(update.get()->frames())) {
+            const AttributeType &type = attribute_type(frame.attribute->type_id());
+            [description appendFormat:@"  #%d: %u %s -> %s\n", frame_count, frame.attribute.offset(),
                                       type.body_metadata().name(false), type.value_metadata().name(false)];
 
-            if (frame_count == 0 && frame->attribute->input_edges().size() > 0) {
+            if (frame_count == 0 && frame.attribute->input_edges().size() > 0) {
                 [description appendString:@"  -- inputs:\n"];
-                for (auto &input_edge : frame->attribute->input_edges()) {
+                for (auto &input_edge : frame.attribute->input_edges()) {
                     OffsetAttributeID resolved =
                         input_edge.attribute.resolve(TraversalOptions::ReportIndirectionInOffset);
                     [description appendFormat:@"    %u", IAGAttribute(resolved.attribute())];

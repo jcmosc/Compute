@@ -1,12 +1,13 @@
 import Testing
 
 @Suite(.serialized(for: \Subgraph.Type.current))
-struct RuleTests {
+struct StatefulRuleTests {
     @Suite
     struct ValueTests {
-        struct TestRule: Rule {
-            var value: String {
-                return "computed"
+        struct TestRule: StatefulRule {
+            typealias Value = String
+            func updateValue() {
+                value = "computed"
             }
         }
 
@@ -41,15 +42,17 @@ struct RuleTests {
 
     @Suite
     struct InputTests {
-        struct TestRule1: Rule {
-            var value: String {
-                return "rule 1 computed value"
+        struct TestRule1: StatefulRule {
+            typealias Value = String
+            func updateValue() {
+                value = "rule 1 computed value"
             }
         }
-        struct TestRule2: Rule {
+        struct TestRule2: StatefulRule {
+            typealias Value = String
             @Attribute var property: String
-            var value: String {
-                return "derived: \(property)"
+            func updateValue() {
+                value = "derived: \(property)"
             }
         }
 
@@ -87,9 +90,10 @@ struct RuleTests {
     
     @Suite
     struct ModifyTests {
-        struct MutableRule: Rule {
-            var value: String {
-                return "bodyChanged = \(bodyChanged)"
+        struct MutableRule: StatefulRule {
+            typealias Value = String
+            func updateValue() {
+                value = "bodyChanged = \(bodyChanged)"
             }
         }
         

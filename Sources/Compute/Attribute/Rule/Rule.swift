@@ -1,18 +1,15 @@
 import ComputeCxx
 
 public protocol Rule: _AttributeBody {
-
     associatedtype Value
 
     static var initialValue: Value? { get }
     var value: Value { get }
-
 }
 
 extension Rule {
-
     public static var initialValue: Value? {
-        return nil
+        nil
     }
 
     public static func _updateDefault(_ self: UnsafeMutableRawPointer) {
@@ -31,23 +28,21 @@ extension Rule {
             Graph.setOutputValue(valuePointer)
         }
     }
-
 }
 
 extension Rule {
-
+    @_alwaysEmitIntoClient
     public var bodyChanged: Bool {
-        fatalError("not implemented")
+        AnyAttribute.currentWasModified
     }
 
     public var attribute: Attribute<Value> {
-        return Attribute<Value>(identifier: AnyAttribute.current!)
+        Attribute<Value>(identifier: AnyAttribute.current!)
     }
 
     public var context: RuleContext<Value> {
-        return RuleContext<Value>(attribute: attribute)
+        RuleContext<Value>(attribute: attribute)
     }
-
 }
 
 @_silgen_name("IAGGraphReadCachedAttribute")
@@ -63,7 +58,6 @@ func IAGGraphReadCachedAttribute(
 ) -> UnsafeRawPointer
 
 extension Rule where Self: Hashable {
-
     public func cachedValue(options: CachedValueOptions, owner: AnyAttribute?) -> Value {
         return withUnsafePointer(to: self) { bodyPointer in
             Self._cachedValue(
@@ -120,5 +114,4 @@ extension Rule where Self: Hashable {
         }
         return value.assumingMemoryBound(to: Value.self)
     }
-
 }

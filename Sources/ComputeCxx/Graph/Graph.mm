@@ -232,13 +232,13 @@ NSObject *Graph::description(Graph *graph, NSDictionary *options) {
     if ([format hasPrefix:@"stack/"]) {
         if (auto update = current_update().get()) {
             if ([format isEqualToString:@"stack/text"]) {
-                return graph->description_stack(options);
+                return update->graph()->description_stack(options);
             }
             if ([format isEqualToString:@"stack/nodes"]) {
-                return graph->description_stack_nodes(options);
+                return update->graph()->description_stack_nodes(options);
             }
             if ([format isEqualToString:@"stack/frame"]) {
-                return Graph::description_stack_frame(options); // double check is static
+                return update->graph()->description_stack_frame(options);
             }
         }
     }

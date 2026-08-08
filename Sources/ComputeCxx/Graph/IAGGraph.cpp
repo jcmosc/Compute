@@ -28,10 +28,10 @@ CFRuntimeClass &graph_type_id() {
         }
     };
     static CFRuntimeClass klass = {
-        0,                // version
+        0,                 // version
         "IAGGraphStorage", // className
-        NULL,             // init
-        NULL,             // copy
+        NULL,              // init
+        NULL,              // copy
         finalize,
         NULL, // equal
         NULL, // hash
@@ -152,12 +152,13 @@ uint64_t IAGGraphGetCounter(IAGGraphRef graph, IAGGraphCounterQueryType query) {
 #pragma mark - Main handler
 
 void IAGGraphWithMainThreadHandler(IAGGraphRef graph,
-                                  void (*body)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                  const void *body_context,
-                                  void (*main_thread_handler)(void (*trampoline_thunk)(const void *),
-                                                              const void *trampoline,
-                                                              const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                  const void *main_thread_handler_context) {
+                                   void (*body)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                                   const void *body_context,
+                                   void (*main_thread_handler)(void (*trampoline_thunk)(const void *),
+                                                               const void *trampoline,
+                                                               const void *context IAG_SWIFT_CONTEXT)
+                                       IAG_SWIFT_CC(swift),
+                                   const void *main_thread_handler_context) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().with_main_handler(IAG::ClosureFunctionVV<void>(body, body_context), main_thread_handler,
                                              main_thread_handler_context);
@@ -177,10 +178,10 @@ void IAGGraphEndDeferringSubgraphInvalidation(IAGGraphRef graph, bool was_deferr
 
 #pragma mark - Attribute types
 
-uint32_t IAGGraphInternAttributeType(IAGUnownedGraphContextRef unowned_graph, IAGTypeID type,
-                                    const IAGAttributeType *(*make_attribute_type)(const void *context IAG_SWIFT_CONTEXT)
-                                        IAG_SWIFT_CC(swift),
-                                    const void *make_attribute_type_context) {
+uint32_t IAGGraphInternAttributeType(
+    IAGUnownedGraphContextRef unowned_graph, IAGTypeID type,
+    const IAGAttributeType *(*make_attribute_type)(const void *context IAG_SWIFT_CONTEXT)IAG_SWIFT_CC(swift),
+    const void *make_attribute_type_context) {
     auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     IAG::Graph *graph = reinterpret_cast<IAG::Graph *>(unowned_graph);
     return graph->intern_type(
@@ -201,7 +202,7 @@ void IAGGraphVerifyType(IAGAttribute attribute, IAGTypeID type) {
         auto attribute_type = subgraph->graph()->attribute_type(node->type_id());
         if (&attribute_type.value_metadata() != metadata) {
             IAG::precondition_failure("type check failed: %u, expected %s, got %s", attribute, metadata->name(false),
-                                     attribute_type.value_metadata().name(false));
+                                      attribute_type.value_metadata().name(false));
         }
     }
 }
@@ -415,8 +416,9 @@ void IAGGraphSetIndirectDependency(IAGAttribute attribute, IAGAttribute dependen
 #pragma mark - Search
 
 bool IAGGraphSearch(IAGAttribute attribute, IAGSearchOptions options,
-                   bool (*predicate)(IAGAttribute attribute, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                   const void *predicate_context) {
+                    bool (*predicate)(IAGAttribute attribute, const void *context IAG_SWIFT_CONTEXT)
+                        IAG_SWIFT_CC(swift),
+                    const void *predicate_context) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
@@ -432,8 +434,8 @@ bool IAGGraphSearch(IAGAttribute attribute, IAGSearchOptions options,
 #pragma mark - Body
 
 void IAGGraphMutateAttribute(IAGAttribute attribute, IAGTypeID type, bool invalidating,
-                            void (*modify)(void *body, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                            const void *modify_context) {
+                             void (*modify)(void *body, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                             const void *modify_context) {
     auto attribute_id = IAG::AttributeID(attribute);
     auto node = attribute_id.get_node();
     if (!node) {
@@ -455,7 +457,7 @@ void IAGGraphMutateAttribute(IAGAttribute attribute, IAGTypeID type, bool invali
 namespace {
 
 inline IAGChangedValue get_value(IAG::AttributeID attribute_id, uint32_t seed, IAGValueOptions options,
-                                const IAG::swift::metadata &metadata) {
+                                 const IAG::swift::metadata &metadata) {
     if (!(options & IAGValueOptionsIncrementGraphVersion)) {
         auto update_ptr = IAG::Graph::current_update();
         if (update_ptr.tag() == 0 && update_ptr.get() != nullptr) {
@@ -503,7 +505,8 @@ IAGWeakChangedValue IAGGraphGetWeakValue(IAGWeakAttribute attribute, IAGValueOpt
     return *reinterpret_cast<IAGWeakChangedValue *>(&value);
 }
 
-IAGChangedValue IAGGraphGetInputValue(IAGAttribute attribute, IAGAttribute input, IAGValueOptions options, IAGTypeID type) {
+IAGChangedValue IAGGraphGetInputValue(IAGAttribute attribute, IAGAttribute input, IAGValueOptions options,
+                                      IAGTypeID type) {
     auto attribute_id = IAG::AttributeID(attribute);
     if (options & IAGValueOptionsIncrementGraphVersion || attribute_id.is_nil()) {
         return IAGGraphGetValue(input, options, type);
@@ -632,9 +635,9 @@ void IAGGraphInvalidateAllValues(IAGGraphRef graph) {
 }
 
 void IAGGraphSetInvalidationCallback(IAGGraphRef graph,
-                                    void (*callback)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT)
-                                        IAG_SWIFT_CC(swift),
-                                    const void *callback_context) {
+                                     void (*callback)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT)
+                                         IAG_SWIFT_CC(swift),
+                                     const void *callback_context) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_invalidation_callback(IAG::ClosureFunctionAV<void, IAGAttribute>(callback, callback_context));
 }
@@ -676,7 +679,8 @@ void *read_cached_attribute(size_t hash, const IAG::swift::metadata &metadata, c
         return value;
     }
 
-    IAGInputOptions input_options = options & IAGCachedValueOptionsUnprefetched ? IAGInputOptionsUnprefetched : IAGInputOptionsNone;
+    IAGInputOptions input_options =
+        options & IAGCachedValueOptionsUnprefetched ? IAGInputOptionsUnprefetched : IAGInputOptionsNone;
     return subgraph->graph()->input_value_ref(update_stack->frames().back().attribute, IAG::AttributeID(cached_node), 0,
                                               input_options, value_metadata, flags_out);
 }
@@ -684,10 +688,10 @@ void *read_cached_attribute(size_t hash, const IAG::swift::metadata &metadata, c
 } // namespace
 
 void *IAGGraphReadCachedAttribute(size_t hash, IAGTypeID type, const void *body, IAGTypeID value_type,
-                                 IAGCachedValueOptions options, IAGAttribute owner, bool *_Nullable changed_out,
-                                 uint32_t (*closure)(IAGUnownedGraphContextRef graph_context,
-                                                     const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                 const void *closure_context) {
+                                  IAGCachedValueOptions options, IAGAttribute owner, bool *_Nullable changed_out,
+                                  uint32_t (*closure)(IAGUnownedGraphContextRef graph_context,
+                                                      const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                                  const void *closure_context) {
     auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     auto value_metadata = reinterpret_cast<const IAG::swift::metadata *>(value_type);
     auto owner_id = IAG::AttributeID(owner);
@@ -703,7 +707,8 @@ void *IAGGraphReadCachedAttribute(size_t hash, IAGTypeID type, const void *body,
 }
 
 void *IAGGraphReadCachedAttributeIfExists(size_t hash, IAGTypeID type, const void *body, IAGTypeID value_type,
-                                         IAGCachedValueOptions options, IAGAttribute owner, bool *_Nullable changed_out) {
+                                          IAGCachedValueOptions options, IAGAttribute owner,
+                                          bool *_Nullable changed_out) {
 
     auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     auto value_metadata = reinterpret_cast<const IAG::swift::metadata *>(value_type);
@@ -791,7 +796,7 @@ void IAGGraphSetNeedsUpdate(IAGGraphRef graph) {
 }
 
 void IAGGraphWithUpdate(IAGAttribute attribute, void (*body)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                       const void *body_context) {
+                        const void *body_context) {
     auto attribute_id = IAG::AttributeID(attribute);
     if (!attribute_id || attribute_id.is_nil()) {
         // TODO: check
@@ -814,13 +819,13 @@ void IAGGraphWithUpdate(IAGAttribute attribute, void (*body)(const void *context
 }
 
 void IAGGraphWithoutUpdate(void (*body)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                          const void *body_context) {
+                           const void *body_context) {
     IAG::Graph::without_update(IAG::ClosureFunctionVV<void>(body, body_context));
 }
 
 void IAGGraphSetUpdateCallback(IAGGraphRef graph,
-                              void (*callback)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                              const void *callback_context) {
+                               void (*callback)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                               const void *callback_context) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_update_callback(IAG::ClosureFunctionVV<void>(callback, callback_context));
 }

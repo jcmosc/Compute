@@ -34,11 +34,11 @@ IAGTupleType IAGNewTupleType(size_t count, const IAGTypeID _Nonnull *_Nonnull el
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-size_t IAGTupleCount(IAGTupleType tuple_type) IAG_SWIFT_NAME(getter:IAGTupleType.count(self:));
+size_t IAGTupleCount(IAGTupleType tuple_type) IAG_SWIFT_NAME(getter:TupleType.count(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-size_t IAGTupleSize(IAGTupleType tuple_type) IAG_SWIFT_NAME(getter:IAGTupleType.size(self:));
+size_t IAGTupleSize(IAGTupleType tuple_type) IAG_SWIFT_NAME(getter:TupleType.size(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

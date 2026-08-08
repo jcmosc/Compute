@@ -17,4 +17,4 @@ typedef IAG_ENUM(uint32_t, IAGGraphCounterQueryType) {
     IAGGraphCounterQueryTypeCreatedNodes,
     IAGGraphCounterQueryTypeSubgraphs,
     IAGGraphCounterQueryTypeCreatedSubgraphs,
-} IAG_SWIFT_NAME(IAGGraphRef.CounterQueryType);
+} IAG_SWIFT_NAME(Graph.CounterQueryType);

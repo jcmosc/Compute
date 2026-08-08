@@ -107,7 +107,7 @@ class Graph {
 
     // Tree
     std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph = nullptr;
-    KeyTable *_Nullable _keys = nullptr;
+    std::unique_ptr<KeyTable> _keys = nullptr;
 
     // Subgraphs
     vector<Subgraph *, 0, uint32_t> _subgraphs;

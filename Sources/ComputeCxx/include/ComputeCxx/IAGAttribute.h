@@ -14,7 +14,7 @@ const IAGAttribute IAGAttributeNil;
 typedef IAG_OPTIONS(uint8_t, IAGAttributeFlags) {
     IAGAttributeFlagsNone = 0,
     IAGAttributeFlagsAll = 0xFF,
-} IAG_SWIFT_NAME(IAGSubgraphRef.Flags);
+} IAG_SWIFT_NAME(Subgraph.Flags);
 
 IAG_EXTERN_C_END
 

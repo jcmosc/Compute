@@ -13,7 +13,7 @@ typedef struct _IAGTreeElement *IAGTreeElement IAG_SWIFT_STRUCT IAG_SWIFT_NAME(T
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGTypeID IAGTreeElementGetType(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:IAGTreeElement.type(self:));
+IAGTypeID IAGTreeElementGetType(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:TreeElement.type(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -21,11 +21,11 @@ IAGAttribute IAGTreeElementGetValue(IAGTreeElement tree_element);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-uint32_t IAGTreeElementGetFlags(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:IAGTreeElement.flags(self:));
+uint32_t IAGTreeElementGetFlags(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:TreeElement.flags(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGTreeElement _Nullable IAGTreeElementGetParent(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:IAGTreeElement.parent(self:));
+IAGTreeElement _Nullable IAGTreeElementGetParent(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:TreeElement.parent(self:));
 
 // MARK: Iterating values
 
@@ -37,11 +37,11 @@ typedef struct IAGTreeElementValueIterator {
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGTreeElementValueIterator IAGTreeElementMakeValueIterator(IAGTreeElement tree_element)
-    IAG_SWIFT_NAME(getter:IAGTreeElement.values(self:));
+    IAG_SWIFT_NAME(getter:TreeElement.values(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGTreeValue _Nullable IAGTreeElementGetNextValue(IAGTreeElementValueIterator *iter) IAG_SWIFT_NAME(IAGTreeElementValueIterator.next(self:));
+IAGTreeValue _Nullable IAGTreeElementGetNextValue(IAGTreeElementValueIterator *iter) IAG_SWIFT_NAME(Values.next(self:));
 
 // MARK: Iterating nodes
 
@@ -53,7 +53,7 @@ typedef struct IAGTreeElementNodeIterator {
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGTreeElementNodeIterator IAGTreeElementMakeNodeIterator(IAGTreeElement tree_element)
-    IAG_SWIFT_NAME(getter:IAGTreeElement.nodes(self:));
+    IAG_SWIFT_NAME(getter:TreeElement.nodes(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -70,11 +70,11 @@ typedef struct IAGTreeElementChildIterator {
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGTreeElementChildIterator IAGTreeElementMakeChildIterator(IAGTreeElement tree_element)
-    IAG_SWIFT_NAME(getter:IAGTreeElement.children(self:));
+    IAG_SWIFT_NAME(getter:TreeElement.children(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGTreeElement _Nullable IAGTreeElementGetNextChild(IAGTreeElementChildIterator *iter) IAG_SWIFT_NAME(IAGTreeElementChildIterator.next(self:));
+IAGTreeElement _Nullable IAGTreeElementGetNextChild(IAGTreeElementChildIterator *iter) IAG_SWIFT_NAME(Children.next(self:));
 
 IAG_EXTERN_C_END
 

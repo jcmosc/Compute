@@ -11,7 +11,7 @@ typedef IAG_OPTIONS(uint32_t, IAGGraphTraceFlags) {
     IAGGraphTraceFlagsPrepare = 1 << 3,
     IAGGraphTraceFlagsCustom = 1 << 4,
     IAGGraphTraceFlagsAll = 1 << 5,
-} IAG_SWIFT_NAME(IAGGraphRef.TraceFlags);
+} IAG_SWIFT_NAME(Graph.TraceFlags);
 
 typedef struct IAGTraceType *IAGTraceTypeRef;
 
@@ -29,47 +29,47 @@ IAG_EXTERN_C_BEGIN
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGGraphStartTracing(IAGGraphRef _Nullable graph, IAGGraphTraceFlags trace_flags)
-    IAG_SWIFT_NAME(IAGGraphRef.startTracing(_:flags:));
+    IAG_SWIFT_NAME(Graph.startTracing(_:flags:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGGraphStartTracing2(IAGGraphRef _Nullable graph, IAGGraphTraceFlags trace_flags, CFArrayRef _Nullable subsystems)
-    IAG_SWIFT_NAME(IAGGraphRef.startTracing(_:flags:subsystems:));
+    IAG_SWIFT_NAME(Graph.startTracing(_:flags:subsystems:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphStopTracing(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(IAGGraphRef.stopTracing(_:));
+void IAGGraphStopTracing(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(Graph.stopTracing(_:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphSyncTracing(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(IAGGraphRef.syncTracing(self:));
+void IAGGraphSyncTracing(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(Graph.syncTracing(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-CFStringRef _Nullable IAGGraphCopyTracePath(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(IAGGraphRef.tracePath(_:));
+CFStringRef _Nullable IAGGraphCopyTracePath(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(Graph.tracePath(_:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGGraphSetTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *_Nullable context)
-    IAG_SWIFT_NAME(IAGGraphRef.setTrace(self:_:context:));
+    IAG_SWIFT_NAME(Graph.setTrace(self:_:context:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphResetTrace(IAGGraphRef graph) IAG_SWIFT_NAME(IAGGraphRef.resetTrace(self:));
+void IAGGraphResetTrace(IAGGraphRef graph) IAG_SWIFT_NAME(Graph.resetTrace(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *_Nullable context)
-    IAG_SWIFT_NAME(IAGGraphRef.addTrace(self:_:context:));
+    IAG_SWIFT_NAME(Graph.addTrace(self:_:context:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id)
-    IAG_SWIFT_NAME(IAGGraphRef.removeTrace(self:traceID:));
+    IAG_SWIFT_NAME(Graph.removeTrace(self:traceID:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-bool IAGGraphIsTracingActive(IAGGraphRef graph) IAG_SWIFT_NAME(getter:IAGGraphRef.isTracingActive(self:));
+bool IAGGraphIsTracingActive(IAGGraphRef graph) IAG_SWIFT_NAME(getter:Graph.isTracingActive(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -78,33 +78,33 @@ void IAGGraphPrepareTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void *value, IAGTypeID type)
-    IAG_SWIFT_NAME(IAGGraphRef.addTraceEvent(self:name:value:type:));
+    IAG_SWIFT_NAME(Graph.addTraceEvent(self:name:value:type:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 bool IAGGraphTraceEventEnabled(IAGGraphRef graph, uint32_t event_id)
-    IAG_SWIFT_NAME(IAGGraphRef.traceEventEnabled(self:for:));
+    IAG_SWIFT_NAME(Graph.traceEventEnabled(self:for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, const char *event_subsystem)
-    IAG_SWIFT_NAME(IAGGraphRef.registerNamedTraceEvent(name:subsystem:));
+    IAG_SWIFT_NAME(Graph.registerNamedTraceEvent(name:subsystem:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-const char *_Nullable IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id) IAG_SWIFT_NAME(IAGGraphRef.traceEventName(for:));
+const char *_Nullable IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id) IAG_SWIFT_NAME(Graph.traceEventName(for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 const char *_Nullable IAGGraphGetTraceEventSubsystem(IAGNamedTraceEventID event_id)
-    IAG_SWIFT_NAME(IAGGraphRef.traceEventSubsystem(for:));
+    IAG_SWIFT_NAME(Graph.traceEventSubsystem(for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, size_t event_arg_count,
                                 const uint32_t *_Nullable IAG_COUNTED_BY(event_arg_count) event_args,
                                 CFDataRef _Nullable data, IAGNamedTraceEventFlags flags)
-    IAG_SWIFT_NAME(IAGGraphRef.addNamedTraceEvent(self:eventID:eventArgCount:eventArgs:data:flags:));
+    IAG_SWIFT_NAME(Graph.addNamedTraceEvent(self:eventID:eventArgCount:eventArgs:data:flags:));
 
 IAG_EXTERN_C_END
 

@@ -113,15 +113,15 @@ bool IAGTypeApplyMutableEnumData(IAGTypeID typeID, void *value,
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-uint64_t IAGTypeGetEnumTag(IAGTypeID typeID, const void *value) IAG_SWIFT_NAME(IAGTypeID.enumTag(self:_:));
+uint64_t IAGTypeGetEnumTag(IAGTypeID typeID, const void *value) IAG_SWIFT_NAME(Metadata.enumTag(self:_:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGTypeProjectEnumData(IAGTypeID typeID, void *value) IAG_SWIFT_NAME(IAGTypeID.projectEnumData(self:_:));
+void IAGTypeProjectEnumData(IAGTypeID typeID, void *value) IAG_SWIFT_NAME(Metadata.projectEnumData(self:_:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGTypeInjectEnumTag(IAGTypeID typeID, uint32_t tag, void *value) IAG_SWIFT_NAME(IAGTypeID.injectEnumTag(self:tag:_:));
+void IAGTypeInjectEnumTag(IAGTypeID typeID, uint32_t tag, void *value) IAG_SWIFT_NAME(Metadata.injectEnumTag(self:tag:_:));
 
 IAG_EXTERN_C_END
 

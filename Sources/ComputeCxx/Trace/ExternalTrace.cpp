@@ -5,10 +5,6 @@
 #include "Graph/Context.h"
 #include "Graph/Graph.h"
 
-void ExternalTrace::graph_destroyed() { delete this; };
-
-void ExternalTrace::trace_removed() { delete this; };
-
 void ExternalTrace::begin_trace(const IAG::Graph &graph) {
     auto cf_graph = graph.primary_context()->to_cf();
     if (auto callback = _trace->begin_trace) {

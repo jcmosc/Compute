@@ -368,10 +368,6 @@ void Graph::TraceRecorder::field_named_event_id(Encoder &encoder, uint32_t event
 
 #pragma mark - Trace methods
 
-void Graph::TraceRecorder::graph_destroyed() { delete this; };
-
-void Graph::TraceRecorder::trace_removed() { delete this; };
-
 void Graph::TraceRecorder::begin_trace(const Graph &graph) {
     encode_event_begin();
     field_event_type(_encoder, EventType::BeginTrace);

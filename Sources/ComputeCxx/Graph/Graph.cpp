@@ -139,10 +139,6 @@ Graph::~Graph() {
     for (auto subgraph : _subgraphs) {
         subgraph->graph_destroyed();
     }
-
-    if (_keys) {
-        delete _keys;
-    }
 }
 
 #pragma mark - Context
@@ -2063,7 +2059,7 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
 
 uint32_t Graph::intern_key(const char *key) {
     if (_keys == nullptr) {
-        _keys = new Graph::KeyTable(&_heap);
+        _keys = std::make_unique<Graph::KeyTable>(&_heap);
     }
     const char *found = nullptr;
     uint32_t key_id = _keys->lookup(key, &found);
@@ -2074,10 +2070,10 @@ uint32_t Graph::intern_key(const char *key) {
 }
 
 const char *Graph::key_name(uint32_t key_id) const {
-    if (_keys != nullptr && key_id < _keys->size()) {
-        return _keys->get(key_id);
+    if (_keys == nullptr || key_id >= _keys->size()) {
+        precondition_failure("invalid string key id: %u", key_id);
     }
-    IAG::precondition_failure("invalid string key id: %u", key_id);
+    return _keys->get(key_id);
 }
 
 #pragma mark - Encoding

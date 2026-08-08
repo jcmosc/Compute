@@ -133,9 +133,6 @@ class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
 
     // MARK: Trace methods
 
-    void graph_destroyed() override;
-    void trace_removed() override;
-
     void begin_trace(const Graph &graph) override;
     void end_trace(const Graph &graph) override;
     void sync_trace() override;

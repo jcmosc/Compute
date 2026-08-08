@@ -29,8 +29,8 @@ class Trace {
     Trace() : _id(IAGMakeUniqueID()) {};
     Trace(uint64_t id) : _id(id) {};
 
-    virtual void graph_destroyed() {};
-    virtual void trace_removed() {};
+    void graph_destroyed() { delete this; };
+    void trace_removed() { delete this; };
 
     // Trace
     virtual void begin_trace(const Graph &graph) {};

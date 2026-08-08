@@ -23,9 +23,6 @@ class ExternalTrace : public IAG::Trace {
     ExternalTrace(IAGUniqueID id, const IAGTraceTypeRef trace, void *context)
         : IAG::Trace(id), _trace(trace), _context(context) {};
 
-    void graph_destroyed() override;
-    void trace_removed() override;
-
     void begin_trace(const IAG::Graph &graph) override;
     void end_trace(const IAG::Graph &graph) override;
 

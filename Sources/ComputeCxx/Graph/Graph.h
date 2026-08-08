@@ -56,7 +56,10 @@ class Graph {
         };
 
         void sort_nodes();
-        void push_back(TreeElementNodePair pair) { _nodes.push_back(pair); };
+        void push_back(TreeElementNodePair pair) {
+            _nodes.push_back(pair);
+            _sorted = false;
+        };
     };
 
     enum class UpdateStatus : uint32_t {
@@ -103,7 +106,7 @@ class Graph {
     TraceRecorder *_trace_recorder = nullptr;
 
     // Tree
-    std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph;
+    std::unique_ptr<std::unordered_map<Subgraph *, TreeDataElement>> _tree_data_elements_by_subgraph = nullptr;
     KeyTable *_Nullable _keys = nullptr;
 
     // Subgraphs
@@ -227,7 +230,7 @@ class Graph {
 
     void add_tree_data_for_subgraph(Subgraph *subgraph, data::ptr<TreeElement> tree_element, data::ptr<Node> node) {
         if (!_tree_data_elements_by_subgraph) {
-            _tree_data_elements_by_subgraph.reset(new std::unordered_map<Subgraph *, TreeDataElement>());
+            _tree_data_elements_by_subgraph = std::make_unique<std::unordered_map<Subgraph *, TreeDataElement>>();
         }
         auto &tree_data_element = _tree_data_elements_by_subgraph->try_emplace(subgraph).first->second;
         tree_data_element.push_back({tree_element, node});

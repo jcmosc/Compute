@@ -134,15 +134,6 @@ extension Graph {
     public static func stopProfiling(_ graph: Graph?) {
         fatalError("not implemented")
     }
-
-    public static func markProfile(name: UnsafePointer<Int8>) {
-        fatalError("not implemented")
-
-    }
-
-    public static func resetProfile() {
-        fatalError("not implemented")
-    }
 }
 
 extension Graph {
@@ -192,6 +183,16 @@ extension Graph {
             flags: flags
         )
         #endif
+    }
+}
+
+extension Graph {
+    public static func resetProfile() {
+        Graph.resetProfile(nil)
+    }
+    
+    public static func markProfile(name: UnsafePointer<Int8>) {
+        Graph.markProfile(nil, name: name)
     }
 }
 

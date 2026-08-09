@@ -34,13 +34,14 @@ class Trace;
 class Graph {
   public:
     class Context;
+    class KeyTable;
+    class ProfileData;
+    class TraceRecorder;
     class TreeElement;
     class TreeElementID;
     class TreeValue;
     class TreeValueID;
-    class KeyTable;
     class UpdateStack;
-    class TraceRecorder;
 
     class TreeDataElement {
         using TreeElementNodePair = std::pair<data::ptr<TreeElement>, data::ptr<Node>>;
@@ -72,6 +73,76 @@ class Graph {
     typedef void (*MainHandler)(void (*trampoline_thunk)(const void *), const void *trampoline,
                                 const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift);
 
+    class ProfileData {
+      public:
+        class Data {
+          private:
+            uint64_t _update_count;
+            uint64_t _change_count;
+            uint64_t _update_total;
+            uint64_t _change_total;
+
+          public:
+            uint64_t update_count() const { return _update_count; }
+            uint64_t change_count() const { return _change_count; }
+            uint64_t update_total() const { return _update_total; }
+            uint64_t change_total() const { return _change_total; }
+
+            void add_update(uint64_t duration, bool changed) noexcept;
+            void reset() noexcept;
+
+            Data &operator+=(const Data &other) noexcept;
+        };
+
+        struct Mark {
+            uint32_t event_id;
+            uint64_t time;
+            Data data;
+        };
+
+        class Item : public Data {
+          private:
+            vector<Mark, 0, uint64_t> _marks;
+
+          public:
+            const vector<Mark, 0, uint64_t> &marks() const { return _marks; };
+            void mark(uint32_t event_id, uint64_t time);
+
+            Item &operator+=(const Item &other);
+        };
+
+        class Category : public Item {
+          private:
+            std::unordered_map<data::ptr<Node>, Item> _items;
+            std::unordered_map<uint32_t, Item> _removed_items;
+
+          public:
+            std::unordered_map<data::ptr<Node>, Item> &items() { return _items; }
+            std::unordered_map<uint32_t, Item> &removed_items() { return _removed_items; }
+
+            void mark(uint32_t event_id, uint64_t time);
+            void add_update(data::ptr<Node> node, uint64_t time, bool changed);
+            void remove_node(data::ptr<Node> node, uint32_t type_id);
+        };
+
+      private:
+        uint64_t _time_overhead = 0;
+        Category _profile_updates;
+        std::unordered_map<uint32_t, Category> _profile_events;
+        bool _needs_mark = false;
+
+      public:
+        ProfileData(const Graph &graph);
+
+        Category &profile_updates() { return _profile_updates; }
+        std::unordered_map<uint32_t, Category> &profile_events() { return _profile_events; }
+
+        void mark(uint32_t event_id, uint64_t time);
+        void add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed);
+        void add_profile_event(data::ptr<Node> node, uint64_t duration, bool changed, uint32_t event_id);
+        void remove_node(data::ptr<Node> node, uint32_t type_id);
+    };
+
   private:
     static Graph *_Nullable _all_graphs;
     static platform_lock _all_graphs_lock;
@@ -100,6 +171,10 @@ class Graph {
     uint64_t _num_subgraphs = 0;
     uint64_t _num_subgraphs_total = 0;
     uint64_t _num_value_bytes = 0;
+
+    // Profiler
+    bool _is_profiling_enabled = false;
+    std::unique_ptr<ProfileData> _profile_data = nullptr;
 
     // Trace recorder
     TraceRecorder *_trace_recorder = nullptr;
@@ -185,6 +260,18 @@ class Graph {
 
     bool passed_deadline_slow();
     void collect_stack(vector<data::ptr<Node>, 0, uint64_t> &nodes);
+
+    // Profiler methods
+
+    ProfileData *_Nullable profile_data_if_enabled() noexcept {
+        if (!_is_profiling_enabled) {
+            return nullptr;
+        }
+        if (_profile_data == nullptr) {
+            _profile_data = std::make_unique<ProfileData>(*this);
+        }
+        return _profile_data.get();
+    }
 
   public:
     Graph();
@@ -426,6 +513,21 @@ class Graph {
             body(*trace);
         }
     };
+
+    // MARK: Profiler
+
+    bool is_profiling_enabled() const { return _is_profiling_enabled; };
+
+    void reset_profile();
+    void mark_profile(uint32_t event_id, uint64_t time);
+
+    void add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed);
+
+    uint64_t begin_profile_event(data::ptr<Node> node, const char *event_name);
+    void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool changed);
+
+    static void all_reset_profile();
+    static void all_mark_profile(const char *name);
 
     // MARK: Keys
 

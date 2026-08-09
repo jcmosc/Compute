@@ -11,6 +11,7 @@
 #include <ComputeCxx/IAGDescription.h>
 #include <ComputeCxx/IAGGraph.h>
 #include <ComputeCxx/IAGGraphCounterQueryType.h>
+#include <ComputeCxx/IAGGraphProfiling.h>
 #include <ComputeCxx/IAGGraphTracing.h>
 #include <ComputeCxx/IAGInputOptions.h>
 #include <ComputeCxx/IAGSearchOptions.h>

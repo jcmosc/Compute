@@ -1,8 +1,8 @@
 #include "ProfileTrace.h"
 
-#include "Graph/UpdateStack.h"
+#include <platform/time.h>
 
-#include <mach/mach_time.h>
+#include "Graph/UpdateStack.h"
 
 namespace IAG {
 
@@ -10,7 +10,7 @@ void Graph::ProfileTrace::begin_update(const Graph::UpdateStack &update_stack, d
     if (!update_stack.graph()->is_profiling_enabled()) {
         return;
     }
-    uint64_t start_time = mach_absolute_time();
+    uint64_t start_time = platform_absolute_time();
     _update_data.insert({&update_stack, {start_time, 0, 0}});
 }
 
@@ -33,7 +33,7 @@ void Graph::ProfileTrace::end_update(const Graph::UpdateStack &update_stack, dat
         if (parent_iter == _update_data.end()) {
             return;
         }
-        uint64_t end_time = mach_absolute_time();
+        uint64_t end_time = platform_absolute_time();
         UpdateData &parent_data = parent_iter->second;
         parent_data.child_stack_duration += end_time - start_time;
     }
@@ -48,7 +48,7 @@ void Graph::ProfileTrace::begin_update(data::ptr<Node> node) {
         return;
     }
 
-    uint64_t start_time = update_stack->graph()->is_profiling_enabled() ? mach_absolute_time() : 0;
+    uint64_t start_time = update_stack->graph()->is_profiling_enabled() ? platform_absolute_time() : 0;
     UpdateData &data = iter->second;
     data.update_start_time = start_time;
 }
@@ -67,7 +67,7 @@ void Graph::ProfileTrace::end_update(data::ptr<Node> node, bool changed) {
         return;
     }
 
-    uint64_t end_time = update_stack->graph()->is_profiling_enabled() ? mach_absolute_time() : 0;
+    uint64_t end_time = update_stack->graph()->is_profiling_enabled() ? platform_absolute_time() : 0;
     uint64_t duration = end_time - data.update_start_time;
     if (duration >= data.child_stack_duration) {
         duration = duration - data.child_stack_duration;

@@ -22,7 +22,7 @@ Graph::UpdateStack::UpdateStack(Graph *graph, IAGGraphUpdateOptions options)
 
     if (graph->_deferring_subgraph_invalidation == false) {
         graph->_deferring_subgraph_invalidation = true;
-        _options = IAGGraphUpdateOptions(_options | IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit); // set, not clear: the dtor checks this flag to reset _deferring_subgraph_invalidation
+        _options = IAGGraphUpdateOptions(_options | IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit);
     }
 
     Graph::set_current_update(util::tagged_ptr<UpdateStack>(this, options & IAGGraphUpdateOptionsInitializeCleared));
@@ -205,8 +205,8 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
             AttributeID input_attribute = input_edge.attribute;
             while (input_attribute.is_indirect_node()) {
-                // TODO: warning: variable 'input_attribute' is uninitialized when used
-                // within its own initialization
+                // TODO: warning: variable 'input_attribute' is uninitialized
+                // when used (revisit this) within its own initialization
                 auto input_attribute_source = input_attribute.get_indirect_node()->source().identifier();
                 if (input_attribute.get_indirect_node()->is_mutable()) {
                     if (AttributeID dependency = input_attribute.get_indirect_node()->to_mutable().dependency()) {

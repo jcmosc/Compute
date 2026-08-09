@@ -773,7 +773,8 @@ data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metada
             return nullptr;
         }
 
-        // try reusing a lru item, only if it has been collected at least once to prevent thrashing
+        // try reusing a lru item, only if it has been collected at least once
+        // to prevent thrashing
         if (type->lru && type->lru->age() >= 2) {
             item = type->lru;
 
@@ -875,7 +876,8 @@ void Subgraph::cache_collect() {
 
             for (NodeCache::Item *item = type->mru; item != nullptr; item = item->next) {
                 if (item->age() == 0xff) {
-                    // stop processing, all subsequent items will have age == 0xff too
+                    // stop processing, all subsequent items will have age ==
+                    // 0xff too
                     break;
                 }
 
@@ -991,7 +993,8 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
 
     auto subgraph_children = vector<Subgraph *, 32, uint64_t>();
 
-    // Check if any node created for _this_ tree element, is the tree owner for any child subgraph
+    // Check if any node created for _this_ tree element, is the tree owner for
+    // any child subgraph
     for (auto subgraph : _graph->subgraphs()) {
         if (!subgraph->is_valid()) {
             continue;

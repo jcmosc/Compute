@@ -25,7 +25,7 @@ typedef struct IAGTypeSignature {
     uint8_t bytes[20];
 } IAG_SWIFT_NAME(Signature) IAGTypeSignature;
 
-typedef IAG_CLOSED_ENUM(uint32_t, IAGTypeKind) {
+typedef IAG_CLOSED_ENUM(uint32_t, IAGTypeKind){
     IAGTypeKindNone,
     IAGTypeKindClass,
     IAGTypeKindStruct,
@@ -61,14 +61,15 @@ const void *_Nullable IAGTypeGetDescriptor(IAGTypeID typeID) IAG_SWIFT_NAME(gett
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-const void *_Nullable IAGTypeNominalDescriptor(IAGTypeID typeID) IAG_SWIFT_NAME(getter:Metadata.nominalDescriptor(self:));
+const void *_Nullable IAGTypeNominalDescriptor(IAGTypeID typeID)
+    IAG_SWIFT_NAME(getter:Metadata.nominalDescriptor(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 const char *_Nullable IAGTypeNominalDescriptorName(IAGTypeID typeID)
     IAG_SWIFT_NAME(getter:Metadata.nominalDescriptorName(self:));
 
-typedef IAG_OPTIONS(uint32_t, IAGTypeApplyOptions) {
+typedef IAG_OPTIONS(uint32_t, IAGTypeApplyOptions){
     IAGTypeApplyOptionsEnumerateStructFields = 0,
     IAGTypeApplyOptionsEnumerateClassFields = 1 << 0,
     IAGTypeApplyOptionsContinueAfterUnknownField = 1 << 1,
@@ -78,38 +79,30 @@ typedef IAG_OPTIONS(uint32_t, IAGTypeApplyOptions) {
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGTypeApplyFields(IAGTypeID typeID,
-                       void (*apply)(const char *field_name,
-                                     size_t field_offset,
-                                     IAGTypeID field_type,
-                                     const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                       const void *apply_context);
-
-IAG_EXPORT
-IAG_REFINED_FOR_SWIFT
-bool IAGTypeApplyFields2(IAGTypeID typeID, IAGTypeApplyOptions options,
-                        bool (*_Nonnull apply)(const char *field_name,
-                                               size_t field_offset,
-                                               IAGTypeID field_type,
-                                               const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                        void (*apply)(const char *field_name, size_t field_offset, IAGTypeID field_type,
+                                      const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
                         const void *apply_context);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
+bool IAGTypeApplyFields2(IAGTypeID typeID, IAGTypeApplyOptions options,
+                         bool (*_Nonnull apply)(const char *field_name, size_t field_offset, IAGTypeID field_type,
+                                                const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                         const void *apply_context);
+
+IAG_EXPORT
+IAG_REFINED_FOR_SWIFT
 bool IAGTypeApplyEnumData(IAGTypeID typeID, void *value,
-                         void (*body)(uint32_t tag,
-                                      IAGTypeID field_type,
-                                      const void *field_value,
-                                      void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                         void *context);
+                          void (*body)(uint32_t tag, IAGTypeID field_type, const void *field_value,
+                                       void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                          void *context);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 bool IAGTypeApplyMutableEnumData(IAGTypeID typeID, void *value,
-                                void (*body)(uint32_t tag,
-                                             IAGTypeID field_type,
-                                             void *field_value,
-                                             void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                void *context);
+                                 void (*body)(uint32_t tag, IAGTypeID field_type, void *field_value,
+                                              void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                                 void *context);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -121,7 +114,8 @@ void IAGTypeProjectEnumData(IAGTypeID typeID, void *value) IAG_SWIFT_NAME(Metada
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGTypeInjectEnumTag(IAGTypeID typeID, uint32_t tag, void *value) IAG_SWIFT_NAME(Metadata.injectEnumTag(self:tag:_:));
+void IAGTypeInjectEnumTag(IAGTypeID typeID, uint32_t tag, void *value)
+    IAG_SWIFT_NAME(Metadata.injectEnumTag(self:tag:_:));
 
 IAG_EXTERN_C_END
 

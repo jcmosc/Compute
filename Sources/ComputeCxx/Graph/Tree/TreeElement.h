@@ -17,18 +17,14 @@ class metadata;
 class Graph::TreeElementID : public data::ptr<Graph::TreeElement> {
   public:
     explicit constexpr TreeElementID(std::nullptr_t = nullptr) : ptr(nullptr) {}
-    explicit TreeElementID(data::ptr<Graph::TreeElement> tree_element)
-        : ptr(tree_element.offset()) {};
+    explicit TreeElementID(data::ptr<Graph::TreeElement> tree_element) : ptr(tree_element.offset()) {};
 
     operator uintptr_t() const { return offset(); }
-    explicit TreeElementID(IAGTreeElement storage)
-        : ptr((uint32_t)(uint64_t)storage) {}
+    explicit TreeElementID(IAGTreeElement storage) : ptr((uint32_t)(uint64_t)storage) {}
 
     // MARK: Accessing graph data
 
-    Subgraph *_Nullable subgraph() const {
-        return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone);
-    }
+    Subgraph *_Nullable subgraph() const { return reinterpret_cast<Subgraph *_Nullable>(page_ptr()->zone); }
 };
 
 struct Graph::TreeElement {

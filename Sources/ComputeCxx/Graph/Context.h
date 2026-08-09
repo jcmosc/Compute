@@ -38,7 +38,9 @@ class Graph::Context {
 
     uint64_t id() const { return _id; }
 
-    IAGGraphStorage *to_cf() const { return reinterpret_cast<IAGGraphStorage *>((char *)this - sizeof(CFRuntimeBase)); };
+    IAGGraphStorage *to_cf() const {
+        return reinterpret_cast<IAGGraphStorage *>((char *)this - sizeof(CFRuntimeBase));
+    };
     static Context *from_cf(IAGGraphStorage *storage);
 
     Graph &graph() const { return *_graph; };

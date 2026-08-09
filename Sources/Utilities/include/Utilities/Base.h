@@ -1,8 +1,8 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #ifndef __has_feature
 #define __has_feature(x) 0
@@ -16,7 +16,7 @@
 
 #if __has_feature(assume_nonnull)
 #define UTIL_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
-#define UTIL_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#define UTIL_ASSUME_NONNULL_END _Pragma("clang assume_nonnull end")
 #else
 #define UTIL_ASSUME_NONNULL_BEGIN
 #define UTIL_ASSUME_NONNULL_END

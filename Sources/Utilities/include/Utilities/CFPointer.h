@@ -14,7 +14,8 @@ UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
-template <typename T> class cf_ptr {
+template <typename T>
+class cf_ptr {
   private:
     CFTypeRef _storage;
 

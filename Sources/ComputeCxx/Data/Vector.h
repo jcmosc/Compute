@@ -11,7 +11,8 @@ IAG_ASSUME_NONNULL_BEGIN
 namespace IAG {
 namespace data {
 
-template <typename T> class vector {
+template <typename T>
+class vector {
   public:
     using value_type = T;
     using reference = value_type &;
@@ -40,7 +41,8 @@ template <typename T> class vector {
 
         size_type old_capacity = sizeof(T) * capacity();
 
-        // alignment_mask should be 3 for OutputEdge and 0 for InputEdge, i.e. don't insert padding
+        // alignment_mask should be 3 for OutputEdge and 0 for InputEdge, i.e.
+        // don't insert padding
         size_type alignment_mask = std::has_unique_object_representations_v<T> ? alignof(T) - 1 : 0;
         zone->realloc_bytes((ptr<void> *)&_data, old_capacity, (size_type)sizeof(T) << new_capacity_exponent,
                             alignment_mask);
@@ -128,7 +130,8 @@ vector<T>::vector(vector &&other) noexcept : _metadata(other._metadata), _data(s
     other._metadata = {};
 }
 
-template <typename T> vector<T> &vector<T>::operator=(vector &&other) noexcept {
+template <typename T>
+vector<T> &vector<T>::operator=(vector &&other) noexcept {
     if (this != &other) {
         for (auto i = 0; i < _metadata.size; ++i) {
             data()[i].~T();
@@ -141,7 +144,8 @@ template <typename T> vector<T> &vector<T>::operator=(vector &&other) noexcept {
     return *this;
 }
 
-template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, const T &value) {
+template <typename T>
+vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, const T &value) {
     if (pos == end()) {
         push_back(zone, value);
         return end() - 1;
@@ -155,7 +159,8 @@ template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_it
     return mutable_pos;
 }
 
-template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, T &&value) {
+template <typename T>
+vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, T &&value) {
     if (pos == end()) {
         push_back(zone, value);
         return end() - 1;
@@ -169,14 +174,16 @@ template <typename T> vector<T>::iterator vector<T>::insert(zone *zone, const_it
     return mutable_pos;
 }
 
-template <typename T> vector<T>::iterator vector<T>::erase(iterator pos) {
+template <typename T>
+vector<T>::iterator vector<T>::erase(iterator pos) {
     if (pos == end()) {
         return end();
     }
     return erase(pos, pos + 1);
 }
 
-template <typename T> vector<T>::iterator vector<T>::erase(iterator first, iterator last) {
+template <typename T>
+vector<T>::iterator vector<T>::erase(iterator first, iterator last) {
     auto count = last - first;
     if (count == 0) {
         return last;
@@ -191,13 +198,15 @@ template <typename T> vector<T>::iterator vector<T>::erase(iterator first, itera
     return end();
 }
 
-template <typename T> void vector<T>::push_back(zone *zone, const T &value) {
+template <typename T>
+void vector<T>::push_back(zone *zone, const T &value) {
     reserve(zone, _metadata.size + 1);
     new (&data()[_metadata.size]) value_type(value);
     _metadata.size += 1;
 }
 
-template <typename T> void vector<T>::push_back(zone *zone, T &&value) {
+template <typename T>
+void vector<T>::push_back(zone *zone, T &&value) {
     reserve(zone, _metadata.size + 1);
     new (&data()[_metadata.size]) value_type(std::move(value));
     _metadata.size += 1;

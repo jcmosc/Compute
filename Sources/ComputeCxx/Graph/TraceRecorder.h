@@ -23,13 +23,13 @@ class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
     IAGGraphTraceFlags _trace_flags;
 
     vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> _named_event_subsystems;
-    
+
     util::Table<const uuid_t, uint64_t> _image_offset_cache;
     uuid_t _stack_frame_uuid;
 
     std::unique_ptr<const char, util::free_deleter> _trace_path = nullptr;
     bool _trace_path_created = false;
-    
+
     uint32_t _num_encoded_types = 1; // skip IAGAttributeNullType
     uint32_t _num_encoded_keys = 0;
 
@@ -44,11 +44,11 @@ class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
     ~TraceRecorder();
 
     const char *_Nullable trace_path() const { return _trace_path.get(); };
-    
+
     // MARK: Delegate methods
 
     int flush_encoder(Encoder &encoder) override;
-    
+
     // MARK: Top-level fields
 
     void encode_event_begin();
@@ -61,7 +61,7 @@ class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
     void encode_snapshot();
 
     // MARK: Event fields
-    
+
     enum class EventType : uint64_t {
         Unknown = 0,
 

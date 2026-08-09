@@ -1,10 +1,10 @@
 #pragma once
 
-#include <swift/Runtime/Metadata.h>
 #include <swift/Demangling/ManglingMacros.h>
+#include <swift/Runtime/Metadata.h>
 
-#include "ComputeCxx/IAGBase.h"
 #include "Comparison/LayoutDescriptor.h"
+#include "ComputeCxx/IAGBase.h"
 
 IAG_ASSUME_NONNULL_BEGIN
 
@@ -34,9 +34,9 @@ class metadata : public ::swift::Metadata {
         if (::swift::ClassMetadata::classof(this)) {
             const auto class_type = static_cast<const ::swift::ClassMetadata *>(base());
             // Depending on the deployment target a binary was compiled for,
-            // statically emitted metadata templates may have a different bit set
-            // from the one that this runtime canonically considers the "is Swift" bit.
-            // See SWIFT_CLASS_IS_SWIFT_MASK in
+            // statically emitted metadata templates may have a different bit
+            // set from the one that this runtime canonically considers the "is
+            // Swift" bit. See SWIFT_CLASS_IS_SWIFT_MASK in
             // https://github.com/swiftlang/swift/blob/main/include/swift/ABI/Metadata.h
             return class_type->Data & 0x3;
         }
@@ -88,7 +88,8 @@ class function_type_metadata : public ::swift::FunctionTypeMetadata {};
 
 class existential_type_metadata : public ::swift::ExistentialTypeMetadata {
   public:
-    // We need to reimplement these to avoid errors when linking against the Swift runtime library
+    // We need to reimplement these to avoid errors when linking against the
+    // Swift runtime library
     ::swift::ExistentialTypeRepresentation representation(void) const;
     const void *project_value(void *container) const;
     const metadata *dynamic_type(void *container) const;

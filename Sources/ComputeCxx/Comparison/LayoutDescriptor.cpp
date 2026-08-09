@@ -1,12 +1,12 @@
 #include "LayoutDescriptor.h"
 
-#include <cstring> 
-#include <variant>
+#include <cstring>
 #include <stdio.h>
+#include <variant>
 
+#include <Utilities/HashTable.h>
 #include <platform/lock.h>
 #include <platform/once.h>
-#include <Utilities/HashTable.h>
 
 #include "Builder.h"
 #include "Compare.h"
@@ -84,14 +84,14 @@ class TypeDescriptorCache {
 
     ValueLayout fetch(const swift::metadata &type, IAGComparisonOptions options, LayoutDescriptor::HeapMode heap_mode,
                       uint32_t priority);
-    
+
     ValueLayout insert_sync(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                             LayoutDescriptor::HeapMode heap_mode);
-    
+
 #if TARGET_OS_MAC
     void insert_async(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                       LayoutDescriptor::HeapMode heap_mode, uint32_t priority);
-    
+
     static void drain_queue(void *cache);
 #endif
 };
@@ -306,8 +306,8 @@ ValueLayout make_layout(const swift::metadata &type, IAGComparisonMode default_m
     if (heap_mode == HeapMode::Class) {
         if (type.isClassObject()) {
             IAGComparisonMode equatable_minimum_mode = type.getValueWitnesses()->isPOD()
-                                                          ? IAGComparisonModeEquatableAlways
-                                                          : IAGComparisonModeEquatableUnlessPOD;
+                                                           ? IAGComparisonModeEquatableAlways
+                                                           : IAGComparisonModeEquatableUnlessPOD;
             if (equatable_minimum_mode <= builder.current_comparison_mode()) {
                 if (auto equatable = type.equatable()) {
                     size_t offset = builder.current_offset();
@@ -498,8 +498,8 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, IA
     }
 
     HeapMode heap_mode = is_function ? HeapMode::Locals : HeapMode::Class;
-    IAGComparisonOptions fetch_options =
-        options & IAGComparisonOptionsComparisonModeMask; // this has the effect of allowing async fetch
+    IAGComparisonOptions fetch_options = options & IAGComparisonOptionsComparisonModeMask; // this has the effect of
+                                                                                           // allowing async fetch
     ValueLayout layout = TypeDescriptorCache::shared_cache().fetch(*lhs_type, fetch_options, heap_mode, 1);
 
     if (layout > ValueLayoutTrivial) {
@@ -516,7 +516,8 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
     size_t enum_size = enum_type.vw_size();
     bool large_allocation = enum_size > 0x1000;
 
-    // Copy the enum itself so that we can project the data without destroying the original.
+    // Copy the enum itself so that we can project the data without destroying
+    // the original.
     unsigned char *lhs_copy = nullptr;
     unsigned char *rhs_copy = nullptr;
     if (large_allocation) {
@@ -702,8 +703,8 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
         }
         case ValueLayoutEntryKind::CompactNested: {
             uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
-            ValueLayout nested_layout =
-                reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
+            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(
+                /* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
 
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 
@@ -859,8 +860,8 @@ void print(std::string &output, ValueLayout layout) {
         }
         case ValueLayoutEntryKind::CompactNested: {
             uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
-            ValueLayout nested_layout =
-                reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
+            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(
+                /* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
 
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 
@@ -1023,10 +1024,11 @@ void Builder::add_field(size_t field_size) {
 
 bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
     if (!no_fetch) {
-        if (auto layout = fetch(type,
-                                IAGComparisonOptions(_current_comparison_mode) | IAGComparisonOptionsTraceCompareFailed |
-                                    IAGComparisonOptionsFetchLayoutsSynchronously,
-                                true)) {
+        if (auto layout =
+                fetch(type,
+                      IAGComparisonOptions(_current_comparison_mode) | IAGComparisonOptionsTraceCompareFailed |
+                          IAGComparisonOptionsFetchLayoutsSynchronously,
+                      true)) {
             if (layout == ValueLayoutTrivial) {
                 add_field(type.vw_size());
             } else {
@@ -1319,7 +1321,8 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Ne
             // full pointer to layout
             emit_value(item.layout);
 
-            // Emit length 7 bits at a time, using the 8th bit as a "has more" flag
+            // Emit length 7 bits at a time, using the 8th bit as a "has more"
+            // flag
             size_t length = item.size;
             while (length) {
                 _data->push_back((length & 0x7f) | (length > 0x7f ? 1 << 7 : 0));
@@ -1362,7 +1365,8 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
                 _data->push_back(is_first ? (uint64_t)ValueLayoutEntryKind::EnumStartVariadic
                                           : (uint64_t)ValueLayoutEntryKind::EnumContinueVariadic);
 
-                // Emit case.index 7 bits at a time, using the 8th bit as a "has more" flag
+                // Emit case.index 7 bits at a time, using the 8th bit as a "has
+                // more" flag
                 size_t number = enum_case.item_index;
                 while (number) {
                     _data->push_back((number & 0x7f) | (number > 0x7f ? 1 << 7 : 0));
@@ -1396,7 +1400,8 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::enter(const RangeIt
     if (!_invalid) {
         if (item.offset >= _emitted_size) {
             // Emit number of bytes until item offset
-            // encode as a series of numbers from 0-63, indicating chunks of bytes 1-64
+            // encode as a series of numbers from 0-63, indicating chunks of
+            // bytes 1-64
             size_t skip = item.offset - _emitted_size;
             while (skip > 0x40) {
                 _data->push_back('\x7f');

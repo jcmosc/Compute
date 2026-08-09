@@ -120,7 +120,7 @@ void *update(void *dest_ptr, const void *src_ptr, const ::swift::Metadata *metad
 };
 
 void *IAGTupleGetElement(IAGTupleType tuple_type, void *tuple_value, size_t index, void *element_value,
-                        IAGTypeID element_type, IAGTupleCopyOptions options) {
+                         IAGTypeID element_type, IAGTupleCopyOptions options) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -144,7 +144,7 @@ void *IAGTupleGetElement(IAGTupleType tuple_type, void *tuple_value, size_t inde
 }
 
 void *IAGTupleSetElement(IAGTupleType tuple_type, void *tuple_value, size_t index, const void *element_value,
-                        IAGTypeID element_type, IAGTupleCopyOptions options) {
+                         IAGTypeID element_type, IAGTupleCopyOptions options) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     if (metadata->getKind() != ::swift::MetadataKind::Tuple) {
         if (index != 0) {
@@ -189,9 +189,9 @@ void IAGTupleDestroyElement(IAGTupleType tuple_type, void *tuple_value, size_t i
 }
 
 void IAGTupleWithBuffer(IAGTupleType tuple_type, size_t count,
-                       void (*function)(const IAGUnsafeMutableTuple mutable_tuple, void *context IAG_SWIFT_CONTEXT)
-                           IAG_SWIFT_CC(swift),
-                       void *context) {
+                        void (*function)(const IAGUnsafeMutableTuple mutable_tuple, void *context IAG_SWIFT_CONTEXT)
+                            IAG_SWIFT_CC(swift),
+                        void *context) {
     auto metadata = reinterpret_cast<const ::swift::Metadata *>(tuple_type);
     auto buffer_size = metadata->vw_stride() * count;
     if (buffer_size <= 0x1000) {

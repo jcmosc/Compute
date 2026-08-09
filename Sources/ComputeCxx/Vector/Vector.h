@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
 #include <concepts>
+#include <cstring>
 #include <iterator>
 #include <memory>
 #include <utility>
@@ -102,8 +102,9 @@ class vector {
     void push_back(const T &value);
     void push_back(T &&value);
     void pop_back();
-    
-    template <typename... Args> reference emplace_back(Args &&...args);
+
+    template <typename... Args>
+    reference emplace_back(Args &&...args);
 
     void resize(size_type count);
     void resize(size_type count, const value_type &value);

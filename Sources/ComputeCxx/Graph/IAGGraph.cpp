@@ -675,7 +675,8 @@ void *read_cached_attribute(size_t hash, const IAG::swift::metadata &metadata, c
 
     if (update_stack == nullptr) {
         void *value = subgraph->graph()->value_ref(IAG::AttributeID(cached_node), 0, value_metadata, flags_out);
-        subgraph->cache_insert(cached_node); // TODO: when this becomes an input, is it removed from cache?
+        subgraph->cache_insert(cached_node); // TODO: when this becomes an
+                                             // input, is it removed from cache?
         return value;
     }
 

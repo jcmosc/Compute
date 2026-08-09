@@ -6,7 +6,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
 
-typedef IAG_OPTIONS(uint32_t, IAGCachedValueOptions) {
+typedef IAG_OPTIONS(uint32_t, IAGCachedValueOptions){
     IAGCachedValueOptionsNone = 0,
     IAGCachedValueOptionsUnprefetched = 1,
 } IAG_SWIFT_NAME(CachedValueOptions);

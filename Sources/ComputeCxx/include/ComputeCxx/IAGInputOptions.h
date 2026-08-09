@@ -6,7 +6,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
 
-typedef IAG_OPTIONS(uint8_t, IAGInputOptions) {
+typedef IAG_OPTIONS(uint8_t, IAGInputOptions){
     IAGInputOptionsNone = 0,
     IAGInputOptionsUnprefetched = 1 << 0,
     IAGInputOptionsSyncMainRef = 1 << 1,

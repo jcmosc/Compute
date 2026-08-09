@@ -2,7 +2,7 @@
 
 #include <ComputeCxx/IAGBase.h>
 
-typedef IAG_ENUM(uint32_t, IAGGraphCounterQueryType) {
+typedef IAG_ENUM(uint32_t, IAGGraphCounterQueryType){
     IAGGraphCounterQueryTypeNodes,
     IAGGraphCounterQueryTypeTransactions,
     IAGGraphCounterQueryTypeUpdates,

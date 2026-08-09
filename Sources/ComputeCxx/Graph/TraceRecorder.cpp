@@ -44,13 +44,13 @@ Graph::TraceRecorder::TraceRecorder(Graph &graph, IAGGraphTraceFlags trace_flags
         _named_event_subsystems.push_back(std::unique_ptr<const char, util::free_deleter>(strdup(subsystem)));
     }
 
-    #if TARGET_OS_MAC
+#if TARGET_OS_MAC
     void *array[1] = {(void *)&IAGGraphCreate};
     image_offset image_offsets[1];
     backtrace_image_offsets(array, image_offsets, 1);
 
     uuid_copy(_stack_frame_uuid, image_offsets[0].uuid);
-    #endif
+#endif
 }
 
 Graph::TraceRecorder::~TraceRecorder() { _encoder.flush(); }
@@ -289,12 +289,12 @@ void Graph::TraceRecorder::field_backtrace(Encoder &encoder) {
         return;
     }
 
-    #if TARGET_OS_MAC && TARGET_OS_OSX
+#if TARGET_OS_MAC && TARGET_OS_OSX
     void *stack_frames_buffer[8];
     int stack_frames_size = backtrace(stack_frames_buffer, std::size(stack_frames_buffer));
-    
+
     image_offset image_offsets[8];
-    backtrace_image_offsets(stack_frames_buffer, image_offsets, stack_frames_size);    
+    backtrace_image_offsets(stack_frames_buffer, image_offsets, stack_frames_size);
 
     int stack_frames = std::min(trace_stack_frames, stack_frames_size);
     for (int frame_index = 0; frame_index < stack_frames; ++frame_index) {
@@ -355,7 +355,7 @@ void Graph::TraceRecorder::field_backtrace(Encoder &encoder) {
             encoder.encode_field_end();
         }
     }
-    #endif
+#endif
 }
 
 void Graph::TraceRecorder::field_data(Encoder &encoder, const void *data, size_t length) {
@@ -861,7 +861,8 @@ void Graph::TraceRecorder::set_source(data::ptr<IndirectNode> indirect_node, Att
     field_event_type(_encoder, EventType::IndirectNodeSetSource);
     field_payload_1(_encoder, indirect_node.offset());
     // FIXME: This shadows param or is there no param>
-    field_payload_2(_encoder, indirect_node->source().identifier()); // TODO: identifier()?
+    field_payload_2(_encoder,
+                    indirect_node->source().identifier()); // TODO: identifier()?
     field_payload_3(_encoder, AttributeID(source).subgraph()->subgraph_id());
     field_backtrace(_encoder);
     encode_event_end();

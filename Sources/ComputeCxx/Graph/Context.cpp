@@ -1,8 +1,8 @@
 #include "Context.h"
 
-#include "IAGGraph-Private.h"
 #include "Attribute/AttributeID/AttributeID.h"
 #include "ComputeCxx/IAGUniqueID.h"
+#include "IAGGraph-Private.h"
 #include "Subgraph/Subgraph.h"
 #include "Trace/Trace.h"
 #include "UpdateStack.h"
@@ -113,7 +113,7 @@ void Graph::Context::call_update() {
     if (_update_callback) {
         auto update =
             UpdateStack(_graph, IAGGraphUpdateOptions(IAGGraphUpdateOptionsInitializeCleared |
-                                                     IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit));
+                                                      IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit));
 
         _graph->foreach_trace([this](Trace &trace) { trace.begin_update(*this); });
         _update_callback();

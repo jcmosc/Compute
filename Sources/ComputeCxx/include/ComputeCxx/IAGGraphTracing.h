@@ -4,7 +4,7 @@
 #include <ComputeCxx/IAGGraph.h>
 #include <ComputeCxx/IAGUniqueID.h>
 
-typedef IAG_OPTIONS(uint32_t, IAGGraphTraceFlags) {
+typedef IAG_OPTIONS(uint32_t, IAGGraphTraceFlags){
     IAGGraphTraceFlagsEnabled = 1 << 0,
     IAGGraphTraceFlagsFull = 1 << 1,
     IAGGraphTraceFlagsBacktrace = 1 << 2,
@@ -17,7 +17,7 @@ typedef struct IAGTraceType *IAGTraceTypeRef;
 
 typedef uint32_t IAGNamedTraceEventID IAG_SWIFT_STRUCT IAG_SWIFT_NAME(Graph.NamedTraceEventID);
 
-typedef IAG_OPTIONS(uint32_t, IAGNamedTraceEventFlags) {
+typedef IAG_OPTIONS(uint32_t, IAGNamedTraceEventFlags){
     IAGNamedTraceEventFlagsRecordBacktrace = 1ul << 31,
 } IAG_SWIFT_NAME(Graph.NamedTraceEventFlags);
 
@@ -64,8 +64,7 @@ IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, voi
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id)
-    IAG_SWIFT_NAME(Graph.removeTrace(self:traceID:));
+void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id) IAG_SWIFT_NAME(Graph.removeTrace(self:traceID:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -82,8 +81,7 @@ void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-bool IAGGraphTraceEventEnabled(IAGGraphRef graph, uint32_t event_id)
-    IAG_SWIFT_NAME(Graph.traceEventEnabled(self:for:));
+bool IAGGraphTraceEventEnabled(IAGGraphRef graph, uint32_t event_id) IAG_SWIFT_NAME(Graph.traceEventEnabled(self:for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -92,7 +90,8 @@ IAGNamedTraceEventID IAGGraphRegisterNamedTraceEvent(const char *event_name, con
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-const char *_Nullable IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id) IAG_SWIFT_NAME(Graph.traceEventName(for:));
+const char *_Nullable IAGGraphGetTraceEventName(IAGNamedTraceEventID event_id)
+    IAG_SWIFT_NAME(Graph.traceEventName(for:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

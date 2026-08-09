@@ -6,7 +6,8 @@ UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
-template <typename T> class tagged_ptr {
+template <typename T>
+class tagged_ptr {
   private:
     enum : uintptr_t {
         mask = 0x1,
@@ -15,9 +16,9 @@ template <typename T> class tagged_ptr {
     uintptr_t _value;
 
   public:
-    tagged_ptr() : _value(0){};
-    tagged_ptr(T *_Nullable value) : _value((uintptr_t)value){};
-    tagged_ptr(T *_Nullable value, bool tag) : _value(((uintptr_t)value & ~0x1) | (tag ? 1 : 0)){};
+    tagged_ptr() : _value(0) {};
+    tagged_ptr(T *_Nullable value) : _value((uintptr_t)value) {};
+    tagged_ptr(T *_Nullable value, bool tag) : _value(((uintptr_t)value & ~0x1) | (tag ? 1 : 0)) {};
 
     uintptr_t value() { return _value; };
     bool tag() { return static_cast<bool>(_value & 0x1); };

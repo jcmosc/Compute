@@ -6,7 +6,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
 
-typedef IAG_OPTIONS(uint8_t, IAGChangedValueFlags) {
+typedef IAG_OPTIONS(uint8_t, IAGChangedValueFlags){
     IAGChangedValueFlagsChanged = 1 << 0,
     IAGChangedValueFlagsRequiresMainThread = 1 << 1,
 };

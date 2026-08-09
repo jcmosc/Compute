@@ -8,9 +8,10 @@ UTIL_ASSUME_NONNULL_BEGIN
 
 namespace util {
 
-/// ForwardList is a linked list container that uses util::Heap to allocate nodes,
-/// reusing previously removed nodes where possible.
-template <typename T> class ForwardList {
+/// ForwardList is a linked list container that uses util::Heap to allocate
+/// nodes, reusing previously removed nodes where possible.
+template <typename T>
+class ForwardList {
   public:
     using reference = T &;
     using const_reference = const T &;
@@ -52,7 +53,8 @@ template <typename T> class ForwardList {
 
     void push_front(const T &value);
     void push_front(T &&value);
-    template <class... Args> void emplace_front(Args &&...args);
+    template <class... Args>
+    void emplace_front(Args &&...args);
 
     void pop_front();
 };
@@ -60,28 +62,32 @@ template <typename T> class ForwardList {
 template <typename T>
 ForwardList<T>::ForwardList()
     : _heap(new Heap(nullptr, 0, util::Heap::minimum_increment)), _front(nullptr), _spare(nullptr),
-      _is_heap_owner(true){};
+      _is_heap_owner(true) {};
 
 template <typename T>
-ForwardList<T>::ForwardList(util::Heap *heap) : _heap(heap), _front(nullptr), _spare(nullptr), _is_heap_owner(false){};
+ForwardList<T>::ForwardList(util::Heap *heap) : _heap(heap), _front(nullptr), _spare(nullptr), _is_heap_owner(false) {};
 
-template <typename T> ForwardList<T>::~ForwardList() {
+template <typename T>
+ForwardList<T>::~ForwardList() {
     if (_is_heap_owner && _heap) {
         delete _heap;
     }
 };
 
-template <typename T> ForwardList<T>::reference ForwardList<T>::front() {
+template <typename T>
+ForwardList<T>::reference ForwardList<T>::front() {
     assert(!empty());
     return _front->value;
 }
 
-template <typename T> ForwardList<T>::const_reference ForwardList<T>::front() const {
+template <typename T>
+ForwardList<T>::const_reference ForwardList<T>::front() const {
     assert(!empty());
     return _front->value;
 }
 
-template <typename T> void ForwardList<T>::push_front(const T &value) {
+template <typename T>
+void ForwardList<T>::push_front(const T &value) {
     Node *new_node;
     if (_spare != nullptr) {
         new_node = _spare;
@@ -94,7 +100,8 @@ template <typename T> void ForwardList<T>::push_front(const T &value) {
     _front = new_node;
 }
 
-template <typename T> void ForwardList<T>::push_front(T &&value) {
+template <typename T>
+void ForwardList<T>::push_front(T &&value) {
     Node *new_node;
     if (_spare != nullptr) {
         new_node = _spare;
@@ -107,7 +114,9 @@ template <typename T> void ForwardList<T>::push_front(T &&value) {
     _front = new_node;
 }
 
-template <typename T> template <class... Args> void ForwardList<T>::emplace_front(Args &&...args) {
+template <typename T>
+template <class... Args>
+void ForwardList<T>::emplace_front(Args &&...args) {
     Node *new_node;
     if (_spare != nullptr) {
         new_node = _spare;
@@ -120,7 +129,8 @@ template <typename T> template <class... Args> void ForwardList<T>::emplace_fron
     _front = new_node;
 }
 
-template <typename T> void ForwardList<T>::pop_front() {
+template <typename T>
+void ForwardList<T>::pop_front() {
     if (_front == nullptr) {
         return;
     }

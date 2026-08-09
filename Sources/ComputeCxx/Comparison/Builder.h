@@ -52,7 +52,8 @@ class Builder : public swift::metadata_visitor {
 
     // Emitter
 
-    template <typename T> class Emitter {
+    template <typename T>
+    class Emitter {
       private:
         T *_Nonnull _data;
         size_t _emitted_size = 0;
@@ -76,7 +77,8 @@ class Builder : public swift::metadata_visitor {
         void finish();
     };
 
-    template <> class Emitter<vector<unsigned char, 512, uint64_t>> {
+    template <>
+    class Emitter<vector<unsigned char, 512, uint64_t>> {
       private:
         vector<unsigned char, 512, uint64_t> *_Nonnull _data;
         size_t _emitted_size = 0;
@@ -101,7 +103,8 @@ class Builder : public swift::metadata_visitor {
 
         void finish();
 
-        template <typename value_t> void emit_value(value_t value) {
+        template <typename value_t>
+        void emit_value(value_t value) {
             // TODO: make not set to zero before overwriting
             uint64_t size = _data->size();
             _data->resize(size + sizeof(value_t), 0);

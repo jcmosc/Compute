@@ -88,10 +88,8 @@ void Graph::print_cycle(data::ptr<Node> node) {
                     [indexSet addIndex:node.offset()];
                 }
 
-                NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithDictionary:@{
-                    IAGDescriptionFormat : @"graph/dot",
-                    @"attribute-ids" : indexSet
-                }];
+                NSMutableDictionary *dict = [NSMutableDictionary
+                    dictionaryWithDictionary:@{IAGDescriptionFormat : @"graph/dot", @"attribute-ids" : indexSet}];
 
                 NSString *desc = (NSString *)description(this, dict);
                 if (desc) {
@@ -140,9 +138,11 @@ void Graph::print_stack() {
                 const char *dirty = frame.attribute->is_dirty() ? "D" : "";
                 const char *has_value = frame.attribute->is_value_initialized() ? "V" : "";
 
-                fprintf(stdout, "frame %d.%d: attribute %u; count=%d, index=%d/%d %s%s%s%s\n", update_stack_index,
-                        (uint32_t)frame_index, frame.attribute.offset(), count, input_index, num_input_edges, pending,
-                        cancelled, dirty, has_value);
+                fprintf(stdout,
+                        "frame %d.%d: attribute %u; count=%d, index=%d/%d "
+                        "%s%s%s%s\n",
+                        update_stack_index, (uint32_t)frame_index, frame.attribute.offset(), count, input_index,
+                        num_input_edges, pending, cancelled, dirty, has_value);
             }
 
             update_stack_index -= 1;
@@ -177,7 +177,9 @@ NSString *Graph::description(data::ptr<Node> node) {
     [array addObject:[NSString stringWithFormat:@"input_count = %d", node->input_edges().size()]];
     [array addObject:[NSString stringWithFormat:@"output_count = %d", node->output_edges().size()]];
     [array addObject:[NSString stringWithFormat:@"dirty = %d", node->is_dirty()]];
-    [array addObject:[NSString stringWithFormat:@"updating = %d", node->count()]]; // TODO: check is count and not bool
+    [array addObject:[NSString stringWithFormat:@"updating = %d",
+                                                node->count()]]; // TODO: check is
+                                                                 // count and not bool
 
 #if TARGET_OS_MAC
     if (auto selfDescription = type.vtable().self_description) {
@@ -861,7 +863,8 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
             OffsetAttributeID resolved_source =
                 indirect_node->source().identifier().resolve(TraversalOptions::SkipMutableReference);
             [result appendFormat:@"  _%d -> _%d[label=\"@%d\"];\n",
-                                 (uint32_t)resolved_source.attribute(), // TODO: check any pointer tag is unset
+                                 (uint32_t)resolved_source.attribute(), // TODO: check any pointer
+                                                                        // tag is unset
                                  indirect_node.offset(), resolved_source.offset()];
 
             if (indirect_node->is_mutable()) {
@@ -911,7 +914,8 @@ NSString *Graph::description_stack(NSDictionary *options) {
                     if (input_edge.options & IAGInputOptionsAlwaysEnabled) {
                         [description appendString:@", always-enabled"];
                     }
-                    if (input_edge.options & IAGInputOptionsUnprefetched) { // TODO: check is not inverse
+                    if (input_edge.options & IAGInputOptionsUnprefetched) { // TODO: check is not
+                                                                            // inverse
                         [description appendString:@", unprefetched"];
                     }
                     [description appendString:@"\n"];
@@ -1004,7 +1008,8 @@ NSDictionary *Graph::description_stack_frame(NSDictionary *options) {
                         if (input_edge.options & IAGInputOptionsAlwaysEnabled) {
                             input_dictionary[@"always-enabled"] = @YES;
                         }
-                        if (!(input_edge.options & IAGInputOptionsUnprefetched)) { // TODO: check is inverses
+                        if (!(input_edge.options & IAGInputOptionsUnprefetched)) { // TODO: check is
+                                                                                   // inverses
                             input_dictionary[@"prefetched"] = @NO;
                         }
 
@@ -1048,7 +1053,8 @@ void Graph::write_to_file(Graph *graph, const char *_Nullable filename, bool exc
 
     NSError *error = nil;
     if ([[path pathExtension] isEqualToString:@"iag-gzon"]) {
-        // Disassembly writes compressed data directly using gzwrite instead of creating an intermediate NSData object
+        // Disassembly writes compressed data directly using gzwrite instead of
+        // creating an intermediate NSData object
         data = [data compressedDataUsingAlgorithm:NSDataCompressionAlgorithmZlib error:&error];
         if (!data) {
             fprintf(stdout, "Unable to write to \"%s\": %s\n", [path UTF8String], [[error description] UTF8String]);

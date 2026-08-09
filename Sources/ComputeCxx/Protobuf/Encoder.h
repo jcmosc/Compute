@@ -19,14 +19,14 @@ class Encoder {
     uint64_t _flush_interval;
     vector<char, 0, uint64_t> _buffer;
     vector<uint64_t, 0, uint64_t> _sections;
-    
+
     void encode_varint(uint64_t value);
     void encode_fixed64(uint64_t value);
     void encode_data(const void *data, size_t length);
 
     void begin_length_delimited();
     void end_length_delimited();
-    
+
     enum class WireType : uint8_t {
         VarInt = 0,
         I64 = 1,
@@ -41,7 +41,7 @@ class Encoder {
     Encoder(Delegate *_Nullable delegate, uint64_t flush_interval);
 
     const vector<char, 0, uint64_t> &buffer() const { return _buffer; };
-    
+
     void encode_field_varint(uint64_t field, uint64_t value) {
         if (value) {
             encode_tag(field, WireType::VarInt);

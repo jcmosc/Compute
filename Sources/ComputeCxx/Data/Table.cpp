@@ -6,8 +6,8 @@
 #if TARGET_OS_MAC
 #include <mach/mach.h>
 #else
-#include <unistd.h>
 #include <sys/mman.h>
+#include <unistd.h>
 #endif
 
 #include <platform/lock.h>
@@ -60,7 +60,7 @@ table::table() {
     if (ftruncate(_vm_region_fd, initial_size) != 0) {
         precondition_failure("ftruncate failure (%u bytes, %u)", initial_size, errno);
     }
-    
+
     void *region = mmap(nullptr, initial_size, PROT_READ | PROT_WRITE, MAP_SHARED, _vm_region_fd, 0);
     if (region == MAP_FAILED) {
         precondition_failure("memory allocation failure (%u bytes, %u)", initial_size, errno);
@@ -165,14 +165,14 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
             if (map_index >= _page_maps.size()) {
                 map_index -= _page_maps.size(); // wrap around
             }
-            
+
             auto map_copy = std::bitset(_page_maps[map_index]);
             page_map_type candidate_pages_map = map_copy.flip();
-            
+
             bool found = false;
             while (candidate_pages_map.any()) {
                 int candidate_bit = std::countr_zero(static_cast<uint64_t>(candidate_pages_map.to_ullong()));
-                
+
                 if (needed_pages > 1) {
                     // scan ahead to find enough consecutive free pages
                     bool sufficient_consecutive_pages = true;
@@ -180,13 +180,14 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
                         int next_page_index = (map_index * pages_per_map) + candidate_bit + j;
                         int next_map_index = next_page_index / pages_per_map;
                         if (next_map_index == _page_maps.size()) {
-                            // There are not enough maps, but the trailing pages are contiguous so this page is
-                            // usable
+                            // There are not enough maps, but the trailing pages
+                            // are contiguous so this page is usable
                             found = true;
                             break;
                         }
                         if (_page_maps[next_map_index].test(next_page_index % pages_per_map)) {
-                            // next page is used, remove this page from candidate_pages_map
+                            // next page is used, remove this page from
+                            // candidate_pages_map
                             candidate_pages_map.reset(candidate_bit);
                             sufficient_consecutive_pages = false;
                             break;
@@ -241,7 +242,7 @@ ptr<page> table::alloc_page(zone *zone, uint32_t needed_size) {
     new_page->next = nullptr;
     new_page->total = (needed_size + page_alignment_mask) & ~page_alignment_mask;
     new_page->in_use = sizeof(page);
-    
+
     new_page->bytes_list = 0;
     new_page->const_bytes_list = 0;
 

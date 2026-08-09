@@ -11,7 +11,7 @@ typedef uint32_t IAGAttribute IAG_SWIFT_STRUCT IAG_SWIFT_NAME(AnyAttribute);
 IAG_EXPORT
 const IAGAttribute IAGAttributeNil;
 
-typedef IAG_OPTIONS(uint8_t, IAGAttributeFlags) {
+typedef IAG_OPTIONS(uint8_t, IAGAttributeFlags){
     IAGAttributeFlagsNone = 0,
     IAGAttributeFlagsAll = 0xFF,
 } IAG_SWIFT_NAME(Subgraph.Flags);

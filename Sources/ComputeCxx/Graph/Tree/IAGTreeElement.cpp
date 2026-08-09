@@ -27,11 +27,9 @@ IAGTreeElement IAGTreeElementGetParent(IAGTreeElement tree_element) {
 
 #pragma mark - Iterating values
 
-IAGTreeElementValueIterator
-IAGTreeElementMakeValueIterator(IAGTreeElement tree_element) {
+IAGTreeElementValueIterator IAGTreeElementMakeValueIterator(IAGTreeElement tree_element) {
     auto tree_element_id = IAG::Graph::TreeElementID(tree_element);
-    return IAGTreeElementValueIterator(uintptr_t(tree_element),
-                                      tree_element_id->first_value);
+    return IAGTreeElementValueIterator(uintptr_t(tree_element), tree_element_id->first_value);
 }
 
 IAGTreeValue IAGTreeElementGetNextValue(IAGTreeElementValueIterator *iter) {
@@ -45,16 +43,14 @@ IAGTreeValue IAGTreeElementGetNextValue(IAGTreeElementValueIterator *iter) {
 
 #pragma mark - Iterating nodes
 
-IAGTreeElementNodeIterator
-IAGTreeElementMakeNodeIterator(IAGTreeElement tree_element) {
+IAGTreeElementNodeIterator IAGTreeElementMakeNodeIterator(IAGTreeElement tree_element) {
     return {uintptr_t(tree_element), 0};
 }
 
 IAGAttribute IAGTreeElementGetNextNode(IAGTreeElementNodeIterator *iter) {
     IAGTreeElement tree_element = reinterpret_cast<IAGTreeElement>(iter->elt);
     auto tree_element_id = IAG::Graph::TreeElementID(tree_element);
-    IAG::AttributeID node = tree_element_id.subgraph()->tree_node_at_index(
-        tree_element_id, iter->node_index);
+    IAG::AttributeID node = tree_element_id.subgraph()->tree_node_at_index(tree_element_id, iter->node_index);
     if (!node || node.is_nil()) {
         return IAGAttributeNil;
     }
@@ -64,8 +60,7 @@ IAGAttribute IAGTreeElementGetNextNode(IAGTreeElementNodeIterator *iter) {
 
 #pragma mark - Iterating children
 
-IAGTreeElementChildIterator
-IAGTreeElementMakeChildIterator(IAGTreeElement tree_element) {
+IAGTreeElementChildIterator IAGTreeElementMakeChildIterator(IAGTreeElement tree_element) {
     auto tree_element_id = IAG::Graph::TreeElementID(tree_element);
     auto child = tree_element_id->first_child;
     return IAGTreeElementChildIterator((uintptr_t)tree_element, child, 0);

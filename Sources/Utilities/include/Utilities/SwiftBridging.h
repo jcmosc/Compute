@@ -2,7 +2,8 @@
 #include <swift/bridging>
 #else
 
-// Copied from https://github.com/swiftlang/swift/blob/release/6.3/lib/ClangImporter/SwiftBridging/swift/bridging
+// Copied from
+// https://github.com/swiftlang/swift/blob/release/6.3/lib/ClangImporter/SwiftBridging/swift/bridging
 
 // -*- C -*-
 //===------------------ bridging - C and Swift Interop ----------*- C++ -*-===//

@@ -38,7 +38,8 @@ class Heap {
     Heap(Heap &&) = delete;
     Heap &operator=(Heap &&) = delete;
 
-    template <typename T> inline T *_Nonnull alloc(size_t count = 1) {
+    template <typename T>
+    inline T *_Nonnull alloc(size_t count = 1) {
         return static_cast<T *>(alloc_(sizeof(T) * count));
     };
     void reset(char *_Nullable start, size_t capacity);
@@ -59,7 +60,8 @@ class Heap {
 
 #if !SWIFT_TESTING
 
-template <unsigned int _inline_size> class InlineHeap : public Heap {
+template <unsigned int _inline_size>
+class InlineHeap : public Heap {
   private:
     char _inline_buffer[_inline_size] = {};
 

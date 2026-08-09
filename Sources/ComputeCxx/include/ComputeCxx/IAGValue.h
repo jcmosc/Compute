@@ -6,7 +6,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
 
-typedef IAG_OPTIONS(uint32_t, IAGValueOptions) {
+typedef IAG_OPTIONS(uint32_t, IAGValueOptions){
     IAGValueOptionsNone = 0,
     IAGValueOptionsInputOptionsUnprefetched = 1 << 0,
     IAGValueOptionsInputOptionsSyncMainRef = 1 << 1,
@@ -15,7 +15,7 @@ typedef IAG_OPTIONS(uint32_t, IAGValueOptions) {
     IAGValueOptionsIncrementGraphVersion = 1 << 2, // AsTopLevelOutput
 };
 
-typedef IAG_OPTIONS(uint8_t, IAGValueState) {
+typedef IAG_OPTIONS(uint8_t, IAGValueState){
     IAGValueStateNone = 0,
     IAGValueStateDirty = 1 << 0,
     IAGValueStatePending = 1 << 1,

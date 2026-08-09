@@ -907,6 +907,26 @@ void IAGGraphSetOutputValue(const void *value, IAGTypeID type) {
 
 #pragma mark - Profiler
 
+void IAGGraphStartProfiling(IAGGraphRef graph) {
+    if (graph == nullptr) {
+        IAG::Graph::all_start_profiling(1);
+        return;
+    }
+
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    graph_context->graph().start_profiling(1);
+}
+
+void IAGGraphStopProfiling(IAGGraphRef graph) {
+    if (graph == nullptr) {
+        IAG::Graph::all_stop_profiling();
+        return;
+    }
+
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    graph_context->graph().stop_profiling();
+}
+
 void IAGGraphResetProfile(IAGGraphRef graph) {
     if (graph == nullptr) {
         IAG::Graph::all_reset_profile();

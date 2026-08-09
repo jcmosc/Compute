@@ -20,6 +20,7 @@
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
+#include "ComputeCxx/IAGGraphProfiling.h"
 #include "ComputeCxx/IAGGraphTracing.h"
 #include "Swift/Metadata.h"
 #include "Vector/Vector.h"
@@ -35,6 +36,7 @@ class Graph {
   public:
     class Context;
     class KeyTable;
+    class ProfileTrace;
     class ProfileData;
     class TraceRecorder;
     class TreeElement;
@@ -175,6 +177,7 @@ class Graph {
     // Profiler
     bool _is_profiling_enabled = false;
     std::unique_ptr<ProfileData> _profile_data = nullptr;
+    ProfileTrace *_Nullable _profile_trace = nullptr;
 
     // Trace recorder
     TraceRecorder *_trace_recorder = nullptr;
@@ -518,6 +521,8 @@ class Graph {
 
     bool is_profiling_enabled() const { return _is_profiling_enabled; };
 
+    void start_profiling(IAGGraphProfileFlags profile_flags);
+    void stop_profiling();
     void reset_profile();
     void mark_profile(uint32_t event_id, uint64_t time);
 
@@ -526,6 +531,8 @@ class Graph {
     uint64_t begin_profile_event(data::ptr<Node> node, const char *event_name);
     void end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool changed);
 
+    static void all_start_profiling(IAGGraphProfileFlags profile_flags);
+    static void all_stop_profiling();
     static void all_reset_profile();
     static void all_mark_profile(const char *name);
 

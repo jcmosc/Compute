@@ -127,16 +127,6 @@ extension Graph {
 }
 
 extension Graph {
-    public static func startProfiling(_ graph: Graph?) {
-        fatalError("not implemented")
-    }
-
-    public static func stopProfiling(_ graph: Graph?) {
-        fatalError("not implemented")
-    }
-}
-
-extension Graph {
     public func addTraceEvent<Value>(_ event: UnsafePointer<Int8>, value: Value) {
         withUnsafePointer(to: value) { valuePointer in
             self.addTraceEvent(name: event, value: valuePointer, type: Metadata(Value.self))
@@ -187,6 +177,14 @@ extension Graph {
 }
 
 extension Graph {
+    public static func startProfiling() {
+        Graph.startProfiling(nil)
+    }
+
+    public static func stopProfiling() {
+        Graph.stopProfiling(nil)
+    }
+    
     public static func resetProfile() {
         Graph.resetProfile(nil)
     }

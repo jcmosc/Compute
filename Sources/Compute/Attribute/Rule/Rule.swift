@@ -54,7 +54,7 @@ func IAGGraphReadCachedAttribute(
     options: CachedValueOptions,
     owner: AnyAttribute,
     changed: UnsafeMutablePointer<Bool>?,
-    attributeTypeID: (UnownedGraphContext) -> UInt32
+    typeIndex: (UnownedGraphContext) -> AttributeTypeIndex
 ) -> UnsafeRawPointer
 
 extension Rule where Self: Hashable {
@@ -104,7 +104,7 @@ extension Rule where Self: Hashable {
             owner: owner ?? .nil,
             changed: nil
         ) { graph in
-            return Graph.typeIndex(
+            Graph.typeIndex(
                 ctx: graph,
                 body: Self.self,
                 valueType: Metadata(Value.self),

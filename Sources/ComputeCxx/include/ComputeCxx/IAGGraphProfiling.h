@@ -6,6 +6,7 @@
 
 typedef IAG_OPTIONS(uint32_t, IAGGraphProfileFlags){
     IAGGraphProfileFlagsEnabled = 1 << 0,
+    IAGGraphProfileFlagsApplicationEvents = 1 << 1,
 } IAG_SWIFT_NAME(Graph.ProfileFlags);
 
 IAG_ASSUME_NONNULL_BEGIN

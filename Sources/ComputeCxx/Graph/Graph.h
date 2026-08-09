@@ -143,6 +143,13 @@ class Graph {
         void add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed);
         void add_profile_event(data::ptr<Node> node, uint64_t duration, bool changed, uint32_t event_id);
         void remove_node(data::ptr<Node> node, uint32_t type_id);
+
+#if TARGET_OS_MAC
+#ifdef __OBJC__
+        NSMutableDictionary *_Nullable json_data(const Data &data);
+        NSDictionary *json_data(const Item &item, const Graph &graph);
+#endif
+#endif
     };
 
   private:
@@ -520,6 +527,7 @@ class Graph {
     // MARK: Profiler
 
     bool is_profiling_enabled() const { return _is_profiling_enabled; };
+    ProfileData *_Nullable profile_data() { return _profile_data.get(); }
 
     void start_profiling(IAGGraphProfileFlags profile_flags);
     void stop_profiling();

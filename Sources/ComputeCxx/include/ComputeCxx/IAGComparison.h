@@ -31,14 +31,14 @@ IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGTypeID IAGComparisonStateGetFieldType(IAGComparisonState state);
 
-typedef IAG_ENUM(uint8_t, IAGComparisonMode) {
+typedef IAG_ENUM(uint8_t, IAGComparisonMode){
     IAGComparisonModeBitwise = 0,
     IAGComparisonModeIndirect = 1,
     IAGComparisonModeEquatableUnlessPOD = 2,
     IAGComparisonModeEquatableAlways = 3,
 } IAG_SWIFT_NAME(ComparisonMode);
 
-typedef IAG_OPTIONS(uint32_t, IAGComparisonOptions) {
+typedef IAG_OPTIONS(uint32_t, IAGComparisonOptions){
     IAGComparisonOptionsComparisonModeBitwise = 0,
     IAGComparisonOptionsComparisonModeIndirect = 1,
     IAGComparisonOptionsComparisonModeEquatableUnlessPOD = 2,
@@ -53,12 +53,13 @@ typedef IAG_OPTIONS(uint32_t, IAGComparisonOptions) {
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 bool IAGCompareValues(const void *_Nonnull destination, const void *_Nonnull source, IAGTypeID type_id,
-                     IAGComparisonOptions options);
+                      IAGComparisonOptions options);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 const unsigned char *_Nullable IAGPrefetchCompareValues(IAGTypeID type_id, IAGComparisonOptions options,
-                                                       uint32_t priority) IAG_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
+                                                        uint32_t priority)
+    IAG_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

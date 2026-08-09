@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstring> 
+#include <cstring>
 
 namespace IAG {
 namespace LayoutDescriptor {
@@ -36,14 +36,15 @@ struct ValueLayoutReader {
     const unsigned char *layout;
 
     inline ValueLayoutEntryKind &peek_kind() const { return *(ValueLayoutEntryKind *)layout; }
-    
+
     inline ValueLayoutEntryKind read_kind() {
         auto kind = *(ValueLayoutEntryKind *)layout;
         layout += 1;
         return kind;
     }
 
-    template <typename T> inline T read_bytes() {
+    template <typename T>
+    inline T read_bytes() {
         T returnVal;
         memcpy(&returnVal, layout, sizeof(T));
         layout += sizeof(T);
@@ -62,7 +63,7 @@ struct ValueLayoutReader {
         layout += 1;
         return result;
     }
-    
+
     inline void skip_varint() {
         while (*layout & 0x80) {
             layout += 1;

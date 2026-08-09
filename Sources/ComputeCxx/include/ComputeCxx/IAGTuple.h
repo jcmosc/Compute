@@ -8,7 +8,7 @@ IAG_IMPLICIT_BRIDGING_ENABLED
 
 IAG_EXTERN_C_BEGIN
 
-typedef IAG_ENUM(uint32_t, IAGTupleCopyOptions) {
+typedef IAG_ENUM(uint32_t, IAGTupleCopyOptions){
     IAGTupleCopyOptionsAssignCopy = 0,
     IAGTupleCopyOptionsInitCopy = 1,
     IAGTupleCopyOptionsAssignTake = 2,
@@ -60,12 +60,12 @@ size_t IAGTupleElementOffsetChecked(IAGTupleType tuple_type, size_t index, IAGTy
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void *IAGTupleGetElement(IAGTupleType tuple_type, void *tuple_value, size_t index, void *element_value,
-                        IAGTypeID element_type, IAGTupleCopyOptions options);
+                         IAGTypeID element_type, IAGTupleCopyOptions options);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void *IAGTupleSetElement(IAGTupleType tuple_type, void *tuple_value, size_t index, const void *element_value,
-                        IAGTypeID element_type, IAGTupleCopyOptions options);
+                         IAGTypeID element_type, IAGTupleCopyOptions options);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -79,9 +79,9 @@ void IAGTupleDestroyElement(IAGTupleType tuple_type, void *tuple_value, size_t i
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGTupleWithBuffer(IAGTupleType tuple_type, size_t count,
-                       void (*function)(const IAGUnsafeMutableTuple mutable_tuple, void *context IAG_SWIFT_CONTEXT)
-                           IAG_SWIFT_CC(swift),
-                       void *context);
+                        void (*function)(const IAGUnsafeMutableTuple mutable_tuple, void *context IAG_SWIFT_CONTEXT)
+                            IAG_SWIFT_CC(swift),
+                        void *context);
 
 IAG_EXTERN_C_END
 

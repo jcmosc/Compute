@@ -653,7 +653,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
     InputEdge new_input_edge = {
         input,
         static_cast<IAGInputOptions>((options & (IAGInputOptionsUnprefetched | IAGInputOptionsAlwaysEnabled)) |
-                                    (node->is_dirty() ? IAGInputOptionsChanged : IAGInputOptionsNone)),
+                                     (node->is_dirty() ? IAGInputOptionsChanged : IAGInputOptionsNone)),
     };
 
     uint32_t input_index = node->insert_input_edge(subgraph, new_input_edge);
@@ -701,15 +701,18 @@ void Graph::all_inputs_removed(data::ptr<Node> node) {
     }
 }
 
-template <> void Graph::add_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
+template <>
+void Graph::add_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
     node->output_edges().push_back(node.page_ptr()->zone, OutputEdge(output));
 }
 
-template <> void Graph::add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
+template <>
+void Graph::add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
     node->output_edges().push_back(node.page_ptr()->zone, OutputEdge(output));
 }
 
-template <> void Graph::remove_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
+template <>
+void Graph::remove_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
     auto iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
                              [&output](auto iter) -> bool { return iter.attribute == output; });
     if (iter != node->output_edges().end()) {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ComputeCxx/IAGBase.h>
 #include <ComputeCxx/IAGAttribute.h>
+#include <ComputeCxx/IAGBase.h>
 
 IAG_ASSUME_NONNULL_BEGIN
 

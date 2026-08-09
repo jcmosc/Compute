@@ -79,12 +79,14 @@ void context_descriptor::push_generic_args(const metadata &type,
     // - a sequence of pack lengths
     // - a sequence of metadata or metadata pack pointers
     // - a sequence of witness table or witness table pack pointers
-    // See https://github.com/swiftlang/swift/blob/main/include/swift/ABI/GenericContext.h
+    // See
+    // https://github.com/swiftlang/swift/blob/main/include/swift/ABI/GenericContext.h
 
     // Start from the metadata or metadata pack points
     unsigned arg_index = info.pack_shape_header.NumShapeClasses;
 
-    // Iterate through over the pack shape descriptors array in parallel with the generic arguments array
+    // Iterate through over the pack shape descriptors array in parallel with
+    // the generic arguments array
     unsigned pack_index = 0;
 
     for (auto param : info.params) {
@@ -107,8 +109,9 @@ void context_descriptor::push_generic_args(const metadata &type,
             auto generic_arg = info.generic_args[arg_index];
             if (generic_arg != nullptr) {
                 types = reinterpret_cast<const metadata *>(reinterpret_cast<uintptr_t>(generic_arg) & ~0x1);
-                
-                // The shape class is represented as the length of the type parameter pack
+
+                // The shape class is represented as the length of the type
+                // parameter pack
                 num_types =
                     reinterpret_cast<uint64_t>(info.generic_args[info.pack_shape_descriptors[pack_index].ShapeClass]);
             }
@@ -118,7 +121,7 @@ void context_descriptor::push_generic_args(const metadata &type,
                 num_types,
                 true,
             });
-            
+
             pack_index += 1;
             break;
         }

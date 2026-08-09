@@ -47,8 +47,8 @@ ValueLayout make_layout(const swift::metadata &type, IAGComparisonMode default_m
 
 // MARK: Comparing values
 
-/// Returns the number of characters in the layout, up to the next sibling enum marker or until the end of the
-/// layout.
+/// Returns the number of characters in the layout, up to the next sibling enum
+/// marker or until the end of the layout.
 size_t length(ValueLayout layout);
 
 // MARK: Comparing values

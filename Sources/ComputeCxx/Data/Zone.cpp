@@ -30,7 +30,7 @@ void zone::realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, ui
     if (new_size <= size) {
         return;
     }
-    
+
     // check if we don't have to reallocate any memory
     if (*buffer) {
         auto page = buffer->page_ptr();
@@ -151,8 +151,8 @@ ptr<void> zone::alloc_slow(uint32_t size, uint32_t alignment_mask) {
         uint32_t aligned_size = ((sizeof(page) + alignment_mask) & ~alignment_mask) + size;
         new_page = table::shared().alloc_page(this, aligned_size);
         if (_first_page) {
-            // It's less likely we will be able to alloc unused bytes from this page,
-            // so insert it after the first page.
+            // It's less likely we will be able to alloc unused bytes from this
+            // page, so insert it after the first page.
             new_page->next = _first_page->next;
             _first_page->next = new_page;
         } else {

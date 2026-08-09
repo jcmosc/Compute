@@ -16,7 +16,7 @@ IAG_EXTERN_C_BEGIN
 
 IAG_SWIFT_CC(swift)
 bool IAGDispatchEquatable(const void *lhs_value, const void *rhs_value, const ::swift::Metadata *type,
-                         const IAG::swift::equatable_witness_table *wt);
+                          const IAG::swift::equatable_witness_table *wt);
 
 #ifdef __OBJC__
 IAG_SWIFT_CC(swift)

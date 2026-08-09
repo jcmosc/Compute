@@ -81,7 +81,8 @@ class UntypedTable {
 
 #if !SWIFT_TESTING
 
-template <typename Key, typename Value> class Table : public UntypedTable {
+template <typename Key, typename Value>
+class Table : public UntypedTable {
   public:
     using key_type = Key;
     using value_type = Value;

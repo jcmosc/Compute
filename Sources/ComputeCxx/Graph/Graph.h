@@ -69,8 +69,7 @@ class Graph {
         NeedsCallMainHandler = 3,
     };
 
-    typedef void (*MainHandler)(void (*trampoline_thunk)(const void *),
-                                const void *trampoline,
+    typedef void (*MainHandler)(void (*trampoline_thunk)(const void *), const void *trampoline,
                                 const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift);
 
   private:
@@ -147,13 +146,19 @@ class Graph {
     void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index);
     void all_inputs_removed(data::ptr<Node> node);
 
-    template <typename T> void add_output_edge(data::ptr<T> node, AttributeID output);
-    template <> void add_output_edge<Node>(data::ptr<Node> node, AttributeID output);
-    template <> void add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
+    template <typename T>
+    void add_output_edge(data::ptr<T> node, AttributeID output);
+    template <>
+    void add_output_edge<Node>(data::ptr<Node> node, AttributeID output);
+    template <>
+    void add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
 
-    template <typename T> void remove_output_edge(data::ptr<T> node, AttributeID attribute);
-    template <> void remove_output_edge<Node>(data::ptr<Node> node, AttributeID output);
-    template <> void remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
+    template <typename T>
+    void remove_output_edge(data::ptr<T> node, AttributeID attribute);
+    template <>
+    void remove_output_edge<Node>(data::ptr<Node> node, AttributeID output);
+    template <>
+    void remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output);
 
     void add_input_dependencies(AttributeID attribute, AttributeID input);
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
@@ -426,9 +431,9 @@ class Graph {
 
     uint32_t intern_key(const char *key);
     const char *key_name(uint32_t key_id) const;
-    
+
     // MARK: Encoding
-    
+
     void encode_node(Encoder &encoder, const Node &node, bool encode_value) const;
     void encode_indirect_node(Encoder &encoder, const IndirectNode &indirect_node) const;
     void encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) const;

@@ -8,7 +8,8 @@ IAG_ASSUME_NONNULL_BEGIN
 
 namespace IAG {
 
-template <typename T> class ArrayRef {
+template <typename T>
+class ArrayRef {
   public:
     using value_type = T;
     using reference = value_type &;

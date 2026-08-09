@@ -17,9 +17,7 @@ typedef dispatch_once_t platform_once_t;
 typedef void (*platform_once_function_t)(void);
 
 PLATFORM_INLINE
-void _platform_once_thunk(void *_Nullable context) {
-    ((dispatch_function_t)context)(NULL);
-}
+void _platform_once_thunk(void *_Nullable context) { ((dispatch_function_t)context)(NULL); }
 
 PLATFORM_INLINE
 void platform_once(platform_once_t *predicate, platform_once_function_t function) {
@@ -32,9 +30,7 @@ typedef pthread_once_t platform_once_t;
 typedef void (*platform_once_function_t)(void);
 
 PLATFORM_INLINE
-void platform_once(platform_once_t *predicate, platform_once_function_t function) {
-    pthread_once(predicate, function);
-}
+void platform_once(platform_once_t *predicate, platform_once_function_t function) { pthread_once(predicate, function); }
 
 #endif
 

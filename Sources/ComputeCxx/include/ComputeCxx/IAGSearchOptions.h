@@ -6,7 +6,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
 
-typedef IAG_OPTIONS(uint32_t, IAGSearchOptions) {
+typedef IAG_OPTIONS(uint32_t, IAGSearchOptions){
     IAGSearchOptionsSearchInputs = 1 << 0,
     IAGSearchOptionsSearchOutputs = 1 << 1,
     IAGSearchOptionsTraverseGraphContexts = 1 << 2,

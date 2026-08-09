@@ -10,7 +10,8 @@
 namespace IAG {
 
 /// C++ function type that is equivalent to the lowered Swift closure type.
-template <typename Result, typename... Args> class ClosureFunction {
+template <typename Result, typename... Args>
+class ClosureFunction {
   public:
     using Context = const void *_Nullable;
     using Function = IAG_SWIFT_CC(swift) Result (*_Nullable)(Args..., Context IAG_SWIFT_CONTEXT);

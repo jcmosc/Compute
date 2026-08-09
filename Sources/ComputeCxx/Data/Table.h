@@ -17,7 +17,8 @@ namespace data {
 
 class zone;
 class page;
-template <typename T> class ptr;
+template <typename T>
+class ptr;
 
 class table {
   public:

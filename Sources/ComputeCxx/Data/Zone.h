@@ -51,7 +51,7 @@ class zone {
     ptr<page> _first_page;
     ptr<bytes_info> _free_bytes;
     info _info;
-    
+
     ptr<void> alloc_bytes(uint32_t size, uint32_t alignment_mask);
     ptr<void> alloc_bytes_recycle(uint32_t size, uint32_t alignment_mask);
     ptr<void> alloc_slow(uint32_t size, uint32_t alignment_mask);

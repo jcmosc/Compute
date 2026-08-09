@@ -49,9 +49,7 @@ Compare::Enum::~Enum() {
     }
 }
 
-Compare::Frame::Frame(vector<Enum, 8, uint64_t> *enums): _enums(enums), _start(enums->size()) {
-    
-}
+Compare::Frame::Frame(vector<Enum, 8, uint64_t> *enums) : _enums(enums), _start(enums->size()) {}
 
 Compare::Frame::~Frame() {
     while (_enums->size() > _start) {
@@ -62,7 +60,7 @@ Compare::Frame::~Frame() {
 bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const unsigned char *rhs, size_t offset,
                          size_t size, IAGComparisonOptions options) {
     Frame frame = Frame(&_enums);
-    
+
     size_t end = size < 0 ? ~0 : offset + size;
 
     ValueLayoutReader reader = ValueLayoutReader(layout);
@@ -117,7 +115,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
                     return false;
                 }
             } else {
-                if (!IAGDispatchEquatable((const void *)(lhs + offset), (const void *)(rhs + offset), type, equatable)) {
+                if (!IAGDispatchEquatable((const void *)(lhs + offset), (const void *)(rhs + offset), type,
+                                          equatable)) {
                     failed(options, lhs, rhs, offset, item_size, type);
                     return false;
                 }
@@ -192,8 +191,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
         }
         case ValueLayoutEntryKind::CompactNested: {
             uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
-            ValueLayout nested_layout =
-                reinterpret_cast<ValueLayout>(/* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
+            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(
+                /* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
 
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 
@@ -236,7 +235,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             const unsigned char *_Nonnull rhs_enum;
             bool owns_copies = false;
             if (is_copy) {
-                // Copy the enum itself so that we can project the data without destroying the original.
+                // Copy the enum itself so that we can project the data without
+                // destroying the original.
                 size_t enum_size = type->vw_size();
                 bool large_allocation = enum_size > 0x1000;
                 if (large_allocation) {

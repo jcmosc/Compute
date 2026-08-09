@@ -71,8 +71,9 @@ void IAGSubgraphSetIndex(IAGSubgraphRef subgraph, uint32_t index) IAG_SWIFT_NAME
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGUniqueID IAGSubgraphAddObserver(IAGSubgraphRef subgraph,
-                                 void (*observer)(const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                 const void *_Nullable observer_context);
+                                   void (*observer)(const void *_Nullable context IAG_SWIFT_CONTEXT)
+                                       IAG_SWIFT_CC(swift),
+                                   const void *_Nullable observer_context);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -114,8 +115,7 @@ uint64_t IAGSubgraphGetParentCount(IAGSubgraphRef subgraph) IAG_SWIFT_NAME(gette
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-bool IAGSubgraphIsAncestor(IAGSubgraphRef subgraph, IAGSubgraphRef other)
-    IAG_SWIFT_NAME(Subgraph.isAncestor(self:of:));
+bool IAGSubgraphIsAncestor(IAGSubgraphRef subgraph, IAGSubgraphRef other) IAG_SWIFT_NAME(Subgraph.isAncestor(self:of:));
 
 // MARK: Flags
 
@@ -142,8 +142,8 @@ IAGSubgraphRef _Nullable IAGGraphGetAttributeSubgraph2(IAGAttribute attribute)
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 void IAGSubgraphApply(IAGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                     const void *body_context);
+                      void (*body)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                      const void *body_context);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -153,7 +153,8 @@ void IAGSubgraphUpdate(IAGSubgraphRef subgraph, IAGAttributeFlags flags) IAG_SWI
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-_Nullable IAGTreeElement IAGSubgraphGetTreeRoot(IAGSubgraphRef subgraph) IAG_SWIFT_NAME(getter:Subgraph.treeRoot(self:));
+_Nullable IAGTreeElement IAGSubgraphGetTreeRoot(IAGSubgraphRef subgraph)
+    IAG_SWIFT_NAME(getter:Subgraph.treeRoot(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

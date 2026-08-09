@@ -69,15 +69,13 @@ const void *_Nullable IAGGraphGetContext(IAGGraphRef graph) IAG_SWIFT_NAME(gette
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-void IAGGraphSetContext(IAGGraphRef graph, const void *_Nullable context)
-    IAG_SWIFT_NAME(setter:Graph.context(self:_:));
+void IAGGraphSetContext(IAGGraphRef graph, const void *_Nullable context) IAG_SWIFT_NAME(setter:Graph.context(self:_:));
 
 // MARK: Counter
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-uint64_t IAGGraphGetCounter(IAGGraphRef graph, IAGGraphCounterQueryType query)
-    IAG_SWIFT_NAME(Graph.counter(self:for:));
+uint64_t IAGGraphGetCounter(IAGGraphRef graph, IAGGraphCounterQueryType query) IAG_SWIFT_NAME(Graph.counter(self:for:));
 
 // MARK: Main handler
 
@@ -231,7 +229,7 @@ IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
 IAGValueState IAGGraphGetValueState(IAGAttribute attribute) IAG_SWIFT_NAME(getter:AnyAttribute.valueState(self:));
 
-typedef IAG_OPTIONS(uint32_t, IAGGraphUpdateOptions) {
+typedef IAG_OPTIONS(uint32_t, IAGGraphUpdateOptions){
     IAGGraphUpdateOptionsNone = 0,
     IAGGraphUpdateOptionsInTransaction = 1 << 0,
     IAGGraphUpdateOptionsAbortIfCancelled = 1 << 1,
@@ -282,7 +280,7 @@ void *_Nullable IAGGraphReadCachedAttributeIfExists(size_t hash, IAGTypeID type,
 
 // MARK: Update
 
-typedef IAG_ENUM(uint32_t, IAGGraphUpdateStatus) {
+typedef IAG_ENUM(uint32_t, IAGGraphUpdateStatus){
     IAGGraphUpdateStatusNoChange = 0,
     IAGGraphUpdateStatusChanged = 1,
     IAGGraphUpdateStatusAborted = 2,

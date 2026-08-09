@@ -1,8 +1,8 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #ifndef __has_feature
 #define __has_feature(x) 0
@@ -14,7 +14,7 @@
 #if !defined(PLATFORM_EXTERN_C_BEGIN)
 #if defined(__cplusplus)
 #define PLATFORM_EXTERN_C_BEGIN extern "C" {
-#define PLATFORM_EXTERN_C_END   }
+#define PLATFORM_EXTERN_C_END }
 #else
 #define PLATFORM_EXTERN_C_BEGIN
 #define PLATFORM_EXTERN_C_END
@@ -35,7 +35,7 @@
 
 #if __has_feature(assume_nonnull)
 #define PLATFORM_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
-#define PLATFORM_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#define PLATFORM_ASSUME_NONNULL_END _Pragma("clang assume_nonnull end")
 #else
 #define PLATFORM_ASSUME_NONNULL_BEGIN
 #define PLATFORM_ASSUME_NONNULL_END
@@ -53,11 +53,10 @@
 #endif
 #endif
 
-#if __has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum) || \
-        __has_extension(cxx_strong_enums)
-#define PLATFORM_ENUM(_name, _type, ...) \
-    typedef enum : _type { __VA_ARGS__ } _name##_t
+#if __has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum) || __has_extension(cxx_strong_enums)
+#define PLATFORM_ENUM(_name, _type, ...) typedef enum : _type { __VA_ARGS__ } _name##_t
 #else
-#define PLATFORM_ENUM(_name, _type, ...) \
-    typedef _type _name##_t; enum { __VA_ARGS__ }
+#define PLATFORM_ENUM(_name, _type, ...)                                                                               \
+    typedef _type _name##_t;                                                                                           \
+    enum { __VA_ARGS__ }
 #endif

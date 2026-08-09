@@ -15,7 +15,8 @@ namespace data {
 
 struct page;
 
-template <typename T> class ptr {
+template <typename T>
+class ptr {
   public:
     using element_type = T;
     using offset_type = uint32_t;
@@ -24,11 +25,12 @@ template <typename T> class ptr {
   private:
     offset_type _offset;
 
-    template <typename U> friend class ptr;
+    template <typename U>
+    friend class ptr;
 
   public:
     constexpr ptr(offset_type offset = 0) : _offset(offset) {};
-    constexpr ptr(std::nullptr_t): _offset(0) {};
+    constexpr ptr(std::nullptr_t) : _offset(0) {};
 
     void assert_valid() const {
         if (_offset >= table::shared().ptr_max_offset()) {
@@ -49,7 +51,8 @@ template <typename T> class ptr {
 
     offset_type offset() const noexcept { return _offset; }
 
-    template <typename U> ptr<U> aligned(offset_type alignment_mask = sizeof(offset_type) - 1) const {
+    template <typename U>
+    ptr<U> aligned(offset_type alignment_mask = sizeof(offset_type) - 1) const {
         return ptr<U>((_offset + alignment_mask) & ~alignment_mask);
     };
 
@@ -70,16 +73,30 @@ template <typename T> class ptr {
     bool operator>(offset_type offset) const noexcept { return _offset > offset; };
     bool operator>=(offset_type offset) const noexcept { return _offset >= offset; };
 
-    template <typename U> ptr<U> operator+(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
-    template <typename U> ptr<U> operator-(difference_type shift) const noexcept { return ptr<U>(_offset - shift); };
+    template <typename U>
+    ptr<U> operator+(difference_type shift) const noexcept {
+        return ptr<U>(_offset + shift);
+    };
 
-    template <typename U> difference_type operator-(const ptr<U> &other) const noexcept {
+    template <typename U>
+    ptr<U> operator-(difference_type shift) const noexcept {
+        return ptr<U>(_offset - shift);
+    };
+
+    template <typename U>
+    difference_type operator-(const ptr<U> &other) const noexcept {
         return _offset - other._offset;
     };
 
-    template <typename U> ptr<U> advanced(difference_type shift) const noexcept { return ptr<U>(_offset + shift); };
+    template <typename U>
+    ptr<U> advanced(difference_type shift) const noexcept {
+        return ptr<U>(_offset + shift);
+    };
 
-    template <typename U> ptr<U> unsafe_cast() const { return ptr<U>(_offset); }
+    template <typename U>
+    ptr<U> unsafe_cast() const {
+        return ptr<U>(_offset);
+    }
 };
 
 } // namespace data
@@ -87,7 +104,8 @@ template <typename T> class ptr {
 
 namespace std {
 
-template <typename T> class hash<IAG::data::ptr<T>> {
+template <typename T>
+class hash<IAG::data::ptr<T>> {
   public:
     std::uint64_t operator()(const IAG::data::ptr<T> &pointer) const { return pointer.offset(); }
 };

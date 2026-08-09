@@ -2,9 +2,9 @@
 
 #include "Attribute/AttributeData/Node/Node.h"
 #include "Comparison/LayoutDescriptor.h"
-#include "ComputeCxx/IAGBase.h"
 #include "ComputeCxx/IAGAttribute.h"
 #include "ComputeCxx/IAGAttributeType.h"
+#include "ComputeCxx/IAGBase.h"
 #include "ComputeCxx/IAGComparison.h"
 #include "Swift/Metadata.h"
 
@@ -60,8 +60,9 @@ class AttributeType {
     };
 
     bool compare_values(const void *lhs, const void *rhs) {
-        IAGComparisonOptions comparison_options = IAGComparisonOptions(_flags & IAGAttributeTypeFlagsComparisonModeMask) |
-                                                 IAGComparisonOptionsCopyOnWrite | IAGComparisonOptionsTraceCompareFailed;
+        IAGComparisonOptions comparison_options =
+            IAGComparisonOptions(_flags & IAGAttributeTypeFlagsComparisonModeMask) | IAGComparisonOptionsCopyOnWrite |
+            IAGComparisonOptionsTraceCompareFailed;
         if (_layout == nullptr) {
             _layout = LayoutDescriptor::fetch(value_metadata(), comparison_options, 0);
         }

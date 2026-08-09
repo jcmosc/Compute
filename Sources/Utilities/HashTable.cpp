@@ -1,7 +1,7 @@
 #include "Utilities/HashTable.h"
 
-#include <memory>
 #include <cstring>
+#include <memory>
 
 #include "Utilities/Heap.h"
 
@@ -88,7 +88,8 @@ UntypedTable::~UntypedTable() {
 #pragma mark - Managing buckets
 
 // Buckets are initially allocated by the util::Heap instance,
-// until they grow past initial_bucket_mask_width where they are allocated using new.ˆ
+// until they grow past initial_bucket_mask_width where they are allocated using
+// new.ˆ
 
 void UntypedTable::create_buckets() {
     if (_buckets != nullptr) {

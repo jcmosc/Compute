@@ -16,7 +16,8 @@ OBJC_EXPORT void objc_release(id obj);
 
 namespace util {
 
-template <typename T> class objc_ptr {
+template <typename T>
+class objc_ptr {
   private:
     id _storage;
 

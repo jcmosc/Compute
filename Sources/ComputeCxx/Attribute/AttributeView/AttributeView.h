@@ -48,7 +48,7 @@ class attribute_view {
     attribute_iterator end() { return attribute_iterator(_page, RelativeAttributeID(nullptr)); };
 };
 
-class const_attribute_view: public attribute_view {
+class const_attribute_view : public attribute_view {
   public:
     const_attribute_view(data::ptr<data::page> page) : attribute_view(page) {};
 

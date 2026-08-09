@@ -27,7 +27,8 @@ class WeakAttributeID {
 
     bool expired() const;
 
-    /// Returns the attribute it is has not expired, otherwise returns the nil attribute.
+    /// Returns the attribute it is has not expired, otherwise returns the nil
+    /// attribute.
     const AttributeID evaluate() const;
 };
 

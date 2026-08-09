@@ -10,7 +10,8 @@ namespace util {
 
 class free_deleter {
   public:
-    template <typename T> void operator()(T *_Nullable ptr) {
+    template <typename T>
+    void operator()(T *_Nullable ptr) {
         if (ptr) {
             free((void *)ptr);
         }

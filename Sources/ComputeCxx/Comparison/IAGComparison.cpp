@@ -19,7 +19,7 @@ bool IAGCompareValues(const void *destination, const void *source, IAGTypeID typ
         layout = nullptr;
     }
     return IAG::LayoutDescriptor::compare(layout, (const unsigned char *)destination, (const unsigned char *)source,
-                                         type->vw_size(), options);
+                                          type->vw_size(), options);
 }
 
 const unsigned char *IAGPrefetchCompareValues(IAGTypeID type_id, IAGComparisonOptions options, uint32_t priority) {

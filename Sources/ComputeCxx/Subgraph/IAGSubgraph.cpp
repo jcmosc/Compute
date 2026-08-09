@@ -17,10 +17,10 @@ CFRuntimeClass &subgraph_type_id() {
         }
     };
     static CFRuntimeClass klass = {
-        0,            // version
+        0,             // version
         "IAGSubgraph", // className
-        NULL,         // init
-        NULL,         // copy,
+        NULL,          // init
+        NULL,          // copy,
         finalize,
         NULL, // equal
         NULL, // hash
@@ -145,8 +145,8 @@ void IAGSubgraphSetIndex(IAGSubgraphRef subgraph, uint32_t index) {
 #pragma mark - Observers
 
 IAGUniqueID IAGSubgraphAddObserver(IAGSubgraphRef subgraph,
-                                 void (*observer)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                 const void *observer_context) {
+                                   void (*observer)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                                   const void *observer_context) {
     if (IAG::Subgraph::from_cf(subgraph) == nullptr) {
         IAG::precondition_failure("accessing invalidated subgraph");
     }
@@ -283,7 +283,8 @@ IAGSubgraphRef IAGGraphGetAttributeSubgraph2(IAGAttribute attribute) {
 }
 
 void IAGSubgraphApply(IAGSubgraphRef subgraph, uint32_t options,
-                     void (*body)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift), const void *body_context) {
+                      void (*body)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
+                      const void *body_context) {
     if (IAG::Subgraph::from_cf(subgraph) == nullptr) {
         return;
     }

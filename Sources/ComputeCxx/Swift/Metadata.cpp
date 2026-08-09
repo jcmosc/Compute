@@ -376,7 +376,8 @@ const metadata *metadata::mangled_type_name_ref(const char *type_name, bool faul
         }
     }
 
-    // See https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst#symbolic-references
+    // See
+    // https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst#symbolic-references
     auto string = ::swift::Demangle::makeSymbolicMangledNameStringRef(type_name);
     auto type = swift_getTypeByMangledNameInContext(string.data(), string.size(), context, generic_args);
     if (!type) {
@@ -387,7 +388,8 @@ const metadata *metadata::mangled_type_name_ref(const char *type_name, bool faul
                     ascii_type_name.append("\\\\", 2);
                 } else {
                     if (*c > 126) {
-                        // char is outside of ASCII range, encode as "\ABC" where ABC are digits between 0 and 7.
+                        // char is outside of ASCII range, encode as "\ABC"
+                        // where ABC are digits between 0 and 7.
                         ascii_type_name.push_back('\\');
                         ascii_type_name.push_back((*c >> 6) | 0x30);
                         ascii_type_name.push_back(((*c >> 3) & 7) | 0x30);
@@ -559,7 +561,8 @@ bool metadata::visit(metadata_visitor &visitor) const {
         return visitor.unknown_result();
     }
     case ::swift::MetadataKind::Opaque: {
-        // Builtin.NativeObject, see https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst
+        // Builtin.NativeObject, see
+        // https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst
         static const metadata *native_object = mangled_type_name_ref("Bo", true, nullptr);
         if (this == native_object) {
             return visitor.visit_native_object(*this);
@@ -744,7 +747,8 @@ bool metadata::visit_heap_locals(metadata_visitor &visitor) const {
     }
 
     if (descriptor->NumBindings) {
-        // Builtin.RawPointer, see https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst
+        // Builtin.RawPointer, see
+        // https://github.com/swiftlang/swift/blob/main/docs/ABI/Mangling.rst
         static const metadata *pointer_type = mangled_type_name_ref("Bp", true, nullptr);
         if (pointer_type == nullptr) {
             return visitor.unknown_result();

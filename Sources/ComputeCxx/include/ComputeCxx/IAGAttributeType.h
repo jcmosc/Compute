@@ -32,7 +32,7 @@ typedef struct IAG_SWIFT_NAME(_AttributeVTable) IAGAttributeVTable {
     void (*_Nullable update_default)(const IAGAttributeType *, void *);
 } IAGAttributeVTable;
 
-typedef IAG_OPTIONS(uint32_t, IAGAttributeTypeFlags) {
+typedef IAG_OPTIONS(uint32_t, IAGAttributeTypeFlags){
     IAGAttributeTypeFlagsComparisonModeBitwise = 0,
     IAGAttributeTypeFlagsComparisonModeIndirect = 1,
     IAGAttributeTypeFlagsComparisonModeEquatableUnlessPOD = 2,

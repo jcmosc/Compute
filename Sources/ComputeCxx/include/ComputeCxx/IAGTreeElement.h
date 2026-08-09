@@ -1,7 +1,7 @@
 #pragma once
 
-#include <ComputeCxx/IAGBase.h>
 #include <ComputeCxx/IAGAttribute.h>
+#include <ComputeCxx/IAGBase.h>
 #include <ComputeCxx/IAGTreeValue.h>
 #include <ComputeCxx/IAGType.h>
 
@@ -25,7 +25,8 @@ uint32_t IAGTreeElementGetFlags(IAGTreeElement tree_element) IAG_SWIFT_NAME(gett
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGTreeElement _Nullable IAGTreeElementGetParent(IAGTreeElement tree_element) IAG_SWIFT_NAME(getter:TreeElement.parent(self:));
+IAGTreeElement _Nullable IAGTreeElementGetParent(IAGTreeElement tree_element)
+    IAG_SWIFT_NAME(getter:TreeElement.parent(self:));
 
 // MARK: Iterating values
 
@@ -74,7 +75,8 @@ IAGTreeElementChildIterator IAGTreeElementMakeChildIterator(IAGTreeElement tree_
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGTreeElement _Nullable IAGTreeElementGetNextChild(IAGTreeElementChildIterator *iter) IAG_SWIFT_NAME(Children.next(self:));
+IAGTreeElement _Nullable IAGTreeElementGetNextChild(IAGTreeElementChildIterator *iter)
+    IAG_SWIFT_NAME(Children.next(self:));
 
 IAG_EXTERN_C_END
 

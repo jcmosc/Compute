@@ -178,7 +178,7 @@ void IAGGraphEndDeferringSubgraphInvalidation(IAGGraphRef graph, bool was_deferr
 
 #pragma mark - Attribute types
 
-uint32_t IAGGraphInternAttributeType(
+IAGAttributeTypeIndex IAGGraphInternAttributeType(
     IAGUnownedGraphContextRef unowned_graph, IAGTypeID type,
     const IAGAttributeType *(*make_attribute_type)(const void *context IAG_SWIFT_CONTEXT)IAG_SWIFT_CC(swift),
     const void *make_attribute_type_context) {
@@ -209,12 +209,12 @@ void IAGGraphVerifyType(IAGAttribute attribute, IAGTypeID type) {
 
 #pragma mark - Attributes
 
-IAGAttribute IAGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value) {
+IAGAttribute IAGGraphCreateAttribute(IAGAttributeTypeIndex type_index, const void *body, const void *_Nullable value) {
     auto subgraph = IAG::Subgraph::current_subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no subgraph active while adding attribute");
     }
-    auto node = subgraph->graph()->add_attribute(*subgraph, type_id, body, value);
+    auto node = subgraph->graph()->add_attribute(*subgraph, type_index, body, value);
     return IAGAttribute(IAG::AttributeID(node));
 }
 

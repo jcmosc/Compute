@@ -106,10 +106,11 @@ void IAGGraphEndDeferringSubgraphInvalidation(IAGGraphRef graph, bool was_deferr
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-uint32_t IAGGraphInternAttributeType(IAGUnownedGraphContextRef graph, IAGTypeID type,
-                                     const IAGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(
-                                         const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                     const void *_Nullable make_attribute_type_context);
+IAGAttributeTypeIndex IAGGraphInternAttributeType(
+    IAGUnownedGraphContextRef graph, IAGTypeID type,
+    const IAGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(const void *_Nullable context IAG_SWIFT_CONTEXT)
+        IAG_SWIFT_CC(swift),
+    const void *_Nullable make_attribute_type_context);
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
@@ -119,8 +120,8 @@ void IAGGraphVerifyType(IAGAttribute attribute, IAGTypeID type) IAG_SWIFT_NAME(A
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-IAGAttribute IAGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value)
-    IAG_SWIFT_NAME(AnyAttribute.init(type:body:value:));
+IAGAttribute IAGGraphCreateAttribute(IAGAttributeTypeIndex type_index, const void *body, const void *_Nullable value)
+    IAG_SWIFT_NAME(AnyAttribute.init(typeIndex:body:value:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

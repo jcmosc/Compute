@@ -61,6 +61,8 @@ typedef struct IAG_SWIFT_NAME(_AttributeType) IAGAttributeType {
     } body_conformance;
 } IAGAttributeType;
 
+typedef uint32_t IAGAttributeTypeIndex IAG_SWIFT_NAME(AttributeTypeIndex);
+
 IAG_EXTERN_C_END
 
 IAG_IMPLICIT_BRIDGING_DISABLED

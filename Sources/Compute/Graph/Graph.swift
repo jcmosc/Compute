@@ -15,7 +15,7 @@ extension Graph {
         valueType: Metadata,
         flags: _AttributeType.Flags,
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
-    ) -> UInt32 {
+    ) -> AttributeTypeIndex {
         let makeAttributeType: () -> UnsafePointer<_AttributeType> = {
             let bodyType: _AttributeBody.Type
             #if CompatibilityModeAttributeGraphV6

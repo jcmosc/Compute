@@ -43,14 +43,14 @@ public struct Attribute<Value> {
             preconditionFailure("attempting to create attribute with no subgraph: \(Body.self)")
         }
 
-        let typeID = Graph.typeIndex(
+        let typeIndex = Graph.typeIndex(
             ctx: graphContext,
             body: Body.self,
             valueType: Metadata(Value.self),
             flags: flags,
             update: update
         )
-        identifier = AnyAttribute(type: typeID, body: body, value: value)
+        identifier = AnyAttribute(typeIndex: typeIndex, body: body, value: value)
     }
 
     public var graph: Graph {

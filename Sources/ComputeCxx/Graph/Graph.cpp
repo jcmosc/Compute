@@ -484,9 +484,9 @@ void Graph::remove_node(data::ptr<Node> node) {
         this->remove_removed_output(AttributeID(node), output_edge.attribute, false);
     }
 
-    //    if (_profile_data != nullptr) {
-    //        _profile_data->remove_node(node, node->type_id());
-    //    }
+    if (_profile_data != nullptr) {
+        _profile_data->remove_node(node, node->type_id());
+    }
 }
 
 void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
@@ -2056,6 +2056,61 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
     }
 
     va_end(args);
+}
+
+#pragma mark - Profiler
+
+void Graph::reset_profile() { _profile_data.reset(); }
+
+void Graph::mark_profile(uint32_t event_id, uint64_t time) {
+    foreach_trace([this, &event_id](Trace &trace) { trace.mark_profile(*this, event_id); });
+
+    if (_profile_data) {
+        _profile_data->mark(event_id, time);
+    }
+}
+
+void Graph::add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed) {
+    if (auto profile_data = profile_data_if_enabled()) {
+        profile_data->add_profile_update(node, duration, changed);
+    }
+}
+
+uint64_t Graph::begin_profile_event(data::ptr<Node> node, const char *event_name) {
+    auto event_id = intern_key(event_name);
+    foreach_trace([this, &node, &event_id](Trace &trace) { trace.begin_event(node, event_id); });
+    if (!_is_profiling_enabled) {
+        return 0;
+    }
+    return mach_absolute_time();
+}
+
+void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool changed) {
+    auto event_id = intern_key(event_name);
+    if (auto profile_data = profile_data_if_enabled()) {
+        auto end_time = mach_absolute_time();
+        uint64_t duration = end_time - start_time;
+        profile_data->add_profile_event(node, duration, changed, event_id);
+    }
+    foreach_trace([&node, &event_id](Trace &trace) { trace.end_event(node, event_id); });
+}
+
+void Graph::all_reset_profile() {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->reset_profile();
+    }
+    all_unlock();
+}
+
+void Graph::all_mark_profile(const char *name) {
+    uint64_t time = mach_absolute_time();
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        auto event_id = graph->intern_key(name);
+        graph->mark_profile(event_id, time);
+    }
+    all_unlock();
 }
 
 #pragma mark - Keys

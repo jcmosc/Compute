@@ -905,6 +905,67 @@ void IAGGraphSetOutputValue(const void *value, IAGTypeID type) {
     graph->value_set_internal(frame.attribute, *frame.attribute.get(), value, *metadata);
 }
 
+#pragma mark - Profiler
+
+void IAGGraphResetProfile(IAGGraphRef graph) {
+    if (graph == nullptr) {
+        IAG::Graph::all_reset_profile();
+        return;
+    }
+
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    graph_context->graph().reset_profile();
+}
+
+bool IAGGraphIsProfilingEnabled(IAGAttribute attribute) {
+    auto attribute_id = IAG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        IAG::precondition_failure("no graph: %u", attribute);
+    }
+
+    return subgraph->graph()->is_profiling_enabled();
+}
+
+void IAGGraphMarkProfile(IAGGraphRef graph, const char *name) {
+    if (graph == nullptr) {
+        IAG::Graph::all_mark_profile(name);
+        return;
+    }
+
+    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    uint32_t event_id = graph_context->graph().intern_key(name);
+    graph_context->graph().mark_profile(event_id, 0);
+}
+
+uint64_t IAGGraphBeginProfileEvent(IAGAttribute attribute, const char *event_name) {
+    auto attribute_id = IAG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        IAG::precondition_failure("no graph: %u", attribute);
+    }
+
+    auto resolved = attribute_id.resolve(IAG::TraversalOptions::AssertNotNil);
+    return subgraph->graph()->begin_profile_event(resolved.attribute().get_node(), event_name);
+}
+
+void IAGGraphEndProfileEvent(IAGAttribute attribute, const char *event_name, uint64_t start_timestamp, bool changed) {
+    auto attribute_id = IAG::AttributeID(attribute);
+    attribute_id.validate_data_offset();
+
+    auto subgraph = attribute_id.subgraph();
+    if (!subgraph) {
+        IAG::precondition_failure("no graph: %u", attribute);
+    }
+
+    auto resolved = attribute_id.resolve(IAG::TraversalOptions::AssertNotNil);
+    subgraph->graph()->end_profile_event(resolved.attribute().get_node(), event_name, start_timestamp, changed);
+}
+
 #pragma mark - Trace
 
 void IAGGraphStartTracing(IAGGraphRef graph, IAGGraphTraceFlags trace_flags) {

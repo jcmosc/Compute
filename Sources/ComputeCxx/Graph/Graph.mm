@@ -12,6 +12,7 @@
 #include "Graph/UpdateStack.h"
 #include "Subgraph/Subgraph.h"
 #include "Swift/SwiftShims.h"
+#include "Time/Time.h"
 #include "Trace/Trace.h"
 
 namespace {
@@ -393,7 +394,65 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
                             node_dict[@"flags"] = @(flags);
                         }
 
+                        if (auto profile_data = graph->profile_data()) {
+                            auto found = profile_data->profile_updates().items().find(attribute.get_node());
+                            if (found != profile_data->profile_updates().items().end()) {
+                                NSDictionary *profile_dict = profile_data->json_data(found->second, *graph);
+                                if (profile_dict) {
+                                    node_dict[@"profile"] = profile_dict;
+                                }
+                            }
+                            if (profile_data->profile_events().size()) {
+                                NSMutableDictionary *event_dicts = [NSMutableDictionary dictionary];
+                                for (auto &profile_event : profile_data->profile_events()) {
+                                    uint32_t event_id = profile_event.first;
+                                    auto found = profile_event.second.items().find(attribute.get_node());
+                                    if (found != profile_event.second.items().end()) {
+                                        NSDictionary *event_dict = profile_data->json_data(found->second, *graph);
+                                        if (event_dict) {
+                                            NSString *event_name =
+                                                [NSString stringWithUTF8String:graph->key_name(event_id)];
+                                            event_dicts[event_name] = event_dict;
+                                        }
+                                    }
+                                }
+                                if ([event_dicts count]) {
+                                    node_dict[@"events"] = event_dicts;
+                                }
+                            }
+                        }
+
                         [node_dicts addObject:node_dict];
+                    }
+                }
+            }
+        }
+
+        // Add types for any removed nodes
+        if (auto profile_data = graph->profile_data()) {
+            for (uint32_t type_id = 1; type_id < graph->_types.size(); ++type_id) {
+                if (type_indices_by_id.contains(type_id)) {
+                    continue;
+                }
+
+                auto removed_item = profile_data->profile_updates().removed_items().find(type_id);
+                if (removed_item != profile_data->profile_updates().removed_items().end()) {
+                    if (!type_indices_by_id.contains(type_id)) {
+                        auto index = type_ids.size();
+                        type_ids.push_back(type_id);
+                        type_indices_by_id.emplace(type_id, index);
+                    }
+                } else {
+                    for (auto &profile_event : profile_data->profile_events()) {
+                        auto &category = profile_event.second;
+                        auto removed_item = category.removed_items().find(type_id);
+                        if (removed_item != category.removed_items().end()) {
+                            if (!type_indices_by_id.contains(type_id)) {
+                                auto index = type_ids.size();
+                                type_ids.push_back(type_id);
+                                type_indices_by_id.emplace(type_id, index);
+                            }
+                        }
                     }
                 }
             }
@@ -413,6 +472,33 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
             type_dict[@"value"] = escaped_string(value, truncation_limit);
             type_dict[@"size"] = @(type.body_metadata().vw_size() + type.value_metadata().vw_size());
             type_dict[@"flags"] = @(type.flags());
+
+            if (auto profile_data = graph->profile_data()) {
+                auto found = profile_data->profile_updates().removed_items().find(type_id);
+                if (found != profile_data->profile_updates().removed_items().end()) {
+                    NSDictionary *profile_dict = profile_data->json_data(found->second, *graph);
+                    if (profile_dict) {
+                        type_dict[@"profile"] = profile_dict;
+                    }
+                }
+                if (profile_data->profile_events().size()) {
+                    NSMutableDictionary *event_dicts = [NSMutableDictionary dictionary];
+                    for (auto &profile_event : profile_data->profile_events()) {
+                        uint32_t event_id = profile_event.first;
+                        auto found = profile_event.second.removed_items().find(type_id);
+                        if (found != profile_event.second.removed_items().end()) {
+                            NSDictionary *event_dict = profile_data->json_data(found->second, *graph);
+                            if (event_dict) {
+                                NSString *event_name = [NSString stringWithUTF8String:graph->key_name(event_id)];
+                                event_dicts[event_name] = event_dict;
+                            }
+                        }
+                    }
+                    if ([event_dicts count]) {
+                        type_dict[@"events"] = event_dicts;
+                    }
+                }
+            }
 
             [type_dicts addObject:type_dict];
         }
@@ -667,8 +753,30 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
         }
 
         graph_dict[@"transaction_count"] = @(graph->transaction_count());
-        graph_dict[@"update_count"] = @(graph->update_count());
-        graph_dict[@"change_count"] = @(graph->change_count());
+
+        if (auto profile_data = graph->profile_data()) {
+            NSDictionary *profile_dict = profile_data->json_data(profile_data->profile_updates(), *graph);
+            if (profile_dict) {
+                [graph_dict addEntriesFromDictionary:profile_dict];
+            }
+            if (!profile_data->profile_events().empty()) {
+                NSMutableDictionary *event_dicts = [NSMutableDictionary dictionary];
+                for (auto &profile_event : profile_data->profile_events()) {
+                    uint32_t event_id = profile_event.first;
+                    NSDictionary *event_dict = profile_data->json_data(profile_event.second, *graph);
+                    if (event_dict) {
+                        NSString *event_name = [NSString stringWithUTF8String:graph->key_name(event_id)];
+                        event_dicts[event_name] = event_dict;
+                    }
+                }
+                if ([event_dicts count]) {
+                    graph_dict[@"events"] = event_dicts;
+                }
+            }
+        } else {
+            graph_dict[@"update_count"] = @(graph->update_count());
+            graph_dict[@"change_count"] = @(graph->change_count());
+        }
 
         graph_dicts[graph_indices_by_id.find(graph->id())->second] = graph_dict;
     }
@@ -740,31 +848,23 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                             }
                         }
 
-                        double duration_fraction = 0.0;
-                        //                        if (auto profile_data = _profile_data.get()) {
-                        //                            auto &items_by_attribute =
-                        //                            profile_data->all_events().items_by_attribute(); auto found_item =
-                        //                            items_by_attribute.find(attribute.to_ptr<Node>()); if (found_item
-                        //                            != items_by_attribute.end()) {
-                        //                                auto &item = found_item->second;
-                        //                                if (item.data().update_count) {
-                        //                                    uint64_t update_count = item.data().update_count;
-                        //                                    uint64_t update_total = item.data().update_total;
-                        //                                    uint64_t all_update_total =
-                        //                                    profile_data->all_events().data().update_total; double
-                        //                                    average_update_time =
-                        //                                        absolute_time_to_seconds((double)update_total /
-                        //                                        (double)update_count);
-                        //                                    duration_fraction =
-                        //                                        ((double)update_total / (double)all_update_total) *
-                        //                                        100.0; // duration fraction
-                        //                                    [result appendFormat:@"\\n%.2g%%: %g × %.2fμs",
-                        //                                    duration_fraction,
-                        //                                                         (double)update_count,
-                        //                                                         average_update_time * 1000000.0];
-                        //                                }
-                        //                            }
-                        //                        }
+                        double duration_percent = 0.0;
+                        if (auto profile_data = this->profile_data()) {
+                            auto found_item = profile_data->profile_updates().items().find(attribute.get_node());
+                            if (found_item != profile_data->profile_updates().items().end()) {
+                                auto &item = found_item->second;
+                                if (item.update_count()) {
+                                    uint64_t update_count = item.update_count();
+                                    uint64_t update_total = item.update_total();
+                                    uint64_t all_update_total = profile_data->profile_updates().update_total();
+                                    double average_update_time =
+                                        absolute_time_to_seconds((double)update_total / (double)update_count);
+                                    duration_percent = ((double)update_total / (double)all_update_total) * 100.0;
+                                    [result appendFormat:@"\\n%.2g%%: %g × %.2fμs", duration_percent,
+                                                         (double)update_count, average_update_time * 1000000.0];
+                                }
+                            }
+                        }
 
                         [result appendString:@"\""];
 
@@ -774,13 +874,13 @@ NSString *Graph::description_graph_dot(NSDictionary *options) {
                         if (node->is_updating()) {
                             [result appendString:@" fillcolor=cyan"];
                             filled = true;
-                        } else if (duration_fraction > 10.0) {
+                        } else if (duration_percent > 10.0) {
                             [result appendString:@" fillcolor=orangered"];
                             filled = true;
-                        } else if (duration_fraction > 5.0) {
+                        } else if (duration_percent > 5.0) {
                             [result appendString:@" fillcolor=orange"];
                             filled = true;
-                        } else if (duration_fraction > 1.0) {
+                        } else if (duration_percent > 1.0) {
                             [result appendString:@" fillcolor=yellow"];
                             filled = true;
                         }

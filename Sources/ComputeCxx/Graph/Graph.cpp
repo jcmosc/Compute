@@ -1,6 +1,7 @@
 #include "Graph.h"
 
 #if TARGET_OS_MAC
+#include <CoreFoundation/CFRunLoop.h>
 #include <CoreFoundation/CFString.h>
 #else
 #include <SwiftCorelibsCoreFoundation/CFString.h>
@@ -23,6 +24,7 @@
 #include "ComputeCxx/IAGGraphTracing.h"
 #include "ComputeCxx/IAGUniqueID.h"
 #include "Context.h"
+#include "Graph/IAGAppObserver.h"
 #include "Graph/ProfileTrace.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
@@ -2069,6 +2071,25 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
 
 void Graph::start_profiling(IAGGraphProfileFlags profile_flags) {
     _is_profiling_enabled = profile_flags & IAGGraphProfileFlagsEnabled;
+    if (profile_flags & IAGGraphProfileFlagsApplicationEvents) {
+#if TARGET_OS_MAC
+        IAGAppObserverStartObserving();
+#endif
+
+        CFRunLoopRef run_loop = CFRunLoopGetMain();
+        if (run_loop) {
+            CFRunLoopObserverRef observer = CFRunLoopObserverCreate(
+                0, kCFRunLoopBeforeWaiting | kCFRunLoopExit, true, 2500000,
+                [](CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info) {
+                    all_mark_profile("app/runloop");
+                },
+                nullptr);
+            if (observer) {
+                CFRunLoopAddObserver(run_loop, observer, kCFRunLoopCommonModes);
+                CFRelease(observer);
+            }
+        }
+    }
     if (_is_profiling_enabled && _profile_trace == nullptr) {
         _profile_trace = new ProfileTrace();
         add_trace(_profile_trace);

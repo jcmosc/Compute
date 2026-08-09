@@ -23,6 +23,7 @@
 #include "ComputeCxx/IAGGraphTracing.h"
 #include "ComputeCxx/IAGUniqueID.h"
 #include "Context.h"
+#include "Graph/ProfileTrace.h"
 #include "KeyTable.h"
 #include "Log/Log.h"
 #include "Protobuf/Encoder.h"
@@ -49,10 +50,13 @@ Graph::Graph()
 
     _types.push_back(nullptr);
 
-    static auto [trace_flags, trace_subsystems] =
-        []() -> std::tuple<uint32_t, vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>> {
-        // TODO: debug server
-        // TODO: profile
+    static auto [profile_flags, trace_flags, trace_subsystems] =
+        []() -> std::tuple<uint32_t, uint32_t, vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>> {
+        uint32_t profile_flags = false;
+        const char *profile_string = getenv("IAG_PROFILE");
+        if (profile_string) {
+            profile_flags = atoi(profile_string) != 0;
+        }
 
         vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> trace_subsystems = {};
 
@@ -98,11 +102,14 @@ Graph::Graph()
             }
         }
 
-        return {trace_flags, std::move(trace_subsystems)};
+        return {profile_flags, trace_flags, std::move(trace_subsystems)};
     }();
 
     if (trace_flags && !trace_subsystems.empty()) {
         start_tracing(trace_flags, std::span((const char **)trace_subsystems.data(), trace_subsystems.size()));
+    }
+    if (profile_flags) {
+        start_profiling(profile_flags);
     }
 
     // Prepend this graph
@@ -2060,6 +2067,22 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
 
 #pragma mark - Profiler
 
+void Graph::start_profiling(IAGGraphProfileFlags profile_flags) {
+    _is_profiling_enabled = profile_flags & IAGGraphProfileFlagsEnabled;
+    if (_is_profiling_enabled && _profile_trace == nullptr) {
+        _profile_trace = new ProfileTrace();
+        add_trace(_profile_trace);
+    }
+}
+
+void Graph::stop_profiling() {
+    if (_profile_trace) {
+        remove_trace(_profile_trace->id());
+        _profile_trace = nullptr;
+    }
+    _is_profiling_enabled = false;
+}
+
 void Graph::reset_profile() { _profile_data.reset(); }
 
 void Graph::mark_profile(uint32_t event_id, uint64_t time) {
@@ -2093,6 +2116,22 @@ void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint
         profile_data->add_profile_event(node, duration, changed, event_id);
     }
     foreach_trace([&node, &event_id](Trace &trace) { trace.end_event(node, event_id); });
+}
+
+void Graph::all_start_profiling(IAGGraphProfileFlags profile_flags) {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->start_profiling(profile_flags);
+    }
+    all_unlock();
+}
+
+void Graph::all_stop_profiling() {
+    all_lock();
+    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+        graph->stop_profiling();
+    }
+    all_unlock();
 }
 
 void Graph::all_reset_profile() {

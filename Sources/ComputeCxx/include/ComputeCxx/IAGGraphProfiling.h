@@ -4,9 +4,21 @@
 #include <ComputeCxx/IAGGraph.h>
 #include <ComputeCxx/IAGUniqueID.h>
 
+typedef IAG_OPTIONS(uint32_t, IAGGraphProfileFlags){
+    IAGGraphProfileFlagsEnabled = 1 << 0,
+} IAG_SWIFT_NAME(Graph.ProfileFlags);
+
 IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
+
+IAG_EXPORT
+IAG_REFINED_FOR_SWIFT
+void IAGGraphStartProfiling(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(Graph.startProfiling(_:));
+
+IAG_EXPORT
+IAG_REFINED_FOR_SWIFT
+void IAGGraphStopProfiling(IAGGraphRef _Nullable graph) IAG_SWIFT_NAME(Graph.stopProfiling(_:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

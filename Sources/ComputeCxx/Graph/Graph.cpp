@@ -2074,8 +2074,6 @@ void Graph::start_profiling(IAGGraphProfileFlags profile_flags) {
     if (profile_flags & IAGGraphProfileFlagsApplicationEvents) {
 #if TARGET_OS_MAC
         IAGAppObserverStartObserving();
-#endif
-
         CFRunLoopRef run_loop = CFRunLoopGetMain();
         if (run_loop) {
             CFRunLoopObserverRef observer = CFRunLoopObserverCreate(
@@ -2089,6 +2087,7 @@ void Graph::start_profiling(IAGGraphProfileFlags profile_flags) {
                 CFRelease(observer);
             }
         }
+#endif
     }
     if (_is_profiling_enabled && _profile_trace == nullptr) {
         _profile_trace = new ProfileTrace();
@@ -2126,13 +2125,13 @@ uint64_t Graph::begin_profile_event(data::ptr<Node> node, const char *event_name
     if (!_is_profiling_enabled) {
         return 0;
     }
-    return mach_absolute_time();
+    return platform_absolute_time();
 }
 
 void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool changed) {
     auto event_id = intern_key(event_name);
     if (auto profile_data = profile_data_if_enabled()) {
-        auto end_time = mach_absolute_time();
+        auto end_time = platform_absolute_time();
         uint64_t duration = end_time - start_time;
         profile_data->add_profile_event(node, duration, changed, event_id);
     }
@@ -2164,7 +2163,7 @@ void Graph::all_reset_profile() {
 }
 
 void Graph::all_mark_profile(const char *name) {
-    uint64_t time = mach_absolute_time();
+    uint64_t time = platform_absolute_time();
     all_lock();
     for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         auto event_id = graph->intern_key(name);

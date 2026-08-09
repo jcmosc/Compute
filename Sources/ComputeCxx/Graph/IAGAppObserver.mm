@@ -1,10 +1,10 @@
 #include "IAGAppObserver.h"
 
+#if TARGET_OS_MAC
+
 #import <Foundation/Foundation.h>
 
 #include "Graph/Graph.h"
-
-#if TARGET_OS_MAC
 
 @interface IAGAppObserver : NSObject
 

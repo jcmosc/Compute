@@ -1,6 +1,6 @@
 #include "Graph/Graph.h"
 
-#include <mach/mach_time.h>
+#include <platform/time.h>
 
 namespace IAG {
 
@@ -85,9 +85,9 @@ Graph::ProfileData::ProfileData(const Graph &graph) {
     const int32_t loop_count = 0x10;
 
     uint64_t delta = 0;
-    uint64_t previous_time = mach_absolute_time();
+    auto previous_time = platform_absolute_time();
     for (uint32_t i = loop_count; i; --i) {
-        const uint64_t current_time = mach_absolute_time();
+        auto current_time = platform_absolute_time();
         delta += current_time - previous_time;
         previous_time = current_time;
     }
@@ -99,7 +99,7 @@ void Graph::ProfileData::mark(uint32_t event_id, uint64_t time) {
         return;
     }
     if (time == 0) {
-        time = mach_absolute_time();
+        time = platform_absolute_time();
     }
     _profile_updates.mark(event_id, time);
     for (auto &category : _profile_events) {

@@ -11,6 +11,7 @@
 #include <AttributeGraph/AGDescription.h>
 #include <AttributeGraph/AGGraph.h>
 #include <AttributeGraph/AGGraphCounterQueryType.h>
+#include <AttributeGraph/AGGraphProfiling.h>
 #include <AttributeGraph/AGGraphTracing.h>
 #include <AttributeGraph/AGInputOptions.h>
 #include <AttributeGraph/AGSearchOptions.h>

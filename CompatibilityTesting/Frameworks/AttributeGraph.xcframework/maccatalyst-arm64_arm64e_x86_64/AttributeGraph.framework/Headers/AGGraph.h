@@ -37,22 +37,21 @@ typedef void *AGUnownedGraphContextRef AG_SWIFT_STRUCT AG_SWIFT_NAME(UnownedGrap
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-CFTypeID AGGraphGetTypeID(void) AG_SWIFT_NAME(getter:AGGraphRef.typeID());
+CFTypeID AGGraphGetTypeID(void) AG_SWIFT_NAME(getter:Graph.typeID());
 
 // MARK: Graph Context
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGGraphRef AGGraphCreate(void) AG_SWIFT_NAME(AGGraphRef.init());
+AGGraphRef AGGraphCreate(void) AG_SWIFT_NAME(Graph.init());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph) AG_SWIFT_NAME(AGGraphRef.init(shared:));
+AGGraphRef AGGraphCreateShared(AGGraphRef _Nullable graph) AG_SWIFT_NAME(Graph.init(shared:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph)
-    AG_SWIFT_NAME(getter:AGGraphRef.graphContext(self:));
+AGUnownedGraphContextRef AGGraphGetGraphContext(AGGraphRef graph) AG_SWIFT_NAME(getter:Graph.graphContext(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -60,90 +59,91 @@ AGGraphRef AGGraphContextGetGraph(void *context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphInvalidate(AGGraphRef graph) AG_SWIFT_NAME(AGGraphRef.invalidate(self:));
+void AGGraphInvalidate(AGGraphRef graph) AG_SWIFT_NAME(Graph.invalidate(self:));
 
 // MARK: User context
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-const void *_Nullable AGGraphGetContext(AGGraphRef graph) AG_SWIFT_NAME(getter:AGGraphRef.context(self:));
+const void *_Nullable AGGraphGetContext(AGGraphRef graph) AG_SWIFT_NAME(getter:Graph.context(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context)
-    AG_SWIFT_NAME(setter:AGGraphRef.context(self:_:));
+void AGGraphSetContext(AGGraphRef graph, const void *_Nullable context) AG_SWIFT_NAME(setter:Graph.context(self:_:));
 
 // MARK: Counter
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQueryType query)
-    AG_SWIFT_NAME(AGGraphRef.counter(self:for:));
+uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQueryType query) AG_SWIFT_NAME(Graph.counter(self:for:));
 
 // MARK: Main handler
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphWithMainThreadHandler(AGGraphRef graph,
-                                  void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                  const void *body_context,
-                                  void (*main_thread_handler)(void (*trampoline_thunk)(const void *),
-                                                              const void *trampoline,
-                                                              const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                  const void *main_thread_handler_context);
+                                   void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                   const void *body_context,
+                                   void (*main_thread_handler)(void (*trampoline_thunk)(const void *),
+                                                               const void *trampoline,
+                                                               const void *context AG_SWIFT_CONTEXT)
+                                       AG_SWIFT_CC(swift),
+                                   const void *main_thread_handler_context);
 
 // MARK: Subgraphs
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 bool AGGraphBeginDeferringSubgraphInvalidation(AGGraphRef graph)
-    AG_SWIFT_NAME(AGGraphRef.beginDeferringSubgraphInvalidation(self:));
+    AG_SWIFT_NAME(Graph.beginDeferringSubgraphInvalidation(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphEndDeferringSubgraphInvalidation(AGGraphRef graph, bool was_deferring)
-    AG_SWIFT_NAME(AGGraphRef.endDeferringSubgraphInvalidation(self:wasDeferring:));
+    AG_SWIFT_NAME(Graph.endDeferringSubgraphInvalidation(self:wasDeferring:));
 
 // MARK: Attribute types
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-uint32_t AGGraphInternAttributeType(AGUnownedGraphContextRef graph, AGTypeID type,
-                                    const AGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(
-                                        const void *_Nullable context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                    const void *_Nullable make_attribute_type_context);
+AGAttributeTypeIndex AGGraphInternAttributeType(
+    AGUnownedGraphContextRef graph, AGTypeID type,
+    const AGAttributeType *_Nonnull (*_Nonnull make_attribute_type)(const void *_Nullable context AG_SWIFT_CONTEXT)
+        AG_SWIFT_CC(swift),
+    const void *_Nullable make_attribute_type_context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) AG_SWIFT_NAME(AGAttribute.verifyType(self:type:));
+void AGGraphVerifyType(AGAttribute attribute, AGTypeID type) AG_SWIFT_NAME(AnyAttribute.verifyType(self:type:));
 
 // MARK: Attributes
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGAttribute AGGraphCreateAttribute(uint32_t type_id, const void *body, const void *_Nullable value)
-    AG_SWIFT_NAME(AGAttribute.init(type:body:value:));
+AGAttribute AGGraphCreateAttribute(AGAttributeTypeIndex type_index, const void *body, const void *_Nullable value)
+    AG_SWIFT_NAME(AnyAttribute.init(typeIndex:body:value:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) AG_SWIFT_NAME(getter:AGAttribute.graph(self:));
+AGGraphRef AGGraphGetAttributeGraph(AGAttribute attribute) AG_SWIFT_NAME(getter:AnyAttribute.graph(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) AG_SWIFT_NAME(getter:AGAttribute.info(self:));
+AGAttributeInfo AGGraphGetAttributeInfo(AGAttribute attribute) AG_SWIFT_NAME(getter:AnyAttribute.info(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) AG_SWIFT_NAME(getter:AGAttribute.flags(self:));
+AGAttributeFlags AGGraphGetFlags(AGAttribute attribute) AG_SWIFT_NAME(getter:AnyAttribute.flags(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags) AG_SWIFT_NAME(setter:AGAttribute.flags(self:_:));
+void AGGraphSetFlags(AGAttribute attribute, AGAttributeFlags flags)
+    AG_SWIFT_NAME(setter:AnyAttribute.flags(self:_:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 uint32_t AGGraphAddInput(AGAttribute attribute, AGAttribute input, AGInputOptions options)
-    AG_SWIFT_NAME(AGAttribute.addInput(self:_:options:));
+    AG_SWIFT_NAME(AnyAttribute.addInput(self:_:options:));
 
 // MARK: Offset attributes
 
@@ -159,7 +159,7 @@ AGAttribute AGGraphCreateOffsetAttribute2(AGAttribute attribute, uint32_t offset
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGAttribute AGGraphCreateIndirectAttribute(AGAttribute attribute) AG_SWIFT_NAME(AGAttribute.createIndirect(self:));
+AGAttribute AGGraphCreateIndirectAttribute(AGAttribute attribute) AG_SWIFT_NAME(AnyAttribute.createIndirect(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -167,12 +167,12 @@ AGAttribute AGGraphCreateIndirectAttribute2(AGAttribute attribute, size_t size);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) AG_SWIFT_NAME(getter:AGAttribute.source(self:));
+AGAttribute AGGraphGetIndirectAttribute(AGAttribute attribute) AG_SWIFT_NAME(getter:AnyAttribute.source(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphSetIndirectAttribute(AGAttribute attribute, AGAttribute source)
-    AG_SWIFT_NAME(setter:AGAttribute.source(self:_:));
+    AG_SWIFT_NAME(setter:AnyAttribute.source(self:_:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -191,16 +191,17 @@ void AGGraphSetIndirectDependency(AGAttribute attribute, AGAttribute dependency)
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 bool AGGraphSearch(AGAttribute attribute, AGSearchOptions options,
-                   bool (*predicate)(AGAttribute attribute, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                   const void *predicate_context);
+                    bool (*predicate)(AGAttribute attribute, const void *context AG_SWIFT_CONTEXT)
+                        AG_SWIFT_CC(swift),
+                    const void *predicate_context);
 
 // MARK: Body
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphMutateAttribute(AGAttribute attribute, AGTypeID type, bool invalidating,
-                            void (*modify)(void *body, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                            const void *modify_context);
+                             void (*modify)(void *body, const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                             const void *modify_context);
 
 // MARK: Value
 
@@ -214,7 +215,8 @@ AGWeakChangedValue AGGraphGetWeakValue(AGWeakAttribute attribute, AGValueOptions
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGChangedValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input, AGValueOptions options, AGTypeID type);
+AGChangedValue AGGraphGetInputValue(AGAttribute attribute, AGAttribute input, AGValueOptions options,
+                                      AGTypeID type);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -222,13 +224,13 @@ bool AGGraphSetValue(AGAttribute attribute, const void *value, AGTypeID type);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-bool AGGraphHasValue(AGAttribute attribute) AG_SWIFT_NAME(getter:AGAttribute.hasValue(self:));
+bool AGGraphHasValue(AGAttribute attribute) AG_SWIFT_NAME(getter:AnyAttribute.hasValue(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGValueState AGGraphGetValueState(AGAttribute attribute) AG_SWIFT_NAME(getter:AGAttribute.valueState(self:));
+AGValueState AGGraphGetValueState(AGAttribute attribute) AG_SWIFT_NAME(getter:AnyAttribute.valueState(self:));
 
-typedef AG_OPTIONS(uint32_t, AGGraphUpdateOptions) {
+typedef AG_OPTIONS(uint32_t, AGGraphUpdateOptions){
     AGGraphUpdateOptionsNone = 0,
     AGGraphUpdateOptionsInTransaction = 1 << 0,
     AGGraphUpdateOptionsAbortIfCancelled = 1 << 1,
@@ -240,46 +242,46 @@ typedef AG_OPTIONS(uint32_t, AGGraphUpdateOptions) {
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphUpdateValue(AGAttribute attribute, AGGraphUpdateOptions options)
-    AG_SWIFT_NAME(AGAttribute.updateValue(self:options:));
+    AG_SWIFT_NAME(AnyAttribute.updateValue(self:options:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-uint32_t AGGraphPrefetchValue(AGAttribute attribute) AG_SWIFT_NAME(AGAttribute.prefetchValue(self:));
+uint32_t AGGraphPrefetchValue(AGAttribute attribute) AG_SWIFT_NAME(AnyAttribute.prefetchValue(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphInvalidateValue(AGAttribute attribute) AG_SWIFT_NAME(AGAttribute.invalidateValue(self:));
+void AGGraphInvalidateValue(AGAttribute attribute) AG_SWIFT_NAME(AnyAttribute.invalidateValue(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphInvalidateAllValues(AGGraphRef graph) AG_SWIFT_NAME(AGGraphRef.invalidateAllValues(self:));
+void AGGraphInvalidateAllValues(AGGraphRef graph) AG_SWIFT_NAME(Graph.invalidateAllValues(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphSetInvalidationCallback(AGGraphRef graph,
-                                    void (*callback)(AGAttribute, const void *context AG_SWIFT_CONTEXT)
-                                        AG_SWIFT_CC(swift),
-                                    const void *callback_context);
+                                     void (*callback)(AGAttribute, const void *context AG_SWIFT_CONTEXT)
+                                         AG_SWIFT_CC(swift),
+                                     const void *callback_context);
 
 // MARK: Cached value
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void *AGGraphReadCachedAttribute(size_t hash, AGTypeID type, const void *body, AGTypeID value_type,
-                                 AGCachedValueOptions options, AGAttribute owner, bool *_Nullable changed_out,
-                                 uint32_t (*closure)(AGUnownedGraphContextRef graph_context,
-                                                     const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                 const void *closure_context);
+                                  AGCachedValueOptions options, AGAttribute owner, bool *_Nullable changed_out,
+                                  uint32_t (*closure)(AGUnownedGraphContextRef graph_context,
+                                                      const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                                  const void *closure_context);
 
 CF_EXPORT
 CF_REFINED_FOR_SWIFT
 void *_Nullable AGGraphReadCachedAttributeIfExists(size_t hash, AGTypeID type, const void *body, AGTypeID value_type,
-                                                   AGCachedValueOptions options, AGAttribute owner,
-                                                   bool *_Nullable changed_out);
+                                                    AGCachedValueOptions options, AGAttribute owner,
+                                                    bool *_Nullable changed_out);
 
 // MARK: Update
 
-typedef AG_ENUM(uint32_t, AGGraphUpdateStatus) {
+typedef AG_ENUM(uint32_t, AGGraphUpdateStatus){
     AGGraphUpdateStatusNoChange = 0,
     AGGraphUpdateStatusChanged = 1,
     AGGraphUpdateStatusAborted = 2,
@@ -288,55 +290,55 @@ typedef AG_ENUM(uint32_t, AGGraphUpdateStatus) {
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphSetUpdate(const void *update) AG_SWIFT_NAME(AGGraphRef.setUpdate(_:));
+void AGGraphSetUpdate(const void *update) AG_SWIFT_NAME(Graph.setUpdate(_:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-const void *AGGraphClearUpdate(void) AG_SWIFT_NAME(AGGraphRef.clearUpdate());
+const void *AGGraphClearUpdate(void) AG_SWIFT_NAME(Graph.clearUpdate());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphCancelUpdate(void) AG_SWIFT_NAME(AGGraphRef.cancelUpdate());
+void AGGraphCancelUpdate(void) AG_SWIFT_NAME(Graph.cancelUpdate());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-bool AGGraphCancelUpdateIfNeeded(void) AG_SWIFT_NAME(AGGraphRef.cancelUpdateIfNeeded());
+bool AGGraphCancelUpdateIfNeeded(void) AG_SWIFT_NAME(Graph.cancelUpdateIfNeeded());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-bool AGGraphUpdateWasCancelled(void) AG_SWIFT_NAME(getter:AGGraphRef.updateWasCancelled());
+bool AGGraphUpdateWasCancelled(void) AG_SWIFT_NAME(getter:Graph.updateWasCancelled());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-uint64_t AGGraphGetDeadline(AGGraphRef graph) AG_SWIFT_NAME(getter:AGGraphRef.deadline(self:));
+uint64_t AGGraphGetDeadline(AGGraphRef graph) AG_SWIFT_NAME(getter:Graph.deadline(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphSetDeadline(AGGraphRef graph, uint64_t deadline) AG_SWIFT_NAME(setter:AGGraphRef.deadline(self:_:));
+void AGGraphSetDeadline(AGGraphRef graph, uint64_t deadline) AG_SWIFT_NAME(setter:Graph.deadline(self:_:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-bool AGGraphHasDeadlinePassed(void) AG_SWIFT_NAME(getter:AGGraphRef.hasDeadlinePassed());
+bool AGGraphHasDeadlinePassed(void) AG_SWIFT_NAME(getter:Graph.hasDeadlinePassed());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphSetNeedsUpdate(AGGraphRef graph) AG_SWIFT_NAME(AGGraphRef.setNeedsUpdate(self:));
+void AGGraphSetNeedsUpdate(AGGraphRef graph) AG_SWIFT_NAME(Graph.setNeedsUpdate(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphWithUpdate(AGAttribute attribute, void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                       const void *body_context);
+                        const void *body_context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphWithoutUpdate(void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                          const void *body_context);
+                           const void *body_context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphSetUpdateCallback(AGGraphRef graph,
-                              void (*callback)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                              const void *callback_context);
+                               void (*callback)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
+                               const void *callback_context);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -344,7 +346,7 @@ AGAttribute AGGraphGetCurrentAttribute(void);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-bool AGGraphCurrentAttributeWasModified(void) AG_SWIFT_NAME(getter:AGAttribute.currentWasModified());
+bool AGGraphCurrentAttributeWasModified(void) AG_SWIFT_NAME(getter:AnyAttribute.currentWasModified());
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -364,16 +366,16 @@ void AGGraphSetOutputValue(const void *value, AGTypeID type);
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 CFTypeRef _Nullable AGGraphDescription(AGGraphRef _Nullable graph, CFDictionaryRef options)
-    AG_SWIFT_NAME(AGGraphRef.description(_:options:));
+    AG_SWIFT_NAME(Graph.description(_:options:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-void AGGraphArchiveJSON(const char *_Nullable filename) AG_SWIFT_NAME(AGGraphRef.archiveJSON(name:));
+void AGGraphArchiveJSON(const char *_Nullable filename) AG_SWIFT_NAME(Graph.archiveJSON(name:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphArchiveJSON2(const char *filename, bool exclude_values)
-    AG_SWIFT_NAME(AGGraphRef.archiveJSON(name:excludeValues:));
+    AG_SWIFT_NAME(Graph.archiveJSON(name:excludeValues:));
 #endif
 
 AG_EXTERN_C_END

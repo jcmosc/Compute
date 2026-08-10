@@ -8,7 +8,7 @@ AG_IMPLICIT_BRIDGING_ENABLED
 
 AG_EXTERN_C_BEGIN
 
-typedef AG_ENUM(uint32_t, AGTupleCopyOptions) {
+typedef AG_ENUM(uint32_t, AGTupleCopyOptions){
     AGTupleCopyOptionsAssignCopy = 0,
     AGTupleCopyOptionsInitCopy = 1,
     AGTupleCopyOptionsAssignTake = 2,
@@ -34,11 +34,11 @@ AGTupleType AGNewTupleType(size_t count, const AGTypeID _Nonnull *_Nonnull eleme
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-size_t AGTupleCount(AGTupleType tuple_type) AG_SWIFT_NAME(getter:AGTupleType.count(self:));
+size_t AGTupleCount(AGTupleType tuple_type) AG_SWIFT_NAME(getter:TupleType.count(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-size_t AGTupleSize(AGTupleType tuple_type) AG_SWIFT_NAME(getter:AGTupleType.size(self:));
+size_t AGTupleSize(AGTupleType tuple_type) AG_SWIFT_NAME(getter:TupleType.size(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -60,12 +60,12 @@ size_t AGTupleElementOffsetChecked(AGTupleType tuple_type, size_t index, AGTypeI
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void *AGTupleGetElement(AGTupleType tuple_type, void *tuple_value, size_t index, void *element_value,
-                        AGTypeID element_type, AGTupleCopyOptions options);
+                         AGTypeID element_type, AGTupleCopyOptions options);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void *AGTupleSetElement(AGTupleType tuple_type, void *tuple_value, size_t index, const void *element_value,
-                        AGTypeID element_type, AGTupleCopyOptions options);
+                         AGTypeID element_type, AGTupleCopyOptions options);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -79,9 +79,9 @@ void AGTupleDestroyElement(AGTupleType tuple_type, void *tuple_value, size_t ind
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGTupleWithBuffer(AGTupleType tuple_type, size_t count,
-                       void (*function)(const AGUnsafeMutableTuple mutable_tuple, void *context AG_SWIFT_CONTEXT)
-                           AG_SWIFT_CC(swift),
-                       void *context);
+                        void (*function)(const AGUnsafeMutableTuple mutable_tuple, void *context AG_SWIFT_CONTEXT)
+                            AG_SWIFT_CC(swift),
+                        void *context);
 
 AG_EXTERN_C_END
 

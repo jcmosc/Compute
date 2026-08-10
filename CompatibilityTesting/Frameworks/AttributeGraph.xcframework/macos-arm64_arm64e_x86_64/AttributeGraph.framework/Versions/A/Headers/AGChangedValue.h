@@ -6,7 +6,7 @@ AG_ASSUME_NONNULL_BEGIN
 
 AG_EXTERN_C_BEGIN
 
-typedef AG_OPTIONS(uint8_t, AGChangedValueFlags) {
+typedef AG_OPTIONS(uint8_t, AGChangedValueFlags){
     AGChangedValueFlagsChanged = 1 << 0,
     AGChangedValueFlagsRequiresMainThread = 1 << 1,
 };

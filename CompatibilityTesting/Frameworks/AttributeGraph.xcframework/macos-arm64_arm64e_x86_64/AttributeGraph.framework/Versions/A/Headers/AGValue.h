@@ -6,7 +6,7 @@ AG_ASSUME_NONNULL_BEGIN
 
 AG_EXTERN_C_BEGIN
 
-typedef AG_OPTIONS(uint32_t, AGValueOptions) {
+typedef AG_OPTIONS(uint32_t, AGValueOptions){
     AGValueOptionsNone = 0,
     AGValueOptionsInputOptionsUnprefetched = 1 << 0,
     AGValueOptionsInputOptionsSyncMainRef = 1 << 1,
@@ -15,7 +15,7 @@ typedef AG_OPTIONS(uint32_t, AGValueOptions) {
     AGValueOptionsIncrementGraphVersion = 1 << 2, // AsTopLevelOutput
 };
 
-typedef AG_OPTIONS(uint8_t, AGValueState) {
+typedef AG_OPTIONS(uint8_t, AGValueState){
     AGValueStateNone = 0,
     AGValueStateDirty = 1 << 0,
     AGValueStatePending = 1 << 1,

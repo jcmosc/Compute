@@ -577,12 +577,6 @@ extension AttributeGraph.Graph {
   public func withMainThreadHandler(_ mainThreadHandler: (() -> Swift.Void) -> Swift.Void, do body: () -> Swift.Void)
 }
 extension AttributeGraph.Graph {
-  public static func startProfiling(_ graph: AttributeGraph.Graph?)
-  public static func stopProfiling(_ graph: AttributeGraph.Graph?)
-  public static func markProfile(name: Swift.UnsafePointer<Swift.Int8>)
-  public static func resetProfile()
-}
-extension AttributeGraph.Graph {
   public func addTraceEvent<Value>(_ event: Swift.UnsafePointer<Swift.Int8>, value: Value)
   public func addTraceEvent<Value>(_ event: Swift.UnsafePointer<Swift.Int8>, context: Swift.UnsafePointer<Value>)
   @_transparent public static func registerNamedTraceEvent(name: Swift.String, subsystem: Swift.String) -> AttributeGraph.Graph.NamedTraceEventID {
@@ -604,6 +598,12 @@ extension AttributeGraph.Graph {
             flags: flags
         )
     }
+}
+extension AttributeGraph.Graph {
+  public static func startProfiling()
+  public static func stopProfiling()
+  public static func resetProfile()
+  public static func markProfile(name: Swift.UnsafePointer<Swift.Int8>)
 }
 extension AttributeGraph.Graph {
   public func print(includeValues: Swift.Bool)

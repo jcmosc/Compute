@@ -57,6 +57,8 @@ extension Graph {
                 public var description: String
                 public var subgraphFlags: Int?
                 public var value: String?
+                public var profile: Profile?
+                public var events: [String: Profile]?
                 public enum CodingKeys: String, CodingKey {
                     case id
                     case type
@@ -64,6 +66,8 @@ extension Graph {
                     case description = "desc"
                     case subgraphFlags = "subgraph_flags"
                     case value
+                    case profile
+                    case events
                 }
             }
 
@@ -126,12 +130,48 @@ extension Graph {
                 public var flags: Int
                 public var size: Int
                 public var value: String
+                public var profile: Profile?
+                public var events: [String: Profile]?
                 public enum CodingKeys: String, CodingKey {
                     case id
                     case name
                     case flags
                     case size
                     case value
+                    case profile
+                    case events
+                }
+            }
+            
+            public struct Profile: Equatable, Codable {
+                public struct Mark: Equatable, Codable {
+                    public var name: String
+                    public var timestamp: Double
+                    public var updateCount: Int?
+                    public var updateTotal: Double?
+                    public var changeCount: Int?
+                    public var changedTotal: Double?
+                    public enum CodingKeys: String, CodingKey {
+                        case name
+                        case timestamp
+                        case updateCount = "update_count"
+                        case updateTotal = "update_total"
+                        case changeCount = "change_count"
+                        case changedTotal = "changed_total"
+                    }
+                }
+                
+                public var updateCount: Int?
+                public var updateTotal: Double?
+                public var changeCount: Int?
+                public var changedTotal: Double?
+                public var marks: [Mark]?
+                public enum CodingKeys: String, CodingKey {
+                    case updateCount = "update_count"
+                    case updateTotal = "update_total"
+                    case changeCount = "change_count"
+                    case changedTotal = "changed_total"
+                    case marks
                 }
             }
 
@@ -142,9 +182,13 @@ extension Graph {
             public var edges: [Edge]
             public var subgraphs: [Subgraph]
             public var trees: [Tree]?
-            public var updateCount: Int
-            public var changeCount: Int
             public var transactionCount: Int
+            public var updateCount: Int?
+            public var updateTotal: Double?
+            public var changeCount: Int?
+            public var changedTotal: Double?
+            public var marks: [Profile.Mark]?
+            public var events: [String: Profile]?
             public enum CodingKeys: String, CodingKey {
                 case id
                 case counters
@@ -154,8 +198,12 @@ extension Graph {
                 case subgraphs
                 case trees
                 case updateCount = "update_count"
+                case updateTotal = "update_total"
                 case changeCount = "change_count"
+                case changedTotal = "changed_total"
                 case transactionCount = "transaction_count"
+                case marks
+                case events
             }
         }
 

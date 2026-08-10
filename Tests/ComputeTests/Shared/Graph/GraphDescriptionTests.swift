@@ -55,9 +55,9 @@ struct GraphDescriptionTests {
                             nodes: [],
                             edges: [],
                             subgraphs: [],
+                            transactionCount: 0,
                             updateCount: 0,
                             changeCount: 0,
-                            transactionCount: 0
                         )
                     ]
                 )
@@ -104,9 +104,9 @@ struct GraphDescriptionTests {
                                     .init(id: 2, contextID: 2, parents: [1]),
                                     .init(id: 1, contextID: 2, children: [0]),
                                 ],
+                            transactionCount: 0,
                             updateCount: 0,
-                            changeCount: 0,
-                            transactionCount: 0
+                            changeCount: 0
                         )
                     ]
                 )

@@ -31,14 +31,14 @@ AG_EXPORT
 AG_REFINED_FOR_SWIFT
 AGTypeID AGComparisonStateGetFieldType(AGComparisonState state);
 
-typedef AG_ENUM(uint8_t, AGComparisonMode) {
+typedef AG_ENUM(uint8_t, AGComparisonMode){
     AGComparisonModeBitwise = 0,
     AGComparisonModeIndirect = 1,
     AGComparisonModeEquatableUnlessPOD = 2,
     AGComparisonModeEquatableAlways = 3,
 } AG_SWIFT_NAME(ComparisonMode);
 
-typedef AG_OPTIONS(uint32_t, AGComparisonOptions) {
+typedef AG_OPTIONS(uint32_t, AGComparisonOptions){
     AGComparisonOptionsComparisonModeBitwise = 0,
     AGComparisonOptionsComparisonModeIndirect = 1,
     AGComparisonOptionsComparisonModeEquatableUnlessPOD = 2,
@@ -53,12 +53,13 @@ typedef AG_OPTIONS(uint32_t, AGComparisonOptions) {
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 bool AGCompareValues(const void *_Nonnull destination, const void *_Nonnull source, AGTypeID type_id,
-                     AGComparisonOptions options);
+                      AGComparisonOptions options);
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 const unsigned char *_Nullable AGPrefetchCompareValues(AGTypeID type_id, AGComparisonOptions options,
-                                                       uint32_t priority) AG_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
+                                                        uint32_t priority)
+    AG_SWIFT_NAME(prefetchCompareValues(type:options:priority:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

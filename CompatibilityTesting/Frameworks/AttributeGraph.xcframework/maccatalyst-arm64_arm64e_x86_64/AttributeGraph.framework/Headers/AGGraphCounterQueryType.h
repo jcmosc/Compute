@@ -2,7 +2,7 @@
 
 #include <AttributeGraph/AGBase.h>
 
-typedef AG_ENUM(uint32_t, AGGraphCounterQueryType) {
+typedef AG_ENUM(uint32_t, AGGraphCounterQueryType){
     AGGraphCounterQueryTypeNodes,
     AGGraphCounterQueryTypeTransactions,
     AGGraphCounterQueryTypeUpdates,
@@ -17,4 +17,4 @@ typedef AG_ENUM(uint32_t, AGGraphCounterQueryType) {
     AGGraphCounterQueryTypeCreatedNodes,
     AGGraphCounterQueryTypeSubgraphs,
     AGGraphCounterQueryTypeCreatedSubgraphs,
-} AG_SWIFT_NAME(AGGraphRef.CounterQueryType);
+} AG_SWIFT_NAME(Graph.CounterQueryType);

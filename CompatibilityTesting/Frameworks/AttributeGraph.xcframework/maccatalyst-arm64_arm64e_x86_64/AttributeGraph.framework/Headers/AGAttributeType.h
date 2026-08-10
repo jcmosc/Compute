@@ -32,7 +32,7 @@ typedef struct AG_SWIFT_NAME(_AttributeVTable) AGAttributeVTable {
     void (*_Nullable update_default)(const AGAttributeType *, void *);
 } AGAttributeVTable;
 
-typedef AG_OPTIONS(uint32_t, AGAttributeTypeFlags) {
+typedef AG_OPTIONS(uint32_t, AGAttributeTypeFlags){
     AGAttributeTypeFlagsComparisonModeBitwise = 0,
     AGAttributeTypeFlagsComparisonModeIndirect = 1,
     AGAttributeTypeFlagsComparisonModeEquatableUnlessPOD = 2,
@@ -60,6 +60,8 @@ typedef struct AG_SWIFT_NAME(_AttributeType) AGAttributeType {
         const void *witness_table;
     } body_conformance;
 } AGAttributeType;
+
+typedef uint32_t AGAttributeTypeIndex AG_SWIFT_NAME(AttributeTypeIndex);
 
 AG_EXTERN_C_END
 

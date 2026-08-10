@@ -6,7 +6,7 @@ AG_ASSUME_NONNULL_BEGIN
 
 AG_EXTERN_C_BEGIN
 
-typedef AG_OPTIONS(uint8_t, AGInputOptions) {
+typedef AG_OPTIONS(uint8_t, AGInputOptions){
     AGInputOptionsNone = 0,
     AGInputOptionsUnprefetched = 1 << 0,
     AGInputOptionsSyncMainRef = 1 << 1,

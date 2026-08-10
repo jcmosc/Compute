@@ -1,7 +1,7 @@
 #pragma once
 
-#include <AttributeGraph/AGBase.h>
 #include <AttributeGraph/AGAttribute.h>
+#include <AttributeGraph/AGBase.h>
 
 AG_ASSUME_NONNULL_BEGIN
 

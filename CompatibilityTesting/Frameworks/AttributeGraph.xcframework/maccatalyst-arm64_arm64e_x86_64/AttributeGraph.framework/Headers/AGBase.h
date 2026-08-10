@@ -1,8 +1,8 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
 #include <AttributeGraph/AGTargetConditionals.h>
 
@@ -24,7 +24,7 @@
 #if !defined(AG_EXTERN_C_BEGIN)
 #if defined(__cplusplus)
 #define AG_EXTERN_C_BEGIN extern "C" {
-#define AG_EXTERN_C_END   }
+#define AG_EXTERN_C_END }
 #else
 #define AG_EXTERN_C_BEGIN
 #define AG_EXTERN_C_END
@@ -102,18 +102,18 @@
 @class NSURL;
 #endif
 
-#define AG_BRIDGED_TYPE(T)        __attribute__((objc_bridge(T)))
-#define AG_BRIDGED_MUTABLE_TYPE(T)    __attribute__((objc_bridge_mutable(T)))
-#define AG_RELATED_TYPE(T,C,I)        __attribute__((objc_bridge_related(T,C,I)))
+#define AG_BRIDGED_TYPE(T) __attribute__((objc_bridge(T)))
+#define AG_BRIDGED_MUTABLE_TYPE(T) __attribute__((objc_bridge_mutable(T)))
+#define AG_RELATED_TYPE(T, C, I) __attribute__((objc_bridge_related(T, C, I)))
 #else
 #define AG_BRIDGED_TYPE(T)
 #define AG_BRIDGED_MUTABLE_TYPE(T)
-#define AG_RELATED_TYPE(T,C,I)
+#define AG_RELATED_TYPE(T, C, I)
 #endif
 
 #if __has_feature(assume_nonnull)
 #define AG_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
-#define AG_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#define AG_ASSUME_NONNULL_END _Pragma("clang assume_nonnull end")
 #else
 #define AG_ASSUME_NONNULL_BEGIN
 #define AG_ASSUME_NONNULL_END
@@ -134,42 +134,55 @@
 #if __has_attribute(enum_extensibility)
 #define __AG_ENUM_ATTRIBUTES __attribute__((enum_extensibility(open)))
 #define __AG_CLOSED_ENUM_ATTRIBUTES __attribute__((enum_extensibility(closed)))
-#define __AG_OPTIONS_ATTRIBUTES __attribute__((flag_enum,enum_extensibility(open)))
+#define __AG_OPTIONS_ATTRIBUTES __attribute__((flag_enum, enum_extensibility(open)))
 #else
 #define __AG_ENUM_ATTRIBUTES
 #define __AG_CLOSED_ENUM_ATTRIBUTES
 #define __AG_OPTIONS_ATTRIBUTES
 #endif
 
-#define __AG_ENUM_FIXED_IS_AVAILABLE (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && (__has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum)))
+#define __AG_ENUM_FIXED_IS_AVAILABLE                                                                                  \
+    (__cplusplus && __cplusplus >= 201103L &&                                                                          \
+     (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) ||                                         \
+        (!__cplusplus && (__has_feature(objc_fixed_enum) || __has_extension(cxx_fixed_enum)))
 
 #if __AG_ENUM_FIXED_IS_AVAILABLE
-#define AG_ENUM(_type, _name) \
-  _Pragma("clang diagnostic push") \
-  _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"") \
-  enum __AG_ENUM_ATTRIBUTES _name : _type _name; \
-  enum _name : _type \
-  _Pragma("clang diagnostic pop")
-#define AG_CLOSED_ENUM(_type, _name) \
-  _Pragma("clang diagnostic push") \
-  _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"") \
-  enum __AG_CLOSED_ENUM_ATTRIBUTES _name : _type _name; \
-  enum _name : _type \
-  _Pragma("clang diagnostic pop")
+// clang-format off
+#define AG_ENUM(_type, _name)                                                                                         \
+    _Pragma("clang diagnostic push")                                                                                   \
+    _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"")                                                     \
+    enum __AG_ENUM_ATTRIBUTES _name : _type _name;                                                                    \
+    enum _name : _type                                                                                                 \
+    _Pragma("clang diagnostic pop")
+#define AG_CLOSED_ENUM(_type, _name)                                                                                  \
+    _Pragma("clang diagnostic push")                                                                                   \
+    _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"")                                                     \
+    enum __AG_CLOSED_ENUM_ATTRIBUTES _name : _type _name;                                                             \
+    enum _name : _type                                                                                                 \
+    _Pragma("clang diagnostic pop")
 #if (__cplusplus)
-#define AG_OPTIONS(_type, _name) __attribute__((availability(swift,unavailable))) _type _name; enum __AG_OPTIONS_ATTRIBUTES : _name
+#define AG_OPTIONS(_type, _name)                                                                                      \
+    __attribute__((availability(swift, unavailable))) _type _name;                                                     \
+    enum __AG_OPTIONS_ATTRIBUTES : _name
 #else
-#define AG_OPTIONS(_type, _name) \
-  _Pragma("clang diagnostic push") \
-  _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"") \
-  enum __AG_OPTIONS_ATTRIBUTES _name : _type _name; \
-  enum _name : _type \
-  _Pragma("clang diagnostic pop")
+#define AG_OPTIONS(_type, _name)                                                                                      \
+    _Pragma("clang diagnostic push")                                                                                   \
+    _Pragma("clang diagnostic ignored \"-Welaborated-enum-base\"")                                                     \
+    enum __AG_OPTIONS_ATTRIBUTES _name : _type _name;                                                                 \
+    enum _name : _type                                                                                                 \
+    _Pragma("clang diagnostic pop")
 #endif
+// clang-format on
 #else
-#define AG_ENUM(_type, _name) _type _name; enum
-#define AG_CLOSED_ENUM(_type, _name) _type _name; enum
-#define AG_OPTIONS(_type, _name) _type _name; enum
+#define AG_ENUM(_type, _name)                                                                                         \
+    _type _name;                                                                                                       \
+    enum
+#define AG_CLOSED_ENUM(_type, _name)                                                                                  \
+    _type _name;                                                                                                       \
+    enum
+#define AG_OPTIONS(_type, _name)                                                                                      \
+    _type _name;                                                                                                       \
+    enum
 #endif
 
 #if __has_attribute(swift_private)
@@ -215,10 +228,9 @@
 #endif
 
 #if __has_attribute(swift_attr)
-#define AG_SWIFT_SHARED_REFERENCE(_retain, _release)                        \
-  __attribute__((swift_attr("import_reference")))                           \
-  __attribute__((swift_attr(_AG_STRINGIFY(retain:_retain))))       \
-  __attribute__((swift_attr(_AG_STRINGIFY(release:_release))))
+#define AG_SWIFT_SHARED_REFERENCE(_retain, _release)                                                                  \
+    __attribute__((swift_attr("import_reference"))) __attribute__((swift_attr(_AG_STRINGIFY(retain : _retain))))      \
+    __attribute__((swift_attr(_AG_STRINGIFY(release : _release))))
 #else
 #define AG_SWIFT_SHARED_REFERENCE(_retain, _release)
 #endif

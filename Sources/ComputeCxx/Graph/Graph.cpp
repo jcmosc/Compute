@@ -45,6 +45,8 @@ Graph::Graph()
     : _heap(nullptr, 0, 0), _interned_types(nullptr, nullptr, nullptr, nullptr, &_heap),
       _contexts_by_id(nullptr, nullptr, nullptr, nullptr, &_heap), _id(IAGMakeUniqueID()) {
 
+    data::table::ensure_shared();
+
     static platform_once_t make_keys;
     platform_once(&make_keys, []() {
         pthread_key_create(&Graph::_current_update_key, 0);

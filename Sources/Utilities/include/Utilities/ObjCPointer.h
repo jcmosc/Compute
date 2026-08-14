@@ -64,24 +64,26 @@ class objc_ptr {
 
     objc_ptr &operator=(const objc_ptr &other) noexcept {
         if (this != &other) {
-            auto tmp = other._storage;
-            if (tmp) {
-                objc_retain(tmp);
+            id new_storage = other._storage;
+            if (new_storage) {
+                objc_retain(new_storage);
             }
-            if (_storage) {
-                objc_release(_storage);
+            id old_storage = _storage;
+            _storage = new_storage;
+            if (old_storage) {
+                objc_release(old_storage);
             }
-            _storage = tmp;
         }
         return *this;
     }
 
     objc_ptr &operator=(objc_ptr &&other) noexcept {
         if (this != &other) {
-            if (_storage) {
-                objc_release(_storage);
-            }
+            id old_storage = _storage;
             _storage = std::exchange(other._storage, nullptr);
+            if (old_storage) {
+                objc_release(old_storage);
+            }
         }
         return *this;
     }
@@ -92,14 +94,15 @@ class objc_ptr {
 
     void reset(T obj = nullptr) noexcept {
         if (_storage != obj) {
-            auto tmp = obj;
-            if (tmp) {
-                objc_retain(tmp);
+            id new_obj = obj;
+            if (new_obj) {
+                objc_retain(new_obj);
             }
-            if (_storage) {
-                objc_release(_storage);
+            id old_storage = _storage;
+            _storage = new_obj;
+            if (old_storage) {
+                objc_release(old_storage);
             }
-            _storage = tmp;
         }
     }
 

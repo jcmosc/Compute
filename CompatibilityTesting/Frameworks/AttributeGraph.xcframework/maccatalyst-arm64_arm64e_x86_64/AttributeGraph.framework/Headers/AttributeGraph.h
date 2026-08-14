@@ -8,6 +8,7 @@
 #include <AttributeGraph/AGChangedValue.h>
 #include <AttributeGraph/AGClosure.h>
 #include <AttributeGraph/AGComparison.h>
+#include <AttributeGraph/AGDebugServer.h>
 #include <AttributeGraph/AGDescription.h>
 #include <AttributeGraph/AGGraph.h>
 #include <AttributeGraph/AGGraphCounterQueryType.h>

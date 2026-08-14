@@ -49,11 +49,14 @@ let package = Package(
             dependencies: ["ComputeCxx"],
             swiftSettings: [
                 .enableExperimentalFeature("Extern"),
-                .unsafeFlags([
-                    "-enable-library-evolution",
-                    // When -enable-library-evolution is specified verify-emitted-module-interface command fails
-                    "-no-verify-emitted-module-interface",
-                ]),
+                .unsafeFlags(
+                    [
+                        "-enable-library-evolution",
+                        // When -enable-library-evolution is specified verify-emitted-module-interface command fails
+                        "-no-verify-emitted-module-interface",
+                    ],
+                    .when(platforms: [.macOS, .macCatalyst, .iOS, .tvOS, .watchOS, .visionOS])
+                ),
             ],
             linkerSettings: [
                 .linkedLibrary("crypto", .when(platforms: [.linux]))

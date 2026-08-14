@@ -25,4 +25,5 @@
 #include <AttributeGraph/AGType.h>
 #include <AttributeGraph/AGUniqueID.h>
 #include <AttributeGraph/AGValue.h>
+#include <AttributeGraph/AGVersion.h>
 #include <AttributeGraph/AGWeakAttribute.h>

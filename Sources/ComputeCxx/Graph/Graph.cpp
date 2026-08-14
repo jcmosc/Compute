@@ -24,6 +24,7 @@
 #include "ComputeCxx/IAGGraphTracing.h"
 #include "ComputeCxx/IAGUniqueID.h"
 #include "Context.h"
+#include "Debug/DebugServer.h"
 #include "Graph/IAGAppObserver.h"
 #include "Graph/ProfileTrace.h"
 #include "KeyTable.h"
@@ -54,6 +55,12 @@ Graph::Graph()
 
     static auto [profile_flags, trace_flags, trace_subsystems] =
         []() -> std::tuple<uint32_t, uint32_t, vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t>> {
+        const char *debug_server = getenv("IAG_DEBUG_SERVER");
+        if (debug_server) {
+            uint32_t options = (uint32_t)strtol(debug_server, nullptr, 0);
+            DebugServer::start(options);
+        }
+
         uint32_t profile_flags = false;
         const char *profile_string = getenv("IAG_PROFILE");
         if (profile_string) {

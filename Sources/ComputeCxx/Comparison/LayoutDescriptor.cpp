@@ -702,9 +702,8 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
             continue;
         }
         case ValueLayoutEntryKind::CompactNested: {
-            uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
-            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(
-                /* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
+            int32_t nested_layout_relative_pointer = reader.read_bytes<int32_t>();
+            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(&base_address + nested_layout_relative_pointer);
 
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 
@@ -859,9 +858,8 @@ void print(std::string &output, ValueLayout layout) {
             continue;
         }
         case ValueLayoutEntryKind::CompactNested: {
-            uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
-            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(
-                /* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
+            int32_t nested_layout_relative_pointer = reader.read_bytes<int32_t>();
+            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(&base_address + nested_layout_relative_pointer);
 
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 
@@ -1306,12 +1304,12 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Ne
             _data->push_back(c);
         }
     } else {
-        uintptr_t layout_relative_address = (uintptr_t)item.layout - /* (uintptr_t)&base_address */ 0x1e3e6ab60;
-        if ((uint32_t)layout_relative_address == layout_relative_address && item.size < 0xffff) {
+        ptrdiff_t layout_relative_address = (intptr_t)item.layout - (intptr_t)&base_address;
+        if ((int32_t)layout_relative_address == layout_relative_address && item.size < 0xffff) {
             _data->push_back((unsigned char)ValueLayoutEntryKind::CompactNested);
 
             // layout address in 4 bytes
-            emit_value((uint32_t)layout_relative_address);
+            emit_value((int32_t)layout_relative_address);
 
             // size in two bytes
             emit_value((uint16_t)item.size);

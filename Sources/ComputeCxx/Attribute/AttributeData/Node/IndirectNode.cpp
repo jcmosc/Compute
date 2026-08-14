@@ -16,7 +16,7 @@ const MutableIndirectNode &IndirectNode::to_mutable() const {
 
 void IndirectNode::modify(WeakAttributeID source, size_t offset) {
     _source = source;
-    _offset = offset;
+    _offset = (unsigned int)offset;
 }
 
 } // namespace IAG

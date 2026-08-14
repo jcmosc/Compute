@@ -190,9 +190,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             continue;
         }
         case ValueLayoutEntryKind::CompactNested: {
-            uint32_t nested_layout_relative_pointer = reader.read_bytes<uint32_t>();
-            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(
-                /* &base_address */ 0x1e3e6ab60 + nested_layout_relative_pointer);
+            int32_t nested_layout_relative_pointer = reader.read_bytes<int32_t>();
+            ValueLayout nested_layout = reinterpret_cast<ValueLayout>(&base_address + nested_layout_relative_pointer);
 
             uint16_t nested_size = reader.read_bytes<uint16_t>();
 

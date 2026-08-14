@@ -1,8 +1,7 @@
 #pragma once
 
-#ifdef __OBJC__
-
 #include <objc/runtime.h>
+#include <utility>
 
 #include <Utilities/Base.h>
 
@@ -17,12 +16,22 @@ OBJC_EXPORT void objc_release(id obj);
 namespace util {
 
 template <typename T>
+class objc_ptr;
+template <typename T>
+objc_ptr<T> adopt_objc(T obj) noexcept;
+
+template <typename T>
 class objc_ptr {
   private:
     id _storage;
 
     static inline id to_storage(T obj) { return (id)(obj); }
     static inline T from_storage(id storage) { return (T)storage; }
+
+    enum AdoptTag { Adopt };
+    constexpr objc_ptr(T obj, AdoptTag) : _storage(to_storage(obj)) {}
+
+    friend objc_ptr<T> adopt_objc<T>(T obj) noexcept;
 
   public:
     constexpr objc_ptr() noexcept : _storage(nullptr) {}
@@ -101,8 +110,11 @@ class objc_ptr {
     explicit operator bool() const noexcept { return _storage != nullptr; }
 };
 
+template <typename T>
+objc_ptr<T> adopt_objc(T obj) noexcept {
+    return objc_ptr<T>(obj, objc_ptr<T>::Adopt);
+}
+
 } // namespace util
 
 UTIL_ASSUME_NONNULL_END
-
-#endif

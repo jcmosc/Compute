@@ -1,5 +1,7 @@
 #pragma once
 
+#if __has_include(<objc/runtime.h>)
+
 #include <objc/runtime.h>
 #include <utility>
 
@@ -121,3 +123,5 @@ objc_ptr<T> adopt_objc(T obj) noexcept {
 } // namespace util
 
 UTIL_ASSUME_NONNULL_END
+
+#endif

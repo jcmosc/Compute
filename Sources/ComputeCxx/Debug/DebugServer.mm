@@ -1,5 +1,7 @@
 #include "DebugServer.h"
 
+#if TARGET_OS_MAC
+
 #import <Foundation/Foundation.h>
 
 #include <Utilities/FreeDeleter.h>
@@ -80,3 +82,5 @@ CFDataRef DebugServer::receive(Connection *connection, IAGDebugServerMessageHead
 }
 
 } // namespace IAG
+
+#endif

@@ -1,3 +1,4 @@
+#if os(Darwin)
 import Foundation
 import Testing
 
@@ -45,3 +46,5 @@ struct DebugServerTests {
         )
     }
 }
+
+#endif

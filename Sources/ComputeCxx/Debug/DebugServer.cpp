@@ -1,5 +1,7 @@
 #include "DebugServer.h"
 
+#if TARGET_OS_MAC
+
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <ifaddrs.h>
@@ -210,3 +212,5 @@ CFURLRef DebugServer::copy_url() {
 }
 
 } // namespace IAG
+
+#endif

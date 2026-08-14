@@ -1,3 +1,4 @@
+#if os(Darwin)
 import Foundation
 import Network
 
@@ -68,3 +69,5 @@ extension DebugServer.MessageHeader {
         MemoryLayout<DebugServer.MessageHeader>.size
     }
 }
+
+#endif

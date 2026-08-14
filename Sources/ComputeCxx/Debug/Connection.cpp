@@ -1,5 +1,7 @@
 #include "DebugServer.h"
 
+#if TARGET_OS_MAC
+
 #include <dispatch/dispatch.h>
 
 #include <Utilities/ObjCPointer.h>
@@ -143,3 +145,5 @@ void DebugServer::Connection::handler(void *context) {
 }
 
 } // namespace IAG
+
+#endif

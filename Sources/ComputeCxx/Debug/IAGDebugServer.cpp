@@ -1,5 +1,7 @@
 #include "ComputeCxx/IAGDebugServer.h"
 
+#if TARGET_OS_MAC
+
 #include "DebugServer.h"
 
 void IAGDebugServerStart(IAGDebugServerOptions options) { IAG::DebugServer::start(options); }
@@ -23,3 +25,5 @@ CFURLRef IAGDebugServerCopyURL(void) {
 
     return debug_server->copy_url();
 }
+
+#endif

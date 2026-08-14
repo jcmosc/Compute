@@ -8,6 +8,7 @@
 #include <ComputeCxx/IAGChangedValue.h>
 #include <ComputeCxx/IAGClosure.h>
 #include <ComputeCxx/IAGComparison.h>
+#include <ComputeCxx/IAGDebugServer.h>
 #include <ComputeCxx/IAGDescription.h>
 #include <ComputeCxx/IAGGraph.h>
 #include <ComputeCxx/IAGGraphCounterQueryType.h>

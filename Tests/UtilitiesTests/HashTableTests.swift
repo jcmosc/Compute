@@ -119,7 +119,6 @@ struct HashTableTests {
         // Count iterations via for_each - if there's a cycle, this will exceed count
         // or hang forever. We use a manual iteration limit to detect cycles.
         var iterationCount = 0
-        let maxIterations = 1000  // Way more than count, to detect infinite loop
 
         table.for_each(
             { _, _, context in

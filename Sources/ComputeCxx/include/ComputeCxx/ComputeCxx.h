@@ -25,4 +25,5 @@
 #include <ComputeCxx/IAGType.h>
 #include <ComputeCxx/IAGUniqueID.h>
 #include <ComputeCxx/IAGValue.h>
+#include <ComputeCxx/IAGVersion.h>
 #include <ComputeCxx/IAGWeakAttribute.h>

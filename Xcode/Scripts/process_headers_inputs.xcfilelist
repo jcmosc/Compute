@@ -6,9 +6,11 @@ $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGCachedValueOptions.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGChangedValue.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGClosure.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGComparison.h
+$(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGDebugServer.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGDescription.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGGraph.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGGraphCounterQueryType.h
+$(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGGraphProfiling.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGGraphTracing.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGInputOptions.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGSearchOptions.h
@@ -21,5 +23,6 @@ $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGTuple.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGType.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGUniqueID.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGValue.h
+$(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGVersion.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/IAGWeakAttribute.h
 $(SRCROOT)/../Sources/ComputeCxx/include/ComputeCxx/ComputeCxx.h

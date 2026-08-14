@@ -10,12 +10,12 @@ namespace util {
 class Heap {
   protected:
     typedef struct Node {
-        struct Node *next;
+        struct Node *_Nullable next;
         void *buffer;
     } Node;
 
     size_t _increment;
-    Node *_node;
+    Node *_Nullable _node;
     char *_free_start;
     size_t _capacity;
 

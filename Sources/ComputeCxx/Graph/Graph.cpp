@@ -194,7 +194,7 @@ bool Graph::is_context_updating(uint64_t context_id) {
 
 #pragma mark - Main handler
 
-void Graph::with_main_handler(ClosureFunctionVV<void> body, MainHandler _Nullable main_handler,
+void Graph::with_main_handler(ClosureFunctionVV<void> body, IAGGraphMainThreadHandler _Nullable main_handler,
                               const void *main_handler_context) {
 
     auto old_main_handler = _main_handler;
@@ -218,7 +218,7 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
         void *context;
         void (*handler)(void *);
 
-        static void thunk(const void *arg) {
+        static void thunk(const void *arg IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift) {
             auto trampoline = reinterpret_cast<const MainTrampoline *>(arg);
             trampoline->handler(trampoline->context);
         };

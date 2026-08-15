@@ -153,11 +153,7 @@ uint64_t IAGGraphGetCounter(IAGGraphRef graph, IAGGraphCounterQueryType query) {
 
 void IAGGraphWithMainThreadHandler(IAGGraphRef graph,
                                    void (*body)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
-                                   const void *body_context,
-                                   void (*main_thread_handler)(void (*trampoline_thunk)(const void *),
-                                                               const void *trampoline,
-                                                               const void *context IAG_SWIFT_CONTEXT)
-                                       IAG_SWIFT_CC(swift),
+                                   const void *body_context, IAGGraphMainThreadHandler main_thread_handler,
                                    const void *main_thread_handler_context) {
     auto graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().with_main_handler(IAG::ClosureFunctionVV<void>(body, body_context), main_thread_handler,

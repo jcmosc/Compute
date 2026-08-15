@@ -72,9 +72,6 @@ class Graph {
         NeedsCallMainHandler = 3,
     };
 
-    typedef void (*MainHandler)(void (*trampoline_thunk)(const void *), const void *trampoline,
-                                const void *_Nullable context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift);
-
     class ProfileData {
       public:
         class Data {
@@ -171,7 +168,7 @@ class Graph {
     vector<Trace *, 0, uint32_t> _traces;
 
     // Main thread handler
-    MainHandler _Nullable _main_handler = nullptr;
+    IAGGraphMainThreadHandler _Nullable _main_handler = nullptr;
     const void *_Nullable _main_handler_context = nullptr;
 
     // Metrics
@@ -310,7 +307,7 @@ class Graph {
 
     bool has_main_handler() const { return _main_handler != nullptr; }
 
-    void with_main_handler(ClosureFunctionVV<void> body, MainHandler _Nullable main_handler,
+    void with_main_handler(ClosureFunctionVV<void> body, IAGGraphMainThreadHandler _Nullable main_handler,
                            const void *_Nullable main_handler_context);
 
     // MARK: Tree

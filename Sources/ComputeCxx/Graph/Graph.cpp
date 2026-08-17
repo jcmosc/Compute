@@ -1003,6 +1003,7 @@ bool Graph::breadth_first_search(AttributeID attribute, IAGSearchOptions options
     }
 
     auto seen = std::set<AttributeID>();
+    seen.insert(resolved.attribute());
 
     auto queue = std::deque<AttributeID>();
     queue.push_back(resolved.attribute());

@@ -79,15 +79,16 @@ uint64_t AGGraphGetCounter(AGGraphRef graph, AGGraphCounterQueryType query) AG_S
 
 // MARK: Main handler
 
+typedef void (*AGGraphMainThreadHandler)(void (*trampoline_thunk)(const void *trampoline AG_SWIFT_CONTEXT)
+                                              AG_SWIFT_CC(swift),
+                                          const void *trampoline, const void *_Nullable context AG_SWIFT_CONTEXT)
+    AG_SWIFT_CC(swift);
+
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 void AGGraphWithMainThreadHandler(AGGraphRef graph,
                                    void (*body)(const void *context AG_SWIFT_CONTEXT) AG_SWIFT_CC(swift),
-                                   const void *body_context,
-                                   void (*main_thread_handler)(void (*trampoline_thunk)(const void *),
-                                                               const void *trampoline,
-                                                               const void *context AG_SWIFT_CONTEXT)
-                                       AG_SWIFT_CC(swift),
+                                   const void *body_context, AGGraphMainThreadHandler main_thread_handler,
                                    const void *main_thread_handler_context);
 
 // MARK: Subgraphs

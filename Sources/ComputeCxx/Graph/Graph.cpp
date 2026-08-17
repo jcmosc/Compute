@@ -1592,7 +1592,7 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
     }
     if (input_options & IAGInputOptionsSyncMainRef && input_node->is_main_ref() &&
         !value_type.getValueWitnesses()->isPOD()) {
-        input_node->set_requires_main_thread(true);
+        node->set_requires_main_thread(true);
         *flags_out |= IAGChangedValueFlagsRequiresMainThread;
     }
 

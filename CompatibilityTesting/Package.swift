@@ -29,6 +29,19 @@ let package = Package(
             linkerSettings: [.linkedLibrary("swiftDemangle")]
         ),
         .testTarget(
+            name: "ComputeSwiftCompatibilityTests",
+            dependencies: [
+                "AttributeGraph",
+                .product(name: "_ComputeTestSupport", package: "Compute"),
+                .product(name: "Algorithms", package: "swift-algorithms"),
+            ],
+            swiftSettings: [
+                .define("COMPATIBILITY_TESTS"),
+                .enableExperimentalFeature("Extern"),
+            ],
+            linkerSettings: [.linkedLibrary("swiftDemangle")]
+        ),
+        .testTarget(
             name: "ComputeLayoutDescriptorCompatibilityTests",
             dependencies: [
                 "AttributeGraph",

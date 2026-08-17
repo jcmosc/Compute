@@ -9,7 +9,7 @@ IAGTupleType IAGNewTupleType(size_t count, const IAGTypeID *elements) {
         return elements[0];
     }
     auto metadata_elements = reinterpret_cast<const ::swift::Metadata *const *>(elements);
-    auto response = ::swift::swift_getTupleTypeMetadata(::swift::MetadataRequest(),
+    auto response = ::swift::swift_getTupleTypeMetadata(::swift::MetadataRequest(::swift::MetadataState::Complete),
                                                         ::swift::TupleTypeFlags().withNumElements((unsigned int)count),
                                                         metadata_elements, nullptr, nullptr);
     if (response.State != ::swift::MetadataState::Complete) {

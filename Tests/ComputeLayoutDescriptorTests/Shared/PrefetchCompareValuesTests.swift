@@ -6,7 +6,6 @@ import _ComputeTestSupport
 #if !os(Linux)
 
 public struct ValueLayout: CustomStringConvertible, Equatable {
-
     let storage: UnsafePointer<CUnsignedChar>
 
     static var trivial: ValueLayout {
@@ -16,7 +15,6 @@ public struct ValueLayout: CustomStringConvertible, Equatable {
     public var description: String {
         return "\(storage)".replacing(/^0x0+/, with: "0x")
     }
-
 }
 
 extension Optional: @retroactive CustomStringConvertible where Wrapped == ValueLayout {
@@ -102,11 +100,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Never, 0 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 0 #:type Never))
+                    == Never, 0 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 0 #:type Never))
 
-                        """
+                    """
                 )
             }
         }
@@ -162,11 +160,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Bool, 1 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 1 #:type Bool))
+                    == Bool, 1 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 1 #:type Bool))
 
-                        """
+                    """
                 )
             }
         }
@@ -184,21 +182,30 @@ struct PrefetchCompareValuesTests {
                         options: ComparisonOptions(mode: .bitwise),
                         priority: 0
                     )
-                    #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
+                    #expect(
+                        layout0 == .trivial,
+                        "expected `layout0` to be the trivial value, but was \(layout0) instead"
+                    )
 
                     let layout1 = ValueLayout.prefetch(
                         of: type,
                         options: ComparisonOptions(mode: .indirect),
                         priority: 0
                     )
-                    #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
+                    #expect(
+                        layout1 == .trivial,
+                        "expected `layout1` to be the trivial value, but was \(layout1) instead"
+                    )
 
                     let layout2 = ValueLayout.prefetch(
                         of: type,
                         options: ComparisonOptions(mode: .equatableUnlessPOD),
                         priority: 0
                     )
-                    #expect(layout2 == .trivial, "expected `layout2` to be the trivial value, but was \(layout2) instead")
+                    #expect(
+                        layout2 == .trivial,
+                        "expected `layout2` to be the trivial value, but was \(layout2) instead"
+                    )
                 }
             }
         }
@@ -217,11 +224,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output,
                     """
-                        == Int, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout))
-                           (== #:size 8 #:type Int))
+                    == Int, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout))
+                       (== #:size 8 #:type Int))
 
-                        """
+                    """
                 )
             }
         }
@@ -244,11 +251,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output,
                     """
-                        == Double, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout))
-                           (== #:size 8 #:type Double))
+                    == Double, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout))
+                       (== #:size 8 #:type Double))
 
-                        """
+                    """
                 )
             }
         }
@@ -271,11 +278,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output,
                     """
-                        == Float, 4 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout))
-                           (== #:size 4 #:type Float))
+                    == Float, 4 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout))
+                       (== #:size 4 #:type Float))
 
-                        """
+                    """
                 )
             }
         }
@@ -312,11 +319,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == String, 16 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout2))
-                           (== #:size 16 #:type String))
+                    == String, 16 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout2))
+                       (== #:size 16 #:type String))
 
-                        """
+                    """
                 )
 
                 var output3 = ""
@@ -331,11 +338,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == String, 16 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 16 #:type String))
+                    == String, 16 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 16 #:type String))
 
-                        """
+                    """
                 )
             }
         }
@@ -409,7 +416,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 == innerLayout, "expected `layout3` to equal \(innerLayout), but was \(layout3) instead")
+                #expect(
+                    layout3 == innerLayout,
+                    "expected `layout3` to equal \(innerLayout), but was \(layout3) instead"
+                )
             }
         }
 
@@ -463,12 +473,12 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == TrivialStruct, 16 bytes ==
-                        (layout #:length 35 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type Int)
-                           (== #:size 8 #:type Int))
+                    == TrivialStruct, 16 bytes ==
+                    (layout #:length 35 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type Int)
+                       (== #:size 8 #:type Int))
 
-                        """
+                    """
                 )
             }
         }
@@ -496,13 +506,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output0,
                     """
-                        == StructWithAlignedElement, 16 bytes ==
-                        (layout #:length 4 #:address \(String(describing: layout0))
-                           (read 1)
-                           (skip 7)
-                           (read 8))
+                    == StructWithAlignedElement, 16 bytes ==
+                    (layout #:length 4 #:address \(String(describing: layout0))
+                       (read 1)
+                       (skip 7)
+                       (read 8))
 
-                        """
+                    """
                 )
             }
 
@@ -519,13 +529,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == StructWithAlignedElement, 16 bytes ==
-                        (layout #:length 4 #:address \(String(describing: layout1))
-                           (read 1)
-                           (skip 7)
-                           (read 8))
+                    == StructWithAlignedElement, 16 bytes ==
+                    (layout #:length 4 #:address \(String(describing: layout1))
+                       (read 1)
+                       (skip 7)
+                       (read 8))
 
-                        """
+                    """
                 )
             }
 
@@ -542,13 +552,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == StructWithAlignedElement, 16 bytes ==
-                        (layout #:length 4 #:address \(String(describing: layout2))
-                           (read 1)
-                           (skip 7)
-                           (read 8))
+                    == StructWithAlignedElement, 16 bytes ==
+                    (layout #:length 4 #:address \(String(describing: layout2))
+                       (read 1)
+                       (skip 7)
+                       (read 8))
 
-                        """
+                    """
                 )
             }
 
@@ -576,13 +586,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == StructWithAlignedElement, 16 bytes ==
-                        (layout #:length 36 #:address \(String(describing: layout3))
-                           (== #:size 1 #:type Int8)
-                           (skip 7)
-                           (== #:size 8 #:type Int64))
+                    == StructWithAlignedElement, 16 bytes ==
+                    (layout #:length 36 #:address \(String(describing: layout3))
+                       (== #:size 1 #:type Int8)
+                       (skip 7)
+                       (== #:size 8 #:type Int64))
 
-                        """
+                    """
                 )
             }
         }
@@ -614,16 +624,28 @@ struct PrefetchCompareValuesTests {
                     )
                 }
                 #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
-                assertStringsEqualWithDiff(
+                assertStringEqualToAnyStringWithDiff(
                     output0,
-                    """
+                    [
+                        // Relative layout encoded as relative pointer
+                        """
+                        == StructWithComplexProperty, 19 bytes ==
+                        (layout #:length 10 #:address \(String(describing: layout0))
+                           (read 1)
+                           (skip 7)
+                           (nested #:size 11 #:layout \(String(describing: nestedLayout0))))
+
+                        """,
+                        // Relative layout encoded as absolute pointer
+                        """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout0))
                            (read 1)
                            (skip 7)
                            (nested #:size 11 #:layout \(String(describing: nestedLayout0))))
 
-                        """
+                        """,
+                    ]
                 )
             }
 
@@ -643,16 +665,28 @@ struct PrefetchCompareValuesTests {
                     )
                 }
                 #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
-                assertStringsEqualWithDiff(
+                assertStringEqualToAnyStringWithDiff(
                     output1,
-                    """
+                    [
+                        // Relative layout encoded as relative pointer
+                        """
+                        == StructWithComplexProperty, 19 bytes ==
+                        (layout #:length 10 #:address \(String(describing: layout1))
+                           (read 1)
+                           (skip 7)
+                           (nested #:size 11 #:layout \(String(describing: nestedLayout1))))
+
+                        """,
+                        // Relative layout encoded as absolute pointer
+                        """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout1))
                            (read 1)
                            (skip 7)
                            (nested #:size 11 #:layout \(String(describing: nestedLayout1))))
 
-                        """
+                        """,
+                    ]
                 )
             }
 
@@ -672,16 +706,28 @@ struct PrefetchCompareValuesTests {
                     )
                 }
                 #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
-                assertStringsEqualWithDiff(
+                assertStringEqualToAnyStringWithDiff(
                     output2,
-                    """
+                    [
+                        // Relative layout encoded as relative pointer
+                        """
+                        == StructWithComplexProperty, 19 bytes ==
+                        (layout #:length 10 #:address \(String(describing: layout2))
+                           (read 1)
+                           (skip 7)
+                           (nested #:size 11 #:layout \(String(describing: nestedLayout2))))
+
+                        """,
+                        // Relative layout encoded as absolute pointer
+                        """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout2))
                            (read 1)
                            (skip 7)
                            (nested #:size 11 #:layout \(String(describing: nestedLayout2))))
 
-                        """
+                        """,
+                    ]
                 )
             }
 
@@ -709,13 +755,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == StructWithComplexProperty, 19 bytes ==
-                        (layout #:length 36 #:address \(String(describing: layout3))
-                           (== #:size 1 #:type Int8)
-                           (skip 7)
-                           (== #:size 11 #:type Optional<Optional<Optional<Int64>>>))
+                    == StructWithComplexProperty, 19 bytes ==
+                    (layout #:length 36 #:address \(String(describing: layout3))
+                       (== #:size 1 #:type Int8)
+                       (skip 7)
+                       (== #:size 11 #:type Optional<Optional<Optional<Int64>>>))
 
-                        """
+                    """
                 )
             }
         }
@@ -823,11 +869,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == BasicEnum, 1 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 1 #:type BasicEnum))
+                    == BasicEnum, 1 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 1 #:type BasicEnum))
 
-                        """
+                    """
                 )
             }
         }
@@ -876,11 +922,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == IntEnum, 1 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 1 #:type IntEnum))
+                    == IntEnum, 1 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 1 #:type IntEnum))
 
-                        """
+                    """
                 )
             }
         }
@@ -909,15 +955,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output0,
                     """
-                        == TaggedUnionEnum, 17 bytes ==
-                        (layout #:length 14 #:address \(String(describing: layout0))
-                           (enum #:size 17 #:type TaggedUnionEnum
-                             (case 0
-                               (read 8))
-                             (case 1
-                               (read 16))))
+                    == TaggedUnionEnum, 17 bytes ==
+                    (layout #:length 14 #:address \(String(describing: layout0))
+                       (enum #:size 17 #:type TaggedUnionEnum
+                         (case 0
+                           (read 8))
+                         (case 1
+                           (read 16))))
 
-                        """
+                    """
                 )
             }
 
@@ -934,15 +980,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == TaggedUnionEnum, 17 bytes ==
-                        (layout #:length 14 #:address \(String(describing: layout1))
-                           (enum #:size 17 #:type TaggedUnionEnum
-                             (case 0
-                               (read 8))
-                             (case 1
-                               (read 16))))
+                    == TaggedUnionEnum, 17 bytes ==
+                    (layout #:length 14 #:address \(String(describing: layout1))
+                       (enum #:size 17 #:type TaggedUnionEnum
+                         (case 0
+                           (read 8))
+                         (case 1
+                           (read 16))))
 
-                        """
+                    """
                 )
             }
 
@@ -965,15 +1011,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == TaggedUnionEnum, 17 bytes ==
-                        (layout #:length 30 #:address \(String(describing: layout2))
-                           (enum #:size 17 #:type TaggedUnionEnum
-                             (case 0
-                               (read 8))
-                             (case 1
-                               (== #:size 16 #:type String))))
+                    == TaggedUnionEnum, 17 bytes ==
+                    (layout #:length 30 #:address \(String(describing: layout2))
+                       (enum #:size 17 #:type TaggedUnionEnum
+                         (case 0
+                           (read 8))
+                         (case 1
+                           (== #:size 16 #:type String))))
 
-                        """
+                    """
                 )
             }
 
@@ -1001,15 +1047,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == TaggedUnionEnum, 17 bytes ==
-                        (layout #:length 46 #:address \(String(describing: layout3))
-                           (enum #:size 17 #:type TaggedUnionEnum
-                             (case 0
-                               (== #:size 8 #:type Int))
-                             (case 1
-                               (== #:size 16 #:type String))))
+                    == TaggedUnionEnum, 17 bytes ==
+                    (layout #:length 46 #:address \(String(describing: layout3))
+                       (enum #:size 17 #:type TaggedUnionEnum
+                         (case 0
+                           (== #:size 8 #:type Int))
+                         (case 1
+                           (== #:size 16 #:type String))))
 
-                        """
+                    """
                 )
             }
         }
@@ -1037,15 +1083,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output0,
                     """
-                        == IndirectEnum, 8 bytes ==
-                        (layout #:length 14 #:address \(String(describing: layout0))
-                           (enum #:size 8 #:type IndirectEnum
-                             (case 0
-                               (read 8))
-                             (case 1
-                               (read 8))))
+                    == IndirectEnum, 8 bytes ==
+                    (layout #:length 14 #:address \(String(describing: layout0))
+                       (enum #:size 8 #:type IndirectEnum
+                         (case 0
+                           (read 8))
+                         (case 1
+                           (read 8))))
 
-                        """
+                    """
                 )
             }
 
@@ -1062,15 +1108,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == IndirectEnum, 8 bytes ==
-                        (layout #:length 46 #:address \(String(describing: layout1))
-                           (enum #:size 8 #:type IndirectEnum
-                             (case 0
-                               (indirect #:size 16 #:type String))
-                             (case 1
-                               (indirect #:size 8 #:type (child: IndirectEnum)))))
+                    == IndirectEnum, 8 bytes ==
+                    (layout #:length 46 #:address \(String(describing: layout1))
+                       (enum #:size 8 #:type IndirectEnum
+                         (case 0
+                           (indirect #:size 16 #:type String))
+                         (case 1
+                           (indirect #:size 8 #:type (child: IndirectEnum)))))
 
-                        """
+                    """
                 )
             }
 
@@ -1087,15 +1133,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == IndirectEnum, 8 bytes ==
-                        (layout #:length 46 #:address \(String(describing: layout2))
-                           (enum #:size 8 #:type IndirectEnum
-                             (case 0
-                               (indirect #:size 16 #:type String))
-                             (case 1
-                               (indirect #:size 8 #:type (child: IndirectEnum)))))
+                    == IndirectEnum, 8 bytes ==
+                    (layout #:length 46 #:address \(String(describing: layout2))
+                       (enum #:size 8 #:type IndirectEnum
+                         (case 0
+                           (indirect #:size 16 #:type String))
+                         (case 1
+                           (indirect #:size 8 #:type (child: IndirectEnum)))))
 
-                        """
+                    """
                 )
             }
 
@@ -1112,15 +1158,15 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == IndirectEnum, 8 bytes ==
-                        (layout #:length 46 #:address \(String(describing: layout3))
-                           (enum #:size 8 #:type IndirectEnum
-                             (case 0
-                               (indirect #:size 16 #:type String))
-                             (case 1
-                               (indirect #:size 8 #:type (child: IndirectEnum)))))
+                    == IndirectEnum, 8 bytes ==
+                    (layout #:length 46 #:address \(String(describing: layout3))
+                       (enum #:size 8 #:type IndirectEnum
+                         (case 0
+                           (indirect #:size 16 #:type String))
+                         (case 1
+                           (indirect #:size 8 #:type (child: IndirectEnum)))))
 
-                        """
+                    """
                 )
             }
         }
@@ -1156,13 +1202,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output0,
                     """
-                        == Stack<Node>, 8 bytes ==
-                        (layout #:length 12 #:address \(String(describing: layout0))
-                           (enum #:size 8 #:type Stack<Node>
-                             (case 0
-                               (read 8))))
+                    == Stack<Node>, 8 bytes ==
+                    (layout #:length 12 #:address \(String(describing: layout0))
+                       (enum #:size 8 #:type Stack<Node>
+                         (case 0
+                           (read 8))))
 
-                        """
+                    """
                 )
             }
 
@@ -1179,13 +1225,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == Stack<Node>, 8 bytes ==
-                        (layout #:length 28 #:address \(String(describing: layout1))
-                           (enum #:size 8 #:type Stack<Node>
-                             (case 0
-                               (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
+                    == Stack<Node>, 8 bytes ==
+                    (layout #:length 28 #:address \(String(describing: layout1))
+                       (enum #:size 8 #:type Stack<Node>
+                         (case 0
+                           (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
 
-                        """
+                    """
                 )
             }
 
@@ -1202,13 +1248,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == Stack<Node>, 8 bytes ==
-                        (layout #:length 28 #:address \(String(describing: layout2))
-                           (enum #:size 8 #:type Stack<Node>
-                             (case 0
-                               (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
+                    == Stack<Node>, 8 bytes ==
+                    (layout #:length 28 #:address \(String(describing: layout2))
+                       (enum #:size 8 #:type Stack<Node>
+                         (case 0
+                           (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
 
-                        """
+                    """
                 )
             }
 
@@ -1225,13 +1271,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Stack<Node>, 8 bytes ==
-                        (layout #:length 28 #:address \(String(describing: layout3))
-                           (enum #:size 8 #:type Stack<Node>
-                             (case 0
-                               (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
+                    == Stack<Node>, 8 bytes ==
+                    (layout #:length 28 #:address \(String(describing: layout3))
+                       (enum #:size 8 #:type Stack<Node>
+                         (case 0
+                           (indirect #:size 40 #:type (value: Node, next: Stack<Node>)))))
 
-                        """
+                    """
                 )
             }
         }
@@ -1279,12 +1325,12 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == (Int, String), 24 bytes ==
-                        (layout #:length 19 #:address \(String(describing: layout2))
-                           (read 8)
-                           (== #:size 16 #:type String))
+                    == (Int, String), 24 bytes ==
+                    (layout #:length 19 #:address \(String(describing: layout2))
+                       (read 8)
+                       (== #:size 16 #:type String))
 
-                        """
+                    """
                 )
 
                 let _ = ValueLayout.prefetch(
@@ -1310,12 +1356,12 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == (Int, String), 24 bytes ==
-                        (layout #:length 35 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type Int)
-                           (== #:size 16 #:type String))
+                    == (Int, String), 24 bytes ==
+                    (layout #:length 35 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type Int)
+                       (== #:size 16 #:type String))
 
-                        """
+                    """
                 )
             }
         }
@@ -1338,13 +1384,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output0,
                     """
-                        == (Int8, Int64), 16 bytes ==
-                        (layout #:length 4 #:address \(String(describing: layout0))
-                           (read 1)
-                           (skip 7)
-                           (read 8))
+                    == (Int8, Int64), 16 bytes ==
+                    (layout #:length 4 #:address \(String(describing: layout0))
+                       (read 1)
+                       (skip 7)
+                       (read 8))
 
-                        """
+                    """
                 )
             }
 
@@ -1361,13 +1407,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == (Int8, Int64), 16 bytes ==
-                        (layout #:length 4 #:address \(String(describing: layout1))
-                           (read 1)
-                           (skip 7)
-                           (read 8))
+                    == (Int8, Int64), 16 bytes ==
+                    (layout #:length 4 #:address \(String(describing: layout1))
+                       (read 1)
+                       (skip 7)
+                       (read 8))
 
-                        """
+                    """
                 )
             }
 
@@ -1384,13 +1430,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == (Int8, Int64), 16 bytes ==
-                        (layout #:length 4 #:address \(String(describing: layout2))
-                           (read 1)
-                           (skip 7)
-                           (read 8))
+                    == (Int8, Int64), 16 bytes ==
+                    (layout #:length 4 #:address \(String(describing: layout2))
+                       (read 1)
+                       (skip 7)
+                       (read 8))
 
-                        """
+                    """
                 )
             }
 
@@ -1418,13 +1464,13 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == (Int8, Int64), 16 bytes ==
-                        (layout #:length 36 #:address \(String(describing: layout3))
-                           (== #:size 1 #:type Int8)
-                           (skip 7)
-                           (== #:size 8 #:type Int64))
+                    == (Int8, Int64), 16 bytes ==
+                    (layout #:length 36 #:address \(String(describing: layout3))
+                       (== #:size 1 #:type Int8)
+                       (skip 7)
+                       (== #:size 8 #:type Int64))
 
-                        """
+                    """
                 )
             }
         }
@@ -1466,11 +1512,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == Array<Int>, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout2))
-                           (== #:size 8 #:type Array<Int>))
+                    == Array<Int>, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout2))
+                       (== #:size 8 #:type Array<Int>))
 
-                        """
+                    """
                 )
 
                 var output3 = ""
@@ -1485,11 +1531,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Array<Int>, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type Array<Int>))
+                    == Array<Int>, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type Array<Int>))
 
-                        """
+                    """
                 )
             }
         }
@@ -1540,11 +1586,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == Dictionary<Int, Int>, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout2))
-                           (== #:size 8 #:type Dictionary<Int, Int>))
+                    == Dictionary<Int, Int>, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout2))
+                       (== #:size 8 #:type Dictionary<Int, Int>))
 
-                        """
+                    """
                 )
 
                 var output3 = ""
@@ -1559,11 +1605,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Dictionary<Int, Int>, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type Dictionary<Int, Int>))
+                    == Dictionary<Int, Int>, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type Dictionary<Int, Int>))
 
-                        """
+                    """
                 )
             }
         }
@@ -1618,11 +1664,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == Set<Int>, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout2))
-                           (== #:size 8 #:type Set<Int>))
+                    == Set<Int>, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout2))
+                       (== #:size 8 #:type Set<Int>))
 
-                        """
+                    """
                 )
 
                 var output3 = ""
@@ -1637,11 +1683,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Set<Int>, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type Set<Int>))
+                    == Set<Int>, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type Set<Int>))
 
-                        """
+                    """
                 )
             }
         }
@@ -1697,11 +1743,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == EquatableStruct, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type EquatableStruct))
+                    == EquatableStruct, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type EquatableStruct))
 
-                        """
+                    """
                 )
             }
         }
@@ -1745,11 +1791,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == EquatableClass, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout2))
-                           (== #:size 8 #:type EquatableClass))
+                    == EquatableClass, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout2))
+                       (== #:size 8 #:type EquatableClass))
 
-                        """
+                    """
                 )
             }
 
@@ -1766,11 +1812,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == EquatableClass, 8 bytes ==
-                        (layout #:length 18 #:address \(String(describing: layout3))
-                           (== #:size 8 #:type EquatableClass))
+                    == EquatableClass, 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type EquatableClass))
 
-                        """
+                    """
                 )
             }
         }
@@ -1797,11 +1843,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == Any, 32 bytes ==
-                        (layout #:length 10 #:address \(String(describing: layout1))
-                           (existential #:size 32 #:type Any))
+                    == Any, 32 bytes ==
+                    (layout #:length 10 #:address \(String(describing: layout1))
+                       (existential #:size 32 #:type Any))
 
-                        """
+                    """
                 )
             }
 
@@ -1818,11 +1864,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == Any, 32 bytes ==
-                        (layout #:length 10 #:address \(String(describing: layout2))
-                           (existential #:size 32 #:type Any))
+                    == Any, 32 bytes ==
+                    (layout #:length 10 #:address \(String(describing: layout2))
+                       (existential #:size 32 #:type Any))
 
-                        """
+                    """
                 )
             }
 
@@ -1835,11 +1881,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Any, 32 bytes ==
-                        (layout #:length 10 #:address \(String(describing: layout3))
-                           (existential #:size 32 #:type Any))
+                    == Any, 32 bytes ==
+                    (layout #:length 10 #:address \(String(describing: layout3))
+                       (existential #:size 32 #:type Any))
 
-                        """
+                    """
                 )
             }
         }
@@ -1869,11 +1915,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == Error, 8 bytes ==
-                        (layout #:length 10 #:address \(String(describing: layout1))
-                           (existential #:size 8 #:type Error))
+                    == Error, 8 bytes ==
+                    (layout #:length 10 #:address \(String(describing: layout1))
+                       (existential #:size 8 #:type Error))
 
-                        """
+                    """
                 )
             }
 
@@ -1890,11 +1936,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == Error, 8 bytes ==
-                        (layout #:length 10 #:address \(String(describing: layout2))
-                           (existential #:size 8 #:type Error))
+                    == Error, 8 bytes ==
+                    (layout #:length 10 #:address \(String(describing: layout2))
+                       (existential #:size 8 #:type Error))
 
-                        """
+                    """
                 )
             }
 
@@ -1911,11 +1957,11 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == Error, 8 bytes ==
-                        (layout #:length 10 #:address \(String(describing: layout3))
-                           (existential #:size 8 #:type Error))
+                    == Error, 8 bytes ==
+                    (layout #:length 10 #:address \(String(describing: layout3))
+                       (existential #:size 8 #:type Error))
 
-                        """
+                    """
                 )
             }
         }
@@ -1948,12 +1994,12 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output1,
                     """
-                        == () -> (), 16 bytes ==
-                        (layout #:length 3 #:address \(String(describing: layout1))
-                           (read 8)
-                           (capture-ref))
+                    == () -> (), 16 bytes ==
+                    (layout #:length 3 #:address \(String(describing: layout1))
+                       (read 8)
+                       (capture-ref))
 
-                        """
+                    """
                 )
             }
 
@@ -1970,12 +2016,12 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output2,
                     """
-                        == () -> (), 16 bytes ==
-                        (layout #:length 3 #:address \(String(describing: layout2))
-                           (read 8)
-                           (capture-ref))
+                    == () -> (), 16 bytes ==
+                    (layout #:length 3 #:address \(String(describing: layout2))
+                       (read 8)
+                       (capture-ref))
 
-                        """
+                    """
                 )
             }
 
@@ -1992,12 +2038,12 @@ struct PrefetchCompareValuesTests {
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                        == () -> (), 16 bytes ==
-                        (layout #:length 3 #:address \(String(describing: layout3))
-                           (read 8)
-                           (capture-ref))
+                    == () -> (), 16 bytes ==
+                    (layout #:length 3 #:address \(String(describing: layout3))
+                       (read 8)
+                       (capture-ref))
 
-                        """
+                    """
                 )
             }
         }

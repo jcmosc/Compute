@@ -67,6 +67,38 @@ public func assertStringsEqualWithDiff(
     )
 }
 
+/// Asserts that the a string is equal to any expected string, providing Unix `diff`-style output if they are not.
+///
+/// - Parameters:
+///   - actual: The actual string.
+///   - expected: The expected strings.
+///   - message: An optional description of the failure.
+///   - additionalInfo: Additional information about the failed test case that will be printed after the diff
+///   - file: The file in which failure occurred. Defaults to the file name of the test case in
+///     which this function was called.
+///   - line: The line number on which failure occurred. Defaults to the line number on which this
+///     function was called.
+public func assertStringEqualToAnyStringWithDiff(
+    _ actual: String,
+    _ expected: [String],
+    _ message: String = "",
+    additionalInfo: @autoclosure () -> String? = nil,
+    sourceLocation: SourceLocation = #_sourceLocation
+) {
+    if expected.contains(actual) {
+        return
+    }
+    for candidate in expected {
+        failStringsEqualWithDiff(
+            actual,
+            candidate,
+            message,
+            additionalInfo: additionalInfo(),
+            sourceLocation: sourceLocation
+        )
+    }
+}
+
 /// `Issue.record` with `diff`-style output.
 public func failStringsEqualWithDiff(
     _ actual: String,

@@ -1539,9 +1539,10 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
     }
 
     if (index == UINT32_MAX) {
-        node.assert_valid();
-        if (AttributeID(node).subgraph() == nullptr || AttributeID(node).subgraph()->graph() != this) {
-            precondition_failure("accessing attribute in a different namespace: %u", node);
+        input.validate_data_offset();
+        auto input_subgraph = input.subgraph();
+        if (input_subgraph == nullptr || input_subgraph->graph() != this) {
+            precondition_failure("accessing attribute in a different namespace: %u", input);
         }
         if (!node->is_dirty()) {
             auto resolved = input.resolve(
@@ -1549,6 +1550,11 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
                 (subgraph_id != 0 ? TraversalOptions::EvaluateWeakReferences : TraversalOptions::AssertNotNil));
             if (subgraph_id != 0 && (!resolved.attribute() || !resolved.attribute().is_node())) {
                 return nullptr;
+            }
+
+            auto resolved_subgraph = resolved.attribute().subgraph();
+            if (resolved_subgraph == nullptr || resolved_subgraph->graph() != this) {
+                precondition_failure("accessing attribute in a different namespace: %u", resolved.attribute());
             }
 
             update_attribute(resolved.attribute().get_node(), IAGGraphUpdateOptionsNone);

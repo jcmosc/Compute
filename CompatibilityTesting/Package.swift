@@ -31,7 +31,8 @@ let package = Package(
         .testTarget(
             name: "ComputeLayoutDescriptorCompatibilityTests",
             dependencies: [
-                "AttributeGraph"
+                "AttributeGraph",
+                .product(name: "_ComputeTestSupport", package: "Compute"),
             ],
             swiftSettings: [
                 .define("COMPATIBILITY_TESTS"),

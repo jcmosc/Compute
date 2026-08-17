@@ -205,6 +205,7 @@ void IAGTupleWithBuffer(IAGTupleType tuple_type, size_t count,
         if (buffer == nullptr) {
             IAG::precondition_failure("memory allocation failure");
         }
+        bzero((void *)buffer, buffer_size);
         IAGUnsafeMutableTuple tuple = {tuple_type, buffer};
         function(tuple, context);
         free(buffer);

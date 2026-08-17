@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import _ComputeTestSupport
 
 // This suite relies heavily on process isolation, which does not complete on Linux.
 #if !os(Linux)
@@ -72,21 +73,21 @@ struct PrefetchCompareValuesTests {
                 options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             let layout1 = ValueLayout.prefetch(
                 of: Never.self,
                 options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
-            #expect(layout1 == nil)
+            #expect(layout1 == nil, "expected `layout1` to be nil, but was \(layout1) instead")
 
             let layout2 = ValueLayout.prefetch(
                 of: Never.self,
                 options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
-            #expect(layout2 == nil)
+            #expect(layout2 == nil, "expected `layout2` to be nil, but was \(layout2) instead")
 
             await #expect(processExitsWith: .success) {
                 var output3 = ""
@@ -97,9 +98,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Never, 0 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 0 #:type Never))
@@ -116,7 +118,7 @@ struct PrefetchCompareValuesTests {
 
                 for options in allOptions {
                     let layout = ValueLayout.prefetch(of: Void.self, options: options, priority: 0)
-                    #expect(layout == .trivial)
+                    #expect(layout == .trivial, "expected `layout` to be the trivial value, but was \(layout) instead")
                 }
             }
         }
@@ -132,21 +134,21 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: Bool.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 let layout2 = ValueLayout.prefetch(
                     of: Bool.self,
                     options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
-                #expect(layout2 == .trivial)
+                #expect(layout2 == .trivial, "expected `layout2` to be the trivial value, but was \(layout2) instead")
 
                 var output3 = ""
                 let layout3 = await reprintingStandardError(to: &output3) {
@@ -156,9 +158,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Bool, 1 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 1 #:type Bool))
@@ -181,21 +184,21 @@ struct PrefetchCompareValuesTests {
                         options: ComparisonOptions(mode: .bitwise),
                         priority: 0
                     )
-                    #expect(layout0 == .trivial)
+                    #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                     let layout1 = ValueLayout.prefetch(
                         of: type,
                         options: ComparisonOptions(mode: .indirect),
                         priority: 0
                     )
-                    #expect(layout1 == .trivial)
+                    #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                     let layout2 = ValueLayout.prefetch(
                         of: type,
                         options: ComparisonOptions(mode: .equatableUnlessPOD),
                         priority: 0
                     )
-                    #expect(layout2 == .trivial)
+                    #expect(layout2 == .trivial, "expected `layout2` to be the trivial value, but was \(layout2) instead")
                 }
             }
         }
@@ -210,9 +213,10 @@ struct PrefetchCompareValuesTests {
                 let layout = await reprintingStandardError(to: &output) {
                     ValueLayout.prefetch(of: Int.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
                 }
-                #expect(layout != nil)
-                #expect(
-                    output == """
+                #expect(layout != nil, "expected `layout` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output,
+                    """
                         == Int, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout))
                            (== #:size 8 #:type Int))
@@ -236,9 +240,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout != nil)
-                #expect(
-                    output == """
+                #expect(layout != nil, "expected `layout` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output,
+                    """
                         == Double, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout))
                            (== #:size 8 #:type Double))
@@ -262,9 +267,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout != nil)
-                #expect(
-                    output == """
+                #expect(layout != nil, "expected `layout` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output,
+                    """
                         == Float, 4 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout))
                            (== #:size 4 #:type Float))
@@ -285,14 +291,14 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: String.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 var output2 = ""
                 let layout2 = await reprintingStandardError(to: &output2) {
@@ -302,9 +308,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == String, 16 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
                            (== #:size 16 #:type String))
@@ -320,9 +327,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == String, 16 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 16 #:type String))
@@ -339,7 +347,7 @@ struct PrefetchCompareValuesTests {
 
                 for options in allOptions {
                     let layout = ValueLayout.prefetch(of: StaticString.self, options: options, priority: 0)
-                    #expect(layout == .trivial)
+                    #expect(layout == .trivial, "expected `layout` to be the trivial value, but was \(layout) instead")
                 }
             }
         }
@@ -354,7 +362,7 @@ struct PrefetchCompareValuesTests {
             struct EmptyStruct {}
 
             let layout = ValueLayout.prefetch(of: EmptyStruct.self, options: options, priority: 0)
-            #expect(layout == nil)
+            #expect(layout == nil, "expected `layout` to be nil, but was \(layout) instead")
         }
 
         @Test("Layout for struct enclosing single element equals the layout of the enclosed element")
@@ -371,21 +379,21 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: StructEnclosingSingleElement.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 let layout2 = ValueLayout.prefetch(
                     of: StructEnclosingSingleElement.self,
                     options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
-                #expect(layout2 == .trivial)
+                #expect(layout2 == .trivial, "expected `layout2` to be the trivial value, but was \(layout2) instead")
 
                 let innerLayout = ValueLayout.prefetch(
                     of: Int.self,
@@ -401,7 +409,7 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 == innerLayout)
+                #expect(layout3 == innerLayout, "expected `layout3` to equal \(innerLayout), but was \(layout3) instead")
             }
         }
 
@@ -421,21 +429,21 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: TrivialStruct.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 let layout2 = ValueLayout.prefetch(
                     of: TrivialStruct.self,
                     options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
-                #expect(layout2 == .trivial)
+                #expect(layout2 == .trivial, "expected `layout2` to be the trivial value, but was \(layout2) instead")
 
                 let _ = ValueLayout.prefetch(
                     of: Int.self,
@@ -451,9 +459,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == TrivialStruct, 16 bytes ==
                         (layout #:length 35 #:address \(String(describing: layout3))
                            (== #:size 8 #:type Int)
@@ -483,9 +492,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout0 != nil)
-                #expect(
-                    output0 == """
+                #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output0,
+                    """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout0))
                            (read 1)
@@ -505,9 +515,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout1))
                            (read 1)
@@ -527,9 +538,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout2))
                            (read 1)
@@ -560,9 +572,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == StructWithAlignedElement, 16 bytes ==
                         (layout #:length 36 #:address \(String(describing: layout3))
                            (== #:size 1 #:type Int8)
@@ -600,9 +613,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout0 != nil)
-                #expect(
-                    output0 == """
+                #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output0,
+                    """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout0))
                            (read 1)
@@ -628,9 +642,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout1))
                            (read 1)
@@ -656,9 +671,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 13 #:address \(String(describing: layout2))
                            (read 1)
@@ -689,9 +705,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == StructWithComplexProperty, 19 bytes ==
                         (layout #:length 36 #:address \(String(describing: layout3))
                            (== #:size 1 #:type Int8)
@@ -715,7 +732,7 @@ struct PrefetchCompareValuesTests {
             class EmptyClass {}
 
             let layout = ValueLayout.prefetch(of: EmptyClass.self, options: options, priority: 0)
-            #expect(layout == nil)
+            #expect(layout == nil, "expected `layout` to be nil, but was \(layout) instead")
         }
 
         @Test(arguments: allOptions)
@@ -727,7 +744,7 @@ struct PrefetchCompareValuesTests {
             }
 
             let layout = ValueLayout.prefetch(of: TrivialClass.self, options: options, priority: 0)
-            #expect(layout == nil)
+            #expect(layout == nil, "expected `layout` to be nil, but was \(layout) instead")
         }
 
         @Test
@@ -742,7 +759,7 @@ struct PrefetchCompareValuesTests {
 
                 for options in allOptions {
                     let layout = ValueLayout.prefetch(of: StructWithWeakVar.self, options: options, priority: 0)
-                    #expect(layout == .trivial)
+                    #expect(layout == .trivial, "expected `layout` to be the trivial value, but was \(layout) instead")
                 }
             }
         }
@@ -759,7 +776,7 @@ struct PrefetchCompareValuesTests {
             enum EmptyEnum {}
 
             let layout = ValueLayout.prefetch(of: EmptyEnum.self, options: options, priority: 0)
-            #expect(layout == nil)
+            #expect(layout == nil, "expected `layout` to be nil, but was \(layout) instead")
         }
 
         @Test
@@ -777,21 +794,21 @@ struct PrefetchCompareValuesTests {
                 options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             let layout1 = ValueLayout.prefetch(
                 of: BasicEnum.self,
                 options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
-            #expect(layout1 == nil)
+            #expect(layout1 == nil, "expected `layout1` to be nil, but was \(layout1) instead")
 
             let layout2 = ValueLayout.prefetch(
                 of: BasicEnum.self,
                 options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
-            #expect(layout2 == nil)
+            #expect(layout2 == nil, "expected `layout2` to be nil, but was \(layout2) instead")
 
             await #expect(processExitsWith: .success) {
                 var output3 = ""
@@ -802,9 +819,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == BasicEnum, 1 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 1 #:type BasicEnum))
@@ -829,21 +847,21 @@ struct PrefetchCompareValuesTests {
                 options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             let layout1 = ValueLayout.prefetch(
                 of: IntEnum.self,
                 options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
-            #expect(layout1 == nil)
+            #expect(layout1 == nil, "expected `layout1` to be nil, but was \(layout1) instead")
 
             let layout2 = ValueLayout.prefetch(
                 of: IntEnum.self,
                 options: ComparisonOptions(mode: .equatableUnlessPOD),
                 priority: 0
             )
-            #expect(layout2 == nil)
+            #expect(layout2 == nil, "expected `layout2` to be nil, but was \(layout2) instead")
 
             await #expect(processExitsWith: .success) {
                 var output3 = ""
@@ -854,9 +872,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == IntEnum, 1 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 1 #:type IntEnum))
@@ -886,9 +905,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout0 != nil)
-                #expect(
-                    output0 == """
+                #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output0,
+                    """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 14 #:address \(String(describing: layout0))
                            (enum #:size 17 #:type TaggedUnionEnum
@@ -910,9 +930,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 14 #:address \(String(describing: layout1))
                            (enum #:size 17 #:type TaggedUnionEnum
@@ -940,9 +961,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 30 #:address \(String(describing: layout2))
                            (enum #:size 17 #:type TaggedUnionEnum
@@ -975,9 +997,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == TaggedUnionEnum, 17 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout3))
                            (enum #:size 17 #:type TaggedUnionEnum
@@ -1010,9 +1033,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout0 != nil)
-                #expect(
-                    output0 == """
+                #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output0,
+                    """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 14 #:address \(String(describing: layout0))
                            (enum #:size 8 #:type IndirectEnum
@@ -1034,9 +1058,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout1))
                            (enum #:size 8 #:type IndirectEnum
@@ -1058,9 +1083,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout2))
                            (enum #:size 8 #:type IndirectEnum
@@ -1082,9 +1108,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == IndirectEnum, 8 bytes ==
                         (layout #:length 46 #:address \(String(describing: layout3))
                            (enum #:size 8 #:type IndirectEnum
@@ -1125,9 +1152,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout0 != nil)
-                #expect(
-                    output0 == """
+                #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output0,
+                    """
                         == Stack<Node>, 8 bytes ==
                         (layout #:length 12 #:address \(String(describing: layout0))
                            (enum #:size 8 #:type Stack<Node>
@@ -1147,9 +1175,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == Stack<Node>, 8 bytes ==
                         (layout #:length 28 #:address \(String(describing: layout1))
                            (enum #:size 8 #:type Stack<Node>
@@ -1169,9 +1198,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == Stack<Node>, 8 bytes ==
                         (layout #:length 28 #:address \(String(describing: layout2))
                            (enum #:size 8 #:type Stack<Node>
@@ -1191,9 +1221,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Stack<Node>, 8 bytes ==
                         (layout #:length 28 #:address \(String(describing: layout3))
                            (enum #:size 8 #:type Stack<Node>
@@ -1221,14 +1252,14 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: (Int, String).self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 let _ = ValueLayout.prefetch(
                     of: String.self,
@@ -1244,9 +1275,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == (Int, String), 24 bytes ==
                         (layout #:length 19 #:address \(String(describing: layout2))
                            (read 8)
@@ -1274,9 +1306,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == (Int, String), 24 bytes ==
                         (layout #:length 35 #:address \(String(describing: layout3))
                            (== #:size 8 #:type Int)
@@ -1301,9 +1334,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout0 != nil)
-                #expect(
-                    output0 == """
+                #expect(layout0 != nil, "expected `layout0` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output0,
+                    """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout0))
                            (read 1)
@@ -1323,9 +1357,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout1))
                            (read 1)
@@ -1345,9 +1380,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 4 #:address \(String(describing: layout2))
                            (read 1)
@@ -1378,9 +1414,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == (Int8, Int64), 16 bytes ==
                         (layout #:length 36 #:address \(String(describing: layout3))
                            (== #:size 1 #:type Int8)
@@ -1408,14 +1445,14 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: Array<Int>.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 var output2 = ""
                 let layout2 = await reprintingStandardError(to: &output2) {
@@ -1425,9 +1462,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == Array<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
                            (== #:size 8 #:type Array<Int>))
@@ -1443,9 +1481,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Array<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 8 #:type Array<Int>))
@@ -1464,7 +1503,7 @@ struct PrefetchCompareValuesTests {
 
                 for options in allOptions {
                     let layout = ValueLayout.prefetch(of: Array<NotEquatable>.self, options: options, priority: 0)
-                    #expect(layout == .trivial)
+                    #expect(layout == .trivial, "expected `layout` to be the trivial value, but was \(layout) instead")
                 }
             }
         }
@@ -1480,14 +1519,14 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: Dictionary<Int, Int>.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 var output2 = ""
                 let layout2 = await reprintingStandardError(to: &output2) {
@@ -1497,9 +1536,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == Dictionary<Int, Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
                            (== #:size 8 #:type Dictionary<Int, Int>))
@@ -1515,9 +1555,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Dictionary<Int, Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 8 #:type Dictionary<Int, Int>))
@@ -1540,7 +1581,7 @@ struct PrefetchCompareValuesTests {
                         options: options,
                         priority: 0
                     )
-                    #expect(layout == .trivial)
+                    #expect(layout == .trivial, "expected `layout` to be the trivial value, but was \(layout) instead")
                 }
             }
         }
@@ -1556,14 +1597,14 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: Set<Int>.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 var output2 = ""
                 let layout2 = await reprintingStandardError(to: &output2) {
@@ -1573,9 +1614,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == Set<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
                            (== #:size 8 #:type Set<Int>))
@@ -1591,9 +1633,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Set<Int>, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 8 #:type Set<Int>))
@@ -1626,21 +1669,21 @@ struct PrefetchCompareValuesTests {
                     options: ComparisonOptions(mode: .bitwise),
                     priority: 0
                 )
-                #expect(layout0 == .trivial)
+                #expect(layout0 == .trivial, "expected `layout0` to be the trivial value, but was \(layout0) instead")
 
                 let layout1 = ValueLayout.prefetch(
                     of: EquatableStruct.self,
                     options: ComparisonOptions(mode: .indirect),
                     priority: 0
                 )
-                #expect(layout1 == .trivial)
+                #expect(layout1 == .trivial, "expected `layout1` to be the trivial value, but was \(layout1) instead")
 
                 let layout2 = ValueLayout.prefetch(
                     of: EquatableStruct.self,
                     options: ComparisonOptions(mode: .equatableUnlessPOD),
                     priority: 0
                 )
-                #expect(layout2 == .trivial)
+                #expect(layout2 == .trivial, "expected `layout2` to be the trivial value, but was \(layout2) instead")
 
                 var output3 = ""
                 let layout3 = await reprintingStandardError(to: &output3) {
@@ -1650,9 +1693,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == EquatableStruct, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 8 #:type EquatableStruct))
@@ -1679,14 +1723,14 @@ struct PrefetchCompareValuesTests {
                 options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             let layout1 = ValueLayout.prefetch(
                 of: EquatableClass.self,
                 options: ComparisonOptions(mode: .indirect),
                 priority: 0
             )
-            #expect(layout1 == nil)
+            #expect(layout1 == nil, "expected `layout1` to be nil, but was \(layout1) instead")
 
             await #expect(processExitsWith: .success) {
                 var output2 = ""
@@ -1697,9 +1741,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == EquatableClass, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout2))
                            (== #:size 8 #:type EquatableClass))
@@ -1717,9 +1762,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == EquatableClass, 8 bytes ==
                         (layout #:length 18 #:address \(String(describing: layout3))
                            (== #:size 8 #:type EquatableClass))
@@ -1740,16 +1786,17 @@ struct PrefetchCompareValuesTests {
             setenv(printLayoutsEnvironmentVariable, "1", 1)
 
             let layout0 = ValueLayout.prefetch(of: Any.self, options: ComparisonOptions(mode: .bitwise), priority: 0)
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             await #expect(processExitsWith: .success) {
                 var output1 = ""
                 let layout1 = await reprintingStandardError(to: &output1) {
                     ValueLayout.prefetch(of: Any.self, options: ComparisonOptions(mode: .indirect), priority: 0)
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == Any, 32 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout1))
                            (existential #:size 32 #:type Any))
@@ -1767,9 +1814,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == Any, 32 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout2))
                            (existential #:size 32 #:type Any))
@@ -1783,9 +1831,10 @@ struct PrefetchCompareValuesTests {
                 let layout3 = await reprintingStandardError(to: &output3) {
                     ValueLayout.prefetch(of: Any.self, options: ComparisonOptions(mode: .equatableAlways), priority: 0)
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Any, 32 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout3))
                            (existential #:size 32 #:type Any))
@@ -1805,7 +1854,7 @@ struct PrefetchCompareValuesTests {
                 options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             await #expect(processExitsWith: .success) {
                 var output1 = ""
@@ -1816,9 +1865,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == Error, 8 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout1))
                            (existential #:size 8 #:type Error))
@@ -1836,9 +1886,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == Error, 8 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout2))
                            (existential #:size 8 #:type Error))
@@ -1856,9 +1907,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == Error, 8 bytes ==
                         (layout #:length 10 #:address \(String(describing: layout3))
                            (existential #:size 8 #:type Error))
@@ -1885,16 +1937,17 @@ struct PrefetchCompareValuesTests {
                 options: ComparisonOptions(mode: .bitwise),
                 priority: 0
             )
-            #expect(layout0 == nil)
+            #expect(layout0 == nil, "expected `layout0` to be nil, but was \(layout0) instead")
 
             await #expect(processExitsWith: .success) {
                 var output1 = ""
                 let layout1 = await reprintingStandardError(to: &output1) {
                     ValueLayout.prefetch(of: Function.self, options: ComparisonOptions(mode: .indirect), priority: 0)
                 }
-                #expect(layout1 != nil)
-                #expect(
-                    output1 == """
+                #expect(layout1 != nil, "expected `layout1` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output1,
+                    """
                         == () -> (), 16 bytes ==
                         (layout #:length 3 #:address \(String(describing: layout1))
                            (read 8)
@@ -1913,9 +1966,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout2 != nil)
-                #expect(
-                    output2 == """
+                #expect(layout2 != nil, "expected `layout2` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output2,
+                    """
                         == () -> (), 16 bytes ==
                         (layout #:length 3 #:address \(String(describing: layout2))
                            (read 8)
@@ -1934,9 +1988,10 @@ struct PrefetchCompareValuesTests {
                         priority: 0
                     )
                 }
-                #expect(layout3 != nil)
-                #expect(
-                    output3 == """
+                #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
+                assertStringsEqualWithDiff(
+                    output3,
+                    """
                         == () -> (), 16 bytes ==
                         (layout #:length 3 #:address \(String(describing: layout3))
                            (read 8)

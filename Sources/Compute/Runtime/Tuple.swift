@@ -1,22 +1,22 @@
 import ComputeCxx
 
 @_silgen_name("IAGTupleWithBuffer")
-func IAGTupleWithBuffer(
+public func IAGTupleWithBuffer(
     of type: TupleType,
     count: Int,
     body: (UnsafeMutableTuple) -> Void
 )
 
+@_alwaysEmitIntoClient
 public func withUnsafeTuple(
     of type: TupleType,
     count: Int,
-    body: (UnsafeMutableTuple) -> Void
+    _ body: (UnsafeMutableTuple) -> Void
 ) {
-    return IAGTupleWithBuffer(of: type, count: count, body: body)
+    IAGTupleWithBuffer(of: type, count: count, body: body)
 }
 
 extension TupleType {
-
     public init(_ types: [Any.Type]) {
         self.init(count: types.count, elements: types.map(Metadata.init))
     }
@@ -78,23 +78,25 @@ extension TupleType {
             options
         )
     }
-
 }
 
 extension UnsafeTuple {
-
+    @_alwaysEmitIntoClient
     public var count: Int {
         return type.count
     }
 
+    @_alwaysEmitIntoClient
     public var isEmpty: Bool {
         return type.isEmpty
     }
 
+    @_alwaysEmitIntoClient
     public var indices: Range<Int> {
         return type.indices
     }
 
+    @_alwaysEmitIntoClient
     public func address<T>(as expectedType: T.Type) -> UnsafePointer<T> {
         guard type.type == expectedType else {
             preconditionFailure()
@@ -102,6 +104,7 @@ extension UnsafeTuple {
         return value.assumingMemoryBound(to: expectedType)
     }
 
+    @_alwaysEmitIntoClient
     public func address<T>(
         of index: Int,
         as elementType: T.Type
@@ -115,21 +118,22 @@ extension UnsafeTuple {
     }
 
     public subscript<T>() -> T {
+        @_alwaysEmitIntoClient
         unsafeAddress {
             return address(as: T.self)
         }
     }
 
     public subscript<T>(_ index: Int) -> T {
+        @_alwaysEmitIntoClient
         unsafeAddress {
             return address(of: index, as: T.self)
         }
     }
-
 }
 
 extension UnsafeMutableTuple {
-
+    @_alwaysEmitIntoClient
     public init(with tupleType: TupleType) {
         self.init(
             type: tupleType,
@@ -140,6 +144,7 @@ extension UnsafeMutableTuple {
         )
     }
 
+    @_alwaysEmitIntoClient
     public func deallocate(initialized: Bool) {
         if initialized {
             deinitialize()
@@ -147,6 +152,7 @@ extension UnsafeMutableTuple {
         value.deallocate()
     }
 
+    @_alwaysEmitIntoClient
     public func initialize<T>(at index: Int, to element: T) {
         withUnsafePointer(to: element) { elementPointer in
             type.setElement(
@@ -158,6 +164,7 @@ extension UnsafeMutableTuple {
         }
     }
 
+    @_alwaysEmitIntoClient
     public func deinitialize() {
         type.destroy(value)
     }
@@ -166,18 +173,22 @@ extension UnsafeMutableTuple {
         type.destroy(value, at: index)
     }
 
+    @_alwaysEmitIntoClient
     public var count: Int {
         return type.count
     }
 
+    @_alwaysEmitIntoClient
     public var isEmpty: Bool {
         return type.isEmpty
     }
 
+    @_alwaysEmitIntoClient
     public var indices: Range<Int> {
         return type.indices
     }
 
+    @_alwaysEmitIntoClient
     public func address<T>(as expectedType: T.Type) -> UnsafeMutablePointer<T> {
         guard type.type == expectedType else {
             preconditionFailure()
@@ -185,6 +196,7 @@ extension UnsafeMutableTuple {
         return value.assumingMemoryBound(to: expectedType)
     }
 
+    @_alwaysEmitIntoClient
     public func address<T>(
         of index: Int,
         as elementType: T.Type
@@ -198,21 +210,24 @@ extension UnsafeMutableTuple {
     }
 
     public subscript<T>() -> T {
+        @_alwaysEmitIntoClient
         unsafeAddress {
             return UnsafePointer(address(as: T.self))
         }
+        @_alwaysEmitIntoClient
         nonmutating unsafeMutableAddress {
             return address(as: T.self)
         }
     }
 
     public subscript<T>(_ index: Int) -> T {
+        @_alwaysEmitIntoClient
         unsafeAddress {
             return UnsafePointer(address(of: index, as: T.self))
         }
+        @_alwaysEmitIntoClient
         nonmutating unsafeMutableAddress {
             return address(of: index, as: T.self)
         }
     }
-
 }

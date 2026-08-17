@@ -16,7 +16,6 @@ func IAGGraphSearch(
 ) -> Bool
 
 extension AnyAttribute {
-
     public static var current: AnyAttribute? {
         let attribute = __IAGGraphGetCurrentAttribute()
         return attribute == .nil ? nil : attribute
@@ -95,20 +94,13 @@ extension AnyAttribute {
     public var valueType: Any.Type {
         return info.type.pointee.value_id.type
     }
-
 }
 
 extension AnyAttribute: @retroactive CustomStringConvertible {
-
     public var description: String {
         return "#\(rawValue)"
     }
-
 }
-
-extension AnyAttribute: @retroactive Equatable {}
-
-extension AnyAttribute: @retroactive Hashable {}
 
 extension AnyAttribute {
     public typealias _ObjectiveCType = Self.RawValue  // Fixes compiler crash

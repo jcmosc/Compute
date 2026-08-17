@@ -30,7 +30,7 @@ Graph::UpdateStack::UpdateStack(Graph *graph, IAGGraphUpdateOptions options)
 
 Graph::UpdateStack::~UpdateStack() {
     for (auto &frame : _frames) {
-        frame.attribute->set_updating(false);
+        frame.attribute->decrement_count();
     }
 
     if (_thread != _graph->_current_update_thread) {
@@ -80,7 +80,7 @@ bool Graph::UpdateStack::cancelled() {
 
 bool Graph::UpdateStack::push(data::ptr<Node> node_ptr, Node &node, bool ignore_cycles, bool initialize_value) {
     if (!node.is_updating() && _frames.size() + 1 <= _frames.capacity()) {
-        node.set_updating(true);
+        node.increment_count();
 
         Frame frame = Frame(node_ptr);
         if (node.is_pending() || (!node.is_value_initialized() && initialize_value)) {
@@ -95,9 +95,9 @@ bool Graph::UpdateStack::push(data::ptr<Node> node_ptr, Node &node, bool ignore_
 }
 
 bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ignore_cycles, bool initialize_value) {
-    NodeState old_state = node.state();
+    uint8_t old_count = node.count();
 
-    if ((old_state & (NodeState::Updating | old_state & NodeState::UpdatingCyclic)) != NodeState(0)) {
+    if (old_count != 0) {
         if (ignore_cycles) {
             return false;
         }
@@ -133,18 +133,18 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
             }
         }
 
-        if ((old_state & NodeState::UpdatingCyclic) != NodeState(0)) {
+        if (old_count == 3) {
             precondition_failure("cyclic graph: %u", node_ptr);
         }
     }
 
-    node.set_updating(true);
+    node.increment_count();
 
     Frame frame = Frame(node_ptr);
     if (node.is_pending() || (!node.is_value_initialized() && initialize_value)) {
         frame.pending = true;
     }
-    if ((old_state & (NodeState::Updating | old_state & NodeState::UpdatingCyclic)) != NodeState(0)) {
+    if (old_count != 0) {
         frame.cyclic = true;
     }
     _frames.push_back(frame);
@@ -180,15 +180,16 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                     callback(reinterpret_cast<const IAGAttributeType *>(&attribute_type), self);
                     changed = true;
                 }
+            }
 
-                if (node->is_value_initialized()) {
-                    node->set_updating(false);
+            if (node->is_value_initialized()) {
+                node->decrement_count();
 
-                    _frames.pop_back();
-                    if (_frames.empty()) {
-                        return changed ? UpdateStatus::Changed : UpdateStatus::Unchanged;
-                    }
+                _frames.pop_back();
+                if (_frames.empty()) {
+                    return changed ? UpdateStatus::Changed : UpdateStatus::Unchanged;
                 }
+                continue;
             }
         }
 
@@ -197,7 +198,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             frame.pending = true;
         }
 
-        // Push inputs
+        // Push prefetched inputs
 
         for (auto input_index = frame.num_pushed_inputs, num_inputs = node->input_edges().size();
              input_index != num_inputs; ++input_index) {
@@ -228,7 +229,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                 if (!input_node->is_value_initialized() || input_node->is_dirty()) {
 
-                    if (!(input_edge.options & IAGInputOptionsChanged) && input_attribute.subgraph()->is_valid()) {
+                    if (!(input_edge.options & IAGInputOptionsUnprefetched) && input_attribute.subgraph()->is_valid()) {
                         frame.num_pushed_inputs = input_index + 1;
                         if (push(input_node, *input_node.get(), true, true)) {
                             // go to top
@@ -244,6 +245,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
         // Update value
 
         bool changed = false;
+
         if (frame.pending) {
             if (_graph->has_main_handler() && node->is_main_thread()) {
                 return Graph::UpdateStatus::NeedsCallMainHandler;
@@ -313,7 +315,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
             }
         }
 
-        node->set_updating(false);
+        node->decrement_count();
 
         if (reset_node_flags) {
             if (node->is_self_modified()) {
@@ -323,7 +325,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                 _graph->foreach_trace([&frame](Trace &trace) { trace.set_dirty(frame.attribute, false); });
                 node->set_dirty(false);
             }
-            node->set_main_thread(node->requires_main_thread());
+            node->set_main_thread(node->is_main_thread() && node->requires_main_thread());
         }
 
         if (node->is_pending()) {
@@ -333,7 +335,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
         _frames.pop_back();
         if (_frames.empty()) {
-            return UpdateStatus::Changed;
+            return changed ? UpdateStatus::Changed : UpdateStatus::Unchanged;
         }
     }
 }

@@ -179,6 +179,7 @@ void IAGTupleDestroyElement(IAGTupleType tuple_type, void *tuple_value, size_t i
             IAG::precondition_failure("index out of range: %d", index);
         }
         metadata->vw_destroy(reinterpret_cast<::swift::OpaqueValue *>(tuple_value));
+        return;
     }
     auto tuple_metadata = static_cast<const ::swift::TupleTypeMetadata *>(metadata);
     if (index >= tuple_metadata->NumElements) {

@@ -1560,14 +1560,15 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
             update_attribute(resolved.attribute().get_node(), IAGGraphUpdateOptionsNone);
         }
 
-        index = add_input(node, input, subgraph_id != 0, input_options & IAGInputOptionsUnprefetched);
+        index = add_input(node, input, subgraph_id != 0,
+                          input_options & (IAGInputOptionsUnprefetched | IAGInputOptionsChanged));
         if (index == UINT32_MAX) {
             return nullptr;
         }
     }
 
     InputEdge &input_edge = node->input_edges()[index];
-    input_edge.options |= input_options & IAGInputOptionsUnprefetched;
+    input_edge.options |= input_options & (IAGInputOptionsUnprefetched | IAGInputOptionsChanged);
     input_edge.options |= IAGInputOptionsEnabled;
 
     OffsetAttributeID resolved = input_edge.attribute.resolve(

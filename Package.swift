@@ -78,7 +78,8 @@ let package = Package(
         .testTarget(
             name: "ComputeLayoutDescriptorTests",
             dependencies: [
-                "Compute"
+                "Compute",
+                "_ComputeTestSupport",
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")

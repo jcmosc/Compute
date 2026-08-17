@@ -643,7 +643,7 @@ void Subgraph::update(IAGAttributeFlags mask) {
             continue;
         }
 
-        if (subgraph->is_valid() && subgraph->_dirty_flags & mask) {
+        while (subgraph->is_valid() && subgraph->_dirty_flags & mask) {
             subgraph->_dirty_flags &= ~mask;
 
             if (mask == 0 || intersects(mask)) {

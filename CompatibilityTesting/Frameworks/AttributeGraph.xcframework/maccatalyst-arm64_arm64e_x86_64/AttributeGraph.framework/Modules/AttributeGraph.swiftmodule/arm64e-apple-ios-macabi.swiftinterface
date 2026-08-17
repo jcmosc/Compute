@@ -40,10 +40,6 @@ extension AttributeGraph.AnyAttribute : @retroactive Swift.CustomStringConvertib
     get
   }
 }
-extension AttributeGraph.AnyAttribute : @retroactive Swift.Equatable {
-}
-extension AttributeGraph.AnyAttribute : @retroactive Swift.Hashable {
-}
 extension AttributeGraph.AnyAttribute {
   public typealias _ObjectiveCType = AttributeGraph.AnyAttribute.RawValue
 }
@@ -669,7 +665,11 @@ extension AttributeGraph.Metadata : @retroactive Swift.Hashable {
 extension AttributeGraph.Signature : @retroactive Swift.Equatable {
   public static func == (lhs: AttributeGraph.Signature, rhs: AttributeGraph.Signature) -> Swift.Bool
 }
-public func withUnsafeTuple(of type: AttributeGraph.TupleType, count: Swift.Int, body: (AttributeGraph.UnsafeMutableTuple) -> Swift.Void)
+@_silgen_name("AGTupleWithBuffer")
+public func AGTupleWithBuffer(of type: AttributeGraph.TupleType, count: Swift.Int, body: (AttributeGraph.UnsafeMutableTuple) -> Swift.Void)
+@_alwaysEmitIntoClient public func withUnsafeTuple(of type: AttributeGraph.TupleType, count: Swift.Int, _ body: (AttributeGraph.UnsafeMutableTuple) -> Swift.Void) {
+    AGTupleWithBuffer(of: type, count: count, body: body)
+}
 extension AttributeGraph.TupleType {
   public init(_ types: [any Any.Type])
   public init(_ type: any Any.Type)
@@ -688,48 +688,116 @@ extension AttributeGraph.TupleType {
   public func setElement<T>(in tupleValue: Swift.UnsafeMutableRawPointer, at index: Swift.Int, from sourceValue: Swift.UnsafePointer<T>, options: AttributeGraph.TupleType.CopyOptions)
 }
 extension AttributeGraph.UnsafeTuple {
-  public var count: Swift.Int {
-    get
+  @_alwaysEmitIntoClient public var count: Swift.Int {
+    get {
+        return type.count
+    }
   }
-  public var isEmpty: Swift.Bool {
-    get
+  @_alwaysEmitIntoClient public var isEmpty: Swift.Bool {
+    get {
+        return type.isEmpty
+    }
   }
-  public var indices: Swift.Range<Swift.Int> {
-    get
+  @_alwaysEmitIntoClient public var indices: Swift.Range<Swift.Int> {
+    get {
+        return type.indices
+    }
   }
-  public func address<T>(as expectedType: T.Type) -> Swift.UnsafePointer<T>
-  public func address<T>(of index: Swift.Int, as elementType: T.Type) -> Swift.UnsafePointer<T>
+  @_alwaysEmitIntoClient public func address<T>(as expectedType: T.Type) -> Swift.UnsafePointer<T> {
+        guard type.type == expectedType else {
+            preconditionFailure()
+        }
+        return value.assumingMemoryBound(to: expectedType)
+    }
+  @_alwaysEmitIntoClient public func address<T>(of index: Swift.Int, as elementType: T.Type) -> Swift.UnsafePointer<T> {
+        return value.advanced(
+            by: type.elementOffset(at: index, type: Metadata(elementType))
+        )
+        .assumingMemoryBound(to: elementType)
+    }
   public subscript<T>() -> T {
-    unsafeAddress
+    @_alwaysEmitIntoClient unsafeAddress {
+            return address(as: T.self)
+        }
   }
   public subscript<T>(index: Swift.Int) -> T {
-    unsafeAddress
+    @_alwaysEmitIntoClient unsafeAddress {
+            return address(of: index, as: T.self)
+        }
   }
 }
 extension AttributeGraph.UnsafeMutableTuple {
-  public init(with tupleType: AttributeGraph.TupleType)
-  public func deallocate(initialized: Swift.Bool)
-  public func initialize<T>(at index: Swift.Int, to element: T)
-  public func deinitialize()
+  @_alwaysEmitIntoClient public init(with tupleType: AttributeGraph.TupleType) {
+        self.init(
+            type: tupleType,
+            value: UnsafeMutableRawPointer.allocate(
+                byteCount: tupleType.size,
+                alignment: -1
+            )
+        )
+    }
+  @_alwaysEmitIntoClient public func deallocate(initialized: Swift.Bool) {
+        if initialized {
+            deinitialize()
+        }
+        value.deallocate()
+    }
+  @_alwaysEmitIntoClient public func initialize<T>(at index: Swift.Int, to element: T) {
+        withUnsafePointer(to: element) { elementPointer in
+            type.setElement(
+                in: value,
+                at: index,
+                from: elementPointer,
+                options: .initCopy
+            )
+        }
+    }
+  @_alwaysEmitIntoClient public func deinitialize() {
+        type.destroy(value)
+    }
   public func deinitialize(at index: Swift.Int)
-  public var count: Swift.Int {
-    get
+  @_alwaysEmitIntoClient public var count: Swift.Int {
+    get {
+        return type.count
+    }
   }
-  public var isEmpty: Swift.Bool {
-    get
+  @_alwaysEmitIntoClient public var isEmpty: Swift.Bool {
+    get {
+        return type.isEmpty
+    }
   }
-  public var indices: Swift.Range<Swift.Int> {
-    get
+  @_alwaysEmitIntoClient public var indices: Swift.Range<Swift.Int> {
+    get {
+        return type.indices
+    }
   }
-  public func address<T>(as expectedType: T.Type) -> Swift.UnsafeMutablePointer<T>
-  public func address<T>(of index: Swift.Int, as elementType: T.Type) -> Swift.UnsafeMutablePointer<T>
+  @_alwaysEmitIntoClient public func address<T>(as expectedType: T.Type) -> Swift.UnsafeMutablePointer<T> {
+        guard type.type == expectedType else {
+            preconditionFailure()
+        }
+        return value.assumingMemoryBound(to: expectedType)
+    }
+  @_alwaysEmitIntoClient public func address<T>(of index: Swift.Int, as elementType: T.Type) -> Swift.UnsafeMutablePointer<T> {
+        return value.advanced(
+            by: type.elementOffset(at: index, type: Metadata(elementType))
+        )
+        .assumingMemoryBound(to: elementType)
+    }
   public subscript<T>() -> T {
-    unsafeAddress
-    nonmutating unsafeMutableAddress
+    @_alwaysEmitIntoClient unsafeAddress {
+            return UnsafePointer(address(as: T.self))
+        }
+    @_alwaysEmitIntoClient nonmutating unsafeMutableAddress {
+            return address(as: T.self)
+        }
   }
   public subscript<T>(index: Swift.Int) -> T {
-    unsafeAddress
-    nonmutating unsafeMutableAddress
+    @_alwaysEmitIntoClient unsafeAddress {
+            return UnsafePointer(address(of: index, as: T.self))
+        }
+    @_alwaysEmitIntoClient nonmutating unsafeMutableAddress {
+            return address(of: index, as: T.self)
+        }
   }
 }
 extension AttributeGraph.Attribute : Swift.Sendable {}

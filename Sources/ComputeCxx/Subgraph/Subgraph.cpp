@@ -371,28 +371,21 @@ void Subgraph::remove_child(Subgraph &child, bool suppress_trace) {
 }
 
 bool Subgraph::ancestor_of(const Subgraph &other) {
-    auto untraversed_parents = std::stack<const Subgraph *, vector<const Subgraph *, 32, uint64_t>>();
-    const Subgraph *candidate = &other;
-    while (true) {
-        if (candidate == nullptr) {
-            // previous candidate was a top-level subgraph
-            if (untraversed_parents.empty()) {
-                return false;
-            }
-            candidate = untraversed_parents.top();
-            untraversed_parents.pop();
-        }
-
+    auto candidates = std::stack<const Subgraph *, vector<const Subgraph *, 32, uint64_t>>();
+    candidates.push(&other);
+    while (!candidates.empty()) {
+        auto candidate = candidates.top();
+        candidates.pop();
+        
         if (candidate == this) {
             return true;
         }
 
-        // partition parents into first and remaining
-        candidate = candidate->_parents.empty() ? nullptr : candidate->_parents.front();
-        for (Subgraph *parent : std::ranges::drop_view(other._parents, 1)) {
-            untraversed_parents.push(parent);
+        for (Subgraph *parent : candidate->_parents) {
+            candidates.push(parent);
         }
     }
+    return false;
 }
 
 #pragma mark - Flags

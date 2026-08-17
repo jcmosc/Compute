@@ -1195,6 +1195,7 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, IAGGraphUpdate
             call_main_handler(&context, [](void *void_context) {
                 auto inner_context = reinterpret_cast<std::pair<UpdateStack *, UpdateStatus> *>(void_context);
                 util::tagged_ptr<UpdateStack> previous = Graph::current_update();
+                Graph::set_current_update(util::tagged_ptr<UpdateStack>(inner_context->first));
                 inner_context->second = inner_context->first->update();
                 Graph::set_current_update(previous);
             });

@@ -26,8 +26,7 @@ enum class NodeState : uint8_t {
     RequiresMainThread = 1 << 3,
     ValueInitialized = 1 << 4,
     SelfInitialized = 1 << 5,
-    Updating = 1 << 6,
-    UpdatingCyclic = 1 << 7,
+    CountMask = (1 << 6) | (1 << 7),
 };
 inline NodeState operator|(NodeState a, NodeState b) {
     return static_cast<NodeState>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
@@ -103,9 +102,17 @@ class Node {
         _state = value ? _state | NodeState::SelfInitialized : _state & ~NodeState::SelfInitialized;
     }
 
-    bool is_updating() const { return (_state & (NodeState::Updating | NodeState::UpdatingCyclic)) != (NodeState)0; };
-    void set_updating(bool value) { _state = value ? _state | NodeState::Updating : _state & ~NodeState::Updating; }
+    bool is_updating() const { return (_state & NodeState::CountMask) != (NodeState)0; };
+
     uint8_t count() const { return (uint8_t)_state >> 6; };
+    void increment_count() {
+        assert(count() < 3);
+        _state = (NodeState)((uint8_t)_state + 0x40);
+    };
+    void decrement_count() {
+        assert(count() > 0);
+        _state = (NodeState)((uint8_t)_state - 0x40);
+    };
 
     // TODO: test this
     IAGValueState flags() const {

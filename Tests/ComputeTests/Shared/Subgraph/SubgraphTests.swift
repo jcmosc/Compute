@@ -325,7 +325,25 @@ struct SubgraphTests {
             #expect(subgraph.isValid == false)
             #expect(child.isValid == false)
         }
+        
+        @Test
+        func ancestorOfTraversesParentsOfAllIntermediateSubgraphs() {
+            let graph = Graph()
+            let root1 = Subgraph(graph: graph)
+            let root2 = Subgraph(graph: graph)
+            let intermediate = Subgraph(graph: graph)
+            let child = Subgraph(graph: graph)
 
+            root1.addChild(intermediate)
+            root2.addChild(intermediate)
+            intermediate.addChild(child)
+
+            #expect(intermediate.parentCount == 2)
+            #expect(child.parentCount == 1)
+
+            #expect(root1.isAncestor(of: child) == true)
+            #expect(root2.isAncestor(of: child) == true)
+        }
     }
 
     @Suite

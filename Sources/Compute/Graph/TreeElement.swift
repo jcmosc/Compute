@@ -1,15 +1,13 @@
 import ComputeCxx
 
 extension TreeElement {
-
     public var value: AnyAttribute? {
         let result = __IAGTreeElementGetValue(self)
         return result == .nil ? nil : result
     }
-
 }
 
-extension Nodes: @retroactive IteratorProtocol {
+extension TreeElement.Nodes: @retroactive Sequence, @retroactive IteratorProtocol {
     public typealias Element = AnyAttribute
 
     @_alwaysEmitIntoClient
@@ -17,22 +15,21 @@ extension Nodes: @retroactive IteratorProtocol {
         let result = __IAGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result
     }
-
 }
 
-extension Children: @retroactive IteratorProtocol {
+extension TreeElement.Children: @retroactive Sequence, @retroactive IteratorProtocol {
     public typealias Element = TreeElement
 }
 
-extension Values: @retroactive IteratorProtocol {
+extension TreeElement.Values: @retroactive Sequence, @retroactive IteratorProtocol {
     public typealias Element = TreeValue
 }
 
-// TODO: how is this used?
 extension TreeElement {
-
-    struct LocalChildren {
-        var base: Children
+    public struct LocalChildren: Sequence, IteratorProtocol {
+        public var base: Children
+        public mutating func next() -> TreeElement? {
+            base.next(includeChildSubgraphs: false)
+        }
     }
-
 }

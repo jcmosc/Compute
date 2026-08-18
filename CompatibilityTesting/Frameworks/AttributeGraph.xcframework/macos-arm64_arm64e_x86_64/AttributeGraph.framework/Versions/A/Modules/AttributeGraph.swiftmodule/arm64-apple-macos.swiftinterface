@@ -35,7 +35,7 @@ extension AttributeGraph.AnyAttribute {
     get
   }
 }
-extension AttributeGraph.AnyAttribute : @retroactive Swift.CustomStringConvertible {
+extension AttributeGraph.AnyAttribute : Swift.CustomStringConvertible {
   public var description: Swift.String {
     get
   }
@@ -493,15 +493,15 @@ extension AttributeGraph.AnyWeakAttribute {
     set
   }
 }
-extension AttributeGraph.AnyWeakAttribute : @retroactive Swift.CustomStringConvertible {
+extension AttributeGraph.AnyWeakAttribute : Swift.CustomStringConvertible {
   public var description: Swift.String {
     get
   }
 }
-extension AttributeGraph.AnyWeakAttribute : @retroactive Swift.Equatable {
+extension AttributeGraph.AnyWeakAttribute : Swift.Equatable {
   public static func == (lhs: AttributeGraph.AnyWeakAttribute, rhs: AttributeGraph.AnyWeakAttribute) -> Swift.Bool
 }
-extension AttributeGraph.AnyWeakAttribute : @retroactive Swift.Hashable {
+extension AttributeGraph.AnyWeakAttribute : Swift.Hashable {
   public func hash(into hasher: inout Swift.Hasher)
   public var hashValue: Swift.Int {
     get
@@ -625,18 +625,29 @@ extension AttributeGraph.TreeElement {
     get
   }
 }
-extension AttributeGraph.Nodes : @retroactive Swift.IteratorProtocol {
+extension AttributeGraph.TreeElement.Nodes : Swift.Sequence, Swift.IteratorProtocol {
   public typealias Element = AttributeGraph.AnyAttribute
   @_alwaysEmitIntoClient public mutating func next() -> AttributeGraph.AnyAttribute? {
         let result = __AGTreeElementGetNextNode(&self)
         return result == .nil ? nil : result
     }
+  public typealias Iterator = AttributeGraph.TreeElement.Nodes
 }
-extension AttributeGraph.Children : @retroactive Swift.IteratorProtocol {
+extension AttributeGraph.TreeElement.Children : Swift.Sequence, Swift.IteratorProtocol {
   public typealias Element = AttributeGraph.TreeElement
+  public typealias Iterator = AttributeGraph.TreeElement.Children
 }
-extension AttributeGraph.Values : @retroactive Swift.IteratorProtocol {
+extension AttributeGraph.TreeElement.Values : Swift.Sequence, Swift.IteratorProtocol {
   public typealias Element = AttributeGraph.TreeValue
+  public typealias Iterator = AttributeGraph.TreeElement.Values
+}
+extension AttributeGraph.TreeElement {
+  public struct LocalChildren : Swift.Sequence, Swift.IteratorProtocol {
+    public var base: AttributeGraph.TreeElement.Children
+    public mutating func next() -> AttributeGraph.TreeElement?
+    public typealias Element = AttributeGraph.TreeElement
+    public typealias Iterator = AttributeGraph.TreeElement.LocalChildren
+  }
 }
 extension AttributeGraph.ComparisonOptions {
   public init(mode: AttributeGraph.ComparisonMode)
@@ -653,16 +664,16 @@ extension AttributeGraph.Metadata {
   }
   public func forEachField(options: AttributeGraph.Metadata.ApplyOptions, do body: (Swift.UnsafePointer<Swift.CChar>, Swift.Int, any Any.Type) -> Swift.Bool) -> Swift.Bool
 }
-extension AttributeGraph.Metadata : @retroactive Swift.CustomStringConvertible {
+extension AttributeGraph.Metadata : Swift.CustomStringConvertible {
   public var description: Swift.String {
     get
   }
 }
-extension AttributeGraph.Metadata : @retroactive Swift.Equatable {
+extension AttributeGraph.Metadata : Swift.Equatable {
 }
-extension AttributeGraph.Metadata : @retroactive Swift.Hashable {
+extension AttributeGraph.Metadata : Swift.Hashable {
 }
-extension AttributeGraph.Signature : @retroactive Swift.Equatable {
+extension AttributeGraph.Signature : Swift.Equatable {
   public static func == (lhs: AttributeGraph.Signature, rhs: AttributeGraph.Signature) -> Swift.Bool
 }
 @_silgen_name("AGTupleWithBuffer")

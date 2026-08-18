@@ -30,10 +30,10 @@ AGTreeElement _Nullable AGTreeElementGetParent(AGTreeElement tree_element)
 
 // MARK: Iterating values
 
-typedef struct AGTreeElementValueIterator {
+typedef struct {
     uintptr_t parent_elt;
     uintptr_t next_elt;
-} AG_SWIFT_NAME(Values) AGTreeElementValueIterator;
+} AG_SWIFT_NAME(TreeElement.Values) AGTreeElementValueIterator;
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -42,14 +42,15 @@ AGTreeElementValueIterator AGTreeElementMakeValueIterator(AGTreeElement tree_ele
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-AGTreeValue _Nullable AGTreeElementGetNextValue(AGTreeElementValueIterator *iter) AG_SWIFT_NAME(Values.next(self:));
+AGTreeValue _Nullable AGTreeElementGetNextValue(AGTreeElementValueIterator *iter)
+    AG_SWIFT_NAME(TreeElement.Values.next(self:));
 
 // MARK: Iterating nodes
 
-typedef struct AGTreeElementNodeIterator {
+typedef struct {
     uintptr_t elt;
     unsigned long node_index;
-} AG_SWIFT_NAME(Nodes) AGTreeElementNodeIterator;
+} AG_SWIFT_NAME(TreeElement.Nodes) AGTreeElementNodeIterator;
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -62,11 +63,11 @@ AGAttribute AGTreeElementGetNextNode(AGTreeElementNodeIterator *iter);
 
 // MARK: Iterating children
 
-typedef struct AGTreeElementChildIterator {
+typedef struct {
     uintptr_t parent_elt;
     uintptr_t next_elt;
     size_t subgraph_index;
-} AG_SWIFT_NAME(Children) AGTreeElementChildIterator;
+} AG_SWIFT_NAME(TreeElement.Children) AGTreeElementChildIterator;
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
@@ -76,7 +77,12 @@ AGTreeElementChildIterator AGTreeElementMakeChildIterator(AGTreeElement tree_ele
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
 AGTreeElement _Nullable AGTreeElementGetNextChild(AGTreeElementChildIterator *iter)
-    AG_SWIFT_NAME(Children.next(self:));
+    AG_SWIFT_NAME(TreeElement.Children.next(self:));
+
+AG_EXPORT
+AG_REFINED_FOR_SWIFT
+AGTreeElement _Nullable AGTreeElementGetNextChild2(AGTreeElementChildIterator *iter, bool include_child_subgraphs)
+    AG_SWIFT_NAME(TreeElement.Children.next(self:includeChildSubgraphs:));
 
 AG_EXTERN_C_END
 

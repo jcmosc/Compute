@@ -67,14 +67,18 @@ IAGTreeElementChildIterator IAGTreeElementMakeChildIterator(IAGTreeElement tree_
 }
 
 IAGTreeElement IAGTreeElementGetNextChild(IAGTreeElementChildIterator *iter) {
+    return IAGTreeElementGetNextChild2(iter, true);
+}
+
+IAGTreeElement IAGTreeElementGetNextChild2(IAGTreeElementChildIterator *iter, bool include_child_subgraphs) {
     IAGTreeElement next_child = reinterpret_cast<IAGTreeElement>(iter->next_elt);
     if (next_child) {
         iter->next_elt = IAG::Graph::TreeElementID(next_child)->next_sibling;
         return next_child;
     }
 
-    if (!iter->subgraph_index) {
-        iter->subgraph_index = true; // +1 or set to true?
+    if (!iter->subgraph_index && include_child_subgraphs) {
+        iter->subgraph_index = true;
         auto tree_element = reinterpret_cast<IAGTreeElement>(iter->parent_elt);
         auto tree_element_id = IAG::Graph::TreeElementID(tree_element);
         auto subgraph = tree_element_id.subgraph();

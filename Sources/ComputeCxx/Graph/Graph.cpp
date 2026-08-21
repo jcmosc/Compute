@@ -320,7 +320,7 @@ const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void 
 }
 
 uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<const IAGAttributeType *> make_type) {
-    uint32_t type_id = uint32_t(reinterpret_cast<uintptr_t>(_interned_types.lookup(metadata, nullptr)));
+    uint32_t type_id = _interned_types.lookup(metadata, nullptr);
     if (type_id) {
         return type_id;
     }
@@ -344,7 +344,7 @@ uint32_t Graph::intern_type(const swift::metadata *metadata, ClosureFunctionVP<c
         precondition_failure("overflowed max type id: %u", type_id);
     }
     _types.push_back(std::unique_ptr<AttributeType, AttributeType::deleter>(type));
-    _interned_types.insert(metadata, reinterpret_cast<void *>(uintptr_t(type_id)));
+    _interned_types.insert(metadata, type_id);
 
     size_t self_size = type->body_metadata().vw_size();
     if (self_size >= 0x2000) {

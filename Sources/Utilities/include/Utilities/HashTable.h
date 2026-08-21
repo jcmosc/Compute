@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstring>
+
 #include <Utilities/Base.h>
 #include <Utilities/SwiftBridging.h>
 
@@ -83,6 +85,9 @@ class UntypedTable {
 
 template <typename Key, typename Value>
 class Table : public UntypedTable {
+    static_assert(sizeof(Key) <= sizeof(void *), "Key must fit in a void*");
+    static_assert(sizeof(Value) <= sizeof(void *), "Value must fit in a void*");
+
   public:
     using key_type = Key;
     using value_type = Value;
@@ -92,6 +97,14 @@ class Table : public UntypedTable {
     using value_callback = void (*)(const value_type);
     using entry_callback = void (*)(const key_type, const value_type, void *context);
 
+  private:
+    static void *_Nullable untyped_key(const key_type &key) {
+        void *result = nullptr;
+        std::memcpy(&result, &key, sizeof(key_type));
+        return result;
+    }
+
+  public:
     Table() : UntypedTable() {};
     Table(hasher _Nullable custom_hasher, key_equal _Nullable custom_compare, key_callback _Nullable did_remove_key,
           value_callback _Nullable did_remove_value, Heap *_Nullable heap)
@@ -103,9 +116,11 @@ class Table : public UntypedTable {
     // Lookup
 
     value_type lookup(const key_type key, key_type *_Nullable found_key) const noexcept {
-        auto result = UntypedTable::lookup(*(void **)&key,
-                                           reinterpret_cast<UntypedTable::nullable_key_type *_Nullable>(found_key));
-        return *(value_type *)&result;
+        auto untyped_result = UntypedTable::lookup(
+            untyped_key(key), reinterpret_cast<UntypedTable::nullable_key_type *_Nullable>(found_key));
+        value_type result;
+        std::memcpy(&result, &untyped_result, sizeof(value_type));
+        return result;
     };
 
     void for_each(entry_callback _Nonnull body, void *_Nullable context) const {
@@ -115,9 +130,11 @@ class Table : public UntypedTable {
     // Modifying entries
 
     bool insert(const key_type key, const value_type value) {
-        return UntypedTable::insert(*(void **)&key, *(void **)&value);
+        void *untyped_value = nullptr;
+        std::memcpy(&untyped_value, &value, sizeof(value_type));
+        return UntypedTable::insert(untyped_key(key), untyped_value);
     };
-    bool remove(const key_type key) { return UntypedTable::remove(*(void **)&key); };
+    bool remove(const key_type key) { return UntypedTable::remove(untyped_key(key)); };
     bool remove_ptr(const key_type key) { return UntypedTable::remove_ptr(key); };
 };
 

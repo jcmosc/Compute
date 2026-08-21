@@ -24,7 +24,7 @@ class Graph::TraceRecorder : public Trace, public Encoder::Delegate {
 
     vector<std::unique_ptr<const char, util::free_deleter>, 0, uint64_t> _named_event_subsystems;
 
-    util::Table<const uuid_t, uint64_t> _image_offset_cache;
+    util::Table<const unsigned char *, uint64_t> _image_offset_cache;
     uuid_t _stack_frame_uuid;
 
     std::unique_ptr<const char, util::free_deleter> _trace_path = nullptr;

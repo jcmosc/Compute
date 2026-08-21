@@ -158,7 +158,7 @@ class Graph {
     util::Heap _heap;
 
     // Attribute types
-    util::UntypedTable _interned_types;
+    util::Table<const swift::metadata *, uint32_t> _interned_types;
     vector<std::unique_ptr<AttributeType, AttributeType::deleter>, 0, uint32_t> _types;
 
     // Contexts

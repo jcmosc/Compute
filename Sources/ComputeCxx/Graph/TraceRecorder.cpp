@@ -304,7 +304,7 @@ void Graph::TraceRecorder::field_backtrace(Encoder &encoder) {
 
             encoder.encode_field_begin(EVENT_FIELD_BACKTRACE);
 
-            uuid_t cached_uuid = {};
+            const unsigned char *cached_uuid = {};
             uint64_t image_offset_id = _image_offset_cache.lookup(image_offset.uuid, &cached_uuid);
             if (uuid_is_null(cached_uuid)) {
                 uuid_t *key = (uuid_t *)malloc(sizeof(uuid_t));

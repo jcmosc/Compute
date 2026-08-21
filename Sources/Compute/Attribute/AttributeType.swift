@@ -74,7 +74,7 @@ extension _AttributeType {
     }()
 
     init(
-        selfType: _AttributeBody.Type,
+        selfType: any _AttributeBody.Type,
         valueType: Metadata,
         flags: Flags,
         update: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void,

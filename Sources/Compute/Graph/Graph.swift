@@ -17,7 +17,7 @@ extension Graph {
         update: () -> (UnsafeMutableRawPointer, AnyAttribute) -> Void
     ) -> AttributeTypeIndex {
         let makeAttributeType: () -> UnsafePointer<_AttributeType> = {
-            let bodyType: _AttributeBody.Type
+            let bodyType: any _AttributeBody.Type
             #if CompatibilityModeAttributeGraphV6
             bodyType = Body.self
             #else

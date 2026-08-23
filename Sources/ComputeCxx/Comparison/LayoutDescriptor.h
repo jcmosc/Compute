@@ -58,8 +58,7 @@ bool compare(ValueLayout layout, const unsigned char *lhs, const unsigned char *
 bool compare_bytes_top_level(const unsigned char *lhs, const unsigned char *rhs, size_t size,
                              IAGComparisonOptions options);
 bool compare_bytes(char unsigned const *lhs, char unsigned const *rhs, size_t size, size_t *_Nullable failure_location);
-bool compare_heap_objects(char unsigned const *lhs, char unsigned const *rhs, IAGComparisonOptions options,
-                          bool is_function);
+bool compare_heap_objects(const void *lhs, const void *rhs, IAGComparisonOptions options, bool is_capture_ref);
 bool compare_indirect(ValueLayout _Nullable *_Nullable layout_ref, const swift::metadata &lhs_type,
                       const swift::metadata &rhs_type, IAGComparisonOptions options, const unsigned char *lhs,
                       const unsigned char *rhs);

@@ -365,7 +365,7 @@ size_t length(ValueLayout layout) {
             reader.skip(sizeof(void *));
             continue;
         case ValueLayoutEntryKind::HeapRef:
-        case ValueLayoutEntryKind::Function:
+        case ValueLayoutEntryKind::CaptureRef:
             continue;
         case ValueLayoutEntryKind::Nested:
             reader.skip(sizeof(void *));
@@ -482,8 +482,7 @@ bool compare_bytes(const unsigned char *lhs, const unsigned char *rhs, size_t si
     return true;
 }
 
-bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, IAGComparisonOptions options,
-                          bool is_function) {
+bool compare_heap_objects(const void *lhs, const void *rhs, IAGComparisonOptions options, bool is_capture_ref) {
     if (lhs == rhs) {
         return true;
     }
@@ -491,19 +490,23 @@ bool compare_heap_objects(const unsigned char *lhs, const unsigned char *rhs, IA
         return false;
     }
 
-    auto lhs_type = (const swift::metadata *)lhs;
-    auto rhs_type = (const swift::metadata *)rhs;
+    // The first field of a Swift HeapObject is a pointer to its metadata.
+    const swift::metadata *lhs_type;
+    const swift::metadata *rhs_type;
+    std::memcpy(&lhs_type, lhs, sizeof(lhs_type));
+    std::memcpy(&rhs_type, rhs, sizeof(rhs_type));
     if (lhs_type != rhs_type) {
         return false;
     }
 
-    HeapMode heap_mode = is_function ? HeapMode::Locals : HeapMode::Class;
-    IAGComparisonOptions fetch_options = options & IAGComparisonOptionsComparisonModeMask; // this has the effect of
-                                                                                           // allowing async fetch
+    HeapMode heap_mode = is_capture_ref ? HeapMode::Locals : HeapMode::Class;
+    // this has the effect of allowing async fetch
+    IAGComparisonOptions fetch_options = options & IAGComparisonOptionsComparisonModeMask;
     ValueLayout layout = TypeDescriptorCache::shared_cache().fetch(*lhs_type, fetch_options, heap_mode, 1);
 
     if (layout > ValueLayoutTrivial) {
-        return compare(layout, lhs, rhs, -1, options & ~IAGComparisonOptionsCopyOnWrite);
+        return compare(layout, (const unsigned char *)lhs, (const unsigned char *)rhs, -1,
+                       options & ~IAGComparisonOptionsCopyOnWrite);
     }
 
     return false;
@@ -681,7 +684,7 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
             continue;
         }
         case ValueLayoutEntryKind::HeapRef:
-        case ValueLayoutEntryKind::Function: {
+        case ValueLayoutEntryKind::CaptureRef: {
             accumulated_size += sizeof(void *);
             continue;
         }
@@ -840,7 +843,7 @@ void print(std::string &output, ValueLayout layout) {
             continue;
         }
         case ValueLayoutEntryKind::HeapRef:
-        case ValueLayoutEntryKind::Function: {
+        case ValueLayoutEntryKind::CaptureRef: {
             bool is_heap_ref = kind == ValueLayoutEntryKind::HeapRef;
 
             output.push_back('\n');
@@ -1287,8 +1290,8 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Ex
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const HeapRefItem &item) {
     enter(item);
-    _data->push_back(item.is_function ? (unsigned char)ValueLayoutEntryKind::Function
-                                      : (unsigned char)ValueLayoutEntryKind::HeapRef);
+    _data->push_back(item.is_capture_ref ? (unsigned char)ValueLayoutEntryKind::CaptureRef
+                                         : (unsigned char)ValueLayoutEntryKind::HeapRef);
     _emitted_size += item.size;
 }
 

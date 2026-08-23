@@ -1,5 +1,7 @@
 #include "Compare.h"
 
+#include <cstring>
+
 #include "Graph/Graph.h"
 #include "Swift/Metadata.h"
 #include "Swift/SwiftShims.h"
@@ -158,14 +160,20 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             continue;
         }
         case ValueLayoutEntryKind::HeapRef:
-        case ValueLayoutEntryKind::Function: {
-            bool is_function = kind == ValueLayoutEntryKind::Function;
+        case ValueLayoutEntryKind::CaptureRef: {
+            bool is_capture_ref = kind == ValueLayoutEntryKind::CaptureRef;
 
             size_t item_end = offset + 8;
 
-            if (lhs + offset != rhs + offset) {
-                if (!compare_heap_objects(lhs + offset, rhs + offset, options & ~IAGComparisonOptionsTraceCompareFailed,
-                                          is_function)) {
+            // The buffer at offset stores a pointer to the heap object.
+            const void *lhs_object;
+            const void *rhs_object;
+            std::memcpy(&lhs_object, lhs + offset, sizeof(lhs_object));
+            std::memcpy(&rhs_object, rhs + offset, sizeof(rhs_object));
+
+            if (lhs_object != rhs_object) {
+                auto heap_object_options = options & ~IAGComparisonOptionsTraceCompareFailed;
+                if (!compare_heap_objects(lhs_object, rhs_object, heap_object_options, is_capture_ref)) {
                     failed(options, lhs, rhs, offset, 8, nullptr);
                     return false;
                 }

@@ -31,7 +31,7 @@ class Builder : public swift::metadata_visitor {
         const swift::existential_type_metadata *type;
     };
     struct HeapRefItem : RangeItem {
-        bool is_function;
+        bool is_capture_ref;
     };
     struct NestedItem : RangeItem {
         ValueLayout layout;

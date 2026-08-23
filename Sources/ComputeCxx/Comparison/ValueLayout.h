@@ -11,7 +11,7 @@ enum class ValueLayoutEntryKind : uint8_t {
     Indirect = '\x02',
     Existential = '\x03',
     HeapRef = '\x04',
-    Function = '\x05',
+    CaptureRef = '\x05',
     Nested = '\x06',
     CompactNested = '\x07',
 

@@ -552,7 +552,7 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
 
     // compare as heap objects
     bool result;
-    if (*lhs_copy == *rhs_copy) {
+    if (std::memcmp(lhs_copy, rhs_copy, sizeof(void *)) == 0) {
         // projected data are referentially equal
         result = true;
     } else {

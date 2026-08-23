@@ -129,13 +129,24 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
         }
         case ValueLayoutEntryKind::Indirect: {
             auto type = reader.read_bytes<const swift::metadata *>();
-            auto indirect_layout = reader.read_bytes<ValueLayout>();
+
+            unsigned char *indirect_layout_ptr = const_cast<unsigned char *>(reader.layout);
+            ValueLayout indirect_layout;
+            std::memcpy(&indirect_layout, indirect_layout_ptr, sizeof(indirect_layout));
+            reader.skip(sizeof(indirect_layout));
 
             size_t item_size = type->vw_size();
             size_t item_end = offset + item_size;
 
-            if (!compare_indirect(&indirect_layout, *_enums.back().type, *type,
-                                  options & ~IAGComparisonOptionsTraceCompareFailed, lhs + offset, rhs + offset)) {
+            bool equal =
+                compare_indirect(&indirect_layout, *_enums.back().type, *type,
+                                 options & ~IAGComparisonOptionsTraceCompareFailed, lhs + offset, rhs + offset);
+
+            // Persist the (possibly newly-fetched) indirect layout
+            // Layout fetch is idempotent for a given type and options
+            std::memcpy(indirect_layout_ptr, &indirect_layout, sizeof(indirect_layout));
+
+            if (!equal) {
                 failed(options, lhs, rhs, offset, item_size, type);
                 return false;
             }

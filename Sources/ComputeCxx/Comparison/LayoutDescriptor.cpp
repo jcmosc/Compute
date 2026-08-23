@@ -452,7 +452,11 @@ bool compare_bytes(const unsigned char *lhs, const unsigned char *rhs, size_t si
     // If both aligned to 8 bytes, compare 8 bytes at a time
     if ((((uintptr_t)lhs | (uintptr_t)rhs) & 7) == 0) {
         while (remaining_size >= 8) {
-            if (*(uint64_t *)lhs != *(uint64_t *)rhs) {
+            uint64_t lhs_word;
+            uint64_t rhs_word;
+            std::memcpy(&lhs_word, lhs, sizeof(lhs_word));
+            std::memcpy(&rhs_word, rhs, sizeof(rhs_word));
+            if (lhs_word != rhs_word) {
                 if (failure_location) {
                     *failure_location = location;
                 }
@@ -467,7 +471,7 @@ bool compare_bytes(const unsigned char *lhs, const unsigned char *rhs, size_t si
 
     // Compare one byte at a time
     while (remaining_size > 0) {
-        if (*(uint8_t *)lhs != *(uint8_t *)rhs) {
+        if (*lhs != *rhs) {
             if (failure_location) {
                 *failure_location = location;
             }

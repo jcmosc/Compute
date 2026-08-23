@@ -4,7 +4,6 @@ import ComputeCxx
 @propertyWrapper
 @dynamicMemberLookup
 public struct WeakAttribute<Value> {
-
     public var base: AnyWeakAttribute
 
     public init(base: AnyWeakAttribute) {
@@ -64,29 +63,22 @@ public struct WeakAttribute<Value> {
     public subscript<Member>(dynamicMember keyPath: KeyPath<Value, Member>) -> Attribute<Member>? {
         return attribute?[keyPath: keyPath]
     }
-
 }
 
 extension WeakAttribute: CustomStringConvertible {
-
     public var description: String {
         return base.description
     }
-
 }
 
 extension WeakAttribute: Equatable {
-
     public static func == (_ lhs: WeakAttribute, _ rhs: WeakAttribute) -> Bool {
-        return lhs.base == rhs.base
+        lhs.base == rhs.base
     }
-
 }
 
 extension WeakAttribute: Hashable {
-
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(base)
+        base.hash(into: &hasher)
     }
-
 }

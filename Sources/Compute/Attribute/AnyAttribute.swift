@@ -96,6 +96,8 @@ extension AnyAttribute {
     }
 }
 
+extension AnyAttribute: @retroactive Hashable {}
+
 extension AnyAttribute: @retroactive CustomStringConvertible {
     public var description: String {
         return "#\(rawValue)"

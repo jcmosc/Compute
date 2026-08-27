@@ -35,6 +35,8 @@ extension AttributeGraph.AnyAttribute {
     get
   }
 }
+extension AttributeGraph.AnyAttribute : Swift.Hashable {
+}
 extension AttributeGraph.AnyAttribute : Swift.CustomStringConvertible {
   public var description: Swift.String {
     get
@@ -257,17 +259,15 @@ extension AttributeGraph.ObservedAttribute {
   }
   public func map<T>(_ transform: (AttributeGraph.AnyAttribute) -> T) -> T?
 }
-extension AttributeGraph.AnyOptionalAttribute : Swift.CustomStringConvertible {
-  public var description: Swift.String {
+extension AttributeGraph.AnyOptionalAttribute : Swift.Hashable {
+  public func hash(into hasher: inout Swift.Hasher)
+  public static func == (lhs: AttributeGraph.AnyOptionalAttribute, rhs: AttributeGraph.AnyOptionalAttribute) -> Swift.Bool
+  public var hashValue: Swift.Int {
     get
   }
 }
-extension AttributeGraph.AnyOptionalAttribute : Swift.Equatable {
-  public static func == (lhs: AttributeGraph.AnyOptionalAttribute, rhs: AttributeGraph.AnyOptionalAttribute) -> Swift.Bool
-}
-extension AttributeGraph.AnyOptionalAttribute : Swift.Hashable {
-  public func hash(into hasher: inout Swift.Hasher)
-  public var hashValue: Swift.Int {
+extension AttributeGraph.AnyOptionalAttribute : Swift.CustomStringConvertible {
+  public var description: Swift.String {
     get
   }
 }
@@ -493,17 +493,15 @@ extension AttributeGraph.AnyWeakAttribute {
     set
   }
 }
-extension AttributeGraph.AnyWeakAttribute : Swift.CustomStringConvertible {
-  public var description: Swift.String {
+extension AttributeGraph.AnyWeakAttribute : Swift.Hashable {
+  public func hash(into hasher: inout Swift.Hasher)
+  public static func == (lhs: AttributeGraph.AnyWeakAttribute, rhs: AttributeGraph.AnyWeakAttribute) -> Swift.Bool
+  public var hashValue: Swift.Int {
     get
   }
 }
-extension AttributeGraph.AnyWeakAttribute : Swift.Equatable {
-  public static func == (lhs: AttributeGraph.AnyWeakAttribute, rhs: AttributeGraph.AnyWeakAttribute) -> Swift.Bool
-}
-extension AttributeGraph.AnyWeakAttribute : Swift.Hashable {
-  public func hash(into hasher: inout Swift.Hasher)
-  public var hashValue: Swift.Int {
+extension AttributeGraph.AnyWeakAttribute : Swift.CustomStringConvertible {
+  public var description: Swift.String {
     get
   }
 }

@@ -7,7 +7,7 @@ AG_ASSUME_NONNULL_BEGIN
 
 AG_EXTERN_C_BEGIN
 
-typedef struct AGWeakAttribute {
+typedef struct {
     struct {
         AGAttribute identifier;
         uint32_t seed;

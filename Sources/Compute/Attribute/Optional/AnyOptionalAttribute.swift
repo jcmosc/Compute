@@ -2,7 +2,6 @@ import ComputeCxx
 
 @frozen
 public struct AnyOptionalAttribute {
-
     public static var current: AnyOptionalAttribute {
         return AnyOptionalAttribute(AnyAttribute.current)
     }
@@ -52,26 +51,18 @@ public struct AnyOptionalAttribute {
 
 }
 
-extension AnyOptionalAttribute: CustomStringConvertible {
-
-    public var description: String {
-        return attribute?.description ?? "nil"
-    }
-
-}
-
-extension AnyOptionalAttribute: Equatable {
-
-    public static func == (_ lhs: AnyOptionalAttribute, _ rhs: AnyOptionalAttribute) -> Bool {
-        return lhs.identifier == rhs.identifier
-    }
-
-}
-
 extension AnyOptionalAttribute: Hashable {
-
     public func hash(into hasher: inout Hasher) {
         hasher.combine(identifier)
     }
+    
+    public static func == (_ lhs: AnyOptionalAttribute, _ rhs: AnyOptionalAttribute) -> Bool {
+        return lhs.identifier == rhs.identifier
+    }
+}
 
+extension AnyOptionalAttribute: CustomStringConvertible {
+    public var description: String {
+        return attribute?.description ?? "nil"
+    }
 }

@@ -3,7 +3,24 @@ import Testing
 
 @Suite
 struct MetadataTests {
-
+    func hashableConformance() {
+        func hashValue<T>(of value: T) -> Int where T: Hashable {
+            value.hashValue
+        }
+        let metadata = Metadata(TestClass.self)
+        #expect(hashValue(of: metadata) == metadata.hashValue)
+        
+    }
+    
+    func customStringConvertibleConformance() {
+        func description<T>(of value: T) -> String where T: CustomStringConvertible {
+            value.description
+        }
+        let metadata = Metadata(TestClass.self)
+        #expect(description(of: metadata) == metadata.description)
+        
+    }
+    
     @Test(
         arguments: Array<(Any.Type, String)> {
             (TestClass.self, "TestClass")
@@ -78,7 +95,16 @@ struct MetadataTests {
 
     @Suite
     struct SignatureTests {
-
+        func equatableConformance() {
+            func areEqual<T>(lhs: T, rhs:T) -> Bool where T: Equatable {
+                lhs == rhs
+            }
+            let signature1 = Metadata(TestClass.self).signature
+            let signature2 = Metadata(TestStruct.self).signature
+            #expect(areEqual(lhs: signature1, rhs: signature1) == true)
+            #expect(areEqual(lhs: signature1, rhs: signature2) == false)
+        }
+        
         @Test(
             "Metadata for nominal type has a valid signature",
             arguments: Array<(Any.Type, Bool)> {

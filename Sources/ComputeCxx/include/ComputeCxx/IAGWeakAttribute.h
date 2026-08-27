@@ -7,7 +7,7 @@ IAG_ASSUME_NONNULL_BEGIN
 
 IAG_EXTERN_C_BEGIN
 
-typedef struct IAGWeakAttribute {
+typedef struct {
     struct {
         IAGAttribute identifier;
         uint32_t seed;

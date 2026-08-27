@@ -24,22 +24,20 @@ extension AnyWeakAttribute {
     }
 }
 
-extension AnyWeakAttribute: @retroactive CustomStringConvertible {
-    public var description: String {
-        return attribute?.description ?? "nil"
+extension AnyWeakAttribute: @retroactive Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(_details.identifier)
+        hasher.combine(_details.seed)
     }
-}
 
-extension AnyWeakAttribute {
     public static func == (lhs: AnyWeakAttribute, rhs: AnyWeakAttribute) -> Bool {
         return lhs._details.identifier == rhs._details.identifier
             && lhs._details.seed == rhs._details.seed
     }
 }
 
-extension AnyWeakAttribute {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(_details.identifier)
-        hasher.combine(_details.seed)
+extension AnyWeakAttribute: @retroactive CustomStringConvertible {
+    public var description: String {
+        return attribute?.description ?? "nil"
     }
 }

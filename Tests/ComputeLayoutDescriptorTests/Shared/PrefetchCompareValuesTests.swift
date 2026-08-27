@@ -2235,18 +2235,17 @@ struct PrefetchCompareValuesTests {
                 }
                 #expect(layout3 != nil, "expected `layout3` to have a value, but was nil instead")
                 #if COMPATIBILITY_TESTS
-                let typeName = "AGAttribute"
+                let typeName = "AGWeakAttribute"
                 #else
-                let typeName = "IAGAttribute"
+                let typeName = "IAGWeakAttribute"
                 #endif
                 assertStringsEqualWithDiff(
                     output3,
                     """
-                    == __Unnamed_struct__details, 8 bytes ==
-                    (layout #:length 35 #:address \(String(describing: layout3))
-                       (== #:size 4 #:type \(typeName))
-                       (== #:size 4 #:type UInt32))
-
+                    == \(typeName), 8 bytes ==
+                    (layout #:length 18 #:address \(String(describing: layout3))
+                       (== #:size 8 #:type \(typeName)))
+                    
                     """
                 )
             }

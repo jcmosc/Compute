@@ -1,4 +1,3 @@
-import Foundation
 import Testing
 
 // does endTree clear tree if it is the root?
@@ -68,53 +67,7 @@ struct TreeTests {
             #expect(treeRoot.parent == originalTreeRoot)
         }
     }
-
-    @Test
-    func values() async throws {
-        struct TestRule: Rule {
-            var value: String {
-                return ""
-            }
-        }
-
-        Subgraph.setShouldRecordTree()
-
-        try withGraph {
-            let attribute = Attribute(TestRule())
-            let inputA = Attribute(value: "Input A")
-            let inputB = Attribute(value: 100)
-
-            Subgraph.beginTreeElement(value: attribute, flags: 1)
-            defer {
-                Subgraph.endTreeElement(value: attribute)
-            }
-
-            Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
-            Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
-
-            let treeRoot = try #require(Subgraph.current?.treeRoot)
-            #expect(treeRoot.value == attribute.identifier)
-
-            var values = treeRoot.values
-
-            let firstOrNil = values.next()
-            let first = try #require(firstOrNil)
-            #expect(first.type == Metadata(Int.self))
-            #expect(String(cString: first.key) == "input_b")
-            #expect(first.value == inputB.identifier)
-            #expect(first.flags == 3)
-
-            let secondOrNil = values.next()
-            let second = try #require(secondOrNil)
-            #expect(second.type == Metadata(String.self))
-            #expect(String(cString: second.key) == "input_a")
-            #expect(second.value == inputA.identifier)
-            #expect(second.flags == 2)
-
-            #expect(values.next() == nil)
-        }
-    }
-
+    
     @Suite
     struct ChildrenTests {
         @Test
@@ -150,16 +103,13 @@ struct TreeTests {
                 Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
 
                 let treeRoot = try #require(Subgraph.current?.treeRoot)
-                var children = treeRoot.children
+                let children = Array(treeRoot.children)
+                try #require(children.count == 1)
 
-                let firstOrNil = children.next()
-                let first = try #require(firstOrNil)
-                #expect(first.type == Metadata(String.self))
-                #expect(first.value == childAttribute.identifier)
-                #expect(first.flags == 11)
-                #expect(first.parent == treeRoot)
-
-                #expect(children.next() == nil)
+                #expect(children[0].type == Metadata(String.self))
+                #expect(children[0].value == childAttribute.identifier)
+                #expect(children[0].flags == 11)
+                #expect(children[0].parent == treeRoot)
             }
         }
 
@@ -222,48 +172,95 @@ struct TreeTests {
             }
         }
     }
-
-    @Test
-    func nodes() throws {
-        struct TestRule: Rule {
-            var value: String {
-                return ""
-            }
-        }
-
-        Subgraph.setShouldRecordTree()
-
-        try withGraph {
-            let attribute = Attribute(TestRule())
-            let inputA = Attribute(value: "Input A")
-            let inputB = Attribute(value: 100)
-
-            Subgraph.beginTreeElement(value: attribute, flags: 1)
-            defer {
-                Subgraph.endTreeElement(value: attribute)
+    
+    @Suite
+    struct ValuesTests {
+        @Test
+        func values() async throws {
+            struct TestRule: Rule {
+                var value: String {
+                    return ""
+                }
             }
 
-            let childAttribute = Attribute(TestRule())
-            let childInputA = Attribute(value: "Child Input A")
-            let childInputB = Attribute(value: 200)
+            Subgraph.setShouldRecordTree()
 
-            Subgraph.beginTreeElement(value: childAttribute, flags: 1)
-            Subgraph.addTreeValue(childInputA, forKey: "input_a", flags: 12)
-            Subgraph.addTreeValue(childInputB, forKey: "input_b", flags: 13)
-            Subgraph.endTreeElement(value: childAttribute)
+            try withGraph {
+                let attribute = Attribute(TestRule())
+                let inputA = Attribute(value: "Input A")
+                let inputB = Attribute(value: 100)
 
-            Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
-            Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
+                Subgraph.beginTreeElement(value: attribute, flags: 1)
+                defer {
+                    Subgraph.endTreeElement(value: attribute)
+                }
 
-            let treeRoot = try #require(Subgraph.current?.treeRoot)
-            var nodes = treeRoot.nodes
-            #expect(nodes.next() == childAttribute.identifier)
-            #expect(nodes.next() == childInputA.identifier)
-            #expect(nodes.next() == childInputB.identifier)
-            #expect(nodes.next() == nil)
+                Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
+                Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
+
+                let treeRoot = try #require(Subgraph.current?.treeRoot)
+                #expect(treeRoot.value == attribute.identifier)
+
+                let values = Array(treeRoot.values)
+                try #require(values.count == 2)
+
+                #expect(values[0].type == Metadata(Int.self))
+                #expect(String(cString: values[0].key) == "input_b")
+                #expect(values[0].value == inputB.identifier)
+                #expect(values[0].flags == 3)
+
+                #expect(values[1].type == Metadata(String.self))
+                #expect(String(cString: values[1].key) == "input_a")
+                #expect(values[1].value == inputA.identifier)
+                #expect(values[1].flags == 2)
+            }
         }
     }
+    
+    @Suite
+    struct NodesTests {
+        @Test
+        func nodes() throws {
+            struct TestRule: Rule {
+                var value: String {
+                    return ""
+                }
+            }
 
+            Subgraph.setShouldRecordTree()
+
+            try withGraph {
+                let attribute = Attribute(TestRule())
+                let inputA = Attribute(value: "Input A")
+                let inputB = Attribute(value: 100)
+
+                Subgraph.beginTreeElement(value: attribute, flags: 1)
+                defer {
+                    Subgraph.endTreeElement(value: attribute)
+                }
+
+                let childAttribute = Attribute(TestRule())
+                let childInputA = Attribute(value: "Child Input A")
+                let childInputB = Attribute(value: 200)
+
+                Subgraph.beginTreeElement(value: childAttribute, flags: 1)
+                Subgraph.addTreeValue(childInputA, forKey: "input_a", flags: 12)
+                Subgraph.addTreeValue(childInputB, forKey: "input_b", flags: 13)
+                Subgraph.endTreeElement(value: childAttribute)
+
+                Subgraph.addTreeValue(inputA, forKey: "input_a", flags: 2)
+                Subgraph.addTreeValue(inputB, forKey: "input_b", flags: 3)
+
+                let treeRoot = try #require(Subgraph.current?.treeRoot)
+                let nodes = Array(treeRoot.nodes)
+                try #require(nodes.count == 3)
+                
+                #expect(nodes[0] == childAttribute.identifier)
+                #expect(nodes[1] == childInputA.identifier)
+                #expect(nodes[2] == childInputB.identifier)
+            }
+        }
+    }
 }
 
 func makeTreeElement<T, U>(_ attribute: Attribute<T>, flags: UInt32, body: () -> U) -> U {

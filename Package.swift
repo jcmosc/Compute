@@ -72,8 +72,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")
-            ],
-            linkerSettings: [.linkedLibrary("swiftDemangle")]
+            ]
         ),
         .testTarget(
             name: "ComputeLayoutDescriptorTests",
@@ -83,8 +82,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")
-            ],
-            linkerSettings: [.linkedLibrary("swiftDemangle")]
+            ]
         ),
         .testTarget(
             name: "ComputeSwiftTests",
@@ -94,8 +92,7 @@ let package = Package(
             ],
             swiftSettings: [
                 .enableExperimentalFeature("Extern")
-            ],
-            linkerSettings: [.linkedLibrary("swiftDemangle")]
+            ]
         ),
         .target(
             name: "ComputeCxx",
@@ -117,6 +114,9 @@ let package = Package(
                     "-isystem", "\(swiftRuntimeHeadersPath)/stdlib/include",
                     "-isystem", "\(swiftRuntimeHeadersPath)/stdlib/public/SwiftShims",
                 ]),
+            ],
+            linkerSettings: [
+                .linkedLibrary("swiftDemangle")
             ]
         ),
         .target(name: "ComputeCxxSwiftSupport"),

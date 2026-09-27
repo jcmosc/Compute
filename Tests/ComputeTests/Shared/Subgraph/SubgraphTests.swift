@@ -80,6 +80,39 @@ struct SubgraphTests {
 
             #expect(notifiedCount == 0)
         }
+
+        @Test
+        func removeObserverAfterInvalidation() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+            var notifiedCount = 0
+            let observerID = subgraph.addObserver {
+                notifiedCount += 1
+            }
+
+            subgraph.invalidate()
+            subgraph.removeObserver(observerID)
+
+            #expect(subgraph.isValid == false)
+            #expect(notifiedCount == 1)
+        }
+
+        @Test
+        func removeObserverDuringInvalidation() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+            var notifiedCount = 0
+            var observerID = 0
+            observerID = subgraph.addObserver {
+                notifiedCount += 1
+                subgraph.removeObserver(observerID)
+            }
+
+            subgraph.invalidate()
+
+            #expect(subgraph.isValid == false)
+            #expect(notifiedCount == 1)
+        }
     }
 
     @Suite

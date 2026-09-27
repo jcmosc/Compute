@@ -157,7 +157,7 @@ IAGUniqueID IAGSubgraphAddObserver(IAGSubgraphRef subgraph,
 
 void IAGSubgraphRemoveObserver(IAGSubgraphRef subgraph, IAGUniqueID observer_id) {
     if (IAG::Subgraph::from_cf(subgraph) == nullptr) {
-        IAG::precondition_failure("accessing invalidated subgraph");
+        return;
     }
 
     IAG::Subgraph::from_cf(subgraph)->remove_observer(observer_id);

@@ -38,7 +38,7 @@ class ptr {
         }
     }
 
-    element_type *_Nullable get() const noexcept {
+    [[nodiscard]] element_type *_Nullable get() const noexcept {
         if (_offset == 0) {
             return nullptr;
         }

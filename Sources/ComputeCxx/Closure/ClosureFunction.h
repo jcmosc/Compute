@@ -21,14 +21,14 @@ class ClosureFunction {
     Context _context;
 
   public:
-    inline ClosureFunction(std::nullptr_t) : _function(nullptr), _context(nullptr) {}
-    inline ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
+    ClosureFunction(std::nullptr_t) : _function(nullptr), _context(nullptr) {}
+    ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
         if (_context) {
             _context = swift::retain(_context);
         }
     }
 
-    inline ~ClosureFunction() {
+    ~ClosureFunction() {
         if (_context) {
             swift::release(_context);
         }

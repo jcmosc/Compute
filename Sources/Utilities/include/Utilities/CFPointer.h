@@ -19,8 +19,8 @@ class cf_ptr {
   private:
     CFTypeRef _storage;
 
-    static inline CFTypeRef to_storage(T ref) { return (CFTypeRef)(ref); }
-    static inline T from_storage(CFTypeRef storage) { return (T)storage; }
+    static CFTypeRef to_storage(T ref) { return (CFTypeRef)(ref); }
+    static T from_storage(CFTypeRef storage) { return (T)storage; }
 
   public:
     constexpr cf_ptr() noexcept : _storage(nullptr) {}

@@ -30,15 +30,15 @@ CFRuntimeClass &graph_type_id() {
     static CFRuntimeClass klass = {
         0,                 // version
         "IAGGraphStorage", // className
-        NULL,              // init
-        NULL,              // copy
+        nullptr,              // init
+        nullptr,              // copy
         finalize,
-        NULL, // equal
-        NULL, // hash
-        NULL, // copyFormattingDesc
-        NULL, // copyDebugDesc,
-        NULL, // reclaim
-        NULL, // refcount
+        nullptr, // equal
+        nullptr, // hash
+        nullptr, // copyFormattingDesc
+        nullptr, // copyDebugDesc,
+        nullptr, // reclaim
+        nullptr, // refcount
         0     // requiredAlignment
     };
     return klass;
@@ -56,7 +56,7 @@ IAGGraphRef IAGGraphCreate() { return IAGGraphCreateShared(nullptr); };
 IAGGraphRef IAGGraphCreateShared(IAGGraphRef original) {
     CFIndex extra_bytes = sizeof(struct IAGGraphStorage) - sizeof(CFRuntimeBase);
     IAGGraphRef instance =
-        (IAGGraphRef)_CFRuntimeCreateInstance(kCFAllocatorDefault, IAGGraphGetTypeID(), extra_bytes, NULL);
+        (IAGGraphRef)_CFRuntimeCreateInstance(kCFAllocatorDefault, IAGGraphGetTypeID(), extra_bytes, nullptr);
     if (!instance) {
         IAG::precondition_failure("memory allocation failure.");
     }
@@ -985,7 +985,7 @@ void IAGGraphEndProfileEvent(IAGAttribute attribute, const char *event_name, uin
 #pragma mark - Trace
 
 void IAGGraphStartTracing(IAGGraphRef graph, IAGGraphTraceFlags trace_flags) {
-    IAGGraphStartTracing2(graph, trace_flags, NULL);
+    IAGGraphStartTracing2(graph, trace_flags, nullptr);
 }
 
 void IAGGraphStartTracing2(IAGGraphRef graph, IAGGraphTraceFlags trace_flags, CFArrayRef subsystems) {

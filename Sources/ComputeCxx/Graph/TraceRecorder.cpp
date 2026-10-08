@@ -178,7 +178,7 @@ void Graph::TraceRecorder::encode_keys() {
 
 void Graph::TraceRecorder::encode_stack() {
     auto first_update = current_update();
-    if (first_update == 0) {
+    if (first_update == nullptr) {
         return;
     }
 

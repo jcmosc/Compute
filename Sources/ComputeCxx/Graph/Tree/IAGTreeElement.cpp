@@ -89,5 +89,5 @@ IAGTreeElement IAGTreeElementGetNextChild2(IAGTreeElementChildIterator *iter, bo
         }
     }
 
-    return 0;
+    return nullptr;
 }

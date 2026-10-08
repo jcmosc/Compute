@@ -387,18 +387,21 @@ class Graph {
     const AttributeType &attribute_type(uint32_t type_id) const { return *_types[type_id]; };
     const AttributeType &attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const;
 
-    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<const IAGAttributeType *> make_type);
+    [[nodiscard]] uint32_t intern_type(const swift::metadata *metadata,
+                                        ClosureFunctionVP<const IAGAttributeType *> make_type);
 
     // MARK: Attributes
 
-    data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *_Nullable value);
-    data::ptr<IndirectNode> add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,
-                                                   std::optional<size_t> size, bool is_mutable);
+    [[nodiscard]] data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body,
+                                                const void *_Nullable value);
+    [[nodiscard]] data::ptr<IndirectNode> add_indirect_attribute(Subgraph &subgraph, AttributeID attribute,
+                                                                 uint32_t offset, std::optional<size_t> size,
+                                                                 bool is_mutable);
 
     void remove_node(data::ptr<Node> node);
     void remove_indirect_node(data::ptr<IndirectNode> node);
 
-    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, IAGInputOptions options);
+    [[nodiscard]] uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, IAGInputOptions options);
     void remove_all_inputs(data::ptr<Node> node);
 
     void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);

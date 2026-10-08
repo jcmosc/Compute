@@ -115,8 +115,8 @@ class vector {
 
     // Modifiers
 
-    iterator insert(zone *zone, const_iterator pos, const T &value);
-    iterator insert(zone *zone, const_iterator pos, T &&value);
+    [[nodiscard]] iterator insert(zone *zone, const_iterator pos, const T &value);
+    [[nodiscard]] iterator insert(zone *zone, const_iterator pos, T &&value);
 
     iterator erase(iterator pos);
     iterator erase(iterator first, iterator last);

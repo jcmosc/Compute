@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <cstddef>
 #include <utility>
 
 #include <platform/lock.h>
@@ -84,8 +85,8 @@ class table {
     void print();
 
     // Counters (TODO: what are these calculated from?)
-    uint64_t bytes() const { return _num_used_pages * 512; }
-    uint64_t max_bytes() const { return _num_used_pages * 512; }
+    uint64_t bytes() const { return static_cast<uint64_t>(_num_used_pages * 512); }
+    uint64_t max_bytes() const { return static_cast<uint64_t>(_num_used_pages * 512); }
 };
 
 } // namespace data

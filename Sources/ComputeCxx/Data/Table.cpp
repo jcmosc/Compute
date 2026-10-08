@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cerrno>
+#include <cstddef>
 #include <sys/mman.h>
 #if TARGET_OS_MAC
 #include <mach/mach.h>
@@ -44,7 +45,7 @@ std::unique_ptr<void, table::malloc_zone_deleter> table::alloc_persistent(size_t
 }
 
 table::table() {
-    constexpr vm_size_t initial_size = 32 * pages_per_map * page_size;
+    constexpr vm_size_t initial_size = static_cast<const vm_size_t>(32 * pages_per_map * page_size);
 
 #if TARGET_OS_MAC
     void *region = mmap(nullptr, initial_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -97,7 +98,7 @@ void table::unlock() { platform_lock_unlock(&_lock); }
 #pragma mark - Region
 
 void table::grow_region() {
-    uint64_t new_size = 4 * _vm_region_size;
+    uint64_t new_size = static_cast<uint64_t>(4 * _vm_region_size);
 
     // Check size does not exceed 32 bits
     if ((uint32_t)new_size <= _vm_region_size) {

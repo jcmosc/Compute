@@ -1,5 +1,6 @@
 #include "Subgraph.h"
 
+#include <cstddef>
 #include <cstring>
 #include <ranges>
 #include <stack>
@@ -1082,7 +1083,7 @@ void Subgraph::encode(Encoder &encoder) const {
 #pragma mark - Printing
 
 void Subgraph::print(uint32_t indent_level) {
-    uint64_t indent_length = 2 * indent_level;
+    uint64_t indent_length = static_cast<uint64_t>(2 * indent_level);
     char *indent_string = (char *)alloca(indent_length + 1);
     memset(indent_string, ' ', indent_length);
     indent_string[indent_length] = '\0';

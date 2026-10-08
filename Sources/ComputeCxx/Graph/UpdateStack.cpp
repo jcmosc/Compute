@@ -213,7 +213,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
                     if (AttributeID dependency = input_attribute.get_indirect_node()->to_mutable().dependency()) {
                         if (!dependency.get_node()->is_value_initialized() || dependency.get_node()->is_dirty()) {
                             frame.num_pushed_inputs = input_index;
-                            push(dependency.get_node(), *dependency.get_node().get(), false, false);
+                            push(dependency.get_node(), *dependency.get_node(), false, false);
                             // go to top regardless
                             return update();
                         }
@@ -231,7 +231,7 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
                     if (!(input_edge.options & IAGInputOptionsUnprefetched) && input_attribute.subgraph()->is_valid()) {
                         frame.num_pushed_inputs = input_index + 1;
-                        if (push(input_node, *input_node.get(), true, true)) {
+                        if (push(input_node, *input_node, true, true)) {
                             // go to top
                             return update();
                         }

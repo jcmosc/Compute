@@ -435,7 +435,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
 
     // Initialize value
     if (initial_value != nullptr) {
-        value_set_internal(node_ptr, *node_ptr.get(), initial_value, type.value_metadata());
+        value_set_internal(node_ptr, *node_ptr, initial_value, type.value_metadata());
     } else {
         node_ptr->set_dirty(true);
         node_ptr->set_pending(true);
@@ -593,7 +593,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
         uint32_t index = 0;
         for (auto &input_edge : output_node->input_edges()) {
             if (input_edge.attribute.traverses(attribute, TraversalOptions::SkipMutableReference)) {
-                remove_input_edge(output_node, *output_node.get(), index);
+                remove_input_edge(output_node, *output_node, index);
                 return true;
             }
             index += 1;
@@ -691,7 +691,7 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
 
 void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
     remove_input_dependencies(AttributeID(node), node->input_edges()[index].attribute);
-    remove_input_edge(node, *node.get(), index);
+    remove_input_edge(node, *node, index);
 }
 
 void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index) {
@@ -1188,7 +1188,7 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, IAGGraphUpdate
         [&current_update, &node, &options](Trace &trace) { trace.begin_update(current_update, node, options); });
 
     UpdateStatus status = UpdateStatus::Changed;
-    if (current_update.push(node, *node.get(), false, !(options & IAGGraphUpdateOptionsInTransaction))) {
+    if (current_update.push(node, *node, false, !(options & IAGGraphUpdateOptionsInTransaction))) {
         status = current_update.update();
         if (status == UpdateStatus::NeedsCallMainHandler) {
             std::pair<UpdateStack *, UpdateStatus> context = {&current_update, UpdateStatus::NeedsCallMainHandler};
@@ -1502,7 +1502,7 @@ void *Graph::input_value_ref(data::ptr<IAG::Node> node, AttributeID input, uint3
                              IAGChangedValueFlags *_Nonnull flags_out) {
     auto comparator = InputEdge::Comparator(
         input, IAGInputOptionsUnprefetched | IAGInputOptionsSyncMainRef | IAGInputOptionsAlwaysEnabled, input_options);
-    uint32_t index = index_of_input(*node.get(), comparator);
+    uint32_t index = index_of_input(*node, comparator);
 
     if (index < UINT32_MAX) {
         IAG::OffsetAttributeID resolved_input =
@@ -1535,7 +1535,7 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
     if (input_options & IAGInputOptionsSyncMainRef) {
         auto comparator = InputEdge::Comparator(input, IAGInputOptionsUnprefetched | IAGInputOptionsAlwaysEnabled,
                                                 input_options & IAGInputOptionsUnprefetched);
-        index = index_of_input(*node.get(), comparator);
+        index = index_of_input(*node, comparator);
     }
 
     if (index == UINT32_MAX) {
@@ -1610,7 +1610,7 @@ bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, c
         precondition_failure("setting value during update: %u", node);
     }
 
-    bool changed = value_set_internal(node, *node.get(), value, value_type);
+    bool changed = value_set_internal(node, *node, value, value_type);
     if (changed) {
         propagate_dirty(AttributeID(node));
     }
@@ -1873,7 +1873,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOpt
 
     auto comparator = InputEdge::Comparator(input, options & IAGInputOptionsUnprefetched,
                                             IAGInputOptionsUnprefetched | IAGInputOptionsAlwaysEnabled);
-    auto index = index_of_input(*node.get(), comparator);
+    auto index = index_of_input(*node, comparator);
     if (index == UINT32_MAX) {
         index = add_input(node, input, false, options & IAGInputOptionsUnprefetched);
     }

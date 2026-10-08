@@ -119,7 +119,7 @@ void DebugServer::Connection::handler(void *context) {
     void *request_bytes = CFDataGetMutableBytePtr(request_data);
 
     if (blocking_read(connection->_socket, request_bytes, length)) {
-        CFDataRef response_data = connection->_server->receive(connection, header, request_data);
+        CFDataRef response_data = IAG::DebugServer::receive(connection, header, request_data);
         if (response_data) {
             CFIndex response_length = CFDataGetLength(response_data);
             if (response_length >> 32 == 0) {

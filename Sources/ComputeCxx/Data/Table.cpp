@@ -24,6 +24,7 @@ static void *IAGGraphVMRegionBaseAddress;
 namespace IAG {
 namespace data {
 
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization) -- storage only, constructed later via placement new
 table _shared_table_bytes;
 
 table &table::ensure_shared() {

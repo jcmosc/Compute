@@ -681,6 +681,7 @@ bool metadata::visit_heap_class(metadata_visitor &visitor) const {
 
 #if SWIFT_OBJC_INTEROP
         unsigned int ivar_count;
+        // NOLINTNEXTLINE(bugprone-casting-through-void) -- required for ObjC interop
         Ivar *ivar_list = class_copyIvarList(reinterpret_cast<const Class>((void *)this), &ivar_count);
         if (ivar_list) {
             if (ivar_count == fields->NumFields) {

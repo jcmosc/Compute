@@ -21,6 +21,7 @@ DebugServer *DebugServer::_shared_server = nullptr;
 
 DebugServer *_Nullable DebugServer::start(IAGDebugServerOptions options) {
     if (options & IAGDebugServerOptionsEnabled && !_shared_server) {
+        // NOLINTNEXTLINE(readability-simplify-boolean-expr) -- placeholder for future diagnostics check
         if (true /* && os_variant_has_internal_diagnostics() */) {
             _shared_server = new DebugServer(options);
         }

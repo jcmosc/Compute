@@ -698,7 +698,7 @@ void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t ind
     foreach_trace([&node_ptr, &index](Trace &trace) { trace.remove_edge(node_ptr, index); });
 
     node.remove_input_edge(index);
-    if (node.input_edges().size() == 0) {
+    if (node.input_edges().empty()) {
         all_inputs_removed(node_ptr);
     }
     reset_update(node_ptr);

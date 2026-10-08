@@ -197,7 +197,7 @@ void IAGTupleWithBuffer(IAGTupleType tuple_type, size_t count,
     auto buffer_size = metadata->vw_stride() * count;
     if (buffer_size <= 0x1000) {
         void *buffer = (unsigned char *)alloca(buffer_size);
-        bzero((void *)buffer, buffer_size);
+        bzero(buffer, buffer_size);
         IAGUnsafeMutableTuple tuple = {tuple_type, buffer};
         function(tuple, context);
     } else {
@@ -205,7 +205,7 @@ void IAGTupleWithBuffer(IAGTupleType tuple_type, size_t count,
         if (buffer == nullptr) {
             IAG::precondition_failure("memory allocation failure");
         }
-        bzero((void *)buffer, buffer_size);
+        bzero(buffer, buffer_size);
         IAGUnsafeMutableTuple tuple = {tuple_type, buffer};
         function(tuple, context);
         free(buffer);

@@ -117,7 +117,7 @@ ValueLayout TypeDescriptorCache::fetch(const swift::metadata &type, IAGCompariso
     lock();
 
     const void *found = nullptr;
-    ValueLayout layout = (ValueLayout)_table.lookup((void *)key, &found);
+    ValueLayout layout = (ValueLayout)_table.lookup(key, &found);
     if (found) {
         _cache_hit_count += 1;
         unlock();
@@ -165,7 +165,7 @@ ValueLayout TypeDescriptorCache::insert_sync(void *key, const swift::metadata &t
         _sync_total_seconds += time;
     }
 
-    _table.insert((void *)key, layout);
+    _table.insert(key, layout);
     unlock();
     return layout;
 }
@@ -175,7 +175,7 @@ ValueLayout TypeDescriptorCache::insert_sync(void *key, const swift::metadata &t
 void TypeDescriptorCache::insert_async(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                                        LayoutDescriptor::HeapMode heap_mode, uint32_t priority) {
     lock();
-    _table.insert((void *)key, nullptr);
+    _table.insert(key, nullptr);
 
     _async_queue.push_back({
         &type,

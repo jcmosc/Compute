@@ -92,7 +92,7 @@ class TypeDescriptorCache {
     void insert_async(void *key, const swift::metadata &type, IAGComparisonMode comparison_mode,
                       LayoutDescriptor::HeapMode heap_mode, uint32_t priority);
 
-    static void drain_queue(void *cache);
+    static void drain_queue(void *context);
 #endif
 };
 

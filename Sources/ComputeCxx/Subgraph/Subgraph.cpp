@@ -534,9 +534,9 @@ void Subgraph::add_node(data::ptr<Node> node) {
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
 
-void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
+void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool updatable) {
     insert_attribute(AttributeID(node),
-                     flag); // make sure adds Indirect kind to node
+                     updatable); // make sure adds Indirect kind to node
 
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }

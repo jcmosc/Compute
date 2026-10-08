@@ -140,7 +140,7 @@ class Builder : public swift::metadata_visitor {
     ValueLayout commit(const swift::metadata &type);
 
     void add_field(size_t field_size);
-    bool should_visit_fields(const swift::metadata &type, bool flag);
+    bool should_visit_fields(const swift::metadata &type, bool no_fetch);
 
     struct RevertItemsInfo {
         uint64_t item_index;
@@ -152,7 +152,7 @@ class Builder : public swift::metadata_visitor {
     virtual bool visit_element(const swift::metadata &type, const swift::metadata::ref_kind kind, size_t element_offset,
                                size_t element_size) override;
 
-    virtual bool visit_case(const swift::metadata &type, const swift::field_record &field, uint32_t arg) override;
+    virtual bool visit_case(const swift::metadata &type, const swift::field_record &field, uint32_t index) override;
     virtual bool visit_existential(const swift::existential_type_metadata &type) override;
     virtual bool visit_function(const swift::function_type_metadata &type) override;
     virtual bool visit_native_object(const swift::metadata &type) override;

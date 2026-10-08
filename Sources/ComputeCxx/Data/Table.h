@@ -78,7 +78,7 @@ class table {
     // Pages
     ptr<page> alloc_page(zone *zone, uint32_t size);
     void dealloc_page_locked(ptr<page> page);
-    void make_pages_reusable(uint32_t page_index, bool flag);
+    void make_pages_reusable(uint32_t page_index, bool reusable);
     uint64_t raw_page_seed(ptr<page> page);
 
     // Printing

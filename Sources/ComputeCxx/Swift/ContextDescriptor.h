@@ -38,7 +38,7 @@ class context_descriptor : public ::swift::ContextDescriptor {
     const context_descriptor *_Nullable parent() const { return context_descriptor::from_base(Parent.get()); };
 
     uint64_t count_generic_args() const;
-    void push_generic_args(const metadata &metadata, vector<generic_arg, 8, uint64_t> &generic_args_vector) const;
+    void push_generic_args(const metadata &type, vector<generic_arg, 8, uint64_t> &generic_args_vector) const;
 };
 
 class type_context_descriptor : ::swift::TypeContextDescriptor {

@@ -120,7 +120,7 @@ class Graph {
             std::unordered_map<uint32_t, Item> &removed_items() { return _removed_items; }
 
             void mark(uint32_t event_id, uint64_t time);
-            void add_update(data::ptr<Node> node, uint64_t time, bool changed);
+            void add_update(data::ptr<Node> node, uint64_t duration, bool changed);
             void remove_node(data::ptr<Node> node, uint32_t type_id);
         };
 
@@ -246,7 +246,7 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
-    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t seed, IAGInputOptions input_options,
+    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id, IAGInputOptions input_options,
                                const swift::metadata &value_type, IAGChangedValueFlags *_Nonnull flags_out,
                                uint32_t index);
 
@@ -417,7 +417,7 @@ class Graph {
 
     // MARK: Body
 
-    void attribute_modify(data::ptr<Node> node, const swift::metadata &type, ClosureFunctionPV<void, void *> modify,
+    void attribute_modify(data::ptr<Node> node, const swift::metadata &metadata, ClosureFunctionPV<void, void *> modify,
                           bool invalidating);
 
     // MARK: Value
@@ -425,13 +425,13 @@ class Graph {
     bool value_exists(data::ptr<Node> node);
     IAGValueState value_state(AttributeID attribute);
 
-    void *value_ref(AttributeID attribute, uint32_t seed, const swift::metadata &value_type,
+    void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
                     IAGChangedValueFlags *_Nonnull flags_out);
 
-    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t seed, IAGInputOptions input_options,
+    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id, IAGInputOptions input_options,
                           const swift::metadata &value_type, IAGChangedValueFlags *_Nonnull flags_out);
 
-    bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
+    bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
 
     void value_mark(data::ptr<Node> node);

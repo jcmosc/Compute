@@ -1,5 +1,7 @@
 #include "Context.h"
 
+#include <algorithm>
+
 #include "Attribute/AttributeID/AttributeID.h"
 #include "ComputeCxx/IAGUniqueID.h"
 #include "IAGGraph-Private.h"
@@ -23,9 +25,7 @@ Graph::Context::~Context() {
         uint64_t min_deadline = UINT64_MAX;
         _graph->_contexts_by_id.for_each(
             [](const uint64_t context_id, Context *const context, void *min_deadline_ref) {
-                if (context->_deadline < *(uint64_t *)min_deadline_ref) {
-                    *(uint64_t *)min_deadline_ref = context->_deadline;
-                }
+                *(uint64_t *)min_deadline_ref = std::min(context->_deadline, *(uint64_t *)min_deadline_ref);
             },
             &min_deadline);
         _graph->set_deadline(min_deadline);
@@ -61,9 +61,7 @@ void Graph::Context::set_deadline(uint64_t deadline) {
     uint64_t min_deadline = UINT64_MAX;
     _graph->_contexts_by_id.for_each(
         [](const uint64_t context_id, Context *const context, void *min_deadline_ref) {
-            if (context->_deadline < *(uint64_t *)min_deadline_ref) {
-                *(uint64_t *)min_deadline_ref = context->_deadline;
-            }
+            *(uint64_t *)min_deadline_ref = std::min(context->_deadline, *(uint64_t *)min_deadline_ref);
         },
         &min_deadline);
     _graph->set_deadline(min_deadline);

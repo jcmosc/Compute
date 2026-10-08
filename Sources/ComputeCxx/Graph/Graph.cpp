@@ -713,7 +713,7 @@ void Graph::remove_all_inputs(data::ptr<Node> node) {
     all_inputs_removed(node);
 }
 
-void Graph::all_inputs_removed(data::ptr<Node> node) {
+void Graph::all_inputs_removed(data::ptr<Node> node) const {
     node->set_input_edges_traverse_contexts(false);
     node->set_needs_sort_input_edges(false);
     if (node->requires_main_thread() && !attribute_type(node->type_id()).flags() && IAGAttributeTypeFlagsMainThread) {
@@ -1883,7 +1883,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOpt
     }
 }
 
-void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) {
+void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) const {
     if (!node->is_updating()) {
         precondition_failure("attribute is not evaluating: %u", node);
     }

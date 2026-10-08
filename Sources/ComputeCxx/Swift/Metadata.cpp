@@ -263,8 +263,8 @@ const void *metadata::signature() const {
                                            static_cast<const void *[]>(descriptors.data()), infos.data());
 
         for (auto info : infos) {
-            PLATFORM_SHA1_Update(&context, info.identifier, sizeof(((platform_image_info_t *)0)->identifier));
-            PLATFORM_SHA1_Update(&context, &info.offset, sizeof(((platform_image_info_t *)0)->offset));
+            PLATFORM_SHA1_Update(&context, info.identifier, sizeof(((platform_image_info_t *)nullptr)->identifier));
+            PLATFORM_SHA1_Update(&context, &info.offset, sizeof(((platform_image_info_t *)nullptr)->offset));
         }
 
         auto digest = new unsigned char[PLATFORM_SHA1_DIGEST_LENGTH];

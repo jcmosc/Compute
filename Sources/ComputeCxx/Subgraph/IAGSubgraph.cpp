@@ -19,15 +19,15 @@ CFRuntimeClass &subgraph_type_id() {
     static CFRuntimeClass klass = {
         0,             // version
         "IAGSubgraph", // className
-        NULL,          // init
-        NULL,          // copy,
+        nullptr,          // init
+        nullptr,          // copy,
         finalize,
-        NULL, // equal
-        NULL, // hash
-        NULL, // copyFormattingDesc
-        NULL, // copyDebugDesc,
-        NULL, // reclaim
-        NULL, // refcount
+        nullptr, // equal
+        nullptr, // hash
+        nullptr, // copyFormattingDesc
+        nullptr, // copyDebugDesc,
+        nullptr, // reclaim
+        nullptr, // refcount
         0     // requiredAlignment
     };
     return klass;
@@ -72,7 +72,7 @@ IAGSubgraphRef IAGSubgraphCreate(IAGGraphRef graph) { return IAGSubgraphCreate2(
 IAGSubgraphRef IAGSubgraphCreate2(IAGGraphRef graph, IAGAttribute attribute) {
     CFIndex extra_bytes = sizeof(struct IAGSubgraphStorage) - sizeof(CFRuntimeBase);
     IAGSubgraphRef instance =
-        (IAGSubgraphRef)_CFRuntimeCreateInstance(kCFAllocatorDefault, IAGSubgraphGetTypeID(), extra_bytes, NULL);
+        (IAGSubgraphRef)_CFRuntimeCreateInstance(kCFAllocatorDefault, IAGSubgraphGetTypeID(), extra_bytes, nullptr);
     if (!instance) {
         IAG::precondition_failure("memory allocation failure.");
     }

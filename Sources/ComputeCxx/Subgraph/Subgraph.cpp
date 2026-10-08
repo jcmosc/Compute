@@ -82,7 +82,7 @@ void Subgraph::clear_object() {
 
 pthread_key_t Subgraph::_current_subgraph_key;
 
-void Subgraph::make_current_subgraph_key() { pthread_key_create(&_current_subgraph_key, 0); }
+void Subgraph::make_current_subgraph_key() { pthread_key_create(&_current_subgraph_key, nullptr); }
 
 Subgraph *Subgraph::current_subgraph() { return (Subgraph *)pthread_getspecific(_current_subgraph_key); }
 

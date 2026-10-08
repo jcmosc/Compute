@@ -49,7 +49,7 @@ Graph::Graph()
 
     static platform_once_t make_keys;
     platform_once(&make_keys, []() {
-        pthread_key_create(&Graph::_current_update_key, 0);
+        pthread_key_create(&Graph::_current_update_key, nullptr);
         Subgraph::make_current_subgraph_key();
     });
 
@@ -228,7 +228,7 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
     auto main_handler = _main_handler;
     auto main_handler_context = _main_handler_context;
 
-    _current_update_thread = 0;
+    _current_update_thread = nullptr;
     _main_handler = nullptr;
     _main_handler_context = nullptr;
 
@@ -903,7 +903,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
         add_input_dependencies(AttributeID(indirect_node), source);
     }
 
-    mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);
+    mark_changed(AttributeID(indirect_node), nullptr, nullptr, nullptr, 0);
     propagate_dirty(AttributeID(indirect_node));
 }
 
@@ -946,7 +946,7 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool
         add_input_dependencies(AttributeID(indirect_node), new_source_or_nil);
     }
 
-    mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);
+    mark_changed(AttributeID(indirect_node), nullptr, nullptr, nullptr, 0);
     propagate_dirty(AttributeID(indirect_node));
 
     return true;
@@ -1934,7 +1934,7 @@ void Graph::sync_tracing() {
 
 CFStringRef Graph::copy_trace_path() {
     if (_trace_recorder && _trace_recorder->trace_path()) {
-        return CFStringCreateWithCString(0, _trace_recorder->trace_path(), kCFStringEncodingUTF8);
+        return CFStringCreateWithCString(nullptr, _trace_recorder->trace_path(), kCFStringEncodingUTF8);
     } else {
         return nullptr;
     }
@@ -2097,7 +2097,7 @@ void Graph::start_profiling(IAGGraphProfileFlags profile_flags) {
         CFRunLoopRef run_loop = CFRunLoopGetMain();
         if (run_loop) {
             CFRunLoopObserverRef observer = CFRunLoopObserverCreate(
-                0, kCFRunLoopBeforeWaiting | kCFRunLoopExit, true, 2500000,
+                nullptr, kCFRunLoopBeforeWaiting | kCFRunLoopExit, true, 2500000,
                 [](CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info) {
                     all_mark_profile("app/runloop");
                 },

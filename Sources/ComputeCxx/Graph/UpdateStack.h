@@ -45,7 +45,7 @@ class Graph::UpdateStack {
 
     Graph *graph() const { return _graph; };
     util::tagged_ptr<UpdateStack> next() { return _next; };
-    const util::tagged_ptr<UpdateStack> next() const { return _next; };
+    util::tagged_ptr<UpdateStack> next() const { return _next; };
     vector<Frame, 8, uint64_t> &frames() { return _frames; };
 
     static void cancel();

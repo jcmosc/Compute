@@ -60,7 +60,7 @@ class IndirectNode {
         return _size != InvalidSize ? std::optional(size_t(_size)) : std::optional<size_t>();
     };
 
-    const RelativeAttributeID next_attribute() const { return _next_attribute; }
+    RelativeAttributeID next_attribute() const { return _next_attribute; }
     void set_next_attribute(RelativeAttributeID next_attribute) { _next_attribute = next_attribute; }
 
     void modify(WeakAttributeID source, size_t offset);

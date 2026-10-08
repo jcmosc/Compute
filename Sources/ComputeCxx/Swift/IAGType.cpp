@@ -52,7 +52,7 @@ IAGTypeKind IAGTypeGetKind(IAGTypeID typeID) {
     }
 }
 
-const IAGTypeSignature IAGTypeGetSignature(IAGTypeID typeID) {
+IAGTypeSignature IAGTypeGetSignature(IAGTypeID typeID) {
     auto type = reinterpret_cast<const IAG::swift::metadata *>(typeID);
     const uint8_t *data = static_cast<const uint8_t *>(type->signature());
     if (!data) {

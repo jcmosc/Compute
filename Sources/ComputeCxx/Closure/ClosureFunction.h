@@ -79,7 +79,7 @@ class ClosureFunction {
 
     explicit operator bool() { return _function != nullptr; }
 
-    const Result operator()(Args... args) const noexcept { return _function(std::forward<Args>(args)..., _context); }
+    Result operator()(Args... args) const noexcept { return _function(std::forward<Args>(args)..., _context); }
 };
 
 template <typename Result>

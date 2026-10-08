@@ -90,7 +90,7 @@ class existential_type_metadata : public ::swift::ExistentialTypeMetadata {
   public:
     // We need to reimplement these to avoid errors when linking against the
     // Swift runtime library
-    ::swift::ExistentialTypeRepresentation representation(void) const;
+    ::swift::ExistentialTypeRepresentation representation() const;
     const void *project_value(void *container) const;
     const metadata *dynamic_type(void *container) const;
 };

@@ -698,7 +698,7 @@ void *IAGGraphReadCachedAttribute(size_t hash, IAGTypeID type, const void *body,
         read_cached_attribute(hash, *metadata, body, *value_metadata, options, owner_id, &flags,
                               IAG::ClosureFunctionCI<uint32_t, IAGUnownedGraphContextRef>(closure, closure_context));
     if (changed_out) {
-        *changed_out = flags & IAGChangedValueFlagsChanged ? true : false;
+        *changed_out = (flags & IAGChangedValueFlagsChanged) != 0;
     }
     return value;
 }
@@ -714,7 +714,7 @@ void *IAGGraphReadCachedAttributeIfExists(size_t hash, IAGTypeID type, const voi
     IAGChangedValueFlags flags = 0;
     void *value = read_cached_attribute(hash, *metadata, body, *value_metadata, options, owner_id, &flags, nullptr);
     if (changed_out) {
-        *changed_out = flags & IAGChangedValueFlagsChanged ? true : false;
+        *changed_out = (flags & IAGChangedValueFlagsChanged) != 0;
     }
     return value;
 }

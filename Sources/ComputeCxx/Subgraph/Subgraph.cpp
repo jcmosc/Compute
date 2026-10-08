@@ -105,10 +105,7 @@ void Subgraph::remove_observer(IAGUniqueID observer_id) {
     if (auto *observers_ptr = _observers.get()) {
         auto *observers = *observers_ptr;
         auto *iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
-            if (observer.observer_id == observer_id) {
-                return true;
-            }
-            return false;
+            return observer.observer_id == observer_id;
         });
         observers->erase(iter, observers->end());
     }

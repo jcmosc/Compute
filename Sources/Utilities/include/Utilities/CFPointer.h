@@ -19,7 +19,7 @@ class cf_ptr {
   private:
     CFTypeRef _storage;
 
-    static CFTypeRef to_storage(T ref) { return (CFTypeRef)(ref); }
+    static CFTypeRef to_storage(T ref) { return (CFTypeRef)ref; }
     static T from_storage(CFTypeRef storage) { return (T)storage; }
 
   public:

@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #include <xlocale.h>
 
+#include <algorithm>
+
 #include "Log/Log.h"
 
 namespace IAG {
@@ -142,9 +144,7 @@ void DebugServer::run(uint32_t timeout) {
         int nfds = _socket;
         for (auto &connection : _connections) {
             FD_SET(connection->socket(), &writefds);
-            if (connection->socket() > nfds) {
-                nfds = connection->socket();
-            }
+            nfds = std::max(connection->socket(), nfds);
         }
 
         tv.tv_sec = timeout;

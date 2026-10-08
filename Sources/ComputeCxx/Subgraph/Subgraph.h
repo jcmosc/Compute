@@ -162,7 +162,7 @@ class Subgraph : public data::zone {
     template <typename Callable>
         requires std::invocable<Callable, Subgraph &> && std::same_as<std::invoke_result_t<Callable, Subgraph &>, bool>
     void foreach_ancestor(Callable body) {
-        for (auto parent : std::ranges::reverse_view(_parents)) {
+        for (auto *parent : std::ranges::reverse_view(_parents)) {
             if (body(*parent)) {
                 parent->foreach_ancestor(body);
             }

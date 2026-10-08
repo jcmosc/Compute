@@ -125,7 +125,7 @@ void DebugServer::accept_handler(void *context) {
 }
 
 void DebugServer::close_connection(Connection *connection) {
-    auto iter = std::remove_if(_connections.begin(), _connections.end(),
+    auto *iter = std::remove_if(_connections.begin(), _connections.end(),
                                [&connection](auto &candidate) -> bool { return candidate.get() == connection; });
     _connections.erase(iter, _connections.end());
 }
@@ -183,7 +183,7 @@ void DebugServer::run(uint32_t timeout) {
 }
 
 void DebugServer::shutdown() {
-    if (auto accept_source = _accept_source.get()) {
+    if (auto *accept_source = _accept_source.get()) {
         dispatch_source_set_event_handler(accept_source, nullptr);
         dispatch_set_context(accept_source, nullptr);
         _accept_source = nullptr;

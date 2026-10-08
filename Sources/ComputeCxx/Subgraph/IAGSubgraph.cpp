@@ -43,7 +43,7 @@ CFTypeID IAGSubgraphGetTypeID() {
 #pragma mark - Current subgraph
 
 IAGSubgraphRef IAGSubgraphGetCurrent() {
-    auto current = IAG::Subgraph::current_subgraph();
+    auto *current = IAG::Subgraph::current_subgraph();
     if (current == nullptr) {
         return nullptr;
     }
@@ -262,7 +262,7 @@ bool IAGSubgraphIsDirty(IAGSubgraphRef subgraph, IAGAttributeFlags flags) {
 #pragma mark - Graph
 
 IAGSubgraphRef IAGGraphGetAttributeSubgraph(IAGAttribute attribute) {
-    auto subgraph = IAGGraphGetAttributeSubgraph2(attribute);
+    auto *subgraph = IAGGraphGetAttributeSubgraph2(attribute);
     if (subgraph == nullptr) {
         IAG::precondition_failure("no subgraph");
     }
@@ -274,7 +274,7 @@ IAGSubgraphRef IAGGraphGetAttributeSubgraph2(IAGAttribute attribute) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (subgraph == nullptr) {
         IAG::precondition_failure("internal error");
     }
@@ -324,7 +324,7 @@ void IAGSubgraphAddTreeValue(IAGAttribute value, IAGTypeID type, const char *key
         return;
     }
 
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     current_subgraph->add_tree_value(IAG::AttributeID(value), metadata, key, flags);
 }
 
@@ -334,7 +334,7 @@ void IAGSubgraphBeginTreeElement(IAGAttribute value, IAGTypeID type, uint32_t fl
         return;
     }
 
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     current_subgraph->begin_tree(IAG::AttributeID(value), metadata, flags);
 }
 

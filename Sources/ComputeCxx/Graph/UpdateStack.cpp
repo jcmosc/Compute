@@ -46,7 +46,7 @@ Graph::UpdateStack::~UpdateStack() {
 }
 
 Graph::UpdateStack::Frame *Graph::UpdateStack::global_top() {
-    for (auto update = this; update != nullptr; update = update->next().get()) {
+    for (auto *update = this; update != nullptr; update = update->next().get()) {
         if (!update->frames().empty()) {
             return &update->frames().back();
         }

@@ -40,7 +40,7 @@ Graph::TraceRecorder::TraceRecorder(Graph &graph, IAGGraphTraceFlags trace_flags
     : _graph(graph), _encoder(this, 0x10000), _trace_flags(trace_flags),
       _image_offset_cache(
           uuid_hash, uuid_equal, [](const uuid_t key) { free((unsigned char *)key); }, nullptr, nullptr) {
-    for (auto subsystem : subsystems) {
+    for (const auto *subsystem : subsystems) {
         _named_event_subsystems.push_back(std::unique_ptr<const char, util::free_deleter>(strdup(subsystem)));
     }
 
@@ -148,9 +148,9 @@ void Graph::TraceRecorder::encode_types() {
 
         _encoder.encode_field_begin(MESSAGE_FIELD_TYPES);
         _encoder.encode_field_varint(1, _num_encoded_types);
-        auto body_type_name = attribute_type.body_metadata().name(false);
+        const auto *body_type_name = attribute_type.body_metadata().name(false);
         _encoder.encode_field_data(2, body_type_name, strlen(body_type_name));
-        auto value_type_name = attribute_type.value_metadata().name(false);
+        const auto *value_type_name = attribute_type.value_metadata().name(false);
         _encoder.encode_field_data(3, value_type_name, strlen(value_type_name));
         _encoder.encode_field_varint(4, attribute_type.body_metadata().vw_size());
         _encoder.encode_field_varint(5, attribute_type.value_metadata().vw_size());
@@ -166,7 +166,7 @@ void Graph::TraceRecorder::encode_keys() {
         return;
     }
     while (_num_encoded_keys < _graph._keys->size()) {
-        if (auto key_name = _graph.key_name(_num_encoded_keys)) {
+        if (const auto *key_name = _graph.key_name(_num_encoded_keys)) {
             _encoder.encode_field_begin(MESSAGE_FIELD_KEYS);
             _encoder.encode_field_varint(1, _num_encoded_keys);
             _encoder.encode_field_data(2, key_name, strlen(key_name));
@@ -225,7 +225,7 @@ void Graph::TraceRecorder::encode_snapshot() {
     field_timestamp(_encoder);
     encode_event_end();
 
-    for (auto subgraph : _graph.subgraphs()) {
+    for (auto *subgraph : _graph.subgraphs()) {
         if (subgraph->is_valid()) {
             encode_subgraph(*subgraph);
         }
@@ -961,7 +961,7 @@ void Graph::TraceRecorder::named_event(const Graph::Context &context, IAGNamedTr
 bool Graph::TraceRecorder::named_event_enabled(IAGNamedTraceEventID event_id) {
     uint32_t index = 0;
     if (!_named_event_infos.empty()) {
-        auto pos = std::lower_bound(
+        auto *pos = std::lower_bound(
             _named_event_infos.begin(), _named_event_infos.end(), event_id,
             [](const NamedEventInfo &info, uint32_t event_id) -> bool { return info.event_id < event_id; });
         if (pos != _named_event_infos.end() && pos->event_id == event_id) {

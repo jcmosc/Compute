@@ -13,8 +13,8 @@ IAGFieldRange IAGComparisonStateGetFieldRange(IAGComparisonState state) { return
 IAGTypeID IAGComparisonStateGetFieldType(IAGComparisonState state) { return state->field_type; }
 
 bool IAGCompareValues(const void *destination, const void *source, IAGTypeID type_id, IAGComparisonOptions options) {
-    auto type = reinterpret_cast<const IAG::swift::metadata *>(type_id);
-    auto layout = IAG::LayoutDescriptor::fetch(*type, options, 0);
+    const auto *type = reinterpret_cast<const IAG::swift::metadata *>(type_id);
+    const auto *layout = IAG::LayoutDescriptor::fetch(*type, options, 0);
     if (layout == IAG::ValueLayoutTrivial) {
         layout = nullptr;
     }
@@ -23,7 +23,7 @@ bool IAGCompareValues(const void *destination, const void *source, IAGTypeID typ
 }
 
 const unsigned char *IAGPrefetchCompareValues(IAGTypeID type_id, IAGComparisonOptions options, uint32_t priority) {
-    auto type = reinterpret_cast<const IAG::swift::metadata *>(type_id);
+    const auto *type = reinterpret_cast<const IAG::swift::metadata *>(type_id);
     return IAG::LayoutDescriptor::fetch(*type, options, priority);
 }
 

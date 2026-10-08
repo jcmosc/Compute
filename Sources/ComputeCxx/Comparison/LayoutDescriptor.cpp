@@ -253,7 +253,7 @@ IAGComparisonMode mode_for_type(const swift::metadata *type, IAGComparisonMode d
     if (!type) {
         return default_mode;
     }
-    auto descriptor = type->descriptor();
+    const auto *descriptor = type->descriptor();
     if (!descriptor) {
         return default_mode;
     }
@@ -261,7 +261,7 @@ IAGComparisonMode mode_for_type(const swift::metadata *type, IAGComparisonMode d
     IAGComparisonMode result = default_mode;
     TypeDescriptorCache::shared_cache().lock();
     auto &modes = TypeDescriptorCache::shared_cache().modes();
-    auto iter = std::find_if(modes.begin(), modes.end(),
+    auto *iter = std::find_if(modes.begin(), modes.end(),
                              [&](const auto &element) -> bool { return element.first == descriptor; });
     if (iter != modes.end()) {
         result = iter->second;
@@ -278,7 +278,7 @@ void add_type_descriptor_override(const swift::context_descriptor *_Nullable typ
 
     TypeDescriptorCache::shared_cache().lock();
     auto &modes = TypeDescriptorCache::shared_cache().modes();
-    auto iter = std::find_if(modes.begin(), modes.end(),
+    auto *iter = std::find_if(modes.begin(), modes.end(),
                              [&](const auto &element) -> bool { return element.first == type_descriptor; });
     if (iter != modes.end()) {
         iter->second = override_mode;
@@ -309,7 +309,7 @@ ValueLayout make_layout(const swift::metadata &type, IAGComparisonMode default_m
                                                            ? IAGComparisonModeEquatableAlways
                                                            : IAGComparisonModeEquatableUnlessPOD;
             if (equatable_minimum_mode <= builder.current_comparison_mode()) {
-                if (auto equatable = type.equatable()) {
+                if (const auto *equatable = type.equatable()) {
                     size_t offset = builder.current_offset();
                     size_t size = type.vw_size();
                     Builder::EqualsItem item = {offset, size, &type, equatable};
@@ -330,7 +330,7 @@ ValueLayout make_layout(const swift::metadata &type, IAGComparisonMode default_m
     IAGComparisonMode equtable_minimum_mode =
         type.getValueWitnesses()->isPOD() ? IAGComparisonModeEquatableAlways : IAGComparisonModeEquatableUnlessPOD;
     if (equtable_minimum_mode <= builder.current_comparison_mode()) {
-        if (auto equatable = type.equatable()) {
+        if (const auto *equatable = type.equatable()) {
             size_t offset = builder.current_offset();
             size_t size = type.vw_size();
             Builder::EqualsItem item = {offset, size, &type, equatable};
@@ -587,8 +587,8 @@ bool compare_indirect(ValueLayout *layout_ref, const swift::metadata &enum_type,
 bool compare_existential_values(const swift::existential_type_metadata &type, const unsigned char *lhs,
                                 const unsigned char *rhs, IAGComparisonOptions options) {
 
-    if (auto lhs_dynamic_type = type.dynamic_type((void *)lhs)) {
-        if (auto rhs_dynamic_type = type.dynamic_type((void *)rhs)) {
+    if (const auto *lhs_dynamic_type = type.dynamic_type((void *)lhs)) {
+        if (const auto *rhs_dynamic_type = type.dynamic_type((void *)rhs)) {
             if (lhs_dynamic_type == rhs_dynamic_type) {
                 unsigned char *lhs_value = (unsigned char *)type.project_value((void *)lhs);
                 unsigned char *rhs_value = (unsigned char *)type.project_value((void *)rhs);
@@ -671,19 +671,19 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
             return {nullptr, 0};
         }
         case ValueLayoutEntryKind::Equals: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
             reader.skip(sizeof(void *));
             accumulated_size += type->vw_size();
             continue;
         }
         case ValueLayoutEntryKind::Indirect: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
             reader.skip(sizeof(void *));
             accumulated_size += type->vw_size();
             continue;
         }
         case ValueLayoutEntryKind::Existential: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
             accumulated_size += type->vw_size();
             continue;
         }
@@ -693,7 +693,7 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
             continue;
         }
         case ValueLayoutEntryKind::Nested: {
-            auto nested_layout = reader.read_bytes<ValueLayout>();
+            const auto *nested_layout = reader.read_bytes<ValueLayout>();
             size_t nested_size = reader.read_varint();
 
             if (accumulated_size + nested_size > range_location &&
@@ -821,7 +821,7 @@ void print(std::string &output, ValueLayout layout) {
             return;
         }
         case ValueLayoutEntryKind::Equals: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
             reader.skip(sizeof(void *));
 
             output.push_back('\n');
@@ -830,7 +830,7 @@ void print(std::string &output, ValueLayout layout) {
             continue;
         }
         case ValueLayoutEntryKind::Indirect: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
             reader.skip(sizeof(void *));
 
             output.push_back('\n');
@@ -839,7 +839,7 @@ void print(std::string &output, ValueLayout layout) {
             continue;
         }
         case ValueLayoutEntryKind::Existential: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
 
             output.push_back('\n');
             output.append(indent, ' ');
@@ -949,7 +949,7 @@ ValueLayout Builder::commit(const swift::metadata &type) {
         }
     }
     if (_items.size() == 1) {
-        if (auto nested_item = std::get_if<NestedItem>(&_items[0])) {
+        if (auto *nested_item = std::get_if<NestedItem>(&_items[0])) {
             if (nested_item->offset == 0) {
                 return nested_item->layout;
             }
@@ -972,7 +972,7 @@ ValueLayout Builder::commit(const swift::metadata &type) {
             return ValueLayoutTrivial;
         }
     }
-    auto &layout_data = emitter.data();
+    const auto &layout_data = emitter.data();
 
     unsigned char *result;
 
@@ -1017,7 +1017,7 @@ void Builder::add_field(size_t field_size) {
     }
 
     auto &items = get_items();
-    if (auto data_item = !items.empty() ? std::get_if<DataItem>(&items.back()) : nullptr) {
+    if (auto *data_item = !items.empty() ? std::get_if<DataItem>(&items.back()) : nullptr) {
         if (data_item->offset + data_item->size == _current_offset) {
             data_item->size += field_size;
             return;
@@ -1029,7 +1029,7 @@ void Builder::add_field(size_t field_size) {
 
 bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
     if (!no_fetch) {
-        if (auto layout =
+        if (const auto *layout =
                 fetch(type,
                       IAGComparisonOptions(_current_comparison_mode) | IAGComparisonOptionsTraceCompareFailed |
                           IAGComparisonOptionsFetchLayoutsSynchronously,
@@ -1051,7 +1051,7 @@ bool Builder::should_visit_fields(const swift::metadata &type, bool no_fetch) {
     IAGComparisonMode equtable_minimum_mode =
         type.getValueWitnesses()->isPOD() ? IAGComparisonModeEquatableAlways : IAGComparisonModeEquatableUnlessPOD;
     if (equtable_minimum_mode <= _current_comparison_mode) {
-        if (auto equatable = type.equatable()) {
+        if (const auto *equatable = type.equatable()) {
             EqualsItem item = {
                 _current_offset,
                 type.vw_size(),
@@ -1095,7 +1095,7 @@ bool Builder::visit_element(const swift::metadata &type, const swift::metadata::
 
             size_t prev_offset = -1;
             size_t prev_size = 0;
-            if (auto data_item = num_items > 0 ? std::get_if<DataItem>(&items.back()) : nullptr) {
+            if (auto *data_item = num_items > 0 ? std::get_if<DataItem>(&items.back()) : nullptr) {
                 prev_offset = data_item->offset;
                 prev_size = data_item->size;
             }
@@ -1153,8 +1153,8 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
         add_field(sizeof(void *));
         result = true;
     } else {
-        auto mangled_type_name = field.MangledTypeName.get();
-        auto field_type =
+        const auto *mangled_type_name = field.MangledTypeName.get();
+        const auto *field_type =
             mangled_type_name != nullptr ? type.mangled_type_name_ref(mangled_type_name, false, nullptr) : nullptr;
         if (field_type == nullptr) {
             // bail out if we can't get a type for the enum case payload
@@ -1180,7 +1180,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
                 auto &items = get_items();
                 size_t prev_offset = -1;
                 size_t prev_size = 0;
-                if (auto data_item = items.size() > 0 ? std::get_if<DataItem>(&items.back()) : nullptr) {
+                if (auto *data_item = items.size() > 0 ? std::get_if<DataItem>(&items.back()) : nullptr) {
                     prev_offset = data_item->offset;
                     prev_size = data_item->size;
                 }
@@ -1347,7 +1347,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
         emit_value((void *)item.type);
     } else {
         bool is_first = true;
-        for (auto &enum_case : item.cases) {
+        for (const auto &enum_case : item.cases) {
             /*
              Case indices are encoding using the numbers 8 through 21
 

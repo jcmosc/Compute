@@ -5,7 +5,7 @@
 
 IAGTypeID IAGTreeElementGetType(IAGTreeElement tree_element) {
     auto tree_element_id = IAG::Graph::TreeElementID(tree_element);
-    auto type = tree_element_id->type;
+    const auto *type = tree_element_id->type;
     return IAGTypeID(type);
 }
 
@@ -79,9 +79,9 @@ IAGTreeElement IAGTreeElementGetNextChild2(IAGTreeElementChildIterator *iter, bo
 
     if (!iter->subgraph_index && include_child_subgraphs) {
         iter->subgraph_index = true;
-        auto tree_element = reinterpret_cast<IAGTreeElement>(iter->parent_elt);
+        auto *tree_element = reinterpret_cast<IAGTreeElement>(iter->parent_elt);
         auto tree_element_id = IAG::Graph::TreeElementID(tree_element);
-        auto subgraph = tree_element_id.subgraph();
+        auto *subgraph = tree_element_id.subgraph();
         auto subgraph_child = subgraph->tree_subgraph_child(tree_element_id);
         if (subgraph_child) {
             iter->next_elt = subgraph_child->next_sibling;

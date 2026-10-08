@@ -162,7 +162,7 @@ vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, const T &v
 template <typename T>
 vector<T>::iterator vector<T>::insert(zone *zone, const_iterator pos, T &&value) {
     if (pos == end()) {
-        push_back(zone, value);
+        push_back(zone, std::move(value));
         return end() - 1;
     }
     auto offset = pos - begin();

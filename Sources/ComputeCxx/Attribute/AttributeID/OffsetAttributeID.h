@@ -18,7 +18,7 @@ class OffsetAttributeID {
 
     // MARK: Accessing data
 
-    const AttributeID attribute() const { return _attribute; };
+    AttributeID attribute() const { return _attribute; };
     uint32_t offset() const { return _offset; };
 };
 

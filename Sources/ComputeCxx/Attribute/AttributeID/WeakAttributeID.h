@@ -22,14 +22,14 @@ class WeakAttributeID {
 
     // MARK: Accessing data
 
-    const AttributeID identifier() const { return _identifier; };
+    AttributeID identifier() const { return _identifier; };
     uint32_t seed() const { return _seed; }
 
     bool expired() const;
 
     /// Returns the attribute it is has not expired, otherwise returns the nil
     /// attribute.
-    const AttributeID evaluate() const;
+    AttributeID evaluate() const;
 };
 
 } // namespace IAG

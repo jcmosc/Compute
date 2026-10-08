@@ -53,7 +53,7 @@ IAGTypeKind IAGTypeGetKind(IAGTypeID typeID) IAG_SWIFT_NAME(getter:Metadata.kind
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT
-const IAGTypeSignature IAGTypeGetSignature(IAGTypeID typeID) IAG_SWIFT_NAME(getter:Metadata.signature(self:));
+IAGTypeSignature IAGTypeGetSignature(IAGTypeID typeID) IAG_SWIFT_NAME(getter:Metadata.signature(self:));
 
 IAG_EXPORT
 IAG_REFINED_FOR_SWIFT

@@ -166,8 +166,8 @@ class Node {
             _input_edges.push_back(subgraph, input_edge);
             return _input_edges.size() - 1;
         } else {
-            auto pos = std::lower_bound(_input_edges.begin(), _input_edges.end(), input_edge);
-            auto inserted = _input_edges.insert(subgraph, pos, input_edge);
+            auto *pos = std::lower_bound(_input_edges.begin(), _input_edges.end(), input_edge);
+            auto *inserted = _input_edges.insert(subgraph, pos, input_edge);
             return (uint32_t)(inserted - _input_edges.begin());
         }
     }

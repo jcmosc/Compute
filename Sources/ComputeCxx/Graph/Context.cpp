@@ -33,7 +33,7 @@ Graph::Context::~Context() {
 
     if (_graph->_ref_count != 1) {
         auto batch = without_invalidating(_graph);
-        for (auto subgraph : _graph->subgraphs()) {
+        for (auto *subgraph : _graph->subgraphs()) {
             if (subgraph->context_id() == _id) {
                 subgraph->invalidate_and_delete_(true);
             }

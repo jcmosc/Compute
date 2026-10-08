@@ -87,7 +87,7 @@ IAGUnownedGraphContextRef IAGGraphGetGraphContext(IAGGraphRef graph) {
 }
 
 IAGGraphRef IAGGraphContextGetGraph(void *storage) {
-    auto graph_context = reinterpret_cast<IAG::Graph::Context *>(storage);
+    auto *graph_context = reinterpret_cast<IAG::Graph::Context *>(storage);
     return graph_context->to_cf();
 }
 
@@ -102,19 +102,19 @@ void IAGGraphInvalidate(IAGGraphRef graph) {
 #pragma mark - User context
 
 const void *IAGGraphGetContext(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     return graph_context->context();
 }
 
 void IAGGraphSetContext(IAGGraphRef graph, const void *context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_context(context);
 }
 
 #pragma mark - Counter
 
 uint64_t IAGGraphGetCounter(IAGGraphRef graph, IAGGraphCounterQueryType query) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     switch (query) {
     case IAGGraphCounterQueryTypeNodes:
         return graph_context->graph().num_nodes();
@@ -155,7 +155,7 @@ void IAGGraphWithMainThreadHandler(IAGGraphRef graph,
                                    void (*body)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
                                    const void *body_context, IAGGraphMainThreadHandler main_thread_handler,
                                    const void *main_thread_handler_context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().with_main_handler(IAG::ClosureFunctionVV<void>(body, body_context), main_thread_handler,
                                              main_thread_handler_context);
 }
@@ -163,12 +163,12 @@ void IAGGraphWithMainThreadHandler(IAGGraphRef graph,
 #pragma mark - Subgraph
 
 bool IAGGraphBeginDeferringSubgraphInvalidation(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     return graph_context->graph().begin_deferring_subgraph_invalidation();
 }
 
 void IAGGraphEndDeferringSubgraphInvalidation(IAGGraphRef graph, bool was_deferring) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().end_deferring_subgraph_invalidation(was_deferring);
 }
 
@@ -178,7 +178,7 @@ IAGAttributeTypeIndex IAGGraphInternAttributeType(
     IAGUnownedGraphContextRef unowned_graph, IAGTypeID type,
     const IAGAttributeType *(*make_attribute_type)(const void *context IAG_SWIFT_CONTEXT)IAG_SWIFT_CC(swift),
     const void *make_attribute_type_context) {
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     IAG::Graph *graph = reinterpret_cast<IAG::Graph *>(unowned_graph);
     return graph->intern_type(
         metadata, IAG::ClosureFunctionVP<const IAGAttributeType *>(make_attribute_type, make_attribute_type_context));
@@ -188,13 +188,13 @@ void IAGGraphVerifyType(IAGAttribute attribute, IAGTypeID type) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
 
     if (auto node = attribute_id.get_node()) {
-        auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+        const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
         auto attribute_type = subgraph->graph()->attribute_type(node->type_id());
         if (&attribute_type.value_metadata() != metadata) {
             IAG::precondition_failure("type check failed: %u, expected %s, got %s", attribute, metadata->name(false),
@@ -206,7 +206,7 @@ void IAGGraphVerifyType(IAGAttribute attribute, IAGTypeID type) {
 #pragma mark - Attributes
 
 IAGAttribute IAGGraphCreateAttribute(IAGAttributeTypeIndex type_index, const void *body, const void *_Nullable value) {
-    auto subgraph = IAG::Subgraph::current_subgraph();
+    auto *subgraph = IAG::Subgraph::current_subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no subgraph active while adding attribute");
     }
@@ -218,9 +218,9 @@ IAGGraphRef IAGGraphGetAttributeGraph(IAGAttribute attribute) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    if (auto subgraph = attribute_id.subgraph()) {
+    if (auto *subgraph = attribute_id.subgraph()) {
         if (auto context_id = subgraph->context_id()) {
-            if (auto context = subgraph->graph()->context_with_id(context_id)) {
+            if (auto *context = subgraph->graph()->context_with_id(context_id)) {
                 return context->to_cf();
             }
         }
@@ -237,7 +237,7 @@ IAGAttributeInfo IAGGraphGetAttributeInfo(IAGAttribute attribute) {
 
     node.assert_valid();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -275,7 +275,7 @@ uint32_t IAGGraphAddInput(IAGAttribute attribute, IAGAttribute input, IAGInputOp
     }
     node.assert_valid();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -306,7 +306,7 @@ IAG::AttributeID create_offset_attribute(IAG::AttributeID attribute_id, uint32_t
         IAG::precondition_failure("invalid offset: %u, %lu", offset, size.value());
     }
 
-    auto current_subgraph = IAG::Subgraph::current_subgraph();
+    auto *current_subgraph = IAG::Subgraph::current_subgraph();
     if (!current_subgraph) {
         IAG::precondition_failure("no subgraph active while adding attribute");
     }
@@ -333,7 +333,7 @@ IAGAttribute IAGGraphCreateOffsetAttribute2(IAGAttribute attribute, uint32_t off
 namespace {
 
 IAG::AttributeID create_indirect_attribute(IAG::AttributeID attribute_id, std::optional<uint32_t> size) {
-    auto current_subgraph = IAG::Subgraph::current_subgraph();
+    auto *current_subgraph = IAG::Subgraph::current_subgraph();
     if (!current_subgraph) {
         IAG::precondition_failure("no subgraph active while making indirection");
     }
@@ -418,7 +418,7 @@ bool IAGGraphSearch(IAGAttribute attribute, IAGSearchOptions options,
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -439,7 +439,7 @@ void IAGGraphMutateAttribute(IAGAttribute attribute, IAGTypeID type, bool invali
     }
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -459,7 +459,7 @@ inline IAGChangedValue get_value(IAG::AttributeID attribute_id, uint32_t seed, I
         if (update_ptr.tag() == 0 && update_ptr.get() != nullptr) {
             auto &update = *update_ptr.get();
 
-            auto graph = update.graph();
+            auto *graph = update.graph();
             auto &frame = update.frames().back();
 
             IAGChangedValueFlags flags = 0;
@@ -471,7 +471,7 @@ inline IAGChangedValue get_value(IAG::AttributeID attribute_id, uint32_t seed, I
 
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute_id);
     }
@@ -485,7 +485,7 @@ inline IAGChangedValue get_value(IAG::AttributeID attribute_id, uint32_t seed, I
 
 IAGChangedValue IAGGraphGetValue(IAGAttribute attribute, IAGValueOptions options, IAGTypeID type) {
     auto attribute_id = IAG::AttributeID(attribute);
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     return get_value(attribute_id, 0, options, *metadata);
 }
 
@@ -496,7 +496,7 @@ IAGWeakChangedValue IAGGraphGetWeakValue(IAGWeakAttribute attribute, IAGValueOpt
         return {nullptr, false};
     }
 
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     auto value = get_value(attribute_id, weak_attribute_id.seed(), options, *metadata);
     return *reinterpret_cast<IAGWeakChangedValue *>(&value);
 }
@@ -514,13 +514,13 @@ IAGChangedValue IAGGraphGetInputValue(IAGAttribute attribute, IAGAttribute input
     }
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
 
     auto input_id = IAG::AttributeID(input);
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
 
     IAGChangedValueFlags flags = 0;
     void *value = subgraph->graph()->input_value_ref(attribute, input_id, 0, options & IAGValueOptionsInputOptionsMask,
@@ -536,12 +536,12 @@ bool IAGGraphSetValue(IAGAttribute attribute, const void *value, IAGTypeID type)
     }
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
 
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     return subgraph->graph()->value_set(attribute_id.get_node(), *metadata, value);
 }
 
@@ -553,7 +553,7 @@ bool IAGGraphHasValue(IAGAttribute attribute) {
     }
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -565,7 +565,7 @@ IAGValueState IAGGraphGetValueState(IAGAttribute attribute) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -582,7 +582,7 @@ void IAGGraphUpdateValue(IAGAttribute attribute, IAGGraphUpdateOptions options) 
 
     node.assert_valid();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -594,7 +594,7 @@ uint32_t IAGGraphPrefetchValue(IAGAttribute attribute) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -617,7 +617,7 @@ void IAGGraphInvalidateValue(IAGAttribute attribute) {
     }
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -626,7 +626,7 @@ void IAGGraphInvalidateValue(IAGAttribute attribute) {
 }
 
 void IAGGraphInvalidateAllValues(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().value_mark_all();
 }
 
@@ -634,7 +634,7 @@ void IAGGraphSetInvalidationCallback(IAGGraphRef graph,
                                      void (*callback)(IAGAttribute, const void *context IAG_SWIFT_CONTEXT)
                                          IAG_SWIFT_CC(swift),
                                      const void *callback_context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_invalidation_callback(IAG::ClosureFunctionAV<void, IAGAttribute>(callback, callback_context));
 }
 
@@ -647,7 +647,7 @@ void *read_cached_attribute(size_t hash, const IAG::swift::metadata &metadata, c
                             IAG::AttributeID owner_id, IAGChangedValueFlags *flags_out,
                             IAG::ClosureFunctionCI<uint32_t, IAGUnownedGraphContextRef> get_attribute_type_id) {
     auto update = IAG::Graph::current_update();
-    auto update_stack = update.tag() == 0 ? update.get() : nullptr;
+    auto *update_stack = update.tag() == 0 ? update.get() : nullptr;
 
     IAG::Subgraph *subgraph = nullptr;
     if (owner_id && !owner_id.is_nil()) {
@@ -689,8 +689,8 @@ void *IAGGraphReadCachedAttribute(size_t hash, IAGTypeID type, const void *body,
                                   uint32_t (*closure)(IAGUnownedGraphContextRef graph_context,
                                                       const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
                                   const void *closure_context) {
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
-    auto value_metadata = reinterpret_cast<const IAG::swift::metadata *>(value_type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *value_metadata = reinterpret_cast<const IAG::swift::metadata *>(value_type);
     auto owner_id = IAG::AttributeID(owner);
 
     IAGChangedValueFlags flags = 0;
@@ -707,8 +707,8 @@ void *IAGGraphReadCachedAttributeIfExists(size_t hash, IAGTypeID type, const voi
                                           IAGCachedValueOptions options, IAGAttribute owner,
                                           bool *_Nullable changed_out) {
 
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
-    auto value_metadata = reinterpret_cast<const IAG::swift::metadata *>(value_type);
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    const auto *value_metadata = reinterpret_cast<const IAG::swift::metadata *>(value_type);
     auto owner_id = IAG::AttributeID(owner);
 
     IAGChangedValueFlags flags = 0;
@@ -734,7 +734,7 @@ const void *IAGGraphClearUpdate() {
 }
 
 void IAGGraphCancelUpdate() {
-    auto update = IAG::Graph::current_update().get();
+    auto *update = IAG::Graph::current_update().get();
     if (update == nullptr) {
         IAG::precondition_failure("no attribute updating");
     }
@@ -743,7 +743,7 @@ void IAGGraphCancelUpdate() {
 }
 
 bool IAGGraphCancelUpdateIfNeeded() {
-    auto update = IAG::Graph::current_update().get();
+    auto *update = IAG::Graph::current_update().get();
     if (update == nullptr) {
         IAG::precondition_failure("no attribute updating");
     }
@@ -770,17 +770,17 @@ bool IAGGraphUpdateWasCancelled() {
 }
 
 uint64_t IAGGraphGetDeadline(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     return graph_context->deadline();
 }
 
 void IAGGraphSetDeadline(IAGGraphRef graph, uint64_t deadline) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_deadline(deadline);
 }
 
 bool IAGGraphHasDeadlinePassed() {
-    auto update = IAG::Graph::current_update().get();
+    auto *update = IAG::Graph::current_update().get();
     if (update != nullptr) {
         return update->graph()->passed_deadline();
     }
@@ -788,7 +788,7 @@ bool IAGGraphHasDeadlinePassed() {
 }
 
 void IAGGraphSetNeedsUpdate(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_needs_update();
 }
 
@@ -807,7 +807,7 @@ void IAGGraphWithUpdate(IAGAttribute attribute, void (*body)(const void *context
     }
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -823,7 +823,7 @@ void IAGGraphWithoutUpdate(void (*body)(const void *context IAG_SWIFT_CONTEXT) I
 void IAGGraphSetUpdateCallback(IAGGraphRef graph,
                                void (*callback)(const void *context IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift),
                                const void *callback_context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->set_update_callback(IAG::ClosureFunctionVV<void>(callback, callback_context));
 }
 
@@ -879,8 +879,8 @@ void *IAGGraphGetOutputValue(IAGTypeID type) {
 
     auto &update = *update_ptr.get();
     auto &frame = update.frames().back();
-    auto graph = update.graph();
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    auto *graph = update.graph();
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     return graph->output_value_ref(frame.attribute, *metadata);
 }
 
@@ -896,8 +896,8 @@ void IAGGraphSetOutputValue(const void *value, IAGTypeID type) {
         IAG::precondition_failure("writing attribute that is not evaluating: %", frame.attribute);
     }
 
-    auto graph = update.graph();
-    auto metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
+    auto *graph = update.graph();
+    const auto *metadata = reinterpret_cast<const IAG::swift::metadata *>(type);
     graph->value_set_internal(frame.attribute, *frame.attribute.get(), value, *metadata);
 }
 
@@ -909,7 +909,7 @@ void IAGGraphStartProfiling(IAGGraphRef graph) {
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().start_profiling(1);
 }
 
@@ -919,7 +919,7 @@ void IAGGraphStopProfiling(IAGGraphRef graph) {
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().stop_profiling();
 }
 
@@ -929,7 +929,7 @@ void IAGGraphResetProfile(IAGGraphRef graph) {
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().reset_profile();
 }
 
@@ -937,7 +937,7 @@ bool IAGGraphIsProfilingEnabled(IAGAttribute attribute) {
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -951,7 +951,7 @@ void IAGGraphMarkProfile(IAGGraphRef graph, const char *name) {
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     uint32_t event_id = graph_context->graph().intern_key(name);
     graph_context->graph().mark_profile(event_id, 0);
 }
@@ -960,7 +960,7 @@ uint64_t IAGGraphBeginProfileEvent(IAGAttribute attribute, const char *event_nam
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -973,7 +973,7 @@ void IAGGraphEndProfileEvent(IAGAttribute attribute, const char *event_name, uin
     auto attribute_id = IAG::AttributeID(attribute);
     attribute_id.validate_data_offset();
 
-    auto subgraph = attribute_id.subgraph();
+    auto *subgraph = attribute_id.subgraph();
     if (!subgraph) {
         IAG::precondition_failure("no graph: %u", attribute);
     }
@@ -1017,7 +1017,7 @@ void IAGGraphStartTracing2(IAGGraphRef graph, IAGGraphTraceFlags trace_flags, CF
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().start_tracing(trace_flags, subsystems_span);
 }
 
@@ -1027,7 +1027,7 @@ void IAGGraphStopTracing(IAGGraphRef graph) {
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().stop_tracing();
 }
 
@@ -1037,7 +1037,7 @@ void IAGGraphSyncTracing(IAGGraphRef graph) {
         return;
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().sync_tracing();
 }
 
@@ -1046,56 +1046,56 @@ CFStringRef IAGGraphCopyTracePath(IAGGraphRef graph) {
         return IAG::Graph::all_copy_trace_path();
     }
 
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     return graph_context->graph().copy_trace_path();
 }
 
 void IAGGraphSetTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
 
-    auto external_trace = new ExternalTrace(0, trace, context);
+    auto *external_trace = new ExternalTrace(0, trace, context);
     graph_context->graph().add_trace(external_trace);
 }
 
 void IAGGraphResetTrace(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(0);
 }
 
 IAGUniqueID IAGGraphAddTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    auto external_trace = new ExternalTrace(trace, context);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *external_trace = new ExternalTrace(trace, context);
     graph_context->graph().add_trace(external_trace);
     return external_trace->id();
 }
 
 void IAGGraphRemoveTrace(IAGGraphRef graph, IAGUniqueID trace_id) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().remove_trace(trace_id);
 }
 
 bool IAGGraphIsTracingActive(IAGGraphRef graph) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     return graph_context->graph().traces().size() > 0;
 }
 
 void IAGGraphPrepareTrace(IAGGraphRef graph, const IAGTraceTypeRef trace, void *context) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    auto external_trace = new ExternalTrace(trace, context);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *external_trace = new ExternalTrace(trace, context);
     graph_context->graph().prepare_trace(*external_trace);
 }
 
 void IAGGraphAddTraceEvent(IAGGraphRef graph, const char *event_name, const void *value, IAGTypeID type) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().foreach_trace([&graph_context, &event_name, &value, &type](IAG::Trace &trace) {
         trace.custom_event(*graph_context, event_name, value, *reinterpret_cast<const IAG::swift::metadata *>(type));
     });
 }
 
 bool IAGGraphTraceEventEnabled(IAGGraphRef graph, uint32_t event_id) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
-    for (auto trace : graph_context->graph().traces()) {
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
+    for (auto *trace : graph_context->graph().traces()) {
         if (trace->named_event_enabled(event_id)) {
             return true;
         }
@@ -1156,7 +1156,7 @@ const char *IAGGraphGetTraceEventSubsystem(IAGNamedTraceEventID event_id) {
 
 void IAGGraphAddNamedTraceEvent(IAGGraphRef graph, IAGNamedTraceEventID event_id, size_t event_arg_count,
                                 const uint32_t *event_args, CFDataRef data, IAGNamedTraceEventFlags flags) {
-    auto graph_context = IAG::Graph::Context::from_cf(graph);
+    auto *graph_context = IAG::Graph::Context::from_cf(graph);
     graph_context->graph().foreach_trace(
         [&graph_context, &event_id, &event_arg_count, &event_args, &data, &flags](IAG::Trace &trace) {
             trace.named_event(*graph_context, event_id, event_arg_count, event_args, data, flags);

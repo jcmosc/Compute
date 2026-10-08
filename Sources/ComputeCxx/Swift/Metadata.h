@@ -32,7 +32,7 @@ class metadata : public ::swift::Metadata {
     bool is_type_metadata() const {
 #if SWIFT_OBJC_INTEROP
         if (::swift::ClassMetadata::classof(this)) {
-            const auto class_type = static_cast<const ::swift::ClassMetadata *>(base());
+            const auto *const class_type = static_cast<const ::swift::ClassMetadata *>(base());
             // Depending on the deployment target a binary was compiled for,
             // statically emitted metadata templates may have a different bit
             // set from the one that this runtime canonically considers the "is

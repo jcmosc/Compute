@@ -20,7 +20,7 @@ Graph::UpdateStack::UpdateStack(Graph *graph, IAGGraphUpdateOptions options)
 
     graph->_current_update_thread = _thread;
 
-    if (graph->_deferring_subgraph_invalidation == false) {
+    if (!graph->_deferring_subgraph_invalidation) {
         graph->_deferring_subgraph_invalidation = true;
         _options = IAGGraphUpdateOptions(_options | IAGGraphUpdateOptionsEndDeferringSubgraphInvalidationOnExit);
     }

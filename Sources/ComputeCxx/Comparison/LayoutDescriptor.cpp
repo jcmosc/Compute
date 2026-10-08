@@ -1225,7 +1225,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
 bool Builder::visit_existential(const swift::existential_type_metadata &type) {
     if (_current_comparison_mode == 0 ||
         (_current_comparison_mode == 1 && type.representation() == ::swift::ExistentialTypeRepresentation::Class)) {
-        return false;
+        return false; // NOLINT(readability-simplify-boolean-expr) -- side effects follow
     }
 
     get_items().push_back(ExistentialItem(RangeItem(_current_offset, type.vw_size()), &type));
@@ -1244,7 +1244,7 @@ bool Builder::visit_function(const swift::function_type_metadata &type) {
 
 bool Builder::visit_native_object(const swift::metadata &type) {
     if (_heap_mode != HeapMode::Locals) {
-        return false;
+        return false; // NOLINT(readability-simplify-boolean-expr) -- side effects follow
     }
 
     get_items().push_back(HeapRefItem(RangeItem(_current_offset, sizeof(void *)), false));

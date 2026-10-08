@@ -287,7 +287,8 @@ void Graph::invalidate_subgraphs() {
     }
 
     if (_main_handler == nullptr) {
-        auto iter = _subgraphs_with_cached_nodes.begin(), end = _subgraphs_with_cached_nodes.end();
+        auto iter = _subgraphs_with_cached_nodes.begin();
+        auto end = _subgraphs_with_cached_nodes.end();
         while (iter != end) {
             auto *subgraph = *iter;
             subgraph->set_graph_invalidating_subgraphs(true);

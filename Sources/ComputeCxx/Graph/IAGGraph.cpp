@@ -405,8 +405,8 @@ void IAGGraphSetIndirectDependency(IAGAttribute attribute, IAGAttribute dependen
         IAG::precondition_failure("invalid indirect attribute: %u", attribute);
     }
 
-    return attribute_id.subgraph()->graph()->indirect_attribute_set_dependency(indirect_node,
-                                                                               IAG::AttributeID(dependency));
+    attribute_id.subgraph()->graph()->indirect_attribute_set_dependency(indirect_node,
+                                                                        IAG::AttributeID(dependency));
 }
 
 #pragma mark - Search

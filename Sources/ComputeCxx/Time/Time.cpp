@@ -32,7 +32,7 @@ double absolute_time_to_seconds(uint64_t ticks) {
         if (err) {
             return NAN;
         }
-        return (info.numer / info.denom) * 1e-9;
+        return (static_cast<double>(info.numer) / info.denom) * 1e-9;
     }();
 #else
     // On POSIX, ticks are already nanoseconds

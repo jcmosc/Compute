@@ -66,8 +66,8 @@ class table {
     void unlock();
 
     // Pointers
-    vm_address_t ptr_base() { return _ptr_base; };
-    uint32_t ptr_max_offset() { return _ptr_max_offset; };
+    vm_address_t ptr_base() const { return _ptr_base; };
+    uint32_t ptr_max_offset() const { return _ptr_max_offset; };
 
     // Region
     void grow_region();

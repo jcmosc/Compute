@@ -91,7 +91,7 @@ class AttributeType {
         }
     }
 
-    void destroy(Node &node) {
+    void destroy(Node &node) const {
         void *body = node.get_self(*this);
         body_metadata().vw_destroy(static_cast<swift::opaque_value *>(body));
     }

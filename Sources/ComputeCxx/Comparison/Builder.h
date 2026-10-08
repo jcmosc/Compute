@@ -131,7 +131,7 @@ class Builder : public swift::metadata_visitor {
     Builder(IAGComparisonMode comparison_mode, HeapMode heap_mode)
         : _current_comparison_mode(comparison_mode), _heap_mode(heap_mode) {}
 
-    size_t current_offset() { return _current_offset; };
+    size_t current_offset() const { return _current_offset; };
     IAGComparisonMode current_comparison_mode() { return _current_comparison_mode; };
     vector<Item, 0, uint64_t> &get_items() {
         return _current_enum_case != nullptr ? _current_enum_case->children : _items;

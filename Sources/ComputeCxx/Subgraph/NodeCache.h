@@ -28,7 +28,7 @@ class Subgraph::NodeCache {
         data::ptr<Node> node;
         Item *next;
         Item *prev;
-        uint8_t age() { return hash_and_age & 0xff; }
+        uint8_t age() const { return hash_and_age & 0xff; }
         void increment_age() { hash_and_age += 1; }
         void reset_age() { hash_and_age &= 0xffffffffffffff00; }
     };

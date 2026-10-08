@@ -71,7 +71,7 @@ class DebugServer {
     void run(uint32_t timeout);
     void shutdown();
 
-    CFURLRef _Nullable copy_url();
+    CFURLRef _Nullable copy_url() const;
 };
 
 } // namespace IAG

@@ -26,7 +26,7 @@ class SubgraphObject {
     IAGSubgraphStorage _storage;
 
   public:
-    Subgraph *subgraph() { return _storage.subgraph; };
+    Subgraph *subgraph() const { return _storage.subgraph; };
     void clear_subgraph() { _storage.subgraph = nullptr; };
 };
 

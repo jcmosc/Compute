@@ -194,7 +194,7 @@ void DebugServer::shutdown() {
     }
 }
 
-CFURLRef DebugServer::copy_url() {
+CFURLRef DebugServer::copy_url() const {
     if (_socket < 0) {
         return nullptr;
     }

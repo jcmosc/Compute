@@ -13,7 +13,7 @@ struct InputEdge {
         AttributeID attribute;
         IAGInputOptions options_mask;
         IAGInputOptions options;
-        bool match(const InputEdge &input_edge) {
+        bool match(const InputEdge &input_edge) const {
             return input_edge.attribute == attribute && (input_edge.options & options_mask) == options;
         }
     };

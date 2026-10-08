@@ -226,7 +226,7 @@ class Graph {
 
     void remove_input(data::ptr<Node> node, uint32_t index);
     void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index);
-    void all_inputs_removed(data::ptr<Node> node);
+    void all_inputs_removed(data::ptr<Node> node) const;
 
     template <typename T>
     void add_output_edge(data::ptr<T> node, AttributeID output);
@@ -444,7 +444,7 @@ class Graph {
 
     void input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOptions options);
 
-    void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type);
+    void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) const;
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };
     void did_destroy_value(size_t size) { _num_value_bytes -= size; };
@@ -476,7 +476,7 @@ class Graph {
     uint64_t change_count() const { return _change_count; };
     uint64_t version() const { return _version; }
 
-    bool needs_update() { return _needs_update; };
+    bool needs_update() const { return _needs_update; };
     void set_needs_update(bool needs_update) { _needs_update = needs_update; };
 
     void call_update();

@@ -36,11 +36,14 @@ CXXFLAGS="-std=c++20 $SYSROOT \
 -isystem$PROJECT_ROOT/Submodules/swift-runtime-headers/stdlib/include \
 -DCOMPILED_WITH_SWIFT -DPURE_BRIDGING_MODE"
 
-# Generate compile_commands.json
+# Generate compile_commands.json for all C++ targets
 {
     echo "["
     sep=""
-    find "$PROJECT_ROOT/Sources/ComputeCxx" -name '*.cpp' -type f | sort | while read -r file; do
+    find "$PROJECT_ROOT/Sources/ComputeCxx" \
+         "$PROJECT_ROOT/Sources/Platform" \
+         "$PROJECT_ROOT/Sources/Utilities" \
+         -name '*.cpp' -type f 2>/dev/null | sort | while read -r file; do
         printf '%s\n{"directory":"%s","file":"%s","command":"clang++ %s -c %s"}' \
             "$sep" "$PROJECT_ROOT" "$file" "$CXXFLAGS" "$file"
         sep=","
@@ -51,5 +54,5 @@ CXXFLAGS="-std=c++20 $SYSROOT \
 exec python3 "$SCRIPT_DIR/run-clang-tidy.py" \
     -p="$BUILD_DIR" \
     -config-file="$PROJECT_ROOT/.clang-tidy" \
-    -header-filter="$PROJECT_ROOT/Sources/ComputeCxx/.*\.h$" \
+    -header-filter="$PROJECT_ROOT/Sources/(ComputeCxx|Platform|Utilities)/.*\.h$" \
     "$@"

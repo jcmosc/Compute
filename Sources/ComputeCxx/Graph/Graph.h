@@ -295,8 +295,8 @@ class Graph {
 
     bool is_context_updating(uint64_t context_id);
 
-    inline static void retain(Graph *graph) { graph->_ref_count += 1; };
-    inline static void release(Graph *graph) {
+    static void retain(Graph *graph) { graph->_ref_count += 1; };
+    static void release(Graph *graph) {
         graph->_ref_count -= 1;
         if (graph->_ref_count == 0) {
             delete graph;

@@ -35,23 +35,23 @@ enum class ValueLayoutEntryKind : uint8_t {
 struct ValueLayoutReader {
     const unsigned char *layout;
 
-    inline ValueLayoutEntryKind &peek_kind() const { return *(ValueLayoutEntryKind *)layout; }
+    ValueLayoutEntryKind &peek_kind() const { return *(ValueLayoutEntryKind *)layout; }
 
-    inline ValueLayoutEntryKind read_kind() {
+    ValueLayoutEntryKind read_kind() {
         auto kind = *(ValueLayoutEntryKind *)layout;
         layout += 1;
         return kind;
     }
 
     template <typename T>
-    inline T read_bytes() {
+    T read_bytes() {
         T returnVal;
         memcpy(&returnVal, layout, sizeof(T));
         layout += sizeof(T);
         return returnVal;
     }
 
-    inline uint64_t read_varint() {
+    uint64_t read_varint() {
         unsigned shift = 0;
         uint64_t result = 0;
         while (*layout & 0x80) {
@@ -64,14 +64,14 @@ struct ValueLayoutReader {
         return result;
     }
 
-    inline void skip_varint() {
+    void skip_varint() {
         while (*layout & 0x80) {
             layout += 1;
         }
         layout += 1;
     }
 
-    inline void skip(size_t n) { layout += n; }
+    void skip(size_t n) { layout += n; }
 };
 
 } // namespace LayoutDescriptor

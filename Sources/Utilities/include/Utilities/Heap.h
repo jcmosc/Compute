@@ -39,7 +39,7 @@ class Heap {
     Heap &operator=(Heap &&) = delete;
 
     template <typename T>
-    inline T *_Nonnull alloc(size_t count = 1) {
+    T *_Nonnull alloc(size_t count = 1) {
         return static_cast<T *>(alloc_(sizeof(T) * count));
     };
     void reset(char *_Nullable start, size_t capacity);

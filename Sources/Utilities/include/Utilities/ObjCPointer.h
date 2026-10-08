@@ -27,8 +27,8 @@ class objc_ptr {
   private:
     id _storage;
 
-    static inline id to_storage(T obj) { return (id)(obj); }
-    static inline T from_storage(id storage) { return (T)storage; }
+    static id to_storage(T obj) { return (id)(obj); }
+    static T from_storage(id storage) { return (T)storage; }
 
     enum AdoptTag { Adopt };
     constexpr objc_ptr(T obj, AdoptTag) : _storage(to_storage(obj)) {}

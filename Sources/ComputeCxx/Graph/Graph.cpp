@@ -224,7 +224,7 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
         };
     };
 
-    auto *current_update_thread = _current_update_thread;
+    pthread_t current_update_thread = _current_update_thread;
     auto main_handler = _main_handler;
     const auto *main_handler_context = _main_handler_context;
 

@@ -58,7 +58,7 @@ class class_type_descriptor {
 
     // We need to reimplement these to avoid errors when linking against the
     // Swift runtime library
-    uint64_t immediate_members_offset(void) const;
+    uint64_t immediate_members_offset() const;
     uint64_t field_offset_vector_offset() const;
 };
 

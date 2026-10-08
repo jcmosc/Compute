@@ -199,7 +199,7 @@ class Graph {
     // Threads
     bool _needs_update = false;
     uint32_t _ref_count = 1;
-    pthread_t _current_update_thread = nullptr;
+    pthread_t _current_update_thread = 0;
 
     uint64_t _id;
     uint64_t _deadline = UINT64_MAX;

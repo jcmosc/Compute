@@ -19,7 +19,7 @@ class Heap {
     char *_free_start;
     size_t _capacity;
 
-    void *alloc_(size_t arg1);
+    void *alloc_(size_t size);
 
   public:
     static constexpr size_t minimum_increment = 0x400;

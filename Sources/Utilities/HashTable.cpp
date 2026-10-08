@@ -22,7 +22,7 @@ bool pointer_compare(void const *a, void const *b) { return a == b; }
 uint64_t string_hash(char const *str) {
     int64_t result = 0;
     for (char const *c = str; *c; c += 1) {
-        result = result * 33 + *c;
+        result = (result * 33) + *c;
     }
     return result;
 }

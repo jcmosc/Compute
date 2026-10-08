@@ -419,6 +419,8 @@ const metadata *metadata::mangled_type_name_ref(const char *type_name, bool faul
             case 'u':
                 *kind_out = ref_kind::unmanaged;
                 break;
+            default:
+                break;
             }
         }
     }

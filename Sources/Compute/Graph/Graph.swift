@@ -34,11 +34,13 @@ extension Graph {
             pointer.initialize(to: attributeType)
             return UnsafePointer(pointer)
         }
-        return internAttributeType(
-            ctx: ctx,
-            body: Metadata(body),
-            makeAttributeType: makeAttributeType
-        )
+        return withoutActuallyEscaping(makeAttributeType) { escapingMakeAttributeType in
+            return internAttributeType(
+                ctx: ctx,
+                body: Metadata(body),
+                makeAttributeType: escapingMakeAttributeType
+            )
+        }
     }
 }
 
@@ -81,7 +83,7 @@ func IAGGraphSetInvalidationCallback(
 @_silgen_name("IAGGraphWithMainThreadHandler")
 func IAGGraphWithMainThreadHandler(
     _ graph: UnsafeRawPointer,
-    body: () -> Void,
+    body: @escaping () -> Void,
     mainThreadHandler: (() -> Void) -> Void
 )
 
@@ -118,11 +120,13 @@ extension Graph {
     }
 
     public func withMainThreadHandler(_ mainThreadHandler: (() -> Void) -> Void, do body: () -> Void) {
-        IAGGraphWithMainThreadHandler(
-            unsafeBitCast(self, to: UnsafeRawPointer.self),
-            body: body,
-            mainThreadHandler: mainThreadHandler
-        )
+        withoutActuallyEscaping(body) { escapingBody in
+            IAGGraphWithMainThreadHandler(
+                unsafeBitCast(self, to: UnsafeRawPointer.self),
+                body: escapingBody,
+                mainThreadHandler: mainThreadHandler
+            )
+        }
     }
 }
 

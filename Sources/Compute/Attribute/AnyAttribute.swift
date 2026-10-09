@@ -5,14 +5,14 @@ func IAGGraphMutateAttribute(
     _ attribute: AnyAttribute,
     type: Metadata,
     invalidating: Bool,
-    modify: (UnsafeMutableRawPointer) -> Void
+    modify: @escaping (UnsafeMutableRawPointer) -> Void
 )
 
 @_silgen_name("IAGGraphSearch")
 func IAGGraphSearch(
     attribute: AnyAttribute,
     options: SearchOptions,
-    predicate: (AnyAttribute) -> Bool
+    predicate: @escaping (AnyAttribute) -> Bool
 ) -> Bool
 
 extension AnyAttribute {

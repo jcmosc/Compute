@@ -3,7 +3,7 @@ import ComputeCxx
 @_silgen_name("IAGSubgraphAddObserver")
 func IAGSubgraphAddObserver(
     _ subgraph: UnsafeRawPointer,
-    observer: () -> Void
+    observer: @escaping () -> Void
 ) -> Int
 
 extension Subgraph {
@@ -16,7 +16,7 @@ extension Subgraph {
 func IAGSubgraphApply(
     _ subgraph: UnsafeRawPointer,
     _ flags: Subgraph.Flags,
-    _ body: (AnyAttribute) -> Void
+    _ body: @escaping (AnyAttribute) -> Void
 )
 
 extension Subgraph {
@@ -36,7 +36,9 @@ extension Subgraph {
         _ flags: Subgraph.Flags,
         _ body: (AnyAttribute) -> Void
     ) {
-        IAGSubgraphApply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, body)
+        withoutActuallyEscaping(body) { escapingBody in
+            IAGSubgraphApply(unsafeBitCast(self, to: UnsafeRawPointer.self), flags, escapingBody)
+        }
     }
 
 }

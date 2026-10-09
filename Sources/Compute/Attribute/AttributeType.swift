@@ -16,7 +16,7 @@ extension String {
 
 @_silgen_name("IAGRetainClosure")
 func IAGRetainClosure(
-    _ closure: (UnsafeMutableRawPointer, AnyAttribute) -> Void
+    _ closure: @escaping (UnsafeMutableRawPointer, AnyAttribute) -> Void
 ) -> _IAGClosureStorage
 
 extension _AttributeType {

@@ -1,7 +1,7 @@
 import ComputeCxx
 
 @_silgen_name("IAGGraphWithUpdate")
-func IAGGraphWithUpdate(_ attribute: AnyAttribute, body: () -> Void)
+func IAGGraphWithUpdate(_ attribute: AnyAttribute, body: @escaping () -> Void)
 
 @frozen
 public struct AnyRuleContext {
@@ -21,7 +21,9 @@ public struct AnyRuleContext {
     }
 
     public func update(body: () -> Void) {
-        IAGGraphWithUpdate(attribute, body: body)
+        withoutActuallyEscaping(body) { escapingBody in
+            IAGGraphWithUpdate(attribute, body: escapingBody)
+        }
     }
 
     public func changedValue<Value>(

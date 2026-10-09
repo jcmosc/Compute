@@ -13,7 +13,7 @@ public func forEachField(of type: Any.Type, do body: (UnsafePointer<Int8>, Int, 
 func IAGTypeApplyFields2(
     _ type: Metadata,
     options: Metadata.ApplyOptions,
-    body: (UnsafePointer<CChar>, Int, Metadata) -> Bool
+    body: @escaping (UnsafePointer<CChar>, Int, Metadata) -> Bool
 ) -> Bool
 
 extension Metadata {
@@ -32,8 +32,11 @@ extension Metadata {
     )
         -> Bool
     {
-        return IAGTypeApplyFields2(self, options: options) { fieldName, fieldOffset, fieldType in
-            return body(fieldName, fieldOffset, fieldType.type)
+        return withoutActuallyEscaping(body) { escapingBody in
+            let apply: (UnsafePointer<CChar>, Int, Metadata) -> Bool = { fieldName, fieldOffset, fieldType in
+                return escapingBody(fieldName, fieldOffset, fieldType.type)
+            }
+            return IAGTypeApplyFields2(self, options: options, body: apply)
         }
     }
 

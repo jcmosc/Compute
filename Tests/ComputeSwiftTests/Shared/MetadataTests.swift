@@ -713,11 +713,13 @@ struct MetadataTests {
             }
 
             var value = BasicEnum.first
+            var bodyCallCount = 0
             let finished = withUnsafePointerToEnumCase(of: &value) { _, _, _ in
-                #expect(Bool(false))
+                bodyCallCount += 1
             }
 
             #expect(finished == false)
+            #expect(bodyCallCount == 0)
         }
 
         @Test
@@ -728,11 +730,13 @@ struct MetadataTests {
             }
 
             var value = IntEnum.first
+            var bodyCallCount = 0
             let finished = withUnsafePointerToEnumCase(of: &value) { _, _, _ in
-                #expect(Bool(false))
+                bodyCallCount += 1
             }
 
             #expect(finished == false)
+            #expect(bodyCallCount == 0)
         }
 
         @Test
@@ -744,11 +748,13 @@ struct MetadataTests {
             }
 
             var value1 = TaggedUnionEnum.first
+            var bodyCallCount = 0
             let finished1 = withUnsafePointerToEnumCase(of: &value1) { _, _, _ in
-                #expect(Bool(false))
+                bodyCallCount += 1
             }
 
             #expect(finished1 == false)
+            #expect(bodyCallCount == 0)
 
             var value2 = TaggedUnionEnum.second(1)
             var field2: (Int, any Any.Type, UnsafeRawPointer)?
@@ -813,6 +819,47 @@ struct MetadataTests {
             } else {
                 #expect(Bool(false))
             }
+        }
+
+
+        @Test
+        func withUnsafeMutablePointerToEnumCaseMutatesPayload() {
+            enum TaggedUnionEnum: Equatable {
+                case first
+                case second(Int)
+                case third(String)
+            }
+
+            var value = TaggedUnionEnum.second(1)
+            var tag: Int?
+            var fieldType: (any Any.Type)?
+            let finished = withUnsafeMutablePointerToEnumCase(of: &value) { caseTag, caseFieldType, fieldValue in
+                tag = caseTag
+                fieldType = caseFieldType
+                fieldValue.assumingMemoryBound(to: Int.self).pointee = 2
+            }
+
+            #expect(finished == true)
+            #expect(tag == 0)
+            #expect(fieldType == Int.self)
+            #expect(value == .second(2))
+        }
+
+        @Test
+        func withUnsafeMutablePointerToEnumCaseWithoutPayload() {
+            enum TaggedUnionEnum {
+                case first
+                case second(Int)
+            }
+
+            var value = TaggedUnionEnum.first
+            var bodyCallCount = 0
+            let finished = withUnsafeMutablePointerToEnumCase(of: &value) { _, _, _ in
+                bodyCallCount += 1
+            }
+
+            #expect(finished == false)
+            #expect(bodyCallCount == 0)
         }
 
     }

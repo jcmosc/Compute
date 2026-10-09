@@ -53,7 +53,7 @@ AGTypeKind AGTypeGetKind(AGTypeID typeID) AG_SWIFT_NAME(getter:Metadata.kind(sel
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT
-const AGTypeSignature AGTypeGetSignature(AGTypeID typeID) AG_SWIFT_NAME(getter:Metadata.signature(self:));
+AGTypeSignature AGTypeGetSignature(AGTypeID typeID) AG_SWIFT_NAME(getter:Metadata.signature(self:));
 
 AG_EXPORT
 AG_REFINED_FOR_SWIFT

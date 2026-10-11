@@ -766,7 +766,9 @@ Partial find_partial(ValueLayout layout, size_t range_location, size_t range_siz
         }
     };
 
-    return {reader.layout, accumulated_size};
+    // The compared values already start at the requested range.
+    size_t location = accumulated_size - range_location;
+    return {reader.layout, location < range_size ? location : range_size};
 }
 
 void print(std::string &output, ValueLayout layout) {

@@ -30,6 +30,7 @@ class Graph::UpdateStack {
     IAGGraphUpdateOptions _options;
 
     bool push_slow(data::ptr<Node> node_ptr, Node &node, bool ignore_cycles, bool initialize_value);
+    bool push_inputs(Frame &frame, data::ptr<Node> node);
 
   public:
     UpdateStack(Graph *graph, IAGGraphUpdateOptions options);

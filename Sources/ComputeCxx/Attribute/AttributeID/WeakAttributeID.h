@@ -25,9 +25,16 @@ class WeakAttributeID {
     AttributeID identifier() const { return _identifier; };
     uint32_t seed() const { return _seed; }
 
-    bool expired() const;
+    /// Returns true if the attribute can no longer be evaluated.
+    bool is_expired() const;
 
-    /// Returns the attribute it is has not expired, otherwise returns the nil
+    /// Returns true when the attribute's subgraph has been freed (or reused).
+    ///
+    /// This method may return false if the attribute's subgraph has been
+    /// invalidated but not yet destroyed.
+    bool is_freed() const;
+
+    /// Returns the attribute if it has not expired, otherwise returns the nil
     /// attribute.
     AttributeID evaluate() const;
 };

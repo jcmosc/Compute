@@ -522,7 +522,7 @@ void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
         return;
     }
 
-    if (indirect_node->source().expired()) {
+    if (indirect_node->source().is_freed()) {
         return;
     }
 
@@ -556,7 +556,7 @@ void Graph::remove_indirect_node(data::ptr<IndirectNode> indirect_node) {
                 }
                 break;
             } else {
-                if (source_indirect_node->source().expired()) {
+                if (source_indirect_node->source().is_freed()) {
                     break;
                 }
 
@@ -624,7 +624,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
         if (output_indirect_node->is_mutable()) {
             auto &mutable_output_indirect_node = output_indirect_node->to_mutable();
             auto initial_source = mutable_output_indirect_node.initial_source();
-            if (initial_source.identifier() && !initial_source.identifier().is_nil() && !initial_source.expired()) {
+            if (initial_source.identifier() && !initial_source.identifier().is_nil() && !initial_source.is_expired()) {
                 new_source = initial_source;
                 new_offset = mutable_output_indirect_node.initial_offset();
             }
@@ -636,7 +636,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
 
         output_indirect_node->modify(new_source, new_offset);
 
-        if (new_source.identifier() && !new_source.identifier().is_nil() && !new_source.expired()) {
+        if (new_source.identifier() && !new_source.identifier().is_nil() && !new_source.is_expired()) {
             add_input_dependencies(output, new_source.identifier());
         }
 
@@ -917,7 +917,7 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool
 
     auto initial_source = indirect_node->to_mutable().initial_source();
     auto initial_offset = indirect_node->to_mutable().initial_offset();
-    if (!initial_source.expired()) {
+    if (!initial_source.is_expired()) {
         new_source = initial_source;
         new_offset = initial_offset;
     } else {

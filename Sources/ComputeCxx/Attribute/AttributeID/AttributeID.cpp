@@ -73,7 +73,7 @@ OffsetAttributeID AttributeID::resolve_slow(TraversalOptions options) const {
             }
         }
 
-        if (options && TraversalOptions::EvaluateWeakReferences) {
+        if (options & TraversalOptions::EvaluateWeakReferences) {
             if (indirect_node->source().expired()) {
                 if (options & TraversalOptions::AssertNotNil) {
                     precondition_failure("invalid indirect ref: %u", _value);

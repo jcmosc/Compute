@@ -152,6 +152,51 @@ bool Graph::UpdateStack::push_slow(data::ptr<Node> node_ptr, Node &node, bool ig
     return true;
 }
 
+bool Graph::UpdateStack::push_inputs(Frame &frame, data::ptr<Node> node) {
+    for (auto input_index = frame.num_pushed_inputs, num_inputs = node->input_edges().size();
+         input_index != num_inputs; ++input_index) {
+        const InputEdge &input_edge = node->input_edges()[input_index];
+
+        AttributeID input_attribute = input_edge.attribute;
+        while (input_attribute.is_indirect_node()) {
+            // TODO: warning: variable 'input_attribute' is uninitialized
+            // when used (revisit this) within its own initialization
+            auto input_attribute_source = input_attribute.get_indirect_node()->source().identifier();
+            if (input_attribute.get_indirect_node()->is_mutable()) {
+                if (AttributeID dependency = input_attribute.get_indirect_node()->to_mutable().dependency()) {
+                    if (!dependency.get_node()->is_value_initialized() || dependency.get_node()->is_dirty()) {
+                        frame.num_pushed_inputs = input_index;
+                        push(dependency.get_node(), *dependency.get_node(), false, false);
+                        // pushed a frame regardless
+                        return true;
+                    }
+                }
+            }
+            input_attribute = input_attribute_source;
+        }
+
+        if (auto input_node = input_attribute.get_node()) {
+            if (input_edge.options & IAGInputOptionsChanged) {
+                frame.pending = true;
+            }
+
+            if (!input_node->is_value_initialized() || input_node->is_dirty()) {
+
+                if (!(input_edge.options & IAGInputOptionsUnprefetched) && input_attribute.subgraph()->is_valid()) {
+                    frame.num_pushed_inputs = input_index + 1;
+                    if (push(input_node, *input_node, true, true)) {
+                        return true;
+                    }
+                }
+
+                frame.pending = true;
+            }
+        }
+    }
+
+    return false;
+}
+
 Graph::UpdateStatus Graph::UpdateStack::update() {
     while (true) {
         Frame &frame = _frames.back();
@@ -200,46 +245,9 @@ Graph::UpdateStatus Graph::UpdateStack::update() {
 
         // Push prefetched inputs
 
-        for (auto input_index = frame.num_pushed_inputs, num_inputs = node->input_edges().size();
-             input_index != num_inputs; ++input_index) {
-            const InputEdge &input_edge = node->input_edges()[input_index];
-
-            AttributeID input_attribute = input_edge.attribute;
-            while (input_attribute.is_indirect_node()) {
-                // TODO: warning: variable 'input_attribute' is uninitialized
-                // when used (revisit this) within its own initialization
-                auto input_attribute_source = input_attribute.get_indirect_node()->source().identifier();
-                if (input_attribute.get_indirect_node()->is_mutable()) {
-                    if (AttributeID dependency = input_attribute.get_indirect_node()->to_mutable().dependency()) {
-                        if (!dependency.get_node()->is_value_initialized() || dependency.get_node()->is_dirty()) {
-                            frame.num_pushed_inputs = input_index;
-                            push(dependency.get_node(), *dependency.get_node(), false, false);
-                            // go to top regardless
-                            return update();
-                        }
-                    }
-                }
-                input_attribute = input_attribute_source;
-            }
-
-            if (auto input_node = input_attribute.get_node()) {
-                if (input_edge.options & IAGInputOptionsChanged) {
-                    frame.pending = true;
-                }
-
-                if (!input_node->is_value_initialized() || input_node->is_dirty()) {
-
-                    if (!(input_edge.options & IAGInputOptionsUnprefetched) && input_attribute.subgraph()->is_valid()) {
-                        frame.num_pushed_inputs = input_index + 1;
-                        if (push(input_node, *input_node, true, true)) {
-                            // go to top
-                            return update();
-                        }
-                    }
-
-                    frame.pending = true;
-                }
-            }
+        if (push_inputs(frame, node)) {
+            // go to top
+            continue;
         }
 
         // Update value

@@ -39,8 +39,8 @@ void Graph::ProfileData::Item::mark(uint32_t event_id, uint64_t time) {
 Graph::ProfileData::Item &Graph::ProfileData::Item::operator+=(const Item &other) {
     Data::operator+=(other);
 
-    for (auto &other_mark : other._marks) {
-        auto iter = _marks.begin();
+    for (const auto &other_mark : other._marks) {
+        auto *iter = _marks.begin();
         while (iter != _marks.end() && iter->time < other_mark.time) {
             ++iter;
         }

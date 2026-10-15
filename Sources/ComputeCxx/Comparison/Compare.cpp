@@ -105,8 +105,8 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
         case ValueLayoutEntryKind::End:
             return true;
         case ValueLayoutEntryKind::Equals: {
-            auto type = reader.read_bytes<const swift::metadata *>();
-            auto equatable = reader.read_bytes<const swift::equatable_witness_table *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
+            const auto *equatable = reader.read_bytes<const swift::equatable_witness_table *>();
 
             size_t item_size = type->vw_size();
             size_t item_end = offset + item_size;
@@ -128,7 +128,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             continue;
         }
         case ValueLayoutEntryKind::Indirect: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
 
             unsigned char *indirect_layout_ptr = const_cast<unsigned char *>(reader.layout);
             ValueLayout indirect_layout;
@@ -155,7 +155,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             continue;
         }
         case ValueLayoutEntryKind::Existential: {
-            auto type = reader.read_bytes<const swift::metadata *>();
+            const auto *type = reader.read_bytes<const swift::metadata *>();
 
             size_t item_size = type->vw_size();
             size_t item_end = offset + item_size;
@@ -194,7 +194,7 @@ bool Compare::operator()(ValueLayout layout, const unsigned char *lhs, const uns
             continue;
         }
         case ValueLayoutEntryKind::Nested: {
-            auto nested_layout = reader.read_bytes<ValueLayout>();
+            const auto *nested_layout = reader.read_bytes<ValueLayout>();
             size_t nested_size = reader.read_varint();
 
             size_t item_end = offset + nested_size;

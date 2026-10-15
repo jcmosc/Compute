@@ -9,7 +9,7 @@ void IAGDebugServerStart(IAGDebugServerOptions options) { IAG::DebugServer::star
 void IAGDebugServerStop(void) { IAG::DebugServer::stop(); }
 
 void IAGDebugServerRun(uint32_t timeout) {
-    auto debug_server = IAG::DebugServer::shared();
+    auto *debug_server = IAG::DebugServer::shared();
     if (!debug_server) {
         return;
     }
@@ -18,7 +18,7 @@ void IAGDebugServerRun(uint32_t timeout) {
 }
 
 CFURLRef IAGDebugServerCopyURL(void) {
-    auto debug_server = IAG::DebugServer::shared();
+    auto *debug_server = IAG::DebugServer::shared();
     if (!debug_server) {
         return nullptr;
     }

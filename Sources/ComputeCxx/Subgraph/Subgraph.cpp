@@ -1,5 +1,6 @@
 #include "Subgraph.h"
 
+#include <cstddef>
 #include <cstring>
 #include <ranges>
 #include <stack>
@@ -34,7 +35,7 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
             auto update = Graph::current_update();
             if (update.tag() == 0 && update.get() != nullptr) {
                 if (update.get()->graph() == graph) {
-                    if (auto frame = update.get()->global_top()) {
+                    if (auto *frame = update.get()->global_top()) {
                         attribute = AttributeID(frame->attribute);
                     }
                 }
@@ -47,8 +48,8 @@ Subgraph::Subgraph(SubgraphObject *object, Graph::Context &context, AttributeID 
 }
 
 Subgraph::~Subgraph() {
-    if (auto observers_ptr = _observers.get()) {
-        auto observers = *observers_ptr;
+    if (auto *observers_ptr = _observers.get()) {
+        auto *observers = *observers_ptr;
 
         notify_observers();
         delete observers;
@@ -65,7 +66,7 @@ Subgraph *Subgraph::from_cf(IAGSubgraphStorage *storage) { return storage->subgr
 IAGSubgraphStorage *Subgraph::to_cf() const { return reinterpret_cast<IAGSubgraphStorage *>(_object); }
 
 void Subgraph::clear_object() {
-    auto object = _object;
+    auto *object = _object;
     if (object) {
         object->clear_subgraph();
         _object = nullptr;
@@ -81,7 +82,7 @@ void Subgraph::clear_object() {
 
 pthread_key_t Subgraph::_current_subgraph_key;
 
-void Subgraph::make_current_subgraph_key() { pthread_key_create(&_current_subgraph_key, 0); }
+void Subgraph::make_current_subgraph_key() { pthread_key_create(&_current_subgraph_key, nullptr); }
 
 Subgraph *Subgraph::current_subgraph() { return (Subgraph *)pthread_getspecific(_current_subgraph_key); }
 
@@ -101,21 +102,18 @@ IAGUniqueID Subgraph::add_observer(ClosureFunctionVV<void> callback) {
 }
 
 void Subgraph::remove_observer(IAGUniqueID observer_id) {
-    if (auto observers_ptr = _observers.get()) {
-        auto observers = *observers_ptr;
-        auto iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
-            if (observer.observer_id == observer_id) {
-                return true;
-            }
-            return false;
+    if (auto *observers_ptr = _observers.get()) {
+        auto *observers = *observers_ptr;
+        auto *iter = std::remove_if(observers->begin(), observers->end(), [&observer_id](auto observer) -> bool {
+            return observer.observer_id == observer_id;
         });
         observers->erase(iter, observers->end());
     }
 }
 
 void Subgraph::notify_observers() {
-    if (auto observers_ptr = _observers.get()) {
-        auto observers = *observers_ptr;
+    if (auto *observers_ptr = _observers.get()) {
+        auto *observers = *observers_ptr;
         while (!observers->empty()) {
             observers->back().callback();
             observers->pop_back();
@@ -134,7 +132,7 @@ void Subgraph::invalidate_and_delete_(bool delete_zone_data) {
         return;
     }
 
-    for (auto parent : _parents) {
+    for (auto *parent : _parents) {
         parent->remove_child(*this, true);
     }
     _parents.clear();
@@ -194,12 +192,12 @@ void Subgraph::invalidate_now(Graph &graph) {
                 if (child.subgraph()->context_id() == _context_id) {
                     // for each other parent of the child, remove the child from
                     // that parent
-                    for (auto other_parent : child.subgraph()->_parents) {
+                    for (auto *other_parent : child.subgraph()->_parents) {
                         if (other_parent == subgraph) {
                             continue;
                         }
 
-                        auto iter = std::remove_if(other_parent->_children.begin(), other_parent->_children.end(),
+                        auto *iter = std::remove_if(other_parent->_children.begin(), other_parent->_children.end(),
                                                    [&child](auto other_parent_child) -> bool {
                                                        return other_parent_child.subgraph() == child.subgraph();
                                                    });
@@ -221,7 +219,7 @@ void Subgraph::invalidate_now(Graph &graph) {
                 } else {
                     // don't invalidate this child but remove this subgraph from
                     // its parents vector
-                    auto iter =
+                    auto *iter =
                         std::remove(child.subgraph()->_parents.begin(), child.subgraph()->_parents.end(), subgraph);
                     child.subgraph()->_parents.erase(iter, child.subgraph()->_parents.end());
                 }
@@ -229,7 +227,7 @@ void Subgraph::invalidate_now(Graph &graph) {
         }
     }
 
-    for (auto removed_subgraph : removed_subgraphs) {
+    for (auto *removed_subgraph : removed_subgraphs) {
         for (auto page : removed_subgraph->pages()) {
             bool found_nil_attribute = false;
             for (auto attribute : attribute_view(page)) {
@@ -248,7 +246,7 @@ void Subgraph::invalidate_now(Graph &graph) {
         }
     }
 
-    for (auto removed_subgraph : removed_subgraphs) {
+    for (auto *removed_subgraph : removed_subgraphs) {
         for (auto page : removed_subgraph->pages()) {
             // store previous node so we can iterate past it before destroying
             // it
@@ -333,7 +331,7 @@ void Subgraph::add_child(Subgraph &child, uint8_t tag) {
     if (child.graph() != graph()) {
         precondition_failure("child subgraph must have same graph");
     }
-    for (auto parent : child._parents) {
+    for (auto *parent : child._parents) {
         if (parent == this) {
             precondition_failure("child already attached to new parent");
         }
@@ -357,14 +355,14 @@ void Subgraph::add_child(Subgraph &child, uint8_t tag) {
 }
 
 void Subgraph::remove_child(Subgraph &child, bool suppress_trace) {
-    auto parent_iter = std::remove(child._parents.begin(), child._parents.end(), this);
+    auto *parent_iter = std::remove(child._parents.begin(), child._parents.end(), this);
     child._parents.erase(parent_iter, child._parents.end());
 
     if (!suppress_trace) {
         graph()->foreach_trace([this, &child](Trace &trace) { trace.remove_child(*this, child); });
     }
 
-    auto child_iter = std::remove_if(_children.begin(), _children.end(), [&child](auto subgraph_child) -> bool {
+    auto *child_iter = std::remove_if(_children.begin(), _children.end(), [&child](auto subgraph_child) -> bool {
         return subgraph_child.subgraph() == &child;
     });
     _children.erase(child_iter, _children.end());
@@ -374,7 +372,7 @@ bool Subgraph::ancestor_of(const Subgraph &other) {
     auto candidates = std::stack<const Subgraph *, vector<const Subgraph *, 32, uint64_t>>();
     candidates.push(&other);
     while (!candidates.empty()) {
-        auto candidate = candidates.top();
+        const auto *candidate = candidates.top();
         candidates.pop();
         
         if (candidate == this) {
@@ -533,9 +531,9 @@ void Subgraph::add_node(data::ptr<Node> node) {
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
 
-void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool flag) {
+void Subgraph::add_indirect(data::ptr<IndirectNode> node, bool updatable) {
     insert_attribute(AttributeID(node),
-                     flag); // make sure adds Indirect kind to node
+                     updatable); // make sure adds Indirect kind to node
 
     graph()->foreach_trace([&node](Trace &trace) { trace.added(node); });
 }
@@ -561,7 +559,7 @@ void Subgraph::apply(uint32_t options, ClosureFunctionAV<void, IAGAttribute> bod
     _traversal_seed = _last_traversal_seed;
 
     while (!subgraphs.empty()) {
-        auto subgraph = subgraphs.top();
+        auto *subgraph = subgraphs.top();
         subgraphs.pop();
 
         if (!subgraph->is_valid()) {
@@ -727,7 +725,7 @@ data::ptr<Node> Subgraph::cache_fetch(size_t hash, const swift::metadata &metada
 
     data::ptr<NodeCache::Type> type = _cache->types().lookup(&metadata, nullptr);
     if (type == nullptr) {
-        auto equatable = metadata.equatable();
+        const auto *equatable = metadata.equatable();
         if (equatable == nullptr) {
             precondition_failure("cache key must be equatable: %s", metadata.name(false));
         }
@@ -863,7 +861,7 @@ void Subgraph::cache_collect() {
     std::pair<Subgraph *, NodeCache *> context = {this, _cache.get()};
     _cache->types().for_each(
         [](const swift::metadata *metadata, const data::ptr<NodeCache::Type> type, void *context) {
-            auto inner_context = reinterpret_cast<std::pair<Subgraph *, NodeCache *> *>(context);
+            auto *inner_context = reinterpret_cast<std::pair<Subgraph *, NodeCache *> *>(context);
             Subgraph *subgraph = inner_context->first;
             NodeCache *cache = inner_context->second;
 
@@ -944,17 +942,17 @@ void Subgraph::add_tree_value(AttributeID value, const swift::metadata *type, co
 }
 
 AttributeID Subgraph::tree_node_at_index(Graph::TreeElementID tree_element, uint64_t index) {
-    if (auto tree_data_element = graph()->tree_data_element_for_subgraph(this)) {
+    if (auto *tree_data_element = graph()->tree_data_element_for_subgraph(this)) {
         auto &nodes = tree_data_element->nodes();
 
-        auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
+        auto *found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
                                       [](auto iter, auto value) { return iter.first < (uint32_t)value; });
 
         // Find the element that is `index` places after the first given tree
         // element, stopping if we reach the next tree element before `index`
         // places.
         uint64_t i = index;
-        for (auto iter = found; iter != nodes.end(); ++iter) {
+        for (auto *iter = found; iter != nodes.end(); ++iter) {
             if (iter->first != tree_element) {
                 break;
             }
@@ -968,7 +966,7 @@ AttributeID Subgraph::tree_node_at_index(Graph::TreeElementID tree_element, uint
 }
 
 Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_element) {
-    auto tree_data_element = graph()->tree_data_element_for_subgraph(this);
+    auto *tree_data_element = graph()->tree_data_element_for_subgraph(this);
     if (!tree_data_element) {
         return Graph::TreeElementID(nullptr);
     }
@@ -978,7 +976,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
         return Graph::TreeElementID(nullptr);
     }
 
-    auto found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
+    auto *found = std::lower_bound(nodes.begin(), nodes.end(), tree_element,
                                   [](auto iter, auto value) -> bool { return iter.first < (uint32_t)value; });
     if (found == nodes.end()) {
         return Graph::TreeElementID(nullptr);
@@ -988,7 +986,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
 
     // Check if any node created for _this_ tree element, is the tree owner for
     // any child subgraph
-    for (auto subgraph : _graph->subgraphs()) {
+    for (auto *subgraph : _graph->subgraphs()) {
         if (!subgraph->is_valid()) {
             continue;
         }
@@ -1002,7 +1000,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
 
         attribute = attribute.resolve(TraversalOptions::None).attribute();
         if (auto node = attribute.get_node()) {
-            for (auto iter = found; iter != nodes.end(); ++iter) {
+            for (auto *iter = found; iter != nodes.end(); ++iter) {
                 if (iter->first != tree_element) {
                     break;
                 }
@@ -1020,7 +1018,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
 
     // Link all tree roots of child subgraphs together as siblings
     auto old_first_tree_child = Graph::TreeElementID();
-    for (auto subgraph : subgraph_children) {
+    for (auto *subgraph : subgraph_children) {
         first_tree_child = subgraph->_tree_root;
         first_tree_child->next_sibling = old_first_tree_child;
         old_first_tree_child = first_tree_child;
@@ -1034,7 +1032,7 @@ Graph::TreeElementID Subgraph::tree_subgraph_child(Graph::TreeElementID tree_ele
 void Subgraph::encode(Encoder &encoder) const {
     encoder.encode_field_varint(1, subgraph_id());
     encoder.encode_field_varint(2, context_id());
-    for (auto parent : _parents) {
+    for (auto *parent : _parents) {
         encoder.encode_field_varint(3, parent->subgraph_id());
     }
     for (auto child : _children) {
@@ -1082,7 +1080,7 @@ void Subgraph::encode(Encoder &encoder) const {
 #pragma mark - Printing
 
 void Subgraph::print(uint32_t indent_level) {
-    uint64_t indent_length = 2 * indent_level;
+    uint64_t indent_length = static_cast<uint64_t>(2 * indent_level);
     char *indent_string = (char *)alloca(indent_length + 1);
     memset(indent_string, ' ', indent_length);
     indent_string[indent_length] = '\0';

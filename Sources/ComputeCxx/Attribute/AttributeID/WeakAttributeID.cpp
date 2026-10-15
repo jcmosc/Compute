@@ -28,7 +28,7 @@ bool WeakAttributeID::is_freed() const {
     return true;
 }
 
-const AttributeID WeakAttributeID::evaluate() const {
+AttributeID WeakAttributeID::evaluate() const {
     return _identifier && !is_expired() ? _identifier : AttributeID(IAGAttributeNil);
 };
 

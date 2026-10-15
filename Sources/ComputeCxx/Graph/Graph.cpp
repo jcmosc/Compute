@@ -49,7 +49,7 @@ Graph::Graph()
 
     static platform_once_t make_keys;
     platform_once(&make_keys, []() {
-        pthread_key_create(&Graph::_current_update_key, 0);
+        pthread_key_create(&Graph::_current_update_key, nullptr);
         Subgraph::make_current_subgraph_key();
     });
 
@@ -156,7 +156,7 @@ Graph::~Graph() {
     }
     all_unlock();
 
-    for (auto subgraph : _subgraphs) {
+    for (auto *subgraph : _subgraphs) {
         subgraph->graph_destroyed();
     }
 }
@@ -183,7 +183,7 @@ Graph::Context *Graph::primary_context() const {
 bool Graph::is_context_updating(uint64_t context_id) {
     for (auto update = current_update(); update != nullptr; update = update.get()->next()) {
         for (auto &frame : std::ranges::reverse_view(update.get()->frames())) {
-            auto subgraph = AttributeID(frame.attribute).subgraph();
+            auto *subgraph = AttributeID(frame.attribute).subgraph();
             if (subgraph && subgraph->context_id() == context_id) {
                 return true;
             }
@@ -198,7 +198,7 @@ void Graph::with_main_handler(ClosureFunctionVV<void> body, IAGGraphMainThreadHa
                               const void *main_handler_context) {
 
     auto old_main_handler = _main_handler;
-    auto old_main_handler_context = _main_handler_context;
+    const auto *old_main_handler_context = _main_handler_context;
 
     _main_handler = main_handler;
     _main_handler_context = main_handler_context;
@@ -219,14 +219,14 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
         void (*handler)(void *);
 
         static void thunk(const void *arg IAG_SWIFT_CONTEXT) IAG_SWIFT_CC(swift) {
-            auto trampoline = reinterpret_cast<const MainTrampoline *>(arg);
+            const auto *trampoline = reinterpret_cast<const MainTrampoline *>(arg);
             trampoline->handler(trampoline->context);
         };
     };
 
-    auto current_update_thread = _current_update_thread;
+    pthread_t current_update_thread = _current_update_thread;
     auto main_handler = _main_handler;
-    auto main_handler_context = _main_handler_context;
+    const auto *main_handler_context = _main_handler_context;
 
     _current_update_thread = 0;
     _main_handler = nullptr;
@@ -243,7 +243,7 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
 #pragma mark - Subgraphs
 
 void Graph::add_subgraph(Subgraph &subgraph) {
-    auto pos = std::lower_bound(_subgraphs.begin(), _subgraphs.end(), &subgraph);
+    auto *pos = std::lower_bound(_subgraphs.begin(), _subgraphs.end(), &subgraph);
     _subgraphs.insert(pos, &subgraph);
 
     _num_subgraphs += 1;
@@ -251,10 +251,10 @@ void Graph::add_subgraph(Subgraph &subgraph) {
 }
 
 void Graph::remove_subgraph(Subgraph &subgraph) {
-    auto iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
+    auto *iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
     _subgraphs.erase(iter, _subgraphs.end());
 
-    if (auto map = _tree_data_elements_by_subgraph.get()) {
+    if (auto *map = _tree_data_elements_by_subgraph.get()) {
         auto iter = map->find(&subgraph);
         if (iter != map->end()) {
             map->erase(iter);
@@ -263,7 +263,7 @@ void Graph::remove_subgraph(Subgraph &subgraph) {
 
     if (subgraph.has_cached_nodes()) {
         subgraph.set_has_cached_nodes(false);
-        auto iter = std::remove(_subgraphs_with_cached_nodes.begin(), _subgraphs_with_cached_nodes.end(), &subgraph);
+        auto *iter = std::remove(_subgraphs_with_cached_nodes.begin(), _subgraphs_with_cached_nodes.end(), &subgraph);
         _subgraphs_with_cached_nodes.erase(iter, _subgraphs_with_cached_nodes.end());
     }
 
@@ -287,9 +287,10 @@ void Graph::invalidate_subgraphs() {
     }
 
     if (_main_handler == nullptr) {
-        auto iter = _subgraphs_with_cached_nodes.begin(), end = _subgraphs_with_cached_nodes.end();
+        auto iter = _subgraphs_with_cached_nodes.begin();
+        auto end = _subgraphs_with_cached_nodes.end();
         while (iter != end) {
-            auto subgraph = *iter;
+            auto *subgraph = *iter;
             subgraph->set_graph_invalidating_subgraphs(true);
             subgraph->cache_collect();
             subgraph->set_graph_invalidating_subgraphs(false);
@@ -301,7 +302,7 @@ void Graph::invalidate_subgraphs() {
             }
         }
         while (!_invalidating_subgraphs.empty()) {
-            auto subgraph = _invalidating_subgraphs.back();
+            auto *subgraph = _invalidating_subgraphs.back();
             _invalidating_subgraphs.pop_back();
 
             subgraph->invalidate_now(*this);
@@ -312,7 +313,7 @@ void Graph::invalidate_subgraphs() {
 #pragma mark - Attribute type
 
 const AttributeType &Graph::attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const {
-    auto &type = attribute_type(attribute->type_id());
+    const auto &type = attribute_type(attribute->type_id());
     if (ref_out) {
         *ref_out = attribute->get_self(type);
     }
@@ -435,7 +436,7 @@ data::ptr<Node> Graph::add_attribute(Subgraph &subgraph, uint32_t type_id, const
 
     // Initialize value
     if (initial_value != nullptr) {
-        value_set_internal(node_ptr, *node_ptr.get(), initial_value, type.value_metadata());
+        value_set_internal(node_ptr, *node_ptr, initial_value, type.value_metadata());
     } else {
         node_ptr->set_dirty(true);
         node_ptr->set_pending(true);
@@ -593,7 +594,7 @@ bool Graph::remove_removed_output(AttributeID attribute, AttributeID output, boo
         uint32_t index = 0;
         for (auto &input_edge : output_node->input_edges()) {
             if (input_edge.attribute.traverses(attribute, TraversalOptions::SkipMutableReference)) {
-                remove_input_edge(output_node, *output_node.get(), index);
+                remove_input_edge(output_node, *output_node, index);
                 return true;
             }
             index += 1;
@@ -660,10 +661,10 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
 
     foreach_trace([&node, &input, &options](Trace &trace) { trace.add_edge(node, input, options); });
 
-    auto subgraph = AttributeID(node).subgraph();
+    auto *subgraph = AttributeID(node).subgraph();
     auto context_id = subgraph ? subgraph->context_id() : 0;
 
-    auto input_subgraph = resolved_input.subgraph();
+    auto *input_subgraph = resolved_input.subgraph();
     auto input_context_id = input_subgraph ? input_subgraph->context_id() : 0;
 
     if (context_id != input_context_id) {
@@ -691,14 +692,14 @@ uint32_t Graph::add_input(data::ptr<Node> node, AttributeID input, bool allow_ni
 
 void Graph::remove_input(data::ptr<Node> node, uint32_t index) {
     remove_input_dependencies(AttributeID(node), node->input_edges()[index].attribute);
-    remove_input_edge(node, *node.get(), index);
+    remove_input_edge(node, *node, index);
 }
 
 void Graph::remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index) {
     foreach_trace([&node_ptr, &index](Trace &trace) { trace.remove_edge(node_ptr, index); });
 
     node.remove_input_edge(index);
-    if (node.input_edges().size() == 0) {
+    if (node.input_edges().empty()) {
         all_inputs_removed(node_ptr);
     }
     reset_update(node_ptr);
@@ -713,7 +714,7 @@ void Graph::remove_all_inputs(data::ptr<Node> node) {
     all_inputs_removed(node);
 }
 
-void Graph::all_inputs_removed(data::ptr<Node> node) {
+void Graph::all_inputs_removed(data::ptr<Node> node) const {
     node->set_input_edges_traverse_contexts(false);
     node->set_needs_sort_input_edges(false);
     if (node->requires_main_thread() && !attribute_type(node->type_id()).flags() && IAGAttributeTypeFlagsMainThread) {
@@ -733,7 +734,7 @@ void Graph::add_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> 
 
 template <>
 void Graph::remove_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
-    auto iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
+    auto *iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
                              [&output](auto iter) -> bool { return iter.attribute == output; });
     if (iter != node->output_edges().end()) {
         node->output_edges().erase(iter);
@@ -746,7 +747,7 @@ void Graph::remove_output_edge<Node>(data::ptr<Node> node, AttributeID output) {
 
 template <>
 void Graph::remove_output_edge<MutableIndirectNode>(data::ptr<MutableIndirectNode> node, AttributeID output) {
-    auto iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
+    auto *iter = std::find_if(node->output_edges().begin(), node->output_edges().end(),
                              [&output](auto iter) -> bool { return iter.attribute == output; });
     if (iter != node->output_edges().end()) {
         node->output_edges().erase(iter);
@@ -788,7 +789,7 @@ void Graph::update_main_refs(AttributeID attribute) {
         }
 
         if (auto node = attribute.get_node()) {
-            auto &type = this->attribute_type(node->type_id()); // TODO: should AttributeType have deleted
+            const auto &type = this->attribute_type(node->type_id()); // TODO: should AttributeType have deleted
                                                                 // copy constructor?
 
             bool main_ref = false;
@@ -903,7 +904,7 @@ void Graph::indirect_attribute_set(data::ptr<IndirectNode> indirect_node, Attrib
         add_input_dependencies(AttributeID(indirect_node), source);
     }
 
-    mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);
+    mark_changed(AttributeID(indirect_node), nullptr, nullptr, nullptr, 0);
     propagate_dirty(AttributeID(indirect_node));
 }
 
@@ -946,7 +947,7 @@ bool Graph::indirect_attribute_reset(data::ptr<IndirectNode> indirect_node, bool
         add_input_dependencies(AttributeID(indirect_node), new_source_or_nil);
     }
 
-    mark_changed(AttributeID(indirect_node), nullptr, 0, 0, 0);
+    mark_changed(AttributeID(indirect_node), nullptr, nullptr, nullptr, 0);
     propagate_dirty(AttributeID(indirect_node));
 
     return true;
@@ -1188,12 +1189,12 @@ Graph::UpdateStatus Graph::update_attribute(data::ptr<Node> node, IAGGraphUpdate
         [&current_update, &node, &options](Trace &trace) { trace.begin_update(current_update, node, options); });
 
     UpdateStatus status = UpdateStatus::Changed;
-    if (current_update.push(node, *node.get(), false, !(options & IAGGraphUpdateOptionsInTransaction))) {
+    if (current_update.push(node, *node, false, !(options & IAGGraphUpdateOptionsInTransaction))) {
         status = current_update.update();
         if (status == UpdateStatus::NeedsCallMainHandler) {
             std::pair<UpdateStack *, UpdateStatus> context = {&current_update, UpdateStatus::NeedsCallMainHandler};
             call_main_handler(&context, [](void *void_context) {
-                auto inner_context = reinterpret_cast<std::pair<UpdateStack *, UpdateStatus> *>(void_context);
+                auto *inner_context = reinterpret_cast<std::pair<UpdateStack *, UpdateStatus> *>(void_context);
                 util::tagged_ptr<UpdateStack> previous = Graph::current_update();
                 Graph::set_current_update(util::tagged_ptr<UpdateStack>(inner_context->first));
                 inner_context->second = inner_context->first->update();
@@ -1360,7 +1361,7 @@ void Graph::compare_failed(const void *lhs, const void *rhs, size_t range_offset
         return;
     }
 
-    auto graph = update.get()->graph();
+    auto *graph = update.get()->graph();
     auto attribute = update.get()->frames().back().attribute;
     graph->foreach_trace([&attribute, &lhs, &rhs, &range_offset, &range_size](Trace &trace) {
         trace.compare_failed(attribute, lhs, rhs, range_offset, range_size, nullptr);
@@ -1502,7 +1503,7 @@ void *Graph::input_value_ref(data::ptr<IAG::Node> node, AttributeID input, uint3
                              IAGChangedValueFlags *_Nonnull flags_out) {
     auto comparator = InputEdge::Comparator(
         input, IAGInputOptionsUnprefetched | IAGInputOptionsSyncMainRef | IAGInputOptionsAlwaysEnabled, input_options);
-    uint32_t index = index_of_input(*node.get(), comparator);
+    uint32_t index = index_of_input(*node, comparator);
 
     if (index < UINT32_MAX) {
         IAG::OffsetAttributeID resolved_input =
@@ -1535,12 +1536,12 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
     if (input_options & IAGInputOptionsSyncMainRef) {
         auto comparator = InputEdge::Comparator(input, IAGInputOptionsUnprefetched | IAGInputOptionsAlwaysEnabled,
                                                 input_options & IAGInputOptionsUnprefetched);
-        index = index_of_input(*node.get(), comparator);
+        index = index_of_input(*node, comparator);
     }
 
     if (index == UINT32_MAX) {
         input.validate_data_offset();
-        auto input_subgraph = input.subgraph();
+        auto *input_subgraph = input.subgraph();
         if (input_subgraph == nullptr || input_subgraph->graph() != this) {
             precondition_failure("accessing attribute in a different namespace: %u", input);
         }
@@ -1552,7 +1553,7 @@ void *Graph::input_value_ref_slow(data::ptr<IAG::Node> node, AttributeID input, 
                 return nullptr;
             }
 
-            auto resolved_subgraph = resolved.attribute().subgraph();
+            auto *resolved_subgraph = resolved.attribute().subgraph();
             if (resolved_subgraph == nullptr || resolved_subgraph->graph() != this) {
                 precondition_failure("accessing attribute in a different namespace: %u", resolved.attribute());
             }
@@ -1610,7 +1611,7 @@ bool Graph::value_set(data::ptr<Node> node, const swift::metadata &value_type, c
         precondition_failure("setting value during update: %u", node);
     }
 
-    bool changed = value_set_internal(node, *node.get(), value, value_type);
+    bool changed = value_set_internal(node, *node, value, value_type);
     if (changed) {
         propagate_dirty(AttributeID(node));
     }
@@ -1689,7 +1690,7 @@ void Graph::value_mark_all() {
         precondition_failure("invalidating all values during update");
     }
 
-    for (auto subgraph : _subgraphs) {
+    for (auto *subgraph : _subgraphs) {
         for (auto page : subgraph->pages()) {
             for (auto attribute : attribute_view(page)) {
                 if (!attribute || attribute.is_nil()) {
@@ -1773,7 +1774,7 @@ void Graph::propagate_dirty(AttributeID attribute) {
                     foreach_trace([&output_node](Trace &trace) { trace.set_dirty(output_node, true); });
 
                     output_node->set_dirty(true);
-                    if (auto subgraph = AttributeID(output_node).subgraph()) {
+                    if (auto *subgraph = AttributeID(output_node).subgraph()) {
                         subgraph->add_dirty_flags(output_node->subgraph_flags());
                     }
 
@@ -1783,11 +1784,11 @@ void Graph::propagate_dirty(AttributeID attribute) {
                     };
 
                     if (output_node->input_edges_traverse_contexts() && !output_node->output_edges().empty()) {
-                        if (auto output_subgraph = output.subgraph()) {
+                        if (auto *output_subgraph = output.subgraph()) {
                             if (auto context_id = output_subgraph->context_id()) {
                                 if (attribute.subgraph() == nullptr ||
                                     context_id != attribute.subgraph()->context_id()) {
-                                    if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
+                                    if (auto *context = _contexts_by_id.lookup(context_id, nullptr)) {
                                         context->call_invalidation_if_needed(attribute);
                                     }
                                 }
@@ -1805,11 +1806,11 @@ void Graph::propagate_dirty(AttributeID attribute) {
 
                     if (output_indirect_node->traverses_contexts() &&
                         !output_indirect_node->to_mutable().output_edges().empty()) {
-                        if (auto output_subgraph = output.subgraph()) {
+                        if (auto *output_subgraph = output.subgraph()) {
                             if (auto context_id = output_subgraph->context_id()) {
                                 if (attribute.subgraph() == nullptr ||
                                     context_id != attribute.subgraph()->context_id()) {
-                                    if (auto context = _contexts_by_id.lookup(context_id, nullptr)) {
+                                    if (auto *context = _contexts_by_id.lookup(context_id, nullptr)) {
                                         context->call_invalidation_if_needed(attribute);
                                     }
                                 }
@@ -1873,7 +1874,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOpt
 
     auto comparator = InputEdge::Comparator(input, options & IAGInputOptionsUnprefetched,
                                             IAGInputOptionsUnprefetched | IAGInputOptionsAlwaysEnabled);
-    auto index = index_of_input(*node.get(), comparator);
+    auto index = index_of_input(*node, comparator);
     if (index == UINT32_MAX) {
         index = add_input(node, input, false, options & IAGInputOptionsUnprefetched);
     }
@@ -1883,7 +1884,7 @@ void Graph::input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOpt
     }
 }
 
-void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) {
+void *Graph::output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) const {
     if (!node->is_updating()) {
         precondition_failure("attribute is not evaluating: %u", node);
     }
@@ -1934,7 +1935,7 @@ void Graph::sync_tracing() {
 
 CFStringRef Graph::copy_trace_path() {
     if (_trace_recorder && _trace_recorder->trace_path()) {
-        return CFStringCreateWithCString(0, _trace_recorder->trace_path(), kCFStringEncodingUTF8);
+        return CFStringCreateWithCString(nullptr, _trace_recorder->trace_path(), kCFStringEncodingUTF8);
     } else {
         return nullptr;
     }
@@ -1944,15 +1945,15 @@ void Graph::prepare_trace(Trace &trace) {
     _contexts_by_id.for_each([](const uint64_t context_id, Context *const context,
                                 void *trace_ref) { ((Trace *)trace_ref)->created(*context); },
                              &trace);
-    for (auto subgraph : _subgraphs) {
+    for (auto *subgraph : _subgraphs) {
         trace.created(*subgraph);
     }
-    for (auto subgraph : _subgraphs) {
+    for (auto *subgraph : _subgraphs) {
         for (auto child : subgraph->children()) {
             trace.add_child(*subgraph, *child.subgraph());
         }
     }
-    for (auto subgraph : _subgraphs) {
+    for (auto *subgraph : _subgraphs) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
             for (auto page : subgraph->pages()) {
                 bool found_nil_attribute = false;
@@ -1983,7 +1984,7 @@ void Graph::prepare_trace(Trace &trace) {
             }
         }
     }
-    for (auto subgraph : _subgraphs) {
+    for (auto *subgraph : _subgraphs) {
         for (uint32_t iteration = 0; iteration < 2; ++iteration) {
             for (auto page : subgraph->pages()) {
                 bool found_nil_attribute = false;
@@ -2025,7 +2026,7 @@ void Graph::add_trace(Trace *_Nullable trace) {
 }
 
 void Graph::remove_trace(IAGUniqueID trace_id) {
-    auto iter = std::remove_if(_traces.begin(), _traces.end(),
+    auto *iter = std::remove_if(_traces.begin(), _traces.end(),
                                [&trace_id](auto trace) -> bool { return trace->id() == trace_id; });
     if (iter) {
         Trace *trace = *iter;
@@ -2037,7 +2038,7 @@ void Graph::remove_trace(IAGUniqueID trace_id) {
 
 void Graph::all_start_tracing(IAGGraphTraceFlags trace_flags, std::span<const char *> span) {
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->start_tracing(trace_flags, span);
     }
     all_unlock();
@@ -2045,7 +2046,7 @@ void Graph::all_start_tracing(IAGGraphTraceFlags trace_flags, std::span<const ch
 
 void Graph::all_stop_tracing() {
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->stop_tracing();
     }
     all_unlock();
@@ -2053,7 +2054,7 @@ void Graph::all_stop_tracing() {
 
 void Graph::all_sync_tracing() {
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->sync_tracing();
     }
     all_unlock();
@@ -2074,7 +2075,7 @@ void Graph::trace_assertion_failure(bool all_stop_tracing, const char *format, .
     va_start(args, format);
 
     bool locked = all_try_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->foreach_trace([&format, &args](Trace &trace) { trace.log_message_v(format, args); });
         if (all_stop_tracing) {
             graph->stop_tracing();
@@ -2097,7 +2098,7 @@ void Graph::start_profiling(IAGGraphProfileFlags profile_flags) {
         CFRunLoopRef run_loop = CFRunLoopGetMain();
         if (run_loop) {
             CFRunLoopObserverRef observer = CFRunLoopObserverCreate(
-                0, kCFRunLoopBeforeWaiting | kCFRunLoopExit, true, 2500000,
+                nullptr, kCFRunLoopBeforeWaiting | kCFRunLoopExit, true, 2500000,
                 [](CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info) {
                     all_mark_profile("app/runloop");
                 },
@@ -2134,7 +2135,7 @@ void Graph::mark_profile(uint32_t event_id, uint64_t time) {
 }
 
 void Graph::add_profile_update(data::ptr<Node> node, uint64_t duration, bool changed) {
-    if (auto profile_data = profile_data_if_enabled()) {
+    if (auto *profile_data = profile_data_if_enabled()) {
         profile_data->add_profile_update(node, duration, changed);
     }
 }
@@ -2150,7 +2151,7 @@ uint64_t Graph::begin_profile_event(data::ptr<Node> node, const char *event_name
 
 void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint64_t start_time, bool changed) {
     auto event_id = intern_key(event_name);
-    if (auto profile_data = profile_data_if_enabled()) {
+    if (auto *profile_data = profile_data_if_enabled()) {
         auto end_time = platform_absolute_time();
         uint64_t duration = end_time - start_time;
         profile_data->add_profile_event(node, duration, changed, event_id);
@@ -2160,7 +2161,7 @@ void Graph::end_profile_event(data::ptr<Node> node, const char *event_name, uint
 
 void Graph::all_start_profiling(IAGGraphProfileFlags profile_flags) {
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->start_profiling(profile_flags);
     }
     all_unlock();
@@ -2168,7 +2169,7 @@ void Graph::all_start_profiling(IAGGraphProfileFlags profile_flags) {
 
 void Graph::all_stop_profiling() {
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->stop_profiling();
     }
     all_unlock();
@@ -2176,7 +2177,7 @@ void Graph::all_stop_profiling() {
 
 void Graph::all_reset_profile() {
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         graph->reset_profile();
     }
     all_unlock();
@@ -2185,7 +2186,7 @@ void Graph::all_reset_profile() {
 void Graph::all_mark_profile(const char *name) {
     uint64_t time = platform_absolute_time();
     all_lock();
-    for (auto graph = _all_graphs; graph != nullptr; graph = graph->_next) {
+    for (auto *graph = _all_graphs; graph != nullptr; graph = graph->_next) {
         auto event_id = graph->intern_key(name);
         graph->mark_profile(event_id, time);
     }
@@ -2222,7 +2223,7 @@ void Graph::encode_node(Encoder &encoder, const Node &node, bool encode_value) c
         if (node.is_value_initialized()) {
             void *value = node.get_value();
 #if TARGET_OS_MAC
-            if (auto description = type.value_description(value)) {
+            if (const auto *description = type.value_description(value)) {
                 uint64_t length = CFStringGetLength(description);
                 CFRange range = CFRangeMake(0, length);
                 uint8_t buffer[1024];
@@ -2308,12 +2309,12 @@ void Graph::encode_tree(Encoder &encoder, data::ptr<TreeElement> tree) const {
     }
 
     Subgraph *subgraph = reinterpret_cast<Subgraph *>(tree.page_ptr()->zone);
-    if (auto tree_data = tree_data_element_for_subgraph(subgraph)) {
+    if (auto *tree_data = tree_data_element_for_subgraph(subgraph)) {
         auto &nodes = tree_data->nodes();
         std::pair<data::ptr<Graph::TreeElement>, data::ptr<Node>> *found =
             std::find_if(nodes.begin(), nodes.end(), [&tree](auto node) { return node.first == tree; });
 
-        for (auto node = found; node != nodes.end(); ++node) {
+        for (auto *node = found; node != nodes.end(); ++node) {
             if (node->first != tree) {
                 break;
             }

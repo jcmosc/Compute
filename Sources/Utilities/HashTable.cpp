@@ -8,7 +8,7 @@
 namespace util {
 
 uint64_t pointer_hash(void const *pointer) {
-    uint64_t result = (-1 ^ (uint64_t)(pointer) << 0x20) + (uint64_t)pointer;
+    uint64_t result = (-1 ^ (uint64_t)pointer << 0x20) + (uint64_t)pointer;
     result = result ^ result >> 0x16;
     result = result + (-1 ^ result << 0xd);
     result = (result ^ result >> 8) * 9;
@@ -22,7 +22,7 @@ bool pointer_compare(void const *a, void const *b) { return a == b; }
 uint64_t string_hash(char const *str) {
     int64_t result = 0;
     for (char const *c = str; *c; c += 1) {
-        result = result * 33 + *c;
+        result = (result * 33) + *c;
     }
     return result;
 }

@@ -25,7 +25,7 @@ void Graph::ProfileTrace::end_update(const Graph::UpdateStack &update_stack, dat
     uint64_t start_time = data.stack_start_time;
     _update_data.erase(iter);
 
-    if (auto next_update_stack = update_stack.next().get()) {
+    if (auto *next_update_stack = update_stack.next().get()) {
         if (!next_update_stack->graph()->is_profiling_enabled()) {
             return;
         }

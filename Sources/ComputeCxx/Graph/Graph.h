@@ -120,7 +120,7 @@ class Graph {
             std::unordered_map<uint32_t, Item> &removed_items() { return _removed_items; }
 
             void mark(uint32_t event_id, uint64_t time);
-            void add_update(data::ptr<Node> node, uint64_t time, bool changed);
+            void add_update(data::ptr<Node> node, uint64_t duration, bool changed);
             void remove_node(data::ptr<Node> node, uint32_t type_id);
         };
 
@@ -226,7 +226,7 @@ class Graph {
 
     void remove_input(data::ptr<Node> node, uint32_t index);
     void remove_input_edge(data::ptr<Node> node_ptr, Node &node, uint32_t index);
-    void all_inputs_removed(data::ptr<Node> node);
+    void all_inputs_removed(data::ptr<Node> node) const;
 
     template <typename T>
     void add_output_edge(data::ptr<T> node, AttributeID output);
@@ -246,7 +246,7 @@ class Graph {
     void remove_input_dependencies(AttributeID attribute, AttributeID input);
     void update_main_refs(AttributeID attribute);
 
-    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t seed, IAGInputOptions input_options,
+    void *input_value_ref_slow(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id, IAGInputOptions input_options,
                                const swift::metadata &value_type, IAGChangedValueFlags *_Nonnull flags_out,
                                uint32_t index);
 
@@ -295,8 +295,8 @@ class Graph {
 
     bool is_context_updating(uint64_t context_id);
 
-    inline static void retain(Graph *graph) { graph->_ref_count += 1; };
-    inline static void release(Graph *graph) {
+    static void retain(Graph *graph) { graph->_ref_count += 1; };
+    static void release(Graph *graph) {
         graph->_ref_count -= 1;
         if (graph->_ref_count == 0) {
             delete graph;
@@ -387,18 +387,21 @@ class Graph {
     const AttributeType &attribute_type(uint32_t type_id) const { return *_types[type_id]; };
     const AttributeType &attribute_ref(data::ptr<Node> attribute, const void *_Nullable *_Nullable ref_out) const;
 
-    uint32_t intern_type(const swift::metadata *metadata, ClosureFunctionVP<const IAGAttributeType *> make_type);
+    [[nodiscard]] uint32_t intern_type(const swift::metadata *metadata,
+                                        ClosureFunctionVP<const IAGAttributeType *> make_type);
 
     // MARK: Attributes
 
-    data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body, const void *_Nullable value);
-    data::ptr<IndirectNode> add_indirect_attribute(Subgraph &subgraph, AttributeID attribute, uint32_t offset,
-                                                   std::optional<size_t> size, bool is_mutable);
+    [[nodiscard]] data::ptr<Node> add_attribute(Subgraph &subgraph, uint32_t type_id, const void *body,
+                                                const void *_Nullable value);
+    [[nodiscard]] data::ptr<IndirectNode> add_indirect_attribute(Subgraph &subgraph, AttributeID attribute,
+                                                                 uint32_t offset, std::optional<size_t> size,
+                                                                 bool is_mutable);
 
     void remove_node(data::ptr<Node> node);
     void remove_indirect_node(data::ptr<IndirectNode> node);
 
-    uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, IAGInputOptions options);
+    [[nodiscard]] uint32_t add_input(data::ptr<Node> node, AttributeID input, bool allow_nil, IAGInputOptions options);
     void remove_all_inputs(data::ptr<Node> node);
 
     void indirect_attribute_set(data::ptr<IndirectNode> indirect_node, AttributeID source);
@@ -414,7 +417,7 @@ class Graph {
 
     // MARK: Body
 
-    void attribute_modify(data::ptr<Node> node, const swift::metadata &type, ClosureFunctionPV<void, void *> modify,
+    void attribute_modify(data::ptr<Node> node, const swift::metadata &metadata, ClosureFunctionPV<void, void *> modify,
                           bool invalidating);
 
     // MARK: Value
@@ -422,13 +425,13 @@ class Graph {
     bool value_exists(data::ptr<Node> node);
     IAGValueState value_state(AttributeID attribute);
 
-    void *value_ref(AttributeID attribute, uint32_t seed, const swift::metadata &value_type,
+    void *value_ref(AttributeID attribute, uint32_t subgraph_id, const swift::metadata &value_type,
                     IAGChangedValueFlags *_Nonnull flags_out);
 
-    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t seed, IAGInputOptions input_options,
+    void *input_value_ref(data::ptr<Node> node, AttributeID input, uint32_t subgraph_id, IAGInputOptions input_options,
                           const swift::metadata &value_type, IAGChangedValueFlags *_Nonnull flags_out);
 
-    bool value_set(data::ptr<Node> node, const swift::metadata &metadata, const void *value);
+    bool value_set(data::ptr<Node> node, const swift::metadata &value_type, const void *value);
     bool value_set_internal(data::ptr<Node> node_ptr, Node &node, const void *value, const swift::metadata &metadata);
 
     void value_mark(data::ptr<Node> node);
@@ -441,7 +444,7 @@ class Graph {
 
     void input_value_add(data::ptr<Node> node, AttributeID input, IAGInputOptions options);
 
-    void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type);
+    void *output_value_ref(data::ptr<Node> node, const swift::metadata &value_type) const;
 
     void did_allocate_value(size_t size) { _num_value_bytes += size; };
     void did_destroy_value(size_t size) { _num_value_bytes -= size; };
@@ -473,7 +476,7 @@ class Graph {
     uint64_t change_count() const { return _change_count; };
     uint64_t version() const { return _version; }
 
-    bool needs_update() { return _needs_update; };
+    bool needs_update() const { return _needs_update; };
     void set_needs_update(bool needs_update) { _needs_update = needs_update; };
 
     void call_update();
@@ -516,7 +519,7 @@ class Graph {
     template <typename T>
         requires std::invocable<T, Trace &>
     void foreach_trace(T body) {
-        for (auto trace : std::ranges::reverse_view(_traces)) {
+        for (auto *trace : std::ranges::reverse_view(_traces)) {
             body(*trace);
         }
     };

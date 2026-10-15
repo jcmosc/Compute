@@ -400,4 +400,51 @@ struct SubgraphTests {
             #expect(child.intersects(flags: Subgraph.Flags(rawValue: 1)) == true)
         }
     }
+
+    @Suite
+    struct ForEachTests {
+        @Test
+        func forEachDoesNotRetainNonEscapingClosureContext() {
+            let graph = Graph()
+            let subgraph = Subgraph(graph: graph)
+
+            Subgraph.current = subgraph
+            defer { Subgraph.current = nil }
+
+            let attribute = Attribute(value: 1)
+            attribute.flags = Subgraph.Flags(rawValue: 1)
+
+            // Retaining a non-escaping closure context reads its uninitialized header. Fill the stack
+            // with garbage from a sibling frame so the header that forEach's closure context later
+            // occupies is non-zero, which makes the retain crash.
+            fillStackWithGarbage()
+            let (visitedCount, unexpectedCount) = countAttributes(in: subgraph, matching: attribute.identifier)
+
+            #expect(visitedCount == 1)
+            #expect(unexpectedCount == 0)
+        }
+
+        @inline(never)
+        func fillStackWithGarbage() {
+            var garbage = (UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0), UInt64(0))
+            withUnsafeMutableBytes(of: &garbage) { bytes in
+                bytes.initializeMemory(as: UInt8.self, repeating: 0xAF)
+            }
+        }
+
+        @inline(never)
+        func countAttributes(in subgraph: Subgraph, matching expected: AnyAttribute) -> (Int, Int) {
+            // Capturing several values makes the closure context a stack-allocated struct.
+            var visitedCount = 0
+            var unexpectedCount = 0
+            subgraph.forEach(Subgraph.Flags(rawValue: 1)) { attribute in
+                if attribute == expected {
+                    visitedCount += 1
+                } else {
+                    unexpectedCount += 1
+                }
+            }
+            return (visitedCount, unexpectedCount)
+        }
+    }
 }

@@ -178,7 +178,7 @@ void *zone::alloc_persistent(size_t size) {
         return nullptr;
     }
 
-    auto buffer = table::shared().alloc_persistent(size);
+    auto buffer = IAG::data::table::alloc_persistent(size);
     _malloc_buffers.push_back(std::move(buffer));
 
     return _malloc_buffers.back().get();

@@ -13,20 +13,20 @@ context_descriptor::generic_params_info::generic_params_info(const context_descr
         if (type) {
             switch (context.getKind()) {
             case ::swift::ContextDescriptorKind::Class: {
-                auto class_descriptor = reinterpret_cast<const class_type_descriptor *>(context.base());
-                auto asWords = reinterpret_cast<const metadata *const *>(type);
+                const auto *class_descriptor = reinterpret_cast<const class_type_descriptor *>(context.base());
+                const auto *asWords = reinterpret_cast<const metadata *const *>(type);
                 generic_args = asWords + class_descriptor->immediate_members_offset();
                 break;
             }
             case ::swift::ContextDescriptorKind::Struct: {
-                auto struct_descriptor = reinterpret_cast<const ::swift::StructDescriptor *>(context.base());
-                auto asWords = reinterpret_cast<const metadata *const *>(type);
+                const auto *struct_descriptor = reinterpret_cast<const ::swift::StructDescriptor *>(context.base());
+                const auto *asWords = reinterpret_cast<const metadata *const *>(type);
                 generic_args = asWords + struct_descriptor->getGenericArgumentOffset();
                 break;
             }
             case ::swift::ContextDescriptorKind::Enum: {
-                auto enum_descriptor = reinterpret_cast<const ::swift::EnumDescriptor *>(context.base());
-                auto asWords = reinterpret_cast<const metadata *const *>(type);
+                const auto *enum_descriptor = reinterpret_cast<const ::swift::EnumDescriptor *>(context.base());
+                const auto *asWords = reinterpret_cast<const metadata *const *>(type);
                 generic_args = asWords + enum_descriptor->getGenericArgumentOffset();
                 break;
             }
@@ -36,7 +36,7 @@ context_descriptor::generic_params_info::generic_params_info(const context_descr
         }
 
         if (generic_header->NumParams > 0) {
-            auto type_descriptor = reinterpret_cast<const ::swift::TypeContextDescriptor *>(context.base());
+            const auto *type_descriptor = reinterpret_cast<const ::swift::TypeContextDescriptor *>(context.base());
             auto generic_params = type_descriptor->getGenericParams();
             params = generic_params;
 
@@ -106,7 +106,7 @@ void context_descriptor::push_generic_args(const metadata &type,
         case ::swift::GenericParamKind::TypePack: {
             const metadata *types = nullptr;
             uint64_t num_types = 0;
-            auto generic_arg = info.generic_args[arg_index];
+            const auto *generic_arg = info.generic_args[arg_index];
             if (generic_arg != nullptr) {
                 types = reinterpret_cast<const metadata *>(reinterpret_cast<uintptr_t>(generic_arg) & ~0x1);
 

@@ -131,7 +131,7 @@ class Builder : public swift::metadata_visitor {
     Builder(IAGComparisonMode comparison_mode, HeapMode heap_mode)
         : _current_comparison_mode(comparison_mode), _heap_mode(heap_mode) {}
 
-    size_t current_offset() { return _current_offset; };
+    size_t current_offset() const { return _current_offset; };
     IAGComparisonMode current_comparison_mode() { return _current_comparison_mode; };
     vector<Item, 0, uint64_t> &get_items() {
         return _current_enum_case != nullptr ? _current_enum_case->children : _items;
@@ -140,7 +140,7 @@ class Builder : public swift::metadata_visitor {
     ValueLayout commit(const swift::metadata &type);
 
     void add_field(size_t field_size);
-    bool should_visit_fields(const swift::metadata &type, bool flag);
+    bool should_visit_fields(const swift::metadata &type, bool no_fetch);
 
     struct RevertItemsInfo {
         uint64_t item_index;
@@ -149,13 +149,13 @@ class Builder : public swift::metadata_visitor {
 
     void revert(const RevertItemsInfo &info);
 
-    virtual bool visit_element(const swift::metadata &type, const swift::metadata::ref_kind kind, size_t element_offset,
+    bool visit_element(const swift::metadata &type, const swift::metadata::ref_kind kind, size_t element_offset,
                                size_t element_size) override;
 
-    virtual bool visit_case(const swift::metadata &type, const swift::field_record &field, uint32_t arg) override;
-    virtual bool visit_existential(const swift::existential_type_metadata &type) override;
-    virtual bool visit_function(const swift::function_type_metadata &type) override;
-    virtual bool visit_native_object(const swift::metadata &type) override;
+    bool visit_case(const swift::metadata &type, const swift::field_record &field, uint32_t index) override;
+    bool visit_existential(const swift::existential_type_metadata &type) override;
+    bool visit_function(const swift::function_type_metadata &type) override;
+    bool visit_native_object(const swift::metadata &type) override;
 };
 
 } // namespace LayoutDescriptor

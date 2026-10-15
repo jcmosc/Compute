@@ -19,7 +19,7 @@ class Heap {
     char *_free_start;
     size_t _capacity;
 
-    void *alloc_(size_t arg1);
+    void *alloc_(size_t size);
 
   public:
     static constexpr size_t minimum_increment = 0x400;
@@ -39,7 +39,7 @@ class Heap {
     Heap &operator=(Heap &&) = delete;
 
     template <typename T>
-    inline T *_Nonnull alloc(size_t count = 1) {
+    T *_Nonnull alloc(size_t count = 1) {
         return static_cast<T *>(alloc_(sizeof(T) * count));
     };
     void reset(char *_Nullable start, size_t capacity);

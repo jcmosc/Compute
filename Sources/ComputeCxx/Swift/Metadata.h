@@ -32,7 +32,7 @@ class metadata : public ::swift::Metadata {
     bool is_type_metadata() const {
 #if SWIFT_OBJC_INTEROP
         if (::swift::ClassMetadata::classof(this)) {
-            const auto class_type = static_cast<const ::swift::ClassMetadata *>(base());
+            const auto *const class_type = static_cast<const ::swift::ClassMetadata *>(base());
             // Depending on the deployment target a binary was compiled for,
             // statically emitted metadata templates may have a different bit
             // set from the one that this runtime canonically considers the "is
@@ -90,7 +90,7 @@ class existential_type_metadata : public ::swift::ExistentialTypeMetadata {
   public:
     // We need to reimplement these to avoid errors when linking against the
     // Swift runtime library
-    ::swift::ExistentialTypeRepresentation representation(void) const;
+    ::swift::ExistentialTypeRepresentation representation() const;
     const void *project_value(void *container) const;
     const metadata *dynamic_type(void *container) const;
 };

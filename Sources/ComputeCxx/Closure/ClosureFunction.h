@@ -21,14 +21,14 @@ class ClosureFunction {
     Context _context;
 
   public:
-    inline ClosureFunction(std::nullptr_t) : _function(nullptr), _context(nullptr) {}
-    inline ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
+    ClosureFunction(std::nullptr_t) : _function(nullptr), _context(nullptr) {}
+    ClosureFunction(Function function, Context context) noexcept : _function(function), _context(context) {
         if (_context) {
             _context = swift::retain(_context);
         }
     }
 
-    inline ~ClosureFunction() {
+    ~ClosureFunction() {
         if (_context) {
             swift::release(_context);
         }
@@ -79,7 +79,7 @@ class ClosureFunction {
 
     explicit operator bool() { return _function != nullptr; }
 
-    const Result operator()(Args... args) const noexcept { return _function(std::forward<Args>(args)..., _context); }
+    Result operator()(Args... args) const noexcept { return _function(std::forward<Args>(args)..., _context); }
 };
 
 template <typename Result>

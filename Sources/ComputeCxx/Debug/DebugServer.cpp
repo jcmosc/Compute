@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #include <xlocale.h>
 
+#include <algorithm>
+
 #include "Log/Log.h"
 
 namespace IAG {
@@ -19,6 +21,7 @@ DebugServer *DebugServer::_shared_server = nullptr;
 
 DebugServer *_Nullable DebugServer::start(IAGDebugServerOptions options) {
     if (options & IAGDebugServerOptionsEnabled && !_shared_server) {
+        // NOLINTNEXTLINE(readability-simplify-boolean-expr) -- placeholder for future diagnostics check
         if (true /* && os_variant_has_internal_diagnostics() */) {
             _shared_server = new DebugServer(options);
         }
@@ -125,7 +128,7 @@ void DebugServer::accept_handler(void *context) {
 }
 
 void DebugServer::close_connection(Connection *connection) {
-    auto iter = std::remove_if(_connections.begin(), _connections.end(),
+    auto *iter = std::remove_if(_connections.begin(), _connections.end(),
                                [&connection](auto &candidate) -> bool { return candidate.get() == connection; });
     _connections.erase(iter, _connections.end());
 }
@@ -142,9 +145,7 @@ void DebugServer::run(uint32_t timeout) {
         int nfds = _socket;
         for (auto &connection : _connections) {
             FD_SET(connection->socket(), &writefds);
-            if (connection->socket() > nfds) {
-                nfds = connection->socket();
-            }
+            nfds = std::max(connection->socket(), nfds);
         }
 
         tv.tv_sec = timeout;
@@ -183,7 +184,7 @@ void DebugServer::run(uint32_t timeout) {
 }
 
 void DebugServer::shutdown() {
-    if (auto accept_source = _accept_source.get()) {
+    if (auto *accept_source = _accept_source.get()) {
         dispatch_source_set_event_handler(accept_source, nullptr);
         dispatch_set_context(accept_source, nullptr);
         _accept_source = nullptr;
@@ -194,7 +195,7 @@ void DebugServer::shutdown() {
     }
 }
 
-CFURLRef DebugServer::copy_url() {
+CFURLRef DebugServer::copy_url() const {
     if (_socket < 0) {
         return nullptr;
     }

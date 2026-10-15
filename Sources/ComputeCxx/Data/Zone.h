@@ -70,7 +70,7 @@ class zone {
     void realloc_bytes(ptr<void> *buffer, uint32_t size, uint32_t new_size, uint32_t alignment_mask);
 
     // Paged memory
-    ptr<void> alloc(uint32_t size, uint32_t alignment_mask) {
+    [[nodiscard]] ptr<void> alloc(uint32_t size, uint32_t alignment_mask) {
         if (size <= 0x10) {
             return alloc_bytes_recycle(size, alignment_mask);
         } else {
@@ -79,7 +79,7 @@ class zone {
     }
 
     // Persistent memory
-    void *alloc_persistent(size_t size);
+    [[nodiscard]] void *alloc_persistent(size_t size);
 
     // Printing
     static void print_header();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bitset>
+#include <cstddef>
 #include <utility>
 
 #include <platform/lock.h>
@@ -65,8 +66,8 @@ class table {
     void unlock();
 
     // Pointers
-    vm_address_t ptr_base() { return _ptr_base; };
-    uint32_t ptr_max_offset() { return _ptr_max_offset; };
+    vm_address_t ptr_base() const { return _ptr_base; };
+    uint32_t ptr_max_offset() const { return _ptr_max_offset; };
 
     // Region
     void grow_region();
@@ -77,15 +78,15 @@ class table {
     // Pages
     ptr<page> alloc_page(zone *zone, uint32_t size);
     void dealloc_page_locked(ptr<page> page);
-    void make_pages_reusable(uint32_t page_index, bool flag);
+    void make_pages_reusable(uint32_t page_index, bool reusable);
     uint64_t raw_page_seed(ptr<page> page);
 
     // Printing
     void print();
 
     // Counters (TODO: what are these calculated from?)
-    uint64_t bytes() const { return _num_used_pages * 512; }
-    uint64_t max_bytes() const { return _num_used_pages * 512; }
+    uint64_t bytes() const { return static_cast<uint64_t>(_num_used_pages * 512); }
+    uint64_t max_bytes() const { return static_cast<uint64_t>(_num_used_pages * 512); }
 };
 
 } // namespace data

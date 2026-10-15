@@ -24,7 +24,7 @@ class RelativeAttributeID {
 
     // MARK: Accessing data
 
-    AttributeID resolve(data::ptr<data::page> page_ptr) { return AttributeID(page_ptr.offset() + _value); }
+    AttributeID resolve(data::ptr<data::page> page_ptr) const { return AttributeID(page_ptr.offset() + _value); }
 };
 
 } // namespace IAG

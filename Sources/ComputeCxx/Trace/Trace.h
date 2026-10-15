@@ -24,7 +24,7 @@ class Trace {
     IAGUniqueID _id;
 
   public:
-    IAGUniqueID id() { return _id; }
+    IAGUniqueID id() const { return _id; }
 
     Trace() : _id(IAGMakeUniqueID()) {};
     Trace(uint64_t id) : _id(id) {};

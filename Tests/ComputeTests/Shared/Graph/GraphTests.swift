@@ -167,4 +167,51 @@ struct GraphTests {
             }
         }
     }
+
+    @Suite
+    struct MainThreadHandlerTests {
+        struct MainThreadRule: Rule {
+            var value: String {
+                return "computed"
+            }
+        }
+
+        @Test
+        func runsBodyWithoutCallingHandler() {
+            let graph = Graph()
+
+            var handlerCallCount = 0
+            var bodyCallCount = 0
+            graph.withMainThreadHandler { update in
+                handlerCallCount += 1
+                update()
+            } do: {
+                bodyCallCount += 1
+            }
+
+            #expect(bodyCallCount == 1)
+            #expect(handlerCallCount == 0)
+        }
+
+        @Test
+        func callsHandlerToUpdateMainThreadAttribute() {
+            withGraph {
+                // Rules are main thread attributes by default
+                let attribute = Attribute(MainThreadRule())
+                let graph = Subgraph.current!.graph
+
+                var handlerCallCount = 0
+                var value: String?
+                graph.withMainThreadHandler { update in
+                    handlerCallCount += 1
+                    update()
+                } do: {
+                    value = attribute.value
+                }
+
+                #expect(value == "computed")
+                #expect(handlerCallCount == 1)
+            }
+        }
+    }
 }

@@ -32,7 +32,7 @@ extension _AttributeType {
         vtable.pointee.self_destroy = { attributeType, body in
             attributeType.pointee.attributeBody._destroySelf(body)
         }
-        #if os(iOS) || os(macOS)
+        #if canImport(Darwin)
         vtable.pointee.self_description = { attributeType, body in
             let description: String
             if let selfType = attributeType.pointee.self_id.type

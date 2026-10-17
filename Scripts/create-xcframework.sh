@@ -25,12 +25,28 @@ xcodebuild archive \
     -archivePath "$BUILD_DIR/Archives/Compute-iOS-Simulator.xcarchive" \
     ENABLE_USER_SCRIPT_SANDBOXING=NO
 
+xcodebuild archive \
+    -project Xcode/Compute.xcodeproj \
+    -scheme Compute \
+    -destination "generic/platform=visionOS" \
+    -archivePath "$BUILD_DIR/Archives/Compute-visionOS.xcarchive" \
+    ENABLE_USER_SCRIPT_SANDBOXING=NO
+
+xcodebuild archive \
+    -project Xcode/Compute.xcodeproj \
+    -scheme Compute \
+    -destination "generic/platform=visionOS Simulator" \
+    -archivePath "$BUILD_DIR/Archives/Compute-visionOS-Simulator.xcarchive" \
+    ENABLE_USER_SCRIPT_SANDBOXING=NO
+
 rm -rf "$BUILD_DIR/Frameworks/Compute.xcframework"
 
 xcodebuild -create-xcframework \
     -archive "$BUILD_DIR/Archives/Compute-macOS.xcarchive" -framework Compute.framework \
     -archive "$BUILD_DIR/Archives/Compute-iOS.xcarchive" -framework Compute.framework \
     -archive "$BUILD_DIR/Archives/Compute-iOS-Simulator.xcarchive" -framework Compute.framework \
+    -archive "$BUILD_DIR/Archives/Compute-visionOS.xcarchive" -framework Compute.framework \
+    -archive "$BUILD_DIR/Archives/Compute-visionOS-Simulator.xcarchive" -framework Compute.framework \
     -output "$BUILD_DIR/Frameworks/Compute.xcframework"
 
 # Post-process swiftinterface files to replace ComputeCxx references with Compute

@@ -45,7 +45,7 @@ extension Metadata {
 extension Metadata: @retroactive CustomStringConvertible {
 
     public var description: String {
-        #if os(iOS) || os(macOS)
+        #if canImport(Darwin)
         return __IAGTypeDescription(self) as String
         #else
         return String(__IAGTypeCopyDescription(self))

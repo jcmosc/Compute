@@ -4,6 +4,9 @@ on:
   push:
     tags: ["*.*.*"]
 
+permissions:
+  contents: write
+
 jobs:
   macos-build:
     name: macOS
@@ -24,3 +27,51 @@ jobs:
         with:
           path: .build/Xcode/Frameworks/Compute.xcframework.zip
           archive: false
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          zip_path=".build/Xcode/Frameworks/Compute.xcframework.zip"
+          checksum="$(swift package compute-checksum "$zip_path")"
+          url="https://github.com/$REPOSITORY/releases/download/$TAG/Compute.xcframework.zip"
+
+          # Start with the release notes that GitHub generates from the changes since the previous release.
+          gh api "repos/$REPOSITORY/releases/generate-notes" \
+            -f tag_name="$TAG" \
+            --jq .body > release-notes.md
+          cat >> release-notes.md <<NOTES
+
+          ## Binary
+
+          Use the prebuilt \`Compute.xcframework\` from a Swift package:
+
+          \`\`\`swift
+          .binaryTarget(
+              name: "Compute",
+              url: "$url",
+              checksum: "$checksum"
+          )
+          \`\`\`
+
+          Built by the [Release workflow]($RUN_URL) from tag \`$TAG\` at commit \`$GITHUB_SHA\`.
+          NOTES
+
+          prerelease=()
+          if [[ "$TAG" == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" "$zip_path" --clobber
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" "$zip_path" \
+              --verify-tag \
+              --title "Version $TAG" \
+              --notes-file release-notes.md \
+              ${prerelease[@]+"${prerelease[@]}"}
+          fi

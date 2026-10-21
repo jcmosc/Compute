@@ -17,6 +17,18 @@ IAG_ASSUME_NONNULL_BEGIN
 
 namespace IAG {
 
+namespace details {
+
+template <typename T, unsigned int capacity>
+struct vector_storage {
+    alignas(T) char _bytes[sizeof(T) * capacity];
+
+    T *_Nonnull data() { return reinterpret_cast<T *>(_bytes); };
+    const T *_Nonnull data() const { return reinterpret_cast<const T *>(_bytes); };
+};
+
+} // namespace details
+
 template <typename T, unsigned int _inline_capacity = 0, typename _size_type = std::size_t>
     requires std::unsigned_integral<_size_type>
 class vector {
@@ -33,9 +45,7 @@ class vector {
   private:
     // Elements are constructed and destroyed explicitly. After relocation to
     // the heap, the inline storage must not destroy the old element copies.
-    union {
-        T _inline_buffer[_inline_capacity];
-    };
+    details::vector_storage<T, _inline_capacity> _inline_buffer;
     T *_Nullable _buffer = nullptr;
     size_type _size = 0;
     size_type _capacity = _inline_capacity;
@@ -66,8 +76,8 @@ class vector {
     reference back() { return *&data()[_size - 1]; };
     const_reference back() const { return *&data()[_size - 1]; };
 
-    T *_Nonnull data() { return _buffer != nullptr ? _buffer : _inline_buffer; };
-    const T *_Nonnull data() const { return _buffer != nullptr ? _buffer : _inline_buffer; };
+    T *_Nonnull data() { return _buffer != nullptr ? _buffer : _inline_buffer.data(); };
+    const T *_Nonnull data() const { return _buffer != nullptr ? _buffer : _inline_buffer.data(); };
 
     // Iterators
 
@@ -175,8 +185,8 @@ vector<T, _inline_capacity, size_type>::vector(vector &&other) noexcept
         _buffer = std::exchange(other._buffer, nullptr);
     } else {
         for (auto i = 0; i < _size; ++i) {
-            new (&_inline_buffer[i]) T(std::move(other._inline_buffer[i]));
-            other._inline_buffer[i].~T();
+            new (&_inline_buffer.data()[i]) T(std::move(other._inline_buffer.data()[i]));
+            other._inline_buffer.data()[i].~T();
         }
         _buffer = nullptr;
     }
@@ -198,8 +208,8 @@ vector<T, _inline_capacity, size_type> &vector<T, _inline_capacity, size_type>::
             _capacity = other._capacity;
         } else {
             for (auto i = 0; i < other._size; ++i) {
-                new (&_inline_buffer[i]) T(std::move(other._inline_buffer[i]));
-                other._inline_buffer[i].~T();
+                new (&_inline_buffer.data()[i]) T(std::move(other._inline_buffer.data()[i]));
+                other._inline_buffer.data()[i].~T();
             }
             _buffer = nullptr;
             _size = other._size;
@@ -216,7 +226,7 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
 void vector<T, _inline_capacity, size_type>::reserve_slow(size_type new_cap) {
     size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
     _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
-        (void *)_buffer, (void *)_inline_buffer, _inline_capacity, &_capacity, effective_new_cap));
+        (void *)_buffer, (void *)_inline_buffer.data(), _inline_capacity, &_capacity, effective_new_cap));
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
@@ -233,7 +243,7 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
 void vector<T, _inline_capacity, size_type>::shrink_to_fit() {
     if (capacity() > _size) {
         _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
-            _buffer, _inline_buffer, _inline_capacity, &_capacity, _size));
+            _buffer, _inline_buffer.data(), _inline_capacity, &_capacity, _size));
     }
 }
 

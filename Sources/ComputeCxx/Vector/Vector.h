@@ -4,6 +4,7 @@
 #include <cassert>
 #include <concepts>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <memory>
@@ -317,15 +318,28 @@ vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, siz
         return end() - 1;
     }
 
+    // value may refer to an element of this vector
     auto offset = pos - begin();
-    reserve(_size + 1);
+    const T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
     iterator mutable_pos = begin() + offset;
 
     new (end()) value_type(std::move(back()));
     std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
 
-    *mutable_pos = value;
+    if (!std::less<>()(value_ptr, mutable_pos) && std::less<>()(value_ptr, end())) {
+        ++value_ptr;
+    }
+    *mutable_pos = *value_ptr;
     return mutable_pos;
 }
 
@@ -338,15 +352,28 @@ vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, siz
         return end() - 1;
     }
 
+    // value may refer to an element of this vector
     auto offset = pos - begin();
-    reserve(_size + 1);
+    T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
     iterator mutable_pos = begin() + offset;
 
     new (end()) value_type(std::move(back()));
     std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
 
-    *mutable_pos = std::move(value);
+    if (!std::less<>()(value_ptr, mutable_pos) && std::less<>()(value_ptr, end())) {
+        ++value_ptr;
+    }
+    *mutable_pos = std::move(*value_ptr);
     return mutable_pos;
 }
 
@@ -376,16 +403,36 @@ vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, siz
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::push_back(const T &value) {
-    reserve(_size + 1);
-    new (&data()[_size]) value_type(value);
+    // value may refer to an element of this vector
+    const T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
+    new (end()) value_type(*value_ptr);
     _size += 1;
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::push_back(T &&value) {
-    reserve(_size + 1);
-    new (&data()[_size]) value_type(std::move(value));
+    // value may refer to an element of this vector
+    T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
+    new (end()) value_type(std::move(*value_ptr));
     _size += 1;
 }
 
@@ -393,10 +440,16 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 template <typename... Args>
 vector<T, _inline_capacity, size_type>::reference vector<T, _inline_capacity, size_type>::emplace_back(Args &&...args) {
-    reserve(_size + 1);
-    new (&data()[_size]) value_type(std::forward<Args>(args)...);
+    if (_size >= _capacity) {
+        // construct before growing in case args refer to an element of this vector
+        value_type value(std::forward<Args>(args)...);
+        reserve(_size + 1);
+        new (end()) value_type(std::move(value));
+    } else {
+        new (end()) value_type(std::forward<Args>(args)...);
+    }
     _size += 1;
-    return data()[_size - 1];
+    return back();
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
@@ -425,8 +478,18 @@ void vector<T, _inline_capacity, size_type>::resize(size_type count, const value
     if (count < _size) {
         std::destroy(begin() + count, end());
     } else if (count > _size) {
-        reserve(count);
-        std::uninitialized_fill(end(), begin() + count, value);
+        // value may refer to an element of this vector
+        const T *value_ptr = &value;
+        if (count > _capacity) {
+            if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+                auto value_offset = value_ptr - begin();
+                reserve(count);
+                value_ptr = begin() + value_offset;
+            } else {
+                reserve(count);
+            }
+        }
+        std::uninitialized_fill(end(), begin() + count, *value_ptr);
     }
     _size = count;
 }
@@ -627,15 +690,28 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator
         return end() - 1;
     }
 
+    // value may refer to an element of this vector
     auto offset = pos - begin();
-    reserve(_size + 1);
+    const T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
     iterator mutable_pos = begin() + offset;
 
     new (end()) value_type(std::move(back()));
     std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
 
-    *mutable_pos = value;
+    if (!std::less<>()(value_ptr, mutable_pos) && std::less<>()(value_ptr, end())) {
+        ++value_ptr;
+    }
+    *mutable_pos = *value_ptr;
     return mutable_pos;
 }
 
@@ -647,15 +723,28 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator
         return end() - 1;
     }
 
+    // value may refer to an element of this vector
     auto offset = pos - begin();
-    reserve(_size + 1);
+    T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
     iterator mutable_pos = begin() + offset;
 
     new (end()) value_type(std::move(back()));
     std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
 
-    *mutable_pos = std::move(value);
+    if (!std::less<>()(value_ptr, mutable_pos) && std::less<>()(value_ptr, end())) {
+        ++value_ptr;
+    }
+    *mutable_pos = std::move(*value_ptr);
     return mutable_pos;
 }
 
@@ -684,16 +773,36 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::erase(iterator first,
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::push_back(const T &value) {
-    reserve(_size + 1);
-    new (&_buffer[_size]) value_type(value);
+    // value may refer to an element of this vector
+    const T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
+    new (end()) value_type(*value_ptr);
     _size += 1;
 }
 
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::push_back(T &&value) {
-    reserve(_size + 1);
-    new (&_buffer[_size]) value_type(std::move(value));
+    // value may refer to an element of this vector
+    T *value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
+    new (end()) value_type(std::move(*value_ptr));
     _size += 1;
 }
 
@@ -723,8 +832,18 @@ void vector<T, 0, size_type>::resize(size_type count, const value_type &value) {
     if (count < _size) {
         std::destroy(begin() + count, end());
     } else if (count > _size) {
-        reserve(count);
-        std::uninitialized_fill(end(), begin() + count, value);
+        // value may refer to an element of this vector
+        const T *value_ptr = &value;
+        if (count > _capacity) {
+            if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+                auto value_offset = value_ptr - begin();
+                reserve(count);
+                value_ptr = begin() + value_offset;
+            } else {
+                reserve(count);
+            }
+        }
+        std::uninitialized_fill(end(), begin() + count, *value_ptr);
     }
     _size = count;
 }
@@ -911,8 +1030,18 @@ vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator first, it
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::unique_ptr<T, deleter_type> &&value) {
-    reserve(_size + 1);
-    new (&_buffer[_size]) value_type(std::move(value));
+    // value may refer to an element of this vector
+    auto value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
+    new (end()) value_type(std::move(*value_ptr));
     _size += 1;
 }
 

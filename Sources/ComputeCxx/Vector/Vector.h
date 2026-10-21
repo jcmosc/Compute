@@ -1005,6 +1005,25 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve(size_type n
 
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::shrink_to_fit() {
+    if (capacity() == size()) {
+        return;
+    }
+
+    size_type new_capacity = 0;
+    auto new_buffer = reinterpret_cast<std::unique_ptr<T, deleter_type> *>(
+        details::realloc_vector<size_type, sizeof(std::unique_ptr<T, deleter_type>)>(nullptr, &new_capacity, _size));
+    if (new_buffer) {
+        std::uninitialized_move(begin(), end(), new_buffer);
+    }
+    std::destroy(begin(), end());
+    free((void *)_buffer);
+    _buffer = new_buffer;
+    _capacity = new_capacity;
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
 void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::clear() {
     std::destroy(begin(), end());
     _size = 0;

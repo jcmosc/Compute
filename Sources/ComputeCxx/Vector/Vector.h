@@ -6,6 +6,7 @@
 #include <cstring>
 #include <iterator>
 #include <memory>
+#include <type_traits>
 #include <utility>
 
 #include <platform/malloc.h>
@@ -129,6 +130,7 @@ static_assert(std::contiguous_iterator<vector<int>::const_iterator>);
 
 namespace details {
 
+// Relocates elements with memcpy, so only valid for trivially copyable elements.
 template <typename size_type, unsigned int element_size_bytes>
     requires std::unsigned_integral<size_type>
 void *_Nullable realloc_vector(void *_Nullable buffer, void *_Nonnull _inline_buffer, size_type inline_capacity,
@@ -160,6 +162,31 @@ void *_Nullable realloc_vector(void *_Nullable buffer, void *_Nonnull _inline_bu
         memcpy(new_buffer, _inline_buffer, (*size) * element_size_bytes);
     }
 
+    *size = new_size;
+    return new_buffer;
+}
+
+// Relocates elements with realloc, so only valid for trivially copyable elements, or when buffer is null.
+template <typename size_type, size_t element_size>
+    requires std::unsigned_integral<size_type>
+void *_Nullable realloc_vector(void *_Nullable buffer, size_type *_Nonnull size, size_type preferred_new_size) {
+    if (preferred_new_size == 0) {
+        *size = 0;
+        free(buffer);
+        return nullptr;
+    }
+
+    size_t new_size_bytes = malloc_good_size(preferred_new_size * element_size);
+    size_type new_size = (size_type)(new_size_bytes / element_size);
+    if (new_size == *size) {
+        // nothing to do
+        return buffer;
+    }
+
+    void *new_buffer = realloc(buffer, new_size_bytes);
+    if (!new_buffer) {
+        precondition_failure("allocation failure");
+    }
     *size = new_size;
     return new_buffer;
 }
@@ -225,8 +252,22 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::reserve_slow(size_type new_cap) {
     size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
-    _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
-        (void *)_buffer, (void *)_inline_buffer.data(), _inline_capacity, &_capacity, effective_new_cap));
+
+    if constexpr (std::is_trivially_copyable_v<T>) {
+        _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
+            (void *)_buffer, (void *)_inline_buffer.data(), _inline_capacity, &_capacity, effective_new_cap));
+    } else {
+        size_type new_capacity = 0;
+        T *new_buffer = reinterpret_cast<T *>(
+            details::realloc_vector<size_type, sizeof(T)>(nullptr, &new_capacity, effective_new_cap));
+        std::uninitialized_move(begin(), end(), new_buffer);
+        std::destroy(begin(), end());
+        if (_buffer) {
+            free((void *)_buffer);
+        }
+        _buffer = new_buffer;
+        _capacity = new_capacity;
+    }
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
@@ -241,9 +282,26 @@ void vector<T, _inline_capacity, size_type>::reserve(size_type new_cap) {
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::shrink_to_fit() {
-    if (capacity() > _size) {
+    if (!_buffer || capacity() == _size) {
+        return;
+    }
+
+    if constexpr (std::is_trivially_copyable_v<T>) {
         _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
             _buffer, _inline_buffer.data(), _inline_capacity, &_capacity, _size));
+    } else {
+        T *new_buffer = nullptr;
+        size_type new_capacity = _inline_capacity;
+        if (_size > _inline_capacity) {
+            new_capacity = 0;
+            new_buffer =
+                reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(nullptr, &new_capacity, _size));
+        }
+        std::uninitialized_move(begin(), end(), new_buffer ? new_buffer : _inline_buffer.data());
+        std::destroy(begin(), end());
+        free((void *)_buffer);
+        _buffer = new_buffer;
+        _capacity = new_capacity;
     }
 }
 
@@ -466,34 +524,6 @@ class vector<T, 0, _size_type> {
     void resize(size_type count, const value_type &value);
 };
 
-namespace details {
-
-template <typename size_type, size_t element_size>
-    requires std::unsigned_integral<size_type>
-void *_Nullable realloc_vector(void *_Nullable buffer, size_type *_Nonnull size, size_type preferred_new_size) {
-    if (preferred_new_size == 0) {
-        *size = 0;
-        free(buffer);
-        return nullptr;
-    }
-
-    size_t new_size_bytes = malloc_good_size(preferred_new_size * element_size);
-    size_type new_size = (size_type)(new_size_bytes / element_size);
-    if (new_size == *size) {
-        // nothing to do
-        return buffer;
-    }
-
-    void *new_buffer = realloc(buffer, new_size_bytes);
-    if (!new_buffer) {
-        precondition_failure("allocation failure");
-    }
-    *size = new_size;
-    return new_buffer;
-}
-
-} // namespace details
-
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::~vector() {
@@ -537,8 +567,22 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::reserve_slow(size_type new_cap) {
     size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
-    _buffer =
-        reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, &_capacity, effective_new_cap));
+
+    if constexpr (std::is_trivially_copyable_v<T>) {
+        _buffer = reinterpret_cast<T *>(
+            details::realloc_vector<size_type, sizeof(T)>((void *)_buffer, &_capacity, effective_new_cap));
+    } else {
+        size_type new_capacity = 0;
+        T *new_buffer = reinterpret_cast<T *>(
+            details::realloc_vector<size_type, sizeof(T)>(nullptr, &new_capacity, effective_new_cap));
+        std::uninitialized_move(begin(), end(), new_buffer);
+        std::destroy(begin(), end());
+        if (_buffer) {
+            free((void *)_buffer);
+        }
+        _buffer = new_buffer;
+        _capacity = new_capacity;
+    }
 }
 
 template <typename T, typename size_type>
@@ -553,8 +597,23 @@ void vector<T, 0, size_type>::reserve(size_type new_cap) {
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::shrink_to_fit() {
-    if (capacity() > size()) {
+    if (capacity() == size()) {
+        return;
+    }
+
+    if constexpr (std::is_trivially_copyable_v<T>) {
         _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(_buffer, &_capacity, _size));
+    } else {
+        size_type new_capacity = 0;
+        T *new_buffer =
+            reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(nullptr, &new_capacity, _size));
+        if (new_buffer) {
+            std::uninitialized_move(begin(), end(), new_buffer);
+        }
+        std::destroy(begin(), end());
+        free((void *)_buffer);
+        _buffer = new_buffer;
+        _capacity = new_capacity;
     }
 }
 
@@ -816,9 +875,18 @@ template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve_slow(size_type new_cap) {
     size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
-    _buffer = reinterpret_cast<std::unique_ptr<T, deleter_type> *>(
-        details::realloc_vector<size_type, sizeof(std::unique_ptr<T, deleter_type>)>(_buffer, &_capacity,
+
+    size_type new_capacity = 0;
+    auto new_buffer = reinterpret_cast<std::unique_ptr<T, deleter_type> *>(
+        details::realloc_vector<size_type, sizeof(std::unique_ptr<T, deleter_type>)>(nullptr, &new_capacity,
                                                                                      effective_new_cap));
+    std::uninitialized_move(begin(), end(), new_buffer);
+    std::destroy(begin(), end());
+    if (_buffer) {
+        free((void *)_buffer);
+    }
+    _buffer = new_buffer;
+    _capacity = new_capacity;
 }
 
 template <typename T, typename deleter_type, typename size_type>

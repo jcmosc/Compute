@@ -20,10 +20,10 @@
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
+#include "Collection/Vector.h"
 #include "ComputeCxx/IAGGraphProfiling.h"
 #include "ComputeCxx/IAGGraphTracing.h"
 #include "Swift/Metadata.h"
-#include "Vector/Vector.h"
 
 IAG_ASSUME_NONNULL_BEGIN
 

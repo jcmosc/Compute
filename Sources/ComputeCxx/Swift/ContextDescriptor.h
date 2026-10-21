@@ -3,9 +3,9 @@
 #include <llvm/ADT/ArrayRef.h>
 #include <swift/Runtime/Metadata.h>
 
+#include "Collection/Vector.h"
 #include "ComputeCxx/IAGBase.h"
 #include "Metadata.h"
-#include "Vector/Vector.h"
 
 IAG_ASSUME_NONNULL_BEGIN
 

@@ -6,12 +6,12 @@
 
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Closure/ClosureFunction.h"
+#include "Collection/IndirectPointerVector.h"
 #include "ComputeCxx/IAGBase.h"
 #include "ComputeCxx/IAGUniqueID.h"
 #include "Data/Zone.h"
 #include "Graph/Graph.h"
 #include "Graph/Tree/TreeElement.h"
-#include "Vector/IndirectPointerVector.h"
 
 IAG_ASSUME_NONNULL_BEGIN
 

@@ -2,11 +2,11 @@
 
 #include <platform/lock.h>
 
+#include "Collection/Vector.h"
 #include "ComputeCxx/IAGBase.h"
 #include "ComputeCxx/IAGComparison.h"
 #include "LayoutDescriptor.h"
 #include "Swift/MetadataVisitor.h"
-#include "Vector/Vector.h"
 
 IAG_ASSUME_NONNULL_BEGIN
 

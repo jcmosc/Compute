@@ -1013,6 +1013,41 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::clear() {
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::iterator
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::insert(const_iterator pos,
+                                                               std::unique_ptr<T, deleter_type> &&value) {
+    if (pos == end()) {
+        push_back(std::move(value));
+        return end() - 1;
+    }
+
+    // value may refer to an element of this vector
+    auto offset = pos - begin();
+    auto value_ptr = &value;
+    if (_size >= _capacity) {
+        if (!std::less<>()(value_ptr, begin()) && std::less<>()(value_ptr, end())) {
+            auto value_offset = value_ptr - begin();
+            reserve(_size + 1);
+            value_ptr = begin() + value_offset;
+        } else {
+            reserve(_size + 1);
+        }
+    }
+    iterator mutable_pos = begin() + offset;
+
+    new (end()) value_type(std::move(back()));
+    std::move_backward(mutable_pos, end() - 1, end());
+    _size += 1;
+
+    if (!std::less<>()(value_ptr, mutable_pos) && std::less<>()(value_ptr, end())) {
+        ++value_ptr;
+    }
+    *mutable_pos = std::move(*value_ptr);
+    return mutable_pos;
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
+vector<std::unique_ptr<T, deleter_type>, 0, size_type>::iterator
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator pos) {
     if (pos == end()) {
         return end();

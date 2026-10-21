@@ -71,10 +71,10 @@ class vector {
     reference operator[](size_type pos) { return data()[pos]; };
     const_reference operator[](size_type pos) const { return data()[pos]; };
 
-    reference front() { return &data()[0]; };
-    const_reference front() const { return *&data()[0]; };
-    reference back() { return *&data()[_size - 1]; };
-    const_reference back() const { return *&data()[_size - 1]; };
+    reference front() { return data()[0]; };
+    const_reference front() const { return data()[0]; };
+    reference back() { return data()[_size - 1]; };
+    const_reference back() const { return data()[_size - 1]; };
 
     T *_Nonnull data() { return _buffer != nullptr ? _buffer : _inline_buffer.data(); };
     const T *_Nonnull data() const { return _buffer != nullptr ? _buffer : _inline_buffer.data(); };
@@ -416,10 +416,10 @@ class vector<T, 0, _size_type> {
     reference operator[](size_type pos) { return data()[pos]; };
     const_reference operator[](size_type pos) const { return data()[pos]; };
 
-    reference front() { return &data()[0]; };
-    const_reference front() const { return *&data()[0]; };
-    reference back() { return *&data()[_size - 1]; };
-    const_reference back() const { return *&data()[_size - 1]; };
+    reference front() { return data()[0]; };
+    const_reference front() const { return data()[0]; };
+    reference back() { return data()[_size - 1]; };
+    const_reference back() const { return data()[_size - 1]; };
 
     T *_Nonnull data() { return _buffer; };
     const T *_Nonnull data() const { return _buffer; };
@@ -722,10 +722,10 @@ class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
     reference operator[](size_type pos) { return data()[pos]; };
     const_reference operator[](size_type pos) const { return data()[pos]; };
 
-    reference front() { return &data()[0]; };
-    const_reference front() const { return *&data()[0]; };
-    reference back() { return *&data()[_size - 1]; };
-    const_reference back() const { return *&data()[_size - 1]; };
+    reference front() { return data()[0]; };
+    const_reference front() const { return data()[0]; };
+    reference back() { return data()[_size - 1]; };
+    const_reference back() const { return data()[_size - 1]; };
 
     std::unique_ptr<T, deleter_type> *_Nonnull data() { return _buffer; };
     const std::unique_ptr<T, deleter_type> *_Nonnull data() const { return _buffer; };

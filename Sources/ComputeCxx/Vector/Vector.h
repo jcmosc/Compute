@@ -925,7 +925,7 @@ class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
 
     void clear();
 
-    iterator insert(const_iterator pos, const std::unique_ptr<T, deleter_type> &value);
+    iterator insert(const_iterator pos, const std::unique_ptr<T, deleter_type> &value) = delete;
     iterator insert(const_iterator pos, std::unique_ptr<T, deleter_type> &&value);
 
     iterator erase(iterator pos);
@@ -936,7 +936,7 @@ class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
     void pop_back();
 
     void resize(size_type count);
-    void resize(size_type count, const value_type &value);
+    void resize(size_type count, const value_type &value) = delete;
 };
 
 template <typename T, typename deleter_type, typename size_type>

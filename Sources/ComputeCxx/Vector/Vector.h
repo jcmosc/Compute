@@ -31,7 +31,11 @@ class vector {
     using size_type = _size_type;
 
   private:
-    T _inline_buffer[_inline_capacity];
+    // Elements are constructed and destroyed explicitly. After relocation to
+    // the heap, the inline storage must not destroy the old element copies.
+    union {
+        T _inline_buffer[_inline_capacity];
+    };
     T *_Nullable _buffer = nullptr;
     size_type _size = 0;
     size_type _capacity = _inline_capacity;

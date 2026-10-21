@@ -3,6 +3,49 @@ import Testing
 @Suite
 struct SubgraphUpdateTests {
     @Test
+    func updatePreservesChildrenBeyondInlineCapacity() async {
+        await #expect(processExitsWith: .success) {
+            struct CountingRule: StatefulRule {
+                typealias Value = Int
+                var count = 0
+
+                mutating func updateValue() {
+                    count += 1
+                    value = count
+                }
+            }
+
+            withGraph {
+                let parent = Subgraph.current!
+                let flags = Subgraph.Flags(rawValue: 1)
+                let children = (0..<64).map { _ in Subgraph(graph: parent.graph) }
+                let attributes = children.map { child in
+                    parent.addChild(child)
+                    return child.apply {
+                        let attribute = Attribute(CountingRule())
+                        attribute.flags = flags
+                        return attribute
+                    }
+                }
+
+                for expectedValue in 1...3 {
+                    for attribute in attributes {
+                        attribute.invalidateValue()
+                    }
+                    parent.update(flags: flags)
+                    for child in children {
+                        precondition(child.isValid)
+                    }
+                    for attribute in attributes {
+                        precondition(attribute.value == expectedValue)
+                    }
+                }
+                withExtendedLifetime(children) {}
+            }
+        }
+    }
+
+    @Test
     func updateIterativelyEvaluatesDirtiedAttributesDuringTheSamePass() {
         class Counter {
             var ruleACount = 0

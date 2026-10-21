@@ -797,7 +797,7 @@ vector<std::unique_ptr<T, deleter_type>, 0, size_type> &
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::operator=(vector &&other) noexcept {
     if (this != &other) {
         for (auto i = 0; i < _size; i++) {
-            _buffer[i].~T();
+            _buffer[i].reset();
         }
         if (_buffer) {
             free(_buffer);

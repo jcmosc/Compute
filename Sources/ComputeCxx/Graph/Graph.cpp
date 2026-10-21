@@ -243,16 +243,14 @@ void Graph::call_main_handler(void *context, void (*body)(void *)) {
 #pragma mark - Subgraphs
 
 void Graph::add_subgraph(Subgraph &subgraph) {
-    auto *pos = std::lower_bound(_subgraphs.begin(), _subgraphs.end(), &subgraph);
-    _subgraphs.insert(pos, &subgraph);
+    _subgraphs.insert(&subgraph);
 
     _num_subgraphs += 1;
     _num_subgraphs_total += 1;
 }
 
 void Graph::remove_subgraph(Subgraph &subgraph) {
-    auto *iter = std::remove(_subgraphs.begin(), _subgraphs.end(), &subgraph);
-    _subgraphs.erase(iter, _subgraphs.end());
+    _subgraphs.erase(&subgraph);
 
     if (auto *map = _tree_data_elements_by_subgraph.get()) {
         auto iter = map->find(&subgraph);

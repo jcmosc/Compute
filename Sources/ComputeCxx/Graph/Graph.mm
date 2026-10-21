@@ -543,8 +543,9 @@ NSDictionary *Graph::description_graph(Graph *graph, NSDictionary *options) {
         NSMutableArray *subgraph_dicts = [NSMutableArray array];
 
         auto subgraph_indices = std::unordered_map<Subgraph *, uint64_t>();
-        for (uint32_t index = 0, iter = graph->subgraphs().size(); iter > 0; --iter, ++index) {
-            subgraph_indices.try_emplace(graph->subgraphs()[index], index);
+        uint64_t subgraph_index = 0;
+        for (auto subgraph : graph->subgraphs()) {
+            subgraph_indices.try_emplace(subgraph, subgraph_index++);
         }
 
         for (auto subgraph : graph->subgraphs()) {

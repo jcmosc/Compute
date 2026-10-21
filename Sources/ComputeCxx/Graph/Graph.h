@@ -20,6 +20,7 @@
 #include "Attribute/AttributeID/AttributeID.h"
 #include "Attribute/AttributeType/AttributeType.h"
 #include "Closure/ClosureFunction.h"
+#include "Collection/Set.h"
 #include "Collection/Vector.h"
 #include "ComputeCxx/IAGGraphProfiling.h"
 #include "ComputeCxx/IAGGraphTracing.h"
@@ -191,7 +192,7 @@ class Graph {
     std::unique_ptr<KeyTable> _keys = nullptr;
 
     // Subgraphs
-    vector<Subgraph *, 0, uint32_t> _subgraphs;
+    set<Subgraph *, uint32_t> _subgraphs;
     vector<Subgraph *, 0, uint32_t> _subgraphs_with_cached_nodes;
     vector<Subgraph *, 2, uint32_t> _invalidating_subgraphs;
     bool _deferring_subgraph_invalidation = false;
@@ -337,7 +338,7 @@ class Graph {
 
     // MARK: Subgraphs
 
-    vector<Subgraph *, 0, uint32_t> &subgraphs() { return _subgraphs; };
+    set<Subgraph *, uint32_t> &subgraphs() { return _subgraphs; };
 
     void add_subgraph(Subgraph &subgraph);
     void remove_subgraph(Subgraph &subgraph);

@@ -5,6 +5,7 @@
 #include <concepts>
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -251,7 +252,11 @@ vector<T, _inline_capacity, size_type> &vector<T, _inline_capacity, size_type>::
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::reserve_slow(size_type new_cap) {
-    size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
+    constexpr size_t max_capacity = std::numeric_limits<size_type>::max();
+    if (_capacity == max_capacity) {
+        precondition_failure("vector capacity overflow");
+    }
+    size_type effective_new_cap = (size_type)std::clamp(2 * size_t(_capacity) + 1, size_t(new_cap), max_capacity);
 
     if constexpr (std::is_trivially_copyable_v<T>) {
         _buffer = reinterpret_cast<T *>(details::realloc_vector<size_type, sizeof(T)>(
@@ -566,7 +571,11 @@ vector<T, 0, size_type> &vector<T, 0, size_type>::operator=(vector &&other) noex
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::reserve_slow(size_type new_cap) {
-    size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
+    constexpr size_t max_capacity = std::numeric_limits<size_type>::max();
+    if (_capacity == max_capacity) {
+        precondition_failure("vector capacity overflow");
+    }
+    size_type effective_new_cap = (size_type)std::clamp(2 * size_t(_capacity) + 1, size_t(new_cap), max_capacity);
 
     if constexpr (std::is_trivially_copyable_v<T>) {
         _buffer = reinterpret_cast<T *>(
@@ -874,7 +883,11 @@ vector<std::unique_ptr<T, deleter_type>, 0, size_type>::operator=(vector &&other
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve_slow(size_type new_cap) {
-    size_type effective_new_cap = std::max(capacity() * 1.5, new_cap * 1.0);
+    constexpr size_t max_capacity = std::numeric_limits<size_type>::max();
+    if (_capacity == max_capacity) {
+        precondition_failure("vector capacity overflow");
+    }
+    size_type effective_new_cap = (size_type)std::clamp(2 * size_t(_capacity) + 1, size_t(new_cap), max_capacity);
 
     size_type new_capacity = 0;
     auto new_buffer = reinterpret_cast<std::unique_ptr<T, deleter_type> *>(

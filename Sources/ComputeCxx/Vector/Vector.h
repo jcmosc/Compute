@@ -323,12 +323,20 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos,
                                                                                                 const T &value) {
+    if (pos == end()) {
+        push_back(value);
+        return end() - 1;
+    }
+
     auto offset = pos - begin();
     reserve(_size + 1);
     iterator mutable_pos = begin() + offset;
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(value);
+
+    new (end()) value_type(std::move(back()));
+    std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
+
+    *mutable_pos = value;
     return mutable_pos;
 }
 
@@ -336,12 +344,20 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::insert(const_iterator pos,
                                                                                                 T &&value) {
+    if (pos == end()) {
+        push_back(std::move(value));
+        return end() - 1;
+    }
+
     auto offset = pos - begin();
     reserve(_size + 1);
     iterator mutable_pos = begin() + offset;
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(std::move(value));
+
+    new (end()) value_type(std::move(back()));
+    std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
+
+    *mutable_pos = std::move(value);
     return mutable_pos;
 }
 
@@ -354,21 +370,17 @@ vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, siz
     return erase(pos, pos + 1);
 }
 
+// Unlike std::vector, returns the new end() rather than the iterator following the erased elements.
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::iterator vector<T, _inline_capacity, size_type>::erase(iterator first,
                                                                                                iterator last) {
-    auto count = last - first;
-    if (count == 0) {
+    if (first == last) {
         return last;
     }
-    for (auto iter = first; iter != last; iter++) {
-        iter->~T();
-    }
-    for (auto iter = last, old_end = end(); iter != old_end; iter++) {
-        std::swap(*(iter - count), *iter);
-    }
-    _size -= count;
+    iterator new_end = std::move(last, end(), first);
+    std::destroy(new_end, end());
+    _size = (size_type)(new_end - begin());
     return end();
 }
 
@@ -642,12 +654,16 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator
         push_back(value);
         return end() - 1;
     }
+
     auto offset = pos - begin();
     reserve(_size + 1);
     iterator mutable_pos = begin() + offset;
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(value);
+
+    new (end()) value_type(std::move(back()));
+    std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
+
+    *mutable_pos = value;
     return mutable_pos;
 }
 
@@ -658,12 +674,16 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::insert(const_iterator
         push_back(std::move(value));
         return end() - 1;
     }
+
     auto offset = pos - begin();
     reserve(_size + 1);
     iterator mutable_pos = begin() + offset;
-    std::move_backward(mutable_pos, end(), end() + 1);
-    new (mutable_pos) value_type(std::move(value));
+
+    new (end()) value_type(std::move(back()));
+    std::move_backward(mutable_pos, end() - 1, end());
     _size += 1;
+
+    *mutable_pos = std::move(value);
     return mutable_pos;
 }
 
@@ -676,20 +696,16 @@ vector<T, 0, size_type>::iterator vector<T, 0, size_type>::erase(iterator pos) {
     return erase(pos, pos + 1);
 }
 
+// Unlike std::vector, returns the new end() rather than the iterator following the erased elements.
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::iterator vector<T, 0, size_type>::erase(iterator first, iterator last) {
-    auto count = last - first;
-    if (count == 0) {
+    if (first == last) {
         return last;
     }
-    for (auto iter = first; iter != last; iter++) {
-        iter->~T();
-    }
-    for (auto iter = last, old_end = end(); iter != old_end; iter++) {
-        std::swap(*(iter - count), *iter);
-    }
-    _size -= count;
+    iterator new_end = std::move(last, end(), first);
+    std::destroy(new_end, end());
+    _size = (size_type)(new_end - begin());
     return end();
 }
 
@@ -921,21 +937,17 @@ vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator pos) {
     return erase(pos, pos + 1);
 }
 
+// Unlike std::vector, returns the new end() rather than the iterator following the erased elements.
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::iterator
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator first, iterator last) {
-    auto count = last - first;
-    if (count == 0) {
+    if (first == last) {
         return last;
     }
-    for (auto iter = first; iter != last; iter++) {
-        iter->reset();
-    }
-    for (auto iter = last, old_end = end(); iter != old_end; iter++) {
-        std::swap(*(iter - count), *iter);
-    }
-    _size -= count;
+    iterator new_end = std::move(last, end(), first);
+    std::destroy(new_end, end());
+    _size = (size_type)(new_end - begin());
     return end();
 }
 

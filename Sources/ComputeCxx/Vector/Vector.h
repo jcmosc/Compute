@@ -1005,6 +1005,13 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::reserve(size_type n
 
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::clear() {
+    std::destroy(begin(), end());
+    _size = 0;
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::iterator
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::erase(iterator pos) {
     if (pos == end()) {
@@ -1043,6 +1050,14 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::push_back(std::uniq
     }
     new (end()) value_type(std::move(*value_ptr));
     _size += 1;
+}
+
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::pop_back() {
+    assert(size() > 0);
+    _size -= 1;
+    std::destroy_at(end());
 }
 
 } // namespace IAG

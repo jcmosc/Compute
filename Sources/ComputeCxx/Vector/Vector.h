@@ -197,9 +197,7 @@ void *_Nullable realloc_vector(void *_Nullable buffer, size_type *_Nonnull size,
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type>::~vector() {
-    for (auto i = 0; i < _size; i++) {
-        data()[i].~T();
-    }
+    std::destroy(begin(), end());
     if (_buffer) {
         free((void *)_buffer);
     }
@@ -207,45 +205,38 @@ vector<T, _inline_capacity, size_type>::~vector() {
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
-vector<T, _inline_capacity, size_type>::vector(vector &&other) noexcept
-    : _size(std::exchange(other._size, 0)), _capacity(std::exchange(other._capacity, _inline_capacity)) {
+vector<T, _inline_capacity, size_type>::vector(vector &&other) noexcept {
     if (other._buffer) {
         _buffer = std::exchange(other._buffer, nullptr);
+        _capacity = std::exchange(other._capacity, _inline_capacity);
     } else {
-        for (auto i = 0; i < _size; ++i) {
-            new (&_inline_buffer.data()[i]) T(std::move(other._inline_buffer.data()[i]));
-            other._inline_buffer.data()[i].~T();
-        }
-        _buffer = nullptr;
+        std::uninitialized_move(other.begin(), other.end(), _inline_buffer.data());
+        std::destroy(other.begin(), other.end());
     }
+    _size = std::exchange(other._size, 0);
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, _inline_capacity, size_type> &vector<T, _inline_capacity, size_type>::operator=(vector &&other) noexcept {
-    if (this != &other) {
-        for (auto i = 0; i < _size; i++) {
-            data()[i].~T();
-        }
-        if (_buffer) {
-            free(_buffer);
-        }
-        if (other._buffer) {
-            _buffer = std::exchange(other._buffer, nullptr);
-            _size = other._size;
-            _capacity = other._capacity;
-        } else {
-            for (auto i = 0; i < other._size; ++i) {
-                new (&_inline_buffer.data()[i]) T(std::move(other._inline_buffer.data()[i]));
-                other._inline_buffer.data()[i].~T();
-            }
-            _buffer = nullptr;
-            _size = other._size;
-            _capacity = other._capacity;
-        }
-        other._size = 0;
-        other._capacity = _inline_capacity;
+    if (this == &other) {
+        return *this;
     }
+
+    std::destroy(begin(), end());
+    if (other._buffer) {
+        // steal the heap buffer
+        if (_buffer) {
+            free((void *)_buffer);
+        }
+        _buffer = std::exchange(other._buffer, nullptr);
+        _capacity = std::exchange(other._capacity, _inline_capacity);
+    } else {
+        // inline elements always fit in our current storage
+        std::uninitialized_move(other.begin(), other.end(), begin());
+        std::destroy(other.begin(), other.end());
+    }
+    _size = std::exchange(other._size, 0);
     return *this;
 }
 
@@ -313,9 +304,7 @@ void vector<T, _inline_capacity, size_type>::shrink_to_fit() {
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::clear() {
-    for (auto i = 0; i < _size; i++) {
-        data()[i].~T();
-    }
+    std::destroy(begin(), end());
     _size = 0;
 }
 
@@ -414,22 +403,18 @@ template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::pop_back() {
     assert(size() > 0);
-    data()[_size - 1].~T();
     _size -= 1;
+    std::destroy_at(end());
 }
 
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::resize(size_type count) {
-    reserve(count);
     if (count < _size) {
-        for (auto i = count; i < _size; i++) {
-            data()[i].~T();
-        }
+        std::destroy(begin() + count, end());
     } else if (count > _size) {
-        for (auto i = _size; i < count; i++) {
-            new (&data()[i]) value_type();
-        }
+        reserve(count);
+        std::uninitialized_value_construct(end(), begin() + count);
     }
     _size = count;
 }
@@ -437,15 +422,11 @@ void vector<T, _inline_capacity, size_type>::resize(size_type count) {
 template <typename T, unsigned int _inline_capacity, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, _inline_capacity, size_type>::resize(size_type count, const value_type &value) {
-    reserve(count);
     if (count < _size) {
-        for (auto i = count; i < _size; i++) {
-            data()[i].~T();
-        }
+        std::destroy(begin() + count, end());
     } else if (count > _size) {
-        for (auto i = _size; i < count; i++) {
-            new (&data()[i]) value_type(value);
-        }
+        reserve(count);
+        std::uninitialized_fill(end(), begin() + count, value);
     }
     _size = count;
 }
@@ -544,39 +525,32 @@ class vector<T, 0, _size_type> {
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::~vector() {
-    for (auto i = 0; i < _size; i++) {
-        _buffer[i].~T();
-    }
+    std::destroy(begin(), end());
     if (_buffer) {
-        free(_buffer);
+        free((void *)_buffer);
     }
 }
 
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type>::vector(vector &&other) noexcept
-    : _buffer(std::exchange(other._buffer, nullptr)), _size(other._size), _capacity(other._capacity) {
-    other._size = 0;
-    other._capacity = 0;
-}
+    : _buffer(std::exchange(other._buffer, nullptr)), _size(std::exchange(other._size, 0)),
+      _capacity(std::exchange(other._capacity, 0)) {}
 
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<T, 0, size_type> &vector<T, 0, size_type>::operator=(vector &&other) noexcept {
-    if (this != &other) {
-        for (auto i = 0; i < _size; i++) {
-            _buffer[i].~T();
-        }
-        if (_buffer) {
-            free(_buffer);
-        }
-        _buffer = other._buffer;
-        _size = other._size;
-        _capacity = other._capacity;
-        other._buffer = nullptr;
-        other._size = 0;
-        other._capacity = 0;
+    if (this == &other) {
+        return *this;
     }
+
+    std::destroy(begin(), end());
+    if (_buffer) {
+        free((void *)_buffer);
+    }
+    _buffer = std::exchange(other._buffer, nullptr);
+    _size = std::exchange(other._size, 0);
+    _capacity = std::exchange(other._capacity, 0);
     return *this;
 }
 
@@ -641,9 +615,7 @@ void vector<T, 0, size_type>::shrink_to_fit() {
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::clear() {
-    for (auto i = 0; i < _size; i++) {
-        data()[i].~T();
-    }
+    std::destroy(begin(), end());
     _size = 0;
 }
 
@@ -729,22 +701,18 @@ template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::pop_back() {
     assert(size() > 0);
-    data()[_size - 1].~T();
     _size -= 1;
+    std::destroy_at(end());
 }
 
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::resize(size_type count) {
-    reserve(count);
     if (count < _size) {
-        for (auto i = count; i < _size; i++) {
-            data()[i].~T();
-        }
+        std::destroy(begin() + count, end());
     } else if (count > _size) {
-        for (auto i = _size; i < count; i++) {
-            new (&data()[i]) value_type();
-        }
+        reserve(count);
+        std::uninitialized_value_construct(end(), begin() + count);
     }
     _size = count;
 }
@@ -752,15 +720,11 @@ void vector<T, 0, size_type>::resize(size_type count) {
 template <typename T, typename size_type>
     requires std::unsigned_integral<size_type>
 void vector<T, 0, size_type>::resize(size_type count, const value_type &value) {
-    reserve(count);
     if (count < _size) {
-        for (auto i = count; i < _size; i++) {
-            data()[i].~T();
-        }
+        std::destroy(begin() + count, end());
     } else if (count > _size) {
-        for (auto i = _size; i < count; i++) {
-            new (&data()[i]) value_type(value);
-        }
+        reserve(count);
+        std::uninitialized_fill(end(), begin() + count, value);
     }
     _size = count;
 }
@@ -859,40 +823,33 @@ class vector<std::unique_ptr<T, deleter_type>, 0, _size_type> {
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::~vector() {
-    for (auto i = 0; i < _size; i++) {
-        _buffer[i].reset();
-    }
+    std::destroy(begin(), end());
     if (_buffer) {
-        free(_buffer);
+        free((void *)_buffer);
     }
 }
 
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::vector(vector &&other) noexcept
-    : _buffer(std::exchange(other._buffer, nullptr)), _size(other._size), _capacity(other._capacity) {
-    other._size = 0;
-    other._capacity = 0;
-}
+    : _buffer(std::exchange(other._buffer, nullptr)), _size(std::exchange(other._size, 0)),
+      _capacity(std::exchange(other._capacity, 0)) {}
 
 template <typename T, typename deleter_type, typename size_type>
     requires std::unsigned_integral<size_type>
 vector<std::unique_ptr<T, deleter_type>, 0, size_type> &
 vector<std::unique_ptr<T, deleter_type>, 0, size_type>::operator=(vector &&other) noexcept {
-    if (this != &other) {
-        for (auto i = 0; i < _size; i++) {
-            _buffer[i].reset();
-        }
-        if (_buffer) {
-            free(_buffer);
-        }
-        _buffer = other._buffer;
-        _size = other._size;
-        _capacity = other._capacity;
-        other._buffer = nullptr;
-        other._size = 0;
-        other._capacity = 0;
+    if (this == &other) {
+        return *this;
     }
+
+    std::destroy(begin(), end());
+    if (_buffer) {
+        free((void *)_buffer);
+    }
+    _buffer = std::exchange(other._buffer, nullptr);
+    _size = std::exchange(other._size, 0);
+    _capacity = std::exchange(other._capacity, 0);
     return *this;
 }
 

@@ -1095,6 +1095,18 @@ void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::pop_back() {
     std::destroy_at(end());
 }
 
+template <typename T, typename deleter_type, typename size_type>
+    requires std::unsigned_integral<size_type>
+void vector<std::unique_ptr<T, deleter_type>, 0, size_type>::resize(size_type count) {
+    if (count < _size) {
+        std::destroy(begin() + count, end());
+    } else if (count > _size) {
+        reserve(count);
+        std::uninitialized_value_construct(end(), begin() + count);
+    }
+    _size = count;
+}
+
 } // namespace IAG
 
 IAG_ASSUME_NONNULL_END

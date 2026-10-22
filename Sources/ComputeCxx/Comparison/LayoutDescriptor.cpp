@@ -969,7 +969,7 @@ ValueLayout Builder::commit(const swift::metadata &type) {
         return nullptr;
     }
     if (_heap_mode == HeapMode(0)) {
-        emitter.set_invalid(type.vw_size() < emitter.emitted_size());
+        emitter.set_invalid(type.vw_size() < emitter.emitted_offset());
         if (emitter.is_invalid()) {
             return ValueLayoutTrivial;
         }
@@ -1268,7 +1268,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Da
     if (item_size != 0) {
         _data->push_back((item_size - 1) | 0x80);
     }
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const EqualsItem &item) {
@@ -1276,7 +1276,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Eq
     _data->push_back((unsigned char)ValueLayoutEntryKind::Equals);
     emit_value((void *)item.type);
     emit_value((void *)item.equatable);
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const IndirectItem &item) {
@@ -1284,21 +1284,21 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const In
     _data->push_back((unsigned char)ValueLayoutEntryKind::Indirect);
     emit_value((void *)item.type);
     emit_value(nullptr);
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const ExistentialItem &item) {
     enter(item);
     _data->push_back((unsigned char)ValueLayoutEntryKind::Existential);
     emit_value((void *)item.type);
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const HeapRefItem &item) {
     enter(item);
     _data->push_back(item.is_capture_ref ? (unsigned char)ValueLayoutEntryKind::CaptureRef
                                          : (unsigned char)ValueLayoutEntryKind::HeapRef);
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const NestedItem &item) {
@@ -1338,7 +1338,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const Ne
         }
     }
 
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const EnumItem &item) {
@@ -1388,7 +1388,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
             // Case items have offsets in the same space as the enum item, and the
             // comparison starts each case at the enum's offset.
             auto children_emitter = Emitter<vector<unsigned char, 512, uint64_t>>(_data);
-            children_emitter._emitted_size = item.offset;
+            children_emitter._emitted_offset = item.offset;
             for (auto &&child : enum_case.children) {
                 std::visit(children_emitter, child);
             }
@@ -1396,22 +1396,22 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
             is_first = false;
 
             _invalid = _invalid || children_emitter.is_invalid() ||
-                       _emitted_size + item.type->vw_size() < children_emitter.emitted_size();
+                       _emitted_offset + item.type->vw_size() < children_emitter.emitted_offset();
         }
     }
 
     _data->push_back((unsigned char)ValueLayoutEntryKind::EnumEnd);
 
-    _emitted_size += item.size;
+    _emitted_offset += item.size;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::enter(const RangeItem &item) {
     if (!_invalid) {
-        if (item.offset >= _emitted_size) {
+        if (item.offset >= _emitted_offset) {
             // Emit number of bytes until item offset
             // encode as a series of numbers from 0-63, indicating chunks of
             // bytes 1-64
-            size_t skip = item.offset - _emitted_size;
+            size_t skip = item.offset - _emitted_offset;
             while (skip > 0x40) {
                 _data->push_back('\x7f');
                 skip -= 0x40;
@@ -1423,7 +1423,7 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::enter(const RangeIt
             _invalid = true;
         }
     }
-    _emitted_size = item.offset;
+    _emitted_offset = item.offset;
 }
 
 void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::finish() {

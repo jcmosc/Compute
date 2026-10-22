@@ -40,8 +40,11 @@ class Compare {
         Enum(const Enum &) = delete;
         Enum &operator=(const Enum &) = delete;
 
-        // Non-moveable
-        Enum(Enum &&) = delete;
+        // Move constructible so that vector can relocate it, the moved-from enum no longer owns anything
+        Enum(Enum &&other)
+            : type(std::exchange(other.type, nullptr)), enum_tag(other.enum_tag), lhs(other.lhs), rhs(other.rhs),
+              lhs_copy(other.lhs_copy), rhs_copy(other.rhs_copy), offset(other.offset), mode(other.mode),
+              owns_copies(std::exchange(other.owns_copies, false)) {};
         Enum &operator=(Enum &&) = delete;
     };
 

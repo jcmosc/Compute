@@ -1145,23 +1145,25 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
     };
     enum_item.cases.push_back(std::move(enum_case));
 
-    bool result;
-
     _enum_case_depth += 1;
     EnumItem::Case *prev_enum_case = _current_enum_case;
     _current_enum_case = &enum_item.cases.back();
 
     if (field.isIndirectCase() && _current_comparison_mode == 0) {
         add_field(sizeof(void *));
-        result = true;
     } else {
         auto mangled_type_name = field.MangledTypeName.get();
         auto field_type =
             mangled_type_name != nullptr ? type.mangled_type_name_ref(mangled_type_name, false, nullptr) : nullptr;
         if (field_type == nullptr) {
-            // bail out if we can't get a type for the enum case payload
+            // bail out if we can't get a type for the enum case payload. The enum item and its cases are destroyed, so
+            // return without touching them again.
             items.pop_back();
-            result = false;
+
+            _enum_case_depth -= 1;
+            _current_enum_case = prev_enum_case;
+
+            return false;
         } else if (field.isIndirectCase()) {
             if (auto field_size = field_type->vw_size()) {
                 IndirectItem item = {
@@ -1171,7 +1173,6 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
                 };
                 _current_enum_case->children.push_back(item);
             }
-            result = true;
         } else {
             IAGComparisonMode prev_comparison_mode = _current_comparison_mode;
             _current_comparison_mode = mode_for_type(&type, _current_comparison_mode);
@@ -1209,8 +1210,6 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
             }
 
             _current_comparison_mode = prev_comparison_mode;
-
-            result = true;
         }
     }
 
@@ -1221,7 +1220,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
     _enum_case_depth -= 1;
     _current_enum_case = prev_enum_case;
 
-    return result;
+    return true;
 }
 
 bool Builder::visit_existential(const swift::existential_type_metadata &type) {

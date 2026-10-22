@@ -1395,9 +1395,8 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
 
             is_first = false;
 
-            if (!_invalid && !children_emitter.is_invalid()) {
-                _invalid = _emitted_size + item.type->vw_size() < children_emitter.emitted_size();
-            }
+            _invalid = _invalid || children_emitter.is_invalid() ||
+                       _emitted_size + item.type->vw_size() < children_emitter.emitted_size();
         }
     }
 

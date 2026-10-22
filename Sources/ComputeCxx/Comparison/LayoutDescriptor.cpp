@@ -1181,6 +1181,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
 
                 // same as visit_element
                 auto &items = get_items();
+                auto num_items = items.size();
                 size_t prev_offset = -1;
                 size_t prev_size = 0;
                 if (auto data_item = items.size() > 0 ? std::get_if<DataItem>(&items.back()) : nullptr) {
@@ -1190,7 +1191,7 @@ bool Builder::visit_case(const swift::metadata &type, const swift::field_record 
 
                 if (!field_type->visit(*this)) {
                     RevertItemsInfo info = {
-                        items.size(),
+                        num_items,
                         {
                             prev_offset,
                             prev_size,

@@ -56,7 +56,8 @@ class Builder : public swift::metadata_visitor {
     class Emitter {
       private:
         T *_Nonnull _data;
-        size_t _emitted_size = 0;
+        // Offset in the value up to which layout entries have been emitted.
+        size_t _emitted_offset = 0;
         bool _invalid = false;
 
       public:
@@ -70,7 +71,7 @@ class Builder : public swift::metadata_visitor {
         void enter(const RangeItem &range_item);
 
         const vector<unsigned char, 512, uint64_t> &data() const { return *_data; };
-        size_t emitted_size() const { return _emitted_size; };
+        size_t emitted_offset() const { return _emitted_offset; };
         bool is_invalid() const { return _invalid; };
         void set_invalid(bool invalid) { _invalid = invalid; };
 
@@ -81,7 +82,8 @@ class Builder : public swift::metadata_visitor {
     class Emitter<vector<unsigned char, 512, uint64_t>> {
       private:
         vector<unsigned char, 512, uint64_t> *_Nonnull _data;
-        size_t _emitted_size = 0;
+        // Offset in the value up to which layout entries have been emitted.
+        size_t _emitted_offset = 0;
         bool _invalid = false;
 
       public:
@@ -97,7 +99,7 @@ class Builder : public swift::metadata_visitor {
         void enter(const RangeItem &range_item);
 
         const vector<unsigned char, 512, uint64_t> &data() const { return *_data; };
-        size_t emitted_size() const { return _emitted_size; };
+        size_t emitted_offset() const { return _emitted_offset; };
         bool is_invalid() const { return _invalid; };
         void set_invalid(bool invalid) { _invalid = invalid; };
 

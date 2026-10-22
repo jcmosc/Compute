@@ -1385,7 +1385,10 @@ void Builder::Emitter<vector<unsigned char, 512, uint64_t>>::operator()(const En
                 emit_value((void *)item.type);
             }
 
+            // Case items have offsets in the same space as the enum item, and the
+            // comparison starts each case at the enum's offset.
             auto children_emitter = Emitter<vector<unsigned char, 512, uint64_t>>(_data);
+            children_emitter._emitted_size = item.offset;
             for (auto &&child : enum_case.children) {
                 std::visit(children_emitter, child);
             }
